@@ -54,3 +54,16 @@ export async function updateMeProfile(data: UserProfile): Promise<UserData> {
         body: data,
     })
  }
+
+ export async function verifyEmail(uidb64: string, token: string): Promise<{ detail: string }> {
+    return request<{ detail: string }>(`auth/verify-email/${uidb64}/${token}/`, {
+        method: "GET",
+    });
+}
+
+export async function resendVerificationEmail(email: string): Promise<{ detail: string }> {
+    return request<{ detail: string }>("auth/resend-verification/", {
+        method: "POST",
+        body: { email },
+    });
+}

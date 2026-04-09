@@ -4,23 +4,26 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { loginUser, registerUser } from "../api/authApi";
 import { validateRegisterForm } from "../model/validation";
-import { FormErrors, RegisterFormData } from "../model/types";
+import { RegisterFormErrors, RegisterFormData } from "../model/types/register_types";
 import { Input } from "../../../shared/ui/Input";
+import { LoginResponse } from "../model/types/login_types";
+import {saveTokensCookies} from "@/shared/api/cookies_actions";
 
 const initialForm: RegisterFormData = {
-    username: "",
     email: "",
+    firstName: "",
+    lastName: "",
     password: "",
     confirmPassword: "",
     role: "student",
-    language: "",
+    language: "en",
 };
 
 export function RegisterForm() {
     const router = useRouter();
 
     const [formData, setFormData] = useState<RegisterFormData>(initialForm);
-    const [errors, setErrors] = useState<FormErrors>({});
+    const [errors, setErrors] = useState<RegisterFormErrors>({});
     const [apiError, setApiError] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -56,21 +59,22 @@ export function RegisterForm() {
 
         try {
             await registerUser({
-                username: formData.username.trim(),
                 email: formData.email.trim(),
+                first_name: formData.firstName.trim(),
+                last_name: formData.lastName.trim(),
                 password: formData.password,
                 role: "student",
                 language: "en",
             });
 
-            const loginResponse = await loginUser({
-                username: formData.username.trim(),
+            const loginResponse: LoginResponse = await loginUser({
+                email: formData.email.trim(),
                 password: formData.password,
             });
 
-            localStorage.setItem("accessToken", loginResponse.access);
-            localStorage.setItem("refreshToken", loginResponse.refresh);
-
+            await saveTokensCookies(loginResponse.access, loginResponse.refresh);
+            
+            
             router.push("/dashboard");
         } catch (error: unknown) {
             const typedError = error as {
@@ -79,7 +83,7 @@ export function RegisterForm() {
             };
 
             if (typedError?.fields && typeof typedError.fields === "object") {
-                const backendFieldErrors: FormErrors = {};
+                const backendFieldErrors: RegisterFormErrors = {};
 
                 Object.entries(typedError.fields).forEach(([key, value]) => {
                     const normalizedValue = Array.isArray(value) ? value[0] : String(value);
@@ -87,7 +91,6 @@ export function RegisterForm() {
                     if (key === "confirm_password") {
                         backendFieldErrors.confirmPassword = normalizedValue;
                     } else if (
-                        key === "username" ||
                         key === "email" ||
                         key === "password" ||
                         key === "confirmPassword"
@@ -111,14 +114,25 @@ export function RegisterForm() {
     return (
         <form className="register-form" onSubmit={handleSubmit}>
             <Input
-                id="username"
-                name="username"
+                id="firstName"
+                name="firstName"
                 type="text"
-                label="Username"
-                placeholder="Введіть username"
-                value={formData.username}
+                label="First Name"
+                placeholder="Введіть ім'я"
+                value={formData.firstName}
                 onChange={handleChange}
-                error={errors.username}
+                error={errors.firstName}
+            />
+
+            <Input
+                id="lastName"
+                name="lastName"
+                type="text"
+                label="Last Name"
+                placeholder="Введіть прізвище"
+                value={formData.lastName}
+                onChange={handleChange}
+                error={errors.lastName}
             />
 
             <Input

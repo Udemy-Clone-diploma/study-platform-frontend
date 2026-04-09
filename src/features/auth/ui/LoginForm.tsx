@@ -2,25 +2,24 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { registerUser } from "../api/authApi";
-import { validateRegisterForm } from "../model/validation";
-import { FormErrors, RegisterFormData } from "../model/types";
+import { loginUser } from "../api/authApi";
+import { validateLoginForm } from "../model/validation";
+import { LoginFormErrors, LoginFormData, LoginResponse } from "../model/types/login_types";
 import { Input } from "../../../shared/ui/Input";
+import { saveTokensCookies } from "@/shared/api/cookies_actions";
+import { saveTokens } from "@/shared/api/tokenStorage";
 
-const initialForm: RegisterFormData = {
-    username: "",
-    email: "",
+
+const initialForm: LoginFormData = {
+    email: "",  
     password: "",
-    confirmPassword: "",
-    role: "student",
-    language: "en",
-};
+}
 
-export function RegisterForm() {
-    const router = useRouter();
+export function LoginForm() {
+const router = useRouter();
 
-    const [formData, setFormData] = useState<RegisterFormData>(initialForm);
-    const [errors, setErrors] = useState<FormErrors>({});
+    const [formData, setFormData] = useState<LoginFormData>(initialForm);
+    const [errors, setErrors] = useState<LoginFormErrors>({});
     const [apiError, setApiError] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -40,10 +39,10 @@ export function RegisterForm() {
         setApiError("");
     }
 
-    async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    async function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
         event.preventDefault();
 
-        const validationErrors = validateRegisterForm(formData);
+        const validationErrors = validateLoginForm(formData);
 
         if (Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors);
@@ -55,17 +54,15 @@ export function RegisterForm() {
         setApiError("");
 
         try {
-            const createdUser = await registerUser({
-                username: formData.username.trim(),
+            const loginResponse: LoginResponse = await loginUser({
                 email: formData.email.trim(),
                 password: formData.password,
-                role: formData.role,
-                language: formData.language.trim() || "en",
             });
 
-            console.log("Registered user:", createdUser);
-            localStorage.setItem("currentUser", JSON.stringify(createdUser));
- 
+            // await saveTokensCookies(loginResponse.access, loginResponse.refresh);
+            saveTokens(loginResponse.access, loginResponse.refresh);
+            
+
             router.push("/dashboard");
         } catch (error: unknown) {
             const typedError = error as {
@@ -74,19 +71,15 @@ export function RegisterForm() {
             };
 
             if (typedError?.fields && typeof typedError.fields === "object") {
-                const backendFieldErrors: FormErrors = {};
+                const backendFieldErrors: LoginFormErrors = {};
 
                 Object.entries(typedError.fields).forEach(([key, value]) => {
                     const normalizedValue = Array.isArray(value) ? value[0] : String(value);
-
                     if (
-                        key === "username" ||
                         key === "email" ||
-                        key === "password" ||
-                        key === "language" ||
-                        key === "role"
+                        key === "password" 
                     ) {
-                        backendFieldErrors[key as keyof FormErrors] = normalizedValue;
+                        backendFieldErrors[key] = normalizedValue;
                     }
                 });
 
@@ -96,26 +89,14 @@ export function RegisterForm() {
                 }));
             }
 
-            setApiError(
-                typedError?.message || "Відбулася помилка при реєстрації. Спробуйте ще раз."
-            );
+            setApiError(typedError?.message || "Відбулася помилка при вході. Спробуйте ще раз.");
         } finally {
             setIsSubmitting(false);
         }
     }
 
     return (
-        <form className="register-form" onSubmit={handleSubmit}>
-            <Input
-                id="username"
-                name="username"
-                type="text"
-                label="Username"
-                placeholder="Введіть username"
-                value={formData.username}
-                onChange={handleChange}
-                error={errors.username}
-            />
+        <form className="login-form" onSubmit={handleSubmit}>
 
             <Input
                 id="email"
@@ -139,36 +120,14 @@ export function RegisterForm() {
                 error={errors.password}
             />
 
-            <Input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                label="Confirm password"
-                placeholder="Підтвердіть пароль"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                error={errors.confirmPassword}
-            />
-
-            <Input
-                id="language"
-                name="language"
-                type="text"
-                label="Language"
-                placeholder="Введіть мову"
-                value={formData.language}
-                onChange={handleChange}
-                error={errors.language}
-            />
-
             {apiError ? <div className="form-api-error">{apiError}</div> : null}
-
+            
             <button
                 type="submit"
                 disabled={isSubmitting}
                 className="align-middle mt-2 w-lg rounded-lg bg-gray-900 px-4 py-3 text-sm font-medium text-white transition duration-200 hover:bg-gray-900 disabled:cursor-not-allowed disabled:opacity-50"
             >
-                {isSubmitting ? "Реєстрація..." : "Зареєструватися"}
+                {isSubmitting ? "Вхід..." : "Увійти"}
             </button>
         </form>
     );

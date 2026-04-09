@@ -1,12 +1,18 @@
+import { getAccessToken, clearTokens, saveTokens, getRefreshToken } from "./tokenStorage";
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1/";
 
 type RequestOptions = Omit<RequestInit, "body"> & {
     body?: unknown;
+    _retry?: boolean;
 };
 
 export async function request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
+    const accessToken = getAccessToken();
+
     const headers: HeadersInit = {
         "Content-Type": "application/json",
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         ...(options.headers || {}),
     };
 

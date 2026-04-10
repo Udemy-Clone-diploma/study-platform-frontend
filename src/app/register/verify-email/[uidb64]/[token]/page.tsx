@@ -18,21 +18,21 @@ export default function VerifyEmailPage() {
   const [message, setMessage] = useState("");
 
   const [showResendForm, setShowResendForm] = useState(false);
-
   const [resendEmail, setResendEmail] = useState("");
-  const [resendMessage, setResendMessage] = useState("");
   const [resendStatus, setResendStatus] = useState<
-    "idle" | "loading" | "sent" | "error"
+    "idle" | "loading" | "error"
   >("idle");
+  const [resendMessage, setResendMessage] = useState("");
 
   async function handleResend() {
     if (!resendEmail) return;
 
     setResendStatus("loading");
     try {
-      const res = await resendVerificationEmail(resendEmail);
-      setResendMessage(res?.detail || "Email sent");
-      setResendStatus("sent");
+      await resendVerificationEmail(resendEmail);
+      router.push(
+        `/register/check-email?email=${encodeURIComponent(resendEmail)}`,
+      );
     } catch (error: unknown) {
       const typedError = error as { detail?: string; message?: string };
       setResendMessage(
@@ -106,34 +106,26 @@ export default function VerifyEmailPage() {
                   Enter your email address to resend it
                 </p>
 
-                {resendStatus !== "sent" ? (
-                  <>
-                    <input
-                      type="email"
-                      value={resendEmail}
-                      onChange={(e) => setResendEmail(e.target.value)}
-                      placeholder="your@email.com"
-                      className="w-full rounded-lg text-gray-600 border border-gray-300 px-4 py-2 text-sm mb-4 mt-2 focus:outline-none focus:ring-2 focus:ring-gray-900"
-                    />
+                <input
+                  type="email"
+                  value={resendEmail}
+                  onChange={(e) => setResendEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  className="w-full rounded-lg text-gray-600 border border-gray-300 px-4 py-2 text-sm mb-4 mt-2 focus:outline-none focus:ring-2 focus:ring-gray-900"
+                />
 
-                    <button
-                      onClick={handleResend}
-                      disabled={!resendEmail || resendStatus === "loading"}
-                      className="w-full rounded-lg bg-gray-900 px-4 py-3 text-sm font-medium text-white hover:bg-gray-700 transition disabled:opacity-50"
-                    >
-                      {resendStatus === "loading"
-                        ? "Sending..."
-                        : "Send verification email"}
-                    </button>
+                <button
+                  onClick={handleResend}
+                  disabled={!resendEmail || resendStatus === "loading"}
+                  className="w-full rounded-lg bg-gray-900 px-4 py-3 text-sm font-medium text-white hover:bg-gray-700 transition disabled:opacity-50"
+                >
+                  {resendStatus === "loading"
+                    ? "Sending..."
+                    : "Send verification email"}
+                </button>
 
-                    {resendStatus === "error" && resendMessage && (
-                      <p className="text-red-500 text-sm mt-2">
-                        {resendMessage}
-                      </p>
-                    )}
-                  </>
-                ) : (
-                  <p className="text-green-600 text-sm mt-2">{resendMessage}</p>
+                {resendStatus === "error" && resendMessage && (
+                  <p className="text-red-500 text-sm mt-2">{resendMessage}</p>
                 )}
               </>
             )}

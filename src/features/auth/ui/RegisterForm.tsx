@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-//import { loginUser, registerUser } from "../api/authApi";
 import { validateRegisterForm } from "../model/validation";
 import {
   RegisterFormErrors,
@@ -10,8 +9,6 @@ import {
 } from "../model/types/register_types";
 import { Input } from "../../../shared/ui/Input";
 import { registerUser } from "../api/authApi";
-//import { LoginResponse } from "../model/types/login_types";
-//import { saveTokensCookies } from "@/shared/api/cookies_actions";
 
 const initialForm: RegisterFormData = {
   email: "",
@@ -71,15 +68,6 @@ export function RegisterForm() {
         language: "en",
       });
 
-      /* const loginResponse: LoginResponse = await loginUser({
-                email: formData.email.trim(),
-                password: formData.password,
-            });
-
-            await saveTokensCookies(loginResponse.access, loginResponse.refresh);
-           
-
-      router.push("/dashboard"); */
       router.push(
         `/register/check-email?email=${encodeURIComponent(formData.email.trim())}`,
       );

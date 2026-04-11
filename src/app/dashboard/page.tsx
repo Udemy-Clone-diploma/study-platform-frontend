@@ -2,47 +2,70 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { getMe } from "@/features/auth/api/authApi";
+import type { UserData } from "@/features/auth/model/types/user_data";
+import { clearTokens } from "@/shared/api/tokenStorage";
 
-type UserRole = "student" | "teacher" | "moderator";
-
-interface CurrentUser {
-    id: number;
-    username: string;
-    email: string;
-    role: UserRole;
-    status: string;
-    avatar: string | null;
-    language: string;
-    is_blocked: boolean;
-    date_joined: string;
-    profile: unknown;
+export function logout() {
+    clearTokens();
+    window.location.href = "/login";
 }
+
 
 export default function DashboardPage() {
     const router = useRouter();
-    const [user, setUser] = useState<CurrentUser | null>(null);
+
+    const [user, setUser] = useState<UserData | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState("");
 
     useEffect(() => {
-        const storedUser = localStorage.getItem("currentUser");
+        let isMounted = true;
 
-        if (!storedUser) {
-            router.replace("/register");
-            return;
+        async function loadUser() {
+            try {
+                const me = await getMe();
+
+                if (!isMounted) {
+                    return;
+                }
+
+                setUser(me);
+            } catch (err) {
+                if (!isMounted) {
+                    return;
+                }
+
+                setError("Не вдалося завантажити профіль.");
+                router.replace("/register");
+            } finally {
+                if (isMounted) {
+                    setIsLoading(false);
+                }
+            }
         }
 
-        try {
-            const parsedUser = JSON.parse(storedUser) as CurrentUser;
-            setUser(parsedUser);
-        } catch {
-            localStorage.removeItem("currentUser");
-            router.replace("/register");
-        }
+        loadUser();
+
+        return () => {
+            isMounted = false;
+        };
     }, [router]);
 
-    if (!user) {
+    if (isLoading) {
         return (
             <main className="flex min-h-screen items-center justify-center">
                 <p className="text-lg">Завантаження...</p>
+            </main>
+        );
+    }
+
+    if (error || !user) {
+        return (
+            <main className="flex min-h-screen items-center justify-center">
+                <p className="text-lg text-red-600">
+                    {error || "Користувача не знайдено."}
+                </p>
             </main>
         );
     }
@@ -57,7 +80,8 @@ export default function DashboardPage() {
                         <span className="font-medium">ID:</span> {user.id}
                     </p>
                     <p>
-                        <span className="font-medium">Username:</span> {user.username}
+                        <span className="font-medium">Full name:</span>{" "}
+                        {user.first_name} {user.last_name}
                     </p>
                     <p>
                         <span className="font-medium">Email:</span> {user.email}
@@ -71,6 +95,21 @@ export default function DashboardPage() {
                     <p>
                         <span className="font-medium">Status:</span> {user.status}
                     </p>
+                    <p>
+                        <span className="font-medium">Blocked:</span>{" "}
+                            {user.is_blocked ? "Yes" : "No"}
+                    </p>
+                    <p>
+                        <span className="font-medium">Joined:</span> {user.date_joined}
+                    </p>
+                </div>
+                <div className="mt-6">
+                    <button
+                        onClick={logout}
+                        className="w-full rounded-lg bg-red-600 px-4 py-3 text-sm font-medium text-white transition duration-200 hover:bg-red-700"
+                    >
+                        Logout
+                    </button>
                 </div>
             </div>
         </main>

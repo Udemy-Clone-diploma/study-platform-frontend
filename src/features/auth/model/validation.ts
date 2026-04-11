@@ -1,13 +1,9 @@
-import { FormErrors, RegisterFormData } from "./types";
+import { RegisterFormErrors, RegisterFormData } from "./types/register_types";
+import { LoginFormErrors, LoginFormData } from "./types/login_types";
 
-export function validateRegisterForm(values: RegisterFormData): FormErrors {
-    const errors: FormErrors = {};
+export function validateRegisterForm(values: RegisterFormData): RegisterFormErrors {
+    const errors: RegisterFormErrors = {};
 
-    if (!values.username.trim()) {
-        errors.username = "Введіть ім’я";
-    } else if (values.username.trim().length < 3) {
-        errors.username = "Ім’я має містити щонайменше 3 символи";
-    }
 
     if (!values.email.trim()) {
         errors.email = "Введіть email";
@@ -31,6 +27,21 @@ export function validateRegisterForm(values: RegisterFormData): FormErrors {
         errors.confirmPassword = "Підтвердіть пароль";
     } else if (values.password !== values.confirmPassword) {
         errors.confirmPassword = "Паролі не співпадають";
+    }
+
+    return errors;
+}
+
+export function validateLoginForm(values: LoginFormData): LoginFormErrors {
+    const errors: LoginFormErrors = {};
+    if (!values.email.trim()) {
+        errors.email = "Введіть email";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) {
+        errors.email = "Введіть коректний email";
+    }
+
+    if (!values.password) {
+        errors.password = "Введіть пароль";
     }
 
     return errors;

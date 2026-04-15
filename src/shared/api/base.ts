@@ -1,9 +1,4 @@
-import {
-  getAccessToken,
-  clearTokens,
-  saveTokens,
-  getRefreshToken,
-} from "@/shared/api/tokenStorage";
+import { getClientCookie } from "@/shared/lib/cookies";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1/";
 
@@ -13,7 +8,7 @@ type RequestOptions = Omit<RequestInit, "body"> & {
 };
 
 export async function request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
-  const accessToken = getAccessToken();
+  const accessToken = getClientCookie("access_token");
 
   const headers: HeadersInit = {
     "Content-Type": "application/json",

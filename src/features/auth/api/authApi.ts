@@ -30,9 +30,10 @@ export async function refreshToken(refresh: string): Promise<TokenRefreshRespons
   });
 }
 
-export async function getMe(): Promise<UserData> {
+export async function getMe(accessToken?: string): Promise<UserData> {
   return request<UserData>("auth/me/", {
     method: "GET",
+    headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
   });
 }
 

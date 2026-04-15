@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { loginUser } from "@/features/auth/api/authApi";
+import { loginUser, getMe } from "@/features/auth/api/authApi";
 import { validateLoginForm } from "@/features/auth/model/validation";
 import {
   LoginFormErrors,
@@ -10,8 +10,14 @@ import {
   LoginResponse,
 } from "@/features/auth/model/types/loginTypes";
 import { Input } from "@/shared/ui/Input";
-//import { saveTokensCookies } from "@/shared/api/cookieStorage";
-import { saveTokens } from "@/shared/api/tokenStorage";
+import { saveTokensCookies, saveRoleCookie } from "@/shared/api/cookieStorage";
+
+const ROLE_HOME: Record<string, string> = {
+  admin: "/admin",
+  moderator: "/admin",
+  teacher: "/teacher",
+  student: "/dashboard",
+};
 
 const initialForm: LoginFormData = {
   email: "",
@@ -62,10 +68,13 @@ export function LoginForm() {
         password: formData.password,
       });
 
-      // await saveTokensCookies(loginResponse.access, loginResponse.refresh);
-      saveTokens(loginResponse.access, loginResponse.refresh);
+      // Fetch user before cookies are set so we pass the token explicitly
+      const user = await getMe(loginResponse.access);
 
-      router.push("/dashboard");
+      await saveTokensCookies(loginResponse.access, loginResponse.refresh);
+      await saveRoleCookie(user.role);
+
+      router.push(ROLE_HOME[user.role] ?? "/dashboard");
     } catch (error: unknown) {
       const typedError = error as {
         message?: string;

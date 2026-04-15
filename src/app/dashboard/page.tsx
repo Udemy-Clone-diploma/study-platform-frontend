@@ -4,12 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getMe } from "@/features/auth/api/authApi";
 import type { UserData } from "@/features/auth/model/types/userData";
-import { clearTokens } from "@/shared/api/tokenStorage";
-
-export function logout() {
-  clearTokens();
-  window.location.href = "/login";
-}
+import { clearAuthCookies } from "@/shared/api/cookieStorage";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -36,7 +31,7 @@ export default function DashboardPage() {
         }
 
         setError("Не вдалося завантажити профіль.");
-        router.replace("/register");
+        router.replace("/login");
       } finally {
         if (isMounted) {
           setIsLoading(false);
@@ -50,6 +45,11 @@ export default function DashboardPage() {
       isMounted = false;
     };
   }, [router]);
+
+  async function handleLogout() {
+    await clearAuthCookies();
+    window.location.href = "/login";
+  }
 
   if (isLoading) {
     return (
@@ -100,7 +100,7 @@ export default function DashboardPage() {
         </div>
         <div className="mt-6">
           <button
-            onClick={logout}
+            onClick={handleLogout}
             className="w-full rounded-lg bg-red-600 px-4 py-3 text-sm font-medium text-white transition duration-200 hover:bg-red-700"
           >
             Logout

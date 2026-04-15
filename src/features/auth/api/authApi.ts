@@ -2,15 +2,15 @@ import { request } from "@/shared/api/base";
 import {
   RegisterPayload,
   RegisterResponse,
-} from "../model/types/registerTypes";
+} from "@/features/auth/model/types/registerTypes";
 
 import {
   LoginPayload,
   LoginResponse,
   TokenRefreshResponse,
-} from "../model/types/loginTypes";
-import { UserData } from "../model/types/userData";
-import { UserProfile } from "../model/types/profilesTypes";
+} from "@/features/auth/model/types/loginTypes";
+import { UserData } from "@/features/auth/model/types/userData";
+import { UserProfile } from "@/features/auth/model/types/profilesTypes";
 
 export async function registerUser(
   payload: RegisterPayload,

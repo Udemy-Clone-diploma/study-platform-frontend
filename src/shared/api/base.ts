@@ -3,7 +3,7 @@ import {
   clearTokens,
   saveTokens,
   getRefreshToken,
-} from "./tokenStorage";
+} from "@/shared/api/tokenStorage";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1/";

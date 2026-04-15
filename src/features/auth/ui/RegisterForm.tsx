@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { validateRegisterForm } from "../model/validation";
+import { validateRegisterForm } from "@/features/auth/model/validation";
 import {
   RegisterFormErrors,
   RegisterFormData,
-} from "../model/types/registerTypes";
-import { Input } from "../../../shared/ui/Input";
-import { registerUser } from "../api/authApi";
+} from "@/features/auth/model/types/registerTypes";
+import { Input } from "@/shared/ui/Input";
+import { registerUser } from "@/features/auth/api/authApi";
 
 const initialForm: RegisterFormData = {
   email: "",

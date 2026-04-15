@@ -1,4 +1,4 @@
-import { UserData, UserLanguage, UserRole, UserStatus } from "./userData";
+import { UserData, UserLanguage, UserRole, UserStatus } from "@/features/auth/model/types/userData";
 
 export interface RegisterFormData {
   email: string;

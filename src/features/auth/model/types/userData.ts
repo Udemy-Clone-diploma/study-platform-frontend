@@ -1,4 +1,4 @@
-import { UserProfile } from "./profilesTypes";
+import { UserProfile } from "@/features/auth/model/types/profilesTypes";
 
 export type UserRole = "student" | "teacher" | "moderator" | "administrator";
 export type UserStatus = "active" | "inactive";

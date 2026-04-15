@@ -2,14 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { loginUser } from "../api/authApi";
-import { validateLoginForm } from "../model/validation";
+import { loginUser } from "@/features/auth/api/authApi";
+import { validateLoginForm } from "@/features/auth/model/validation";
 import {
   LoginFormErrors,
   LoginFormData,
   LoginResponse,
-} from "../model/types/loginTypes";
-import { Input } from "../../../shared/ui/Input";
+} from "@/features/auth/model/types/loginTypes";
+import { Input } from "@/shared/ui/Input";
 //import { saveTokensCookies } from "@/shared/api/cookieStorage";
 import { saveTokens } from "@/shared/api/tokenStorage";
 

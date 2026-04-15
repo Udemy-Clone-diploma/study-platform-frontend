@@ -1,5 +1,5 @@
-import { RegisterFormErrors, RegisterFormData } from "./types/register_types";
-import { LoginFormErrors, LoginFormData } from "./types/login_types";
+import { RegisterFormErrors, RegisterFormData } from "./types/registerTypes";
+import { LoginFormErrors, LoginFormData } from "./types/loginTypes";
 
 export function validateRegisterForm(
   values: RegisterFormData,

@@ -1,4 +1,4 @@
-import { UserProfile } from "./profiles_types";
+import { UserProfile } from "./profilesTypes";
 
 export type UserRole = "student" | "teacher" | "moderator" | "administrator";
 export type UserStatus = "active" | "inactive";

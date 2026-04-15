@@ -6,7 +6,7 @@ import { validateRegisterForm } from "../model/validation";
 import {
   RegisterFormErrors,
   RegisterFormData,
-} from "../model/types/register_types";
+} from "../model/types/registerTypes";
 import { Input } from "../../../shared/ui/Input";
 import { registerUser } from "../api/authApi";
 

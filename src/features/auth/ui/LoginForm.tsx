@@ -8,9 +8,9 @@ import {
   LoginFormErrors,
   LoginFormData,
   LoginResponse,
-} from "../model/types/login_types";
+} from "../model/types/loginTypes";
 import { Input } from "../../../shared/ui/Input";
-//import { saveTokensCookies } from "@/shared/api/cookies_actions";
+//import { saveTokensCookies } from "@/shared/api/cookieStorage";
 import { saveTokens } from "@/shared/api/tokenStorage";
 
 const initialForm: LoginFormData = {

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getMe } from "@/features/auth/api/authApi";
-import type { UserData } from "@/features/auth/model/types/user_data";
+import type { UserData } from "@/features/auth/model/types/userData";
 import { clearTokens } from "@/shared/api/tokenStorage";
 
 export function logout() {

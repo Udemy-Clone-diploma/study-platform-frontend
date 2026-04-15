@@ -1,4 +1,4 @@
-import { UserData, UserLanguage, UserRole, UserStatus } from "./user_data";
+import { UserData, UserLanguage, UserRole, UserStatus } from "./userData";
 
 export interface RegisterFormData {
   email: string;

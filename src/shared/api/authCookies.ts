@@ -30,7 +30,7 @@ const PUBLIC_COOKIE = {
   path: "/",
 };
 
-export async function saveTokensCookies(accessToken: string, refreshToken: string): Promise<void> {
+export async function setAuthCookies(accessToken: string, refreshToken: string): Promise<void> {
   if (!accessToken || !refreshToken) {
     throw new Error("Both access and refresh tokens are required");
   }
@@ -50,7 +50,7 @@ export async function saveTokensCookies(accessToken: string, refreshToken: strin
   });
 }
 
-export async function saveRoleCookie(role: string): Promise<void> {
+export async function setRoleCookie(role: string): Promise<void> {
   const jar = await cookies();
 
   // user_role is NOT httpOnly — middleware and client HOC both need to read it
@@ -68,12 +68,12 @@ export async function clearAuthCookies(): Promise<void> {
   jar.delete(TOKEN_CONFIG.role.name);
 }
 
-export async function getAccessTokenCookie(): Promise<string | undefined> {
+export async function getAccessToken(): Promise<string | undefined> {
   const jar = await cookies();
   return jar.get(TOKEN_CONFIG.access.name)?.value;
 }
 
-export async function getRefreshTokenCookie(): Promise<string | undefined> {
+export async function getRefreshToken(): Promise<string | undefined> {
   const jar = await cookies();
   return jar.get(TOKEN_CONFIG.refresh.name)?.value;
 }

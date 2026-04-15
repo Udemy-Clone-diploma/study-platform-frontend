@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getMe } from "@/features/auth/api/authApi";
 import type { UserData } from "@/features/auth/model/types/userData";
-import { clearAuthCookies } from "@/shared/api/cookieStorage";
+import { clearAuthCookies } from "@/shared/api/authCookies";
 
 export default function DashboardPage() {
   const router = useRouter();

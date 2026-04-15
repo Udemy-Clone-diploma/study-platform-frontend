@@ -10,7 +10,7 @@ import {
   LoginResponse,
 } from "@/features/auth/model/types/loginTypes";
 import { Input } from "@/shared/ui/Input";
-import { saveTokensCookies, saveRoleCookie } from "@/shared/api/cookieStorage";
+import { setAuthCookies, setRoleCookie } from "@/shared/api/authCookies";
 
 const ROLE_HOME: Record<string, string> = {
   admin: "/admin",
@@ -71,8 +71,8 @@ export function LoginForm() {
       // Fetch user before cookies are set so we pass the token explicitly
       const user = await getMe(loginResponse.access);
 
-      await saveTokensCookies(loginResponse.access, loginResponse.refresh);
-      await saveRoleCookie(user.role);
+      await setAuthCookies(loginResponse.access, loginResponse.refresh);
+      await setRoleCookie(user.role);
 
       router.push(ROLE_HOME[user.role] ?? "/dashboard");
     } catch (error: unknown) {

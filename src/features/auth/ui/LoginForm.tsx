@@ -76,9 +76,7 @@ export function LoginForm() {
         const backendFieldErrors: LoginFormErrors = {};
 
         Object.entries(typedError.fields).forEach(([key, value]) => {
-          const normalizedValue = Array.isArray(value)
-            ? value[0]
-            : String(value);
+          const normalizedValue = Array.isArray(value) ? value[0] : String(value);
           if (key === "email" || key === "password") {
             backendFieldErrors[key] = normalizedValue;
           }
@@ -90,9 +88,7 @@ export function LoginForm() {
         }));
       }
 
-      setApiError(
-        typedError?.message || "Відбулася помилка при вході. Спробуйте ще раз.",
-      );
+      setApiError(typedError?.message || "Відбулася помилка при вході. Спробуйте ще раз.");
     } finally {
       setIsSubmitting(false);
     }

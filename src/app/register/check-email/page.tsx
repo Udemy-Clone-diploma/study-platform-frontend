@@ -9,9 +9,7 @@ import Link from "next/link";
 function CheckEmailContent() {
   const searchParams = useSearchParams();
   const email = searchParams.get("email") || "";
-  const [status, setStatus] = useState<"idle" | "loading" | "sent" | "error">(
-    "idle",
-  );
+  const [status, setStatus] = useState<"idle" | "loading" | "sent" | "error">("idle");
   const [message, setMessage] = useState("");
 
   async function handleResend() {
@@ -34,14 +32,12 @@ function CheckEmailContent() {
       <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-md text-center">
         <h1 className="text-2xl font-semibold mb-3">Check your email.</h1>
         <p className="text-gray-600 mb-6">
-          We sent a letter to <strong>{maskedEmail}</strong>. Follow the link in
-          the email to verify your account.
+          We sent a letter to <strong>{maskedEmail}</strong>. Follow the link in the email to verify
+          your account.
         </p>
 
         {message && (
-          <p
-            className={`text-sm mb-4 ${status === "error" ? "text-red-500" : "text-green-600"}`}
-          >
+          <p className={`text-sm mb-4 ${status === "error" ? "text-red-500" : "text-green-600"}`}>
             {message}
           </p>
         )}

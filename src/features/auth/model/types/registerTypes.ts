@@ -26,6 +26,4 @@ export interface RegisterResponse {
   status: string;
 }
 
-export type RegisterFormErrors = Partial<
-  Record<keyof RegisterFormData, string>
->;
+export type RegisterFormErrors = Partial<Record<keyof RegisterFormData, string>>;

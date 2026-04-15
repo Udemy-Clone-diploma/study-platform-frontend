@@ -62,9 +62,7 @@ export default function DashboardPage() {
   if (error || !user) {
     return (
       <main className="flex min-h-screen items-center justify-center">
-        <p className="text-lg text-red-600">
-          {error || "Користувача не знайдено."}
-        </p>
+        <p className="text-lg text-red-600">{error || "Користувача не знайдено."}</p>
       </main>
     );
   }
@@ -79,8 +77,7 @@ export default function DashboardPage() {
             <span className="font-medium">ID:</span> {user.id}
           </p>
           <p>
-            <span className="font-medium">Full name:</span> {user.first_name}{" "}
-            {user.last_name}
+            <span className="font-medium">Full name:</span> {user.first_name} {user.last_name}
           </p>
           <p>
             <span className="font-medium">Email:</span> {user.email}
@@ -95,8 +92,7 @@ export default function DashboardPage() {
             <span className="font-medium">Status:</span> {user.status}
           </p>
           <p>
-            <span className="font-medium">Blocked:</span>{" "}
-            {user.is_blocked ? "Yes" : "No"}
+            <span className="font-medium">Blocked:</span> {user.is_blocked ? "Yes" : "No"}
           </p>
           <p>
             <span className="font-medium">Joined:</span> {user.date_joined}

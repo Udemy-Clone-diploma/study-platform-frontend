@@ -1,8 +1,5 @@
 import { request } from "@/shared/api/base";
-import {
-  RegisterPayload,
-  RegisterResponse,
-} from "@/features/auth/model/types/registerTypes";
+import { RegisterPayload, RegisterResponse } from "@/features/auth/model/types/registerTypes";
 
 import {
   LoginPayload,
@@ -12,9 +9,7 @@ import {
 import { UserData } from "@/features/auth/model/types/userData";
 import { UserProfile } from "@/features/auth/model/types/profilesTypes";
 
-export async function registerUser(
-  payload: RegisterPayload,
-): Promise<RegisterResponse> {
+export async function registerUser(payload: RegisterPayload): Promise<RegisterResponse> {
   return request<RegisterResponse>("auth/register/", {
     method: "POST",
     body: payload,
@@ -28,9 +23,7 @@ export async function loginUser(payload: LoginPayload): Promise<LoginResponse> {
   });
 }
 
-export async function refreshToken(
-  refresh: string,
-): Promise<TokenRefreshResponse> {
+export async function refreshToken(refresh: string): Promise<TokenRefreshResponse> {
   return request<TokenRefreshResponse>("auth/refresh/", {
     method: "POST",
     body: { refresh },
@@ -57,18 +50,13 @@ export async function updateMeProfile(data: UserProfile): Promise<UserData> {
   });
 }
 
-export async function verifyEmail(
-  uidb64: string,
-  token: string,
-): Promise<{ detail: string }> {
+export async function verifyEmail(uidb64: string, token: string): Promise<{ detail: string }> {
   return request<{ detail: string }>(`auth/verify-email/${uidb64}/${token}/`, {
     method: "GET",
   });
 }
 
-export async function resendVerificationEmail(
-  email: string,
-): Promise<{ detail: string }> {
+export async function resendVerificationEmail(email: string): Promise<{ detail: string }> {
   return request<{ detail: string }>("auth/resend-verification/", {
     method: "POST",
     body: { email },

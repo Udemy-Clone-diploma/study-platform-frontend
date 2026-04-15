@@ -2,26 +2,19 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import {
-  resendVerificationEmail,
-  verifyEmail,
-} from "@/features/auth/api/authApi";
+import { resendVerificationEmail, verifyEmail } from "@/features/auth/api/authApi";
 import Link from "next/link";
 
 export default function VerifyEmailPage() {
   const { uidb64, token } = useParams<{ uidb64: string; token: string }>();
   const router = useRouter();
 
-  const [status, setStatus] = useState<"loading" | "success" | "error">(
-    "loading",
-  );
+  const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [message, setMessage] = useState("");
 
   const [showResendForm, setShowResendForm] = useState(false);
   const [resendEmail, setResendEmail] = useState("");
-  const [resendStatus, setResendStatus] = useState<
-    "idle" | "loading" | "error"
-  >("idle");
+  const [resendStatus, setResendStatus] = useState<"idle" | "loading" | "error">("idle");
   const [resendMessage, setResendMessage] = useState("");
 
   async function handleResend() {
@@ -30,14 +23,10 @@ export default function VerifyEmailPage() {
     setResendStatus("loading");
     try {
       await resendVerificationEmail(resendEmail);
-      router.push(
-        `/register/check-email?email=${encodeURIComponent(resendEmail)}`,
-      );
+      router.push(`/register/check-email?email=${encodeURIComponent(resendEmail)}`);
     } catch (error: unknown) {
       const typedError = error as { detail?: string; message?: string };
-      setResendMessage(
-        typedError?.detail || typedError?.message || "Something went wrong",
-      );
+      setResendMessage(typedError?.detail || typedError?.message || "Something went wrong");
       setResendStatus("error");
     }
   }
@@ -54,11 +43,7 @@ export default function VerifyEmailPage() {
       } catch (error: unknown) {
         const typedError = error as { detail?: string; message?: string };
         setStatus("error");
-        setMessage(
-          typedError?.detail ||
-            typedError?.message ||
-            "Invalid or expired link",
-        );
+        setMessage(typedError?.detail || typedError?.message || "Invalid or expired link");
       }
     }
 
@@ -72,21 +57,15 @@ export default function VerifyEmailPage() {
 
         {status === "success" && (
           <>
-            <h1 className="text-2xl font-semibold text-green-600 mb-3">
-              Email confirmed ✓
-            </h1>
+            <h1 className="text-2xl font-semibold text-green-600 mb-3">Email confirmed ✓</h1>
             <p className="text-gray-600">{message}</p>
-            <p className="text-sm text-gray-400 mt-2">
-              Redirecting to login...
-            </p>
+            <p className="text-sm text-gray-400 mt-2">Redirecting to login...</p>
           </>
         )}
 
         {status === "error" && (
           <>
-            <h1 className="text-2xl font-semibold text-red-600 mb-3">
-              Confirmation error
-            </h1>
+            <h1 className="text-2xl font-semibold text-red-600 mb-3">Confirmation error</h1>
 
             {!showResendForm && (
               <>
@@ -102,9 +81,7 @@ export default function VerifyEmailPage() {
 
             {showResendForm && (
               <>
-                <p className="text-gray-600">
-                  Enter your email address to resend it
-                </p>
+                <p className="text-gray-600">Enter your email address to resend it</p>
 
                 <input
                   type="email"
@@ -119,9 +96,7 @@ export default function VerifyEmailPage() {
                   disabled={!resendEmail || resendStatus === "loading"}
                   className="w-full rounded-lg bg-gray-900 px-4 py-3 text-sm font-medium text-white hover:bg-gray-700 transition disabled:opacity-50"
                 >
-                  {resendStatus === "loading"
-                    ? "Sending..."
-                    : "Send verification email"}
+                  {resendStatus === "loading" ? "Sending..." : "Send verification email"}
                 </button>
 
                 {resendStatus === "error" && resendMessage && (

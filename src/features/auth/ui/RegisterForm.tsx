@@ -3,10 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { validateRegisterForm } from "@/features/auth/model/validation";
-import {
-  RegisterFormErrors,
-  RegisterFormData,
-} from "@/features/auth/model/types/registerTypes";
+import { RegisterFormErrors, RegisterFormData } from "@/features/auth/model/types/registerTypes";
 import { Input } from "@/shared/ui/Input";
 import { registerUser } from "@/features/auth/api/authApi";
 
@@ -68,9 +65,7 @@ export function RegisterForm() {
         language: "en",
       });
 
-      router.push(
-        `/register/check-email?email=${encodeURIComponent(formData.email.trim())}`,
-      );
+      router.push(`/register/check-email?email=${encodeURIComponent(formData.email.trim())}`);
     } catch (error: unknown) {
       const typedError = error as {
         message?: string;
@@ -81,17 +76,11 @@ export function RegisterForm() {
         const backendFieldErrors: RegisterFormErrors = {};
 
         Object.entries(typedError.fields).forEach(([key, value]) => {
-          const normalizedValue = Array.isArray(value)
-            ? value[0]
-            : String(value);
+          const normalizedValue = Array.isArray(value) ? value[0] : String(value);
 
           if (key === "confirm_password") {
             backendFieldErrors.confirmPassword = normalizedValue;
-          } else if (
-            key === "email" ||
-            key === "password" ||
-            key === "confirmPassword"
-          ) {
+          } else if (key === "email" || key === "password" || key === "confirmPassword") {
             backendFieldErrors[key] = normalizedValue;
           }
         });
@@ -102,10 +91,7 @@ export function RegisterForm() {
         }));
       }
 
-      setApiError(
-        typedError?.message ||
-          "Відбулася помилка при реєстрації. Спробуйте ще раз.",
-      );
+      setApiError(typedError?.message || "Відбулася помилка при реєстрації. Спробуйте ще раз.");
     } finally {
       setIsSubmitting(false);
     }

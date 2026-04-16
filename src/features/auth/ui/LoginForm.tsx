@@ -2,16 +2,22 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { loginUser } from "../api/authApi";
-import { validateLoginForm } from "../model/validation";
+import { loginUser, getMe } from "@/features/auth/api/authApi";
+import { validateLoginForm } from "@/features/auth/model/validation";
 import {
   LoginFormErrors,
   LoginFormData,
   LoginResponse,
-} from "../model/types/login_types";
-import { Input } from "../../../shared/ui/Input";
-//import { saveTokensCookies } from "@/shared/api/cookies_actions";
-import { saveTokens } from "@/shared/api/tokenStorage";
+} from "@/features/auth/model/types/loginTypes";
+import { Input } from "@/shared/ui/Input";
+import { setAuthCookies, setRoleCookie } from "@/shared/api/authCookies";
+
+const ROLE_HOME: Record<string, string> = {
+  admin: "/admin",
+  moderator: "/admin",
+  teacher: "/teacher",
+  student: "/dashboard",
+};
 
 const initialForm: LoginFormData = {
   email: "",
@@ -62,10 +68,13 @@ export function LoginForm() {
         password: formData.password,
       });
 
-      // await saveTokensCookies(loginResponse.access, loginResponse.refresh);
-      saveTokens(loginResponse.access, loginResponse.refresh);
+      // Fetch user before cookies are set so we pass the token explicitly
+      const user = await getMe(loginResponse.access);
 
-      router.push("/dashboard");
+      await setAuthCookies(loginResponse.access, loginResponse.refresh);
+      await setRoleCookie(user.role);
+
+      router.push(ROLE_HOME[user.role] ?? "/dashboard");
     } catch (error: unknown) {
       const typedError = error as {
         message?: string;
@@ -76,9 +85,7 @@ export function LoginForm() {
         const backendFieldErrors: LoginFormErrors = {};
 
         Object.entries(typedError.fields).forEach(([key, value]) => {
-          const normalizedValue = Array.isArray(value)
-            ? value[0]
-            : String(value);
+          const normalizedValue = Array.isArray(value) ? value[0] : String(value);
           if (key === "email" || key === "password") {
             backendFieldErrors[key] = normalizedValue;
           }
@@ -90,9 +97,7 @@ export function LoginForm() {
         }));
       }
 
-      setApiError(
-        typedError?.message || "Відбулася помилка при вході. Спробуйте ще раз.",
-      );
+      setApiError(typedError?.message || "Відбулася помилка при вході. Спробуйте ще раз.");
     } finally {
       setIsSubmitting(false);
     }

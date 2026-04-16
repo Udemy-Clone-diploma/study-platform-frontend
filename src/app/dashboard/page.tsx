@@ -3,13 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getMe } from "@/features/auth/api/authApi";
-import type { UserData } from "@/features/auth/model/types/user_data";
-import { clearTokens } from "@/shared/api/tokenStorage";
-
-export function logout() {
-  clearTokens();
-  window.location.href = "/login";
-}
+import type { UserData } from "@/features/auth/model/types/userData";
+import { clearAuthCookies } from "@/shared/api/authCookies";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -36,7 +31,7 @@ export default function DashboardPage() {
         }
 
         setError("Не вдалося завантажити профіль.");
-        router.replace("/register");
+        router.replace("/login");
       } finally {
         if (isMounted) {
           setIsLoading(false);
@@ -51,6 +46,11 @@ export default function DashboardPage() {
     };
   }, [router]);
 
+  async function handleLogout() {
+    await clearAuthCookies();
+    window.location.href = "/login";
+  }
+
   if (isLoading) {
     return (
       <main className="flex min-h-screen items-center justify-center">
@@ -62,9 +62,7 @@ export default function DashboardPage() {
   if (error || !user) {
     return (
       <main className="flex min-h-screen items-center justify-center">
-        <p className="text-lg text-red-600">
-          {error || "Користувача не знайдено."}
-        </p>
+        <p className="text-lg text-red-600">{error || "Користувача не знайдено."}</p>
       </main>
     );
   }
@@ -79,8 +77,7 @@ export default function DashboardPage() {
             <span className="font-medium">ID:</span> {user.id}
           </p>
           <p>
-            <span className="font-medium">Full name:</span> {user.first_name}{" "}
-            {user.last_name}
+            <span className="font-medium">Full name:</span> {user.first_name} {user.last_name}
           </p>
           <p>
             <span className="font-medium">Email:</span> {user.email}
@@ -95,8 +92,7 @@ export default function DashboardPage() {
             <span className="font-medium">Status:</span> {user.status}
           </p>
           <p>
-            <span className="font-medium">Blocked:</span>{" "}
-            {user.is_blocked ? "Yes" : "No"}
+            <span className="font-medium">Blocked:</span> {user.is_blocked ? "Yes" : "No"}
           </p>
           <p>
             <span className="font-medium">Joined:</span> {user.date_joined}
@@ -104,7 +100,7 @@ export default function DashboardPage() {
         </div>
         <div className="mt-6">
           <button
-            onClick={logout}
+            onClick={handleLogout}
             className="w-full rounded-lg bg-red-600 px-4 py-3 text-sm font-medium text-white transition duration-200 hover:bg-red-700"
           >
             Logout

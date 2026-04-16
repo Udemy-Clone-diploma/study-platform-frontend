@@ -14,8 +14,4 @@ export interface ModeratorProfile {
   level: string;
 }
 
-export type UserProfile =
-  | StudentProfile
-  | TeacherProfile
-  | ModeratorProfile
-  | null;
+export type UserProfile = StudentProfile | TeacherProfile | ModeratorProfile | null;

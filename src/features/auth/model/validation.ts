@@ -1,9 +1,7 @@
-import { RegisterFormErrors, RegisterFormData } from "./types/register_types";
-import { LoginFormErrors, LoginFormData } from "./types/login_types";
+import { RegisterFormErrors, RegisterFormData } from "@/features/auth/model/types/registerTypes";
+import { LoginFormErrors, LoginFormData } from "@/features/auth/model/types/loginTypes";
 
-export function validateRegisterForm(
-  values: RegisterFormData,
-): RegisterFormErrors {
+export function validateRegisterForm(values: RegisterFormData): RegisterFormErrors {
   const errors: RegisterFormErrors = {};
 
   if (!values.email.trim()) {

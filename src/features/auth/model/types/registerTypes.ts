@@ -1,4 +1,4 @@
-import { UserData, UserLanguage, UserRole, UserStatus } from "./user_data";
+import { UserData, UserLanguage, UserRole, UserStatus } from "@/features/auth/model/types/userData";
 
 export interface RegisterFormData {
   email: string;
@@ -26,6 +26,4 @@ export interface RegisterResponse {
   status: string;
 }
 
-export type RegisterFormErrors = Partial<
-  Record<keyof RegisterFormData, string>
->;
+export type RegisterFormErrors = Partial<Record<keyof RegisterFormData, string>>;

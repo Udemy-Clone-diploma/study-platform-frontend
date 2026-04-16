@@ -37,13 +37,11 @@ export async function setAuthCookies(accessToken: string, refreshToken: string):
 
   const jar = await cookies();
 
-  // access_token is NOT httpOnly — middleware and client JS both need to read it
   jar.set(TOKEN_CONFIG.access.name, accessToken, {
     ...PUBLIC_COOKIE,
     maxAge: TOKEN_CONFIG.access.maxAge,
   });
 
-  // refresh_token is httpOnly — only used server-side for token rotation
   jar.set(TOKEN_CONFIG.refresh.name, refreshToken, {
     ...SECURE_COOKIE,
     maxAge: TOKEN_CONFIG.refresh.maxAge,
@@ -53,7 +51,6 @@ export async function setAuthCookies(accessToken: string, refreshToken: string):
 export async function setRoleCookie(role: string): Promise<void> {
   const jar = await cookies();
 
-  // user_role is NOT httpOnly — middleware and client HOC both need to read it
   jar.set(TOKEN_CONFIG.role.name, role, {
     ...PUBLIC_COOKIE,
     maxAge: TOKEN_CONFIG.role.maxAge,

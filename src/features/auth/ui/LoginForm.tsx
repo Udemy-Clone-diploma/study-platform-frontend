@@ -11,6 +11,7 @@ import {
 } from "@/features/auth/model/types/loginTypes";
 import { Input } from "@/shared/ui/Input";
 import { setAuthCookies, setRoleCookie } from "@/shared/api/authCookies";
+import Link from "next/link";
 
 const ROLE_HOME: Record<string, string> = {
   admin: "/admin",
@@ -115,17 +116,23 @@ export function LoginForm() {
         onChange={handleChange}
         error={errors.email}
       />
-
-      <Input
-        id="password"
-        name="password"
-        type="password"
-        label="Password"
-        placeholder="Введіть пароль"
-        value={formData.password}
-        onChange={handleChange}
-        error={errors.password}
-      />
+      <div className="flex flex-col gap-1">
+        <Input
+          id="password"
+          name="password"
+          type="password"
+          label="Password"
+          placeholder="Введіть пароль"
+          value={formData.password}
+          onChange={handleChange}
+          error={errors.password}
+        />
+        <div className="flex justify-end">
+          <Link href="/forgot-password" className="text-xs text-blue-500 hover:underline">
+            Забули пароль?
+          </Link>
+        </div>
+      </div>
 
       {apiError ? <div className="form-api-error">{apiError}</div> : null}
 

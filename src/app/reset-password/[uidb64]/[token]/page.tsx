@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Input } from "@/shared/ui/Input";
+import { ResendEmailForm } from "@/features/auth/ui/ResendEmailForm";
 import {
   validatePasswordResetToken,
   confirmPasswordReset,
@@ -17,29 +18,19 @@ import type {
 
 type PageStatus = "loading" | "invalid" | "form" | "success" | "error";
 
-const initialForm: PasswordResetFormData = {
-  password: "",
-  confirmPassword: "",
-};
+const initialForm: PasswordResetFormData = { password: "", confirmPassword: "" };
 
 export default function ResetPasswordPage() {
   const { uidb64, token } = useParams<{ uidb64: string; token: string }>();
 
   const [pageStatus, setPageStatus] = useState<PageStatus>("loading");
   const [pageMessage, setPageMessage] = useState("");
-
   const [formData, setFormData] = useState<PasswordResetFormData>(initialForm);
   const [errors, setErrors] = useState<PasswordResetFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [showResendForm, setShowResendForm] = useState(false);
-  const [resendEmail, setResendEmail] = useState("");
-  const [resendStatus, setResendStatus] = useState<"idle" | "loading" | "sent" | "error">("idle");
-  const [resendMessage, setResendMessage] = useState("");
-
   useEffect(() => {
     if (!uidb64 || !token) return;
-
     async function checkToken() {
       try {
         await validatePasswordResetToken(uidb64, token);
@@ -50,7 +41,6 @@ export default function ResetPasswordPage() {
         setPageMessage(e?.detail || e?.message || "Посилання недійсне або прострочене");
       }
     }
-
     checkToken();
   }, [uidb64, token]);
 
@@ -62,15 +52,12 @@ export default function ResetPasswordPage() {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-
     const validationErrors = validatePasswordResetForm(formData);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
-
     setIsSubmitting(true);
-
     try {
       await confirmPasswordReset(uidb64, token, { password: formData.password });
       setPageStatus("success");
@@ -83,130 +70,81 @@ export default function ResetPasswordPage() {
     }
   }
 
-  async function handleResend(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    if (!resendEmail) return;
-
-    setResendStatus("loading");
-    setResendMessage("");
-
-    try {
-      await requestPasswordReset({ email: resendEmail });
-      setResendStatus("sent");
-      setResendMessage(
-        `Якщо акаунт з адресою ${resendEmail} існує, ми надіслали новий лист. Перевірте вхідні або спам.`,
-      );
-    } catch {
-      setResendStatus("error");
-      setResendMessage("Щось пішло не так. Спробуйте пізніше.");
-    }
-  }
-
   if (pageStatus === "loading") {
     return (
-      <main className="flex min-h-screen items-center justify-center">
-        <p className="text-gray-500">Перевірка посилання...</p>
+      <main className="flex justify-center items-center h-screen flex-col gap-4">
+        <section className="items-center text-center bg-gray-800 p-8 rounded-lg">
+          <p className="text-gray-400">Перевірка посилання...</p>
+        </section>
       </main>
     );
   }
 
   if (pageStatus === "invalid") {
     return (
-      <main className="flex min-h-screen items-center justify-center px-4">
-        <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-md text-center">
-          <h1 className="text-2xl font-semibold text-red-600 mb-3">Посилання недійсне</h1>
-          <p className="text-gray-600 mb-6">{pageMessage}</p>
-
-          {resendStatus === "sent" ? (
-            <div className="rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700 mb-4">
-              <p className="text-gray-600 mb-6"> {resendMessage}</p>
-            </div>
-          ) : !showResendForm ? (
-            <button
-              onClick={() => setShowResendForm(true)}
-              className="w-full rounded-lg bg-gray-900 px-4 py-3 text-sm font-medium text-white hover:bg-gray-700 transition"
-            >
-              Надіслати новий лист
-            </button>
-          ) : (
-            <form onSubmit={handleResend} className="flex flex-col gap-3 text-left">
-              <p className="text-sm text-gray-600">
-                Введіть ваш email, щоб отримати нове посилання
-              </p>
-              <Input
-                id="resendEmail"
-                name="resendEmail"
-                type="email"
-                label="Email"
-                placeholder="your@email.com"
-                value={resendEmail}
-                onChange={(e) => setResendEmail(e.target.value)}
-              />
-              {resendStatus === "error" && <p className="text-sm text-red-500">{resendMessage}</p>}
-              <button
-                type="submit"
-                disabled={!resendEmail || resendStatus === "loading"}
-                className="w-full rounded-lg bg-gray-900 px-4 py-3 text-sm font-medium text-white hover:bg-gray-700 transition disabled:opacity-50"
-              >
-                {resendStatus === "loading" ? "Надсилання..." : "Надіслати"}
-              </button>
-            </form>
-          )}
-
+      <main className="flex justify-center items-center h-screen flex-col gap-4">
+        <section className="items-center text-center bg-gray-800 p-8 rounded-lg">
+          <h1>Посилання недійсне</h1>
+          <p className="text-sm text-gray-400 mt-1 mb-4">{pageMessage}</p>
+          <ResendEmailForm
+            onResend={async (email) => {
+              await requestPasswordReset({ email });
+            }}
+            submitLabel="Надіслати новий лист"
+            successMessage="Якщо акаунт існує, ми надіслали новий лист. Перевірте вхідні або спам."
+          />
           <p className="mt-4 text-sm text-gray-400">
-            <Link href="/login" className="text-blue-500 hover:underline">
+            <Link href="/login" className="text-blue-400 hover:underline">
               Повернутися до входу
             </Link>
           </p>
-        </div>
+        </section>
       </main>
     );
   }
 
   if (pageStatus === "success") {
     return (
-      <main className="flex min-h-screen items-center justify-center px-4">
-        <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-md text-center">
-          <h1 className="text-2xl font-semibold text-green-600 mb-3">Пароль змінено!</h1>
-          <p className="text-gray-600 mb-6">
-            Ваш пароль успішно оновлено. Тепер ви можете увійти з новим паролем.
-          </p>
+      <main className="flex justify-center items-center h-screen flex-col gap-4">
+        <section className="items-center text-center bg-gray-800 p-8 rounded-lg">
+          <h1>Пароль змінено!</h1>
+          <p className="text-sm text-gray-400 mt-1 mb-6">Ваш пароль успішно оновлено.</p>
           <Link
             href="/login"
-            className="block w-full rounded-lg bg-gray-900 px-4 py-3 text-sm font-medium text-white text-center hover:bg-gray-700 transition"
+            className="align-middle mt-2 w-lg rounded-lg bg-gray-900 px-4 py-3 text-sm font-medium text-white transition duration-200 hover:bg-gray-900 block"
           >
             Увійти
           </Link>
-        </div>
+        </section>
       </main>
     );
   }
 
   if (pageStatus === "error") {
     return (
-      <main className="flex min-h-screen items-center justify-center px-4">
-        <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-md text-center">
-          <h1 className="text-2xl font-semibold text-red-600 mb-3">Помилка</h1>
-          <p className="text-gray-600 mb-6">{pageMessage}</p>
+      <main className="flex justify-center items-center h-screen flex-col gap-4">
+        <section className="items-center text-center bg-gray-800 p-8 rounded-lg">
+          <h1>Помилка</h1>
+          <p className="text-sm text-gray-400 mt-1 mb-6">{pageMessage}</p>
           <button
             onClick={() => {
               setPageStatus("form");
               setFormData(initialForm);
             }}
-            className="w-full rounded-lg bg-gray-900 px-4 py-3 text-sm font-medium text-white hover:bg-gray-700 transition"
+            className="align-middle mt-2 w-lg rounded-lg bg-gray-900 px-4 py-3 text-sm font-medium text-white transition duration-200 hover:bg-gray-900"
           >
             Спробувати ще раз
           </button>
-        </div>
+        </section>
       </main>
     );
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-4">
-      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-md">
-        <h1 className="text-2xl font-semibold mb-2">Новий пароль</h1>
-        <p className="text-sm text-gray-500 mb-6">
+    <main className="flex justify-center items-center h-screen flex-col gap-4">
+      <section className="items-center text-center bg-gray-800 p-8 rounded-lg">
+        <h1>Новий пароль</h1>
+        <p className="text-sm text-gray-400 mt-1 mb-6">
           Введіть новий пароль. Він має містити щонайменше 8 символів, велику та малу літеру і
           цифру.
         </p>
@@ -222,7 +160,6 @@ export default function ResetPasswordPage() {
             onChange={handleChange}
             error={errors.password}
           />
-
           <Input
             id="confirmPassword"
             name="confirmPassword"
@@ -233,16 +170,15 @@ export default function ResetPasswordPage() {
             onChange={handleChange}
             error={errors.confirmPassword}
           />
-
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full rounded-lg bg-gray-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="align-middle mt-2 w-full rounded-lg bg-gray-900 px-4 py-3 text-sm font-medium text-white transition duration-200 hover:bg-gray-900 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isSubmitting ? "Збереження..." : "Зберегти пароль"}
           </button>
         </form>
-      </div>
+      </section>
     </main>
   );
 }

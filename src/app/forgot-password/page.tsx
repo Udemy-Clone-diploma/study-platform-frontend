@@ -1,4 +1,5 @@
 "use client";
+
 import { useState } from "react";
 import Link from "next/link";
 import { Input } from "@/shared/ui/Input";
@@ -18,16 +19,13 @@ export default function ForgotPasswordPage() {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-
     const error = validateEmail(email);
     if (error) {
       setEmailError(error);
       return;
     }
-
     setIsSubmitting(true);
     setEmailError("");
-
     try {
       await requestPasswordReset({ email: email.trim() });
       setIsSent(true);
@@ -40,45 +38,40 @@ export default function ForgotPasswordPage() {
 
   if (isSent) {
     return (
-      <main className="flex min-h-screen bg-gray-900 items-center justify-center px-4">
-        <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-md text-center">
-          <h1 className="text-2xl font-semibold mb-3">Перевірте вхідні</h1>
-          <p className="text-gray-600 mb-2">
-            Якщо акаунт з адресою <strong>{email}</strong> існує, ми надіслали посилання для
-            скидання пароля.
-          </p>
-          <p className="text-sm text-gray-400 mb-6">
-            Не отримали? Перевірте папку&nbsp;
-            <span className="font-medium">Спам</span>.
+      <main className="flex justify-center items-center h-screen flex-col gap-4">
+        <section className="items-center text-center bg-gray-800 p-8 rounded-lg">
+          <h1>Перевірте вхідні</h1>
+          <p className="text-sm text-gray-400 mt-2 mb-6">
+            Якщо акаунт з адресою <strong className="text-white">{email}</strong> існує, ми
+            надіслали посилання для скидання пароля.
           </p>
 
           <button
             onClick={() => setIsSent(false)}
-            className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition mb-3"
+            className="w-full rounded-lg border border-gray-600 px-4 py-3 text-sm font-medium text-gray-300 hover:bg-gray-700 transition mb-3"
           >
             Надіслати повторно
           </button>
 
-          <Link href="/login" className="block text-sm text-blue-500 hover:underline">
+          <Link href="/login" className="text-sm text-blue-400 hover:underline">
             Повернутися до входу
           </Link>
-        </div>
+        </section>
       </main>
     );
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-4">
-      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-md">
-        <h1 className="text-gray-500 text-2xl font-semibold mb-2">Скидання пароля</h1>
-        <p className="text-sm text-gray-500 mb-6">
-          Введіть email, повязаний із вашим акаунтом, і ми надішлемо посилання для скидання пароля.
+    <main className="flex justify-center items-center h-screen flex-col gap-4">
+      <section className="items-center text-center bg-gray-800 p-8 rounded-lg">
+        <h1>Скидання пароля</h1>
+        <p className="text-sm text-gray-400 mt-1 mb-6">
+          Введіть email, повязаний із вашим акаунтом, і ми надішлемо посилання.
         </p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <Input
             id="email"
-            className="text-sm text-gray-500 mb-6"
             name="email"
             type="email"
             label="Email"
@@ -94,18 +87,18 @@ export default function ForgotPasswordPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full rounded-lg bg-gray-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="align-middle mt-2 w-lg rounded-lg bg-gray-900 px-4 py-3 text-sm font-medium text-white transition duration-200 hover:bg-gray-900 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isSubmitting ? "Надсилання..." : "Надіслати посилання"}
           </button>
         </form>
 
-        <p className="mt-4 text-center text-sm text-gray-400">
-          <Link href="/login" className="text-blue-500 hover:underline">
+        <p className="mt-4 text-sm text-gray-400">
+          <Link href="/login" className="text-blue-400 hover:underline">
             Повернутися до входу
           </Link>
         </p>
-      </div>
+      </section>
     </main>
   );
 }

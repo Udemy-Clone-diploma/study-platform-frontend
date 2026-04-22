@@ -1,4 +1,4 @@
-import { request } from "@/shared/api/base";
+import { api } from "@/shared/api/base";
 import { RegisterPayload, RegisterResponse } from "@/features/auth/model/types/registerTypes";
 
 import {
@@ -10,63 +10,48 @@ import { UserData } from "@/features/auth/model/types/userData";
 import { UserProfile } from "@/features/auth/model/types/profilesTypes";
 
 export async function registerUser(payload: RegisterPayload): Promise<RegisterResponse> {
-  return request<RegisterResponse>("auth/register/", {
-    method: "POST",
-    body: payload,
-  });
+  const { data } = await api.post<RegisterResponse>("auth/register/", payload);
+  return data;
 }
 
 export async function loginUser(payload: LoginPayload): Promise<LoginResponse> {
-  return request<LoginResponse>("auth/login/", {
-    method: "POST",
-    body: payload,
-  });
+  const { data } = await api.post<LoginResponse>("auth/login/", payload);
+  return data;
 }
 
 export async function logoutUser(refresh: string): Promise<{ detail: string }> {
-  return request<{ detail: string }>("auth/logout/", {
-    method: "POST",
-    body: { refresh },
-  });
+  const { data } = await api.post<{ detail: string }>("auth/logout/", { refresh });
+  return data;
 }
 
 export async function refreshToken(refresh: string): Promise<TokenRefreshResponse> {
-  return request<TokenRefreshResponse>("auth/refresh/", {
-    method: "POST",
-    body: { refresh },
-  });
+  const { data } = await api.post<TokenRefreshResponse>("auth/refresh/", { refresh });
+  return data;
 }
 
 export async function getMe(accessToken?: string): Promise<UserData> {
-  return request<UserData>("auth/me/", {
-    method: "GET",
+  const { data } = await api.get<UserData>("auth/me/", {
     headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
   });
+  return data;
 }
 
 export async function updateMe(data: Partial<UserData>): Promise<UserData> {
-  return request<UserData>("auth/me/", {
-    method: "PATCH",
-    body: data,
-  });
+  const response = await api.patch<UserData>("auth/me/", data);
+  return response.data;
 }
 
 export async function updateMeProfile(data: UserProfile): Promise<UserData> {
-  return request<UserData>("auth/me/profile/", {
-    method: "PATCH",
-    body: data,
-  });
+  const response = await api.patch<UserData>("auth/me/profile/", data);
+  return response.data;
 }
 
 export async function verifyEmail(uidb64: string, token: string): Promise<{ detail: string }> {
-  return request<{ detail: string }>(`auth/verify-email/${uidb64}/${token}/`, {
-    method: "GET",
-  });
+  const { data } = await api.get<{ detail: string }>(`auth/verify-email/${uidb64}/${token}/`);
+  return data;
 }
 
 export async function resendVerificationEmail(email: string): Promise<{ detail: string }> {
-  return request<{ detail: string }>("auth/resend-verification/", {
-    method: "POST",
-    body: { email },
-  });
+  const { data } = await api.post<{ detail: string }>("auth/resend-verification/", { email });
+  return data;
 }

@@ -1,0 +1,54 @@
+export type CourseLevel = "beginner" | "intermediate" | "advanced";
+export type CourseLanguage = "english" | "ukrainian" | "spanish";
+export type CourseMode = "self_learning" | "with_teacher";
+export type CourseDeliveryType = "self_paced" | "scheduled" | "individual" | "group";
+export type CourseType = "profession" | "qualification" | "knowledge";
+export type CoursePricingType = "free" | "full_payment" | "installment";
+export type CourseStatus = "draft" | "review" | "published" | "archived";
+
+export type CourseTag = {
+  id: number;
+  name: string;
+};
+
+export type CourseCategory = {
+  id: number;
+  name: string;
+  slug: string;
+  description: string;
+};
+
+export type CourseListItem = {
+  id: number;
+  title: string;
+  short_description: string;
+  slug: string;
+  teacher_name: string;
+  category: CourseCategory | null;
+  level: CourseLevel;
+  language: CourseLanguage;
+  mode: CourseMode;
+  delivery_type: CourseDeliveryType;
+  course_type: CourseType;
+  pricing_type: CoursePricingType;
+  price: string;
+  duration_hours: number;
+  lessons_count: number;
+  with_certificate: boolean;
+  is_on_sale: boolean;
+  rating_avg: string;
+  students_count: number;
+  status: CourseStatus;
+  published_at: string | null;
+  tags: CourseTag[];
+};
+
+export type CourseDetail = CourseListItem & {
+  full_description: string;
+  teacher_id: number;
+  moderator_id: number | null;
+  installment_count: number | null;
+  installment_amount: string | null;
+  created_at: string;
+  updated_at: string;
+};

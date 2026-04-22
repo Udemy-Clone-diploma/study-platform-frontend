@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { getMe } from "@/features/auth/api/authApi";
 import { logout } from "@/features/auth/actions/logout";
 import type { UserData } from "@/features/auth/model/types/userData";
+import Link from "next/dist/client/link";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -50,7 +51,7 @@ export default function DashboardPage() {
   function handleLogout() {
     startTransition(async () => {
       await logout();
-      router.replace("/login");
+      router.replace("/");
       router.refresh();
     });
   }
@@ -102,7 +103,14 @@ export default function DashboardPage() {
             <span className="font-medium">Joined:</span> {user.date_joined}
           </p>
         </div>
-
+        <div className="m-6">
+          <Link
+            href="/catalog"
+            className="w-full rounded-lg bg-red-600 px-4 py-3 text-sm font-medium text-white transition duration-200 hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            Catalog
+        </Link>
+        </div>
         <div className="mt-6">
           <button
             onClick={handleLogout}

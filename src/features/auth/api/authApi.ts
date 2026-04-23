@@ -13,7 +13,6 @@ import type {
   PasswordResetRequestPayload,
   PasswordResetConfirmPayload,
 } from "@/features/auth/model/types/passwordResetTypes";
- 
 
 export async function registerUser(payload: RegisterPayload): Promise<RegisterResponse> {
   const { data } = await api.post<RegisterResponse>("auth/register/", payload);
@@ -62,28 +61,31 @@ export async function resendVerificationEmail(email: string): Promise<{ detail: 
   return data;
 }
 
-
-
-export async function requestPasswordReset(payload: PasswordResetRequestPayload): Promise<{ detail: string }> {
-  return request<{ detail: string }>("auth/password-reset/", {
-    method: "POST",
-    body: payload,
-  });
-}
- 
-
-export async function validatePasswordResetToken(uidb64: string, token: string): Promise<{ valid: boolean }> {
-  return request<{ valid: boolean }>(
-    `auth/password-reset/${uidb64}/${token}/validate/`,
-    { method: "GET" }
-  );
-}
- 
-
-export async function confirmPasswordReset(uidb64: string, token: string, payload: PasswordResetConfirmPayload
+export async function requestPasswordReset(
+  payload: PasswordResetRequestPayload,
 ): Promise<{ detail: string }> {
-  return request<{ detail: string }>(
-    `auth/password-reset/${uidb64}/${token}/`,
-    { method: "POST", body: payload }
+  const { data } = await api.post<{ detail: string }>("auth/password-reset/", payload);
+  return data;
+}
+
+export async function validatePasswordResetToken(
+  uidb64: string,
+  token: string,
+): Promise<{ valid: boolean }> {
+  const { data } = await api.get<{ valid: boolean }>(
+    `auth/password-reset/${uidb64}/${token}/validate/`,
   );
+  return data;
+}
+
+export async function confirmPasswordReset(
+  uidb64: string,
+  token: string,
+  payload: PasswordResetConfirmPayload,
+): Promise<{ detail: string }> {
+  const { data } = await api.post<{ detail: string }>(
+    `auth/password-reset/${uidb64}/${token}/`,
+    payload,
+  );
+  return data;
 }

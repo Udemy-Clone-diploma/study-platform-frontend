@@ -7,6 +7,9 @@ import type {
   CourseMode,
   CoursePricingType,
 } from "@/features/courses/model/types/course";
+import type { ApiError } from "@/shared/api/base";
+
+export const dynamic = "force-dynamic";
 
 const LEVEL_LABELS: Record<CourseLevel, string> = {
   beginner: "Beginner",
@@ -59,8 +62,24 @@ function formatPublishedDate(value: string | null) {
   }).format(new Date(value));
 }
 
+async function loadCourses() {
+  try {
+    return {
+      courses: await getCourses(),
+      error: "",
+    };
+  } catch (error: unknown) {
+    const apiError = error as Partial<ApiError>;
+
+    return {
+      courses: [],
+      error: apiError.message || apiError.detail || "Could not load courses.",
+    };
+  }
+}
+
 export default async function CatalogPage() {
-  const courses = await getCourses();
+  const { courses, error } = await loadCourses();
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-10 text-slate-900">
@@ -96,7 +115,12 @@ export default async function CatalogPage() {
             </h2>
           </div>
 
-          {courses.length === 0 ? (
+          {error ? (
+            <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-red-800 shadow-sm">
+              <h3 className="text-xl font-semibold">Courses are unavailable</h3>
+              <p className="mt-2 text-sm">{error}</p>
+            </div>
+          ) : courses.length === 0 ? (
             <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center shadow-sm">
               <h3 className="text-xl font-semibold text-slate-950">No courses yet</h3>
               <p className="mt-2 text-slate-600">The catalog will show courses here once they are created.</p>

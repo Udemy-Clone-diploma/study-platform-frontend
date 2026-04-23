@@ -1,5 +1,9 @@
 import { RegisterFormErrors, RegisterFormData } from "@/features/auth/model/types/registerTypes";
 import { LoginFormErrors, LoginFormData } from "@/features/auth/model/types/loginTypes";
+import type {
+  PasswordResetFormData,
+  PasswordResetFormErrors,
+} from "@/features/auth/model/types/passwordResetTypes";
 
 export function validateRegisterForm(values: RegisterFormData): RegisterFormErrors {
   const errors: RegisterFormErrors = {};
@@ -45,3 +49,30 @@ export function validateLoginForm(values: LoginFormData): LoginFormErrors {
 
   return errors;
 }
+
+export function validatePasswordResetForm(
+  values: PasswordResetFormData
+): PasswordResetFormErrors {
+  const errors: PasswordResetFormErrors = {};
+ 
+  if (!values.password) {
+    errors.password = "Введіть пароль";
+  } else if (values.password.length < 8) {
+    errors.password = "Пароль має містити щонайменше 8 символів";
+  } else if (!/(?=.*[a-z])/.test(values.password)) {
+    errors.password = "Пароль має містити хоча б одну малу літеру";
+  } else if (!/(?=.*[A-Z])/.test(values.password)) {
+    errors.password = "Пароль має містити хоча б одну велику літеру";
+  } else if (!/(?=.*\d)/.test(values.password)) {
+    errors.password = "Пароль має містити хоча б одну цифру";
+  }
+ 
+  if (!values.confirmPassword) {
+    errors.confirmPassword = "Підтвердіть пароль";
+  } else if (values.password !== values.confirmPassword) {
+    errors.confirmPassword = "Паролі не співпадають";
+  }
+ 
+  return errors;
+}
+ 

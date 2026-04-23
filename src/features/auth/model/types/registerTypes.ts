@@ -5,7 +5,7 @@ export interface RegisterFormData {
   firstName: string;
   lastName: string;
   password: string;
-  confirmPassword: string;
+  password_confirm: string;
   role: UserRole;
   language: UserLanguage;
 }
@@ -15,6 +15,7 @@ export interface RegisterPayload {
   first_name: string;
   last_name: string;
   password: string;
+  password_confirm: string;
   role: UserRole;
   language: UserLanguage;
 }

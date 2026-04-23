@@ -12,7 +12,7 @@ const initialForm: RegisterFormData = {
   firstName: "",
   lastName: "",
   password: "",
-  confirmPassword: "",
+  password_confirm: "",
   role: "student",
   language: "en",
 };
@@ -61,6 +61,7 @@ export function RegisterForm() {
         first_name: formData.firstName.trim(),
         last_name: formData.lastName.trim(),
         password: formData.password,
+        password_confirm: formData.password_confirm,
         role: "student",
         language: "en",
       });
@@ -78,9 +79,7 @@ export function RegisterForm() {
         Object.entries(typedError.fields).forEach(([key, value]) => {
           const normalizedValue = Array.isArray(value) ? value[0] : String(value);
 
-          if (key === "confirm_password") {
-            backendFieldErrors.confirmPassword = normalizedValue;
-          } else if (key === "email" || key === "password" || key === "confirmPassword") {
+        if (key === "email" || key === "password" || key === "password_confirm") {
             backendFieldErrors[key] = normalizedValue;
           }
         });
@@ -144,14 +143,14 @@ export function RegisterForm() {
       />
 
       <Input
-        id="confirmPassword"
-        name="confirmPassword"
+        id="password_confirm"
+        name="password_confirm"
         type="password"
         label="Confirm password"
         placeholder="Підтвердіть пароль"
-        value={formData.confirmPassword}
+        value={formData.password_confirm}
         onChange={handleChange}
-        error={errors.confirmPassword}
+        error={errors.password_confirm}
       />
 
       <Input

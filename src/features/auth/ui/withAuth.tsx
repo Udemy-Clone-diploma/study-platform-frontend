@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getClientCookie } from "@/shared/lib/cookies";
 import type { UserRole } from "@/features/auth/model/types/userData";
@@ -15,25 +15,21 @@ export function withAuth<P extends object>(
 ) {
   function ProtectedComponent(props: P) {
     const router = useRouter();
-    const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+    const role = getClientCookie("user_role") as UserRole | undefined;
+    const isAuthorized = !!role && allowedRoles.includes(role);
 
     useEffect(() => {
-      const role = getClientCookie("user_role") as UserRole | undefined;
-
       if (!role) {
         router.replace("/login");
         return;
       }
 
-      if (!allowedRoles.includes(role)) {
+      if (!isAuthorized) {
         router.replace("/403");
-        return;
       }
+    }, [isAuthorized, role, router]);
 
-      setIsAuthorized(true);
-    }, [router]);
-
-    if (isAuthorized === null) {
+    if (!isAuthorized) {
       return null;
     }
 

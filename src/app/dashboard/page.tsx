@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { getMe } from "@/features/auth/api/authApi";
+import { logout } from "@/features/auth/actions/logout";
 import type { UserData } from "@/features/auth/model/types/userData";
-import { clearAuthCookies } from "@/shared/api/authCookies";
+import Link from "next/dist/client/link";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -12,6 +13,7 @@ export default function DashboardPage() {
   const [user, setUser] = useState<UserData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     let isMounted = true;
@@ -25,7 +27,7 @@ export default function DashboardPage() {
         }
 
         setUser(me);
-      } catch (err) {
+      } catch {
         if (!isMounted) {
           return;
         }
@@ -46,9 +48,12 @@ export default function DashboardPage() {
     };
   }, [router]);
 
-  async function handleLogout() {
-    await clearAuthCookies();
-    window.location.href = "/login";
+  function handleLogout() {
+    startTransition(async () => {
+      await logout();
+      router.replace("/");
+      router.refresh();
+    });
   }
 
   if (isLoading) {
@@ -98,12 +103,21 @@ export default function DashboardPage() {
             <span className="font-medium">Joined:</span> {user.date_joined}
           </p>
         </div>
+        <div className="m-6">
+          <Link
+            href="/catalog"
+            className="w-full rounded-lg bg-red-600 px-4 py-3 text-sm font-medium text-white transition duration-200 hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            Catalog
+        </Link>
+        </div>
         <div className="mt-6">
           <button
             onClick={handleLogout}
-            className="w-full rounded-lg bg-red-600 px-4 py-3 text-sm font-medium text-white transition duration-200 hover:bg-red-700"
+            disabled={isPending}
+            className="w-full rounded-lg bg-red-600 px-4 py-3 text-sm font-medium text-white transition duration-200 hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-70"
           >
-            Logout
+            {isPending ? "Logging out..." : "Logout"}
           </button>
         </div>
       </div>

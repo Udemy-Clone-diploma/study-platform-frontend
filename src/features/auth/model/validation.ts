@@ -26,10 +26,10 @@ export function validateRegisterForm(values: RegisterFormData): RegisterFormErro
     errors.password = "Пароль має містити хоча б одну цифру";
   }
 
-  if (!values.confirmPassword) {
-    errors.confirmPassword = "Підтвердіть пароль";
-  } else if (values.password !== values.confirmPassword) {
-    errors.confirmPassword = "Паролі не співпадають";
+  if (!values.password_confirm) {
+    errors.password_confirm = "Підтвердіть пароль";
+  } else if (values.password !== values.password_confirm) {
+    errors.password_confirm = "Паролі не співпадають";
   }
 
   return errors;

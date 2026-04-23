@@ -1,78 +1,93 @@
+import axios, { AxiosHeaders } from "axios";
 import { getClientCookie } from "@/shared/lib/cookies";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1/";
 
-type RequestOptions = Omit<RequestInit, "body"> & {
-  body?: unknown;
-  _retry?: boolean;
+export type ApiError = {
+  message: string;
+  detail?: string;
+  fields: Record<string, string | string[]>;
+  status?: number;
 };
 
-export async function request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
+export const api = axios.create({
+  baseURL: API_BASE_URL,
+});
+
+api.interceptors.request.use((config) => {
   const accessToken = getClientCookie("access_token");
+  const headers = AxiosHeaders.from(config.headers);
 
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-    ...(options.headers || {}),
-  };
-
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    ...options,
-    headers,
-    body: options.body ? JSON.stringify(options.body) : undefined,
-  });
-
-  const data = await safeParseJson(response);
-
-  if (!response.ok) {
-    throw normalizeApiError(data, "Request failed");
+  if (!headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
   }
 
-  return data as T;
-}
-
-async function safeParseJson(response: Response) {
-  try {
-    return await response.json();
-  } catch {
-    return null;
+  if (accessToken && !headers.has("Authorization")) {
+    headers.set("Authorization", `Bearer ${accessToken}`);
   }
-}
 
-function normalizeApiError(data: unknown, fallbackMessage: string) {
+  config.headers = headers;
+
+  return config;
+});
+
+api.interceptors.response.use(
+  (response) => response,
+  (error: unknown) => Promise.reject(normalizeApiError(error, "Request failed")),
+);
+
+function normalizeApiError(error: unknown, fallbackMessage: string): ApiError {
+  if (!axios.isAxiosError(error)) {
+    return {
+      message: error instanceof Error ? error.message : fallbackMessage,
+      fields: {},
+    };
+  }
+
+  const status = error.response?.status;
+  const data = error.response?.data;
+
   if (!data) {
     return {
-      message: fallbackMessage,
-      fields: {} as Record<string, string | string[]>,
+      message: error.message || fallbackMessage,
+      fields: {},
+      status,
     };
   }
 
   if (typeof data === "string") {
     return {
       message: data,
-      fields: {} as Record<string, string | string[]>,
+      detail: data,
+      fields: {},
+      status,
     };
   }
 
   if (typeof data === "object") {
     const typedData = data as Record<string, unknown>;
+    const detail = typeof typedData.detail === "string" ? typedData.detail : undefined;
+    const message =
+      typeof typedData.message === "string"
+        ? typedData.message
+        : detail
+          ? detail
+          : error.message || fallbackMessage;
 
     return {
-      message:
-        typeof typedData.message === "string"
-          ? typedData.message
-          : typeof typedData.detail === "string"
-            ? typedData.detail
-            : fallbackMessage,
+      message,
+      detail,
       fields:
         typedData.errors && typeof typedData.errors === "object"
           ? (typedData.errors as Record<string, string | string[]>)
-          : typedData,
+          : (typedData as Record<string, string | string[]>),
+      status,
     };
   }
 
   return {
-    message: fallbackMessage,
-    fields: {} as Record<string, string | string[]>,
+    message: error.message || fallbackMessage,
+    fields: {},
+    status,
   };
 }

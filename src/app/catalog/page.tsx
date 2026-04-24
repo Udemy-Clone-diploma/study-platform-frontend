@@ -1,5 +1,7 @@
+import { Suspense } from "react";
 import Link from "next/link";
-import { getCourses } from "@/features/courses/api/coursesApi";
+import { getCourses, getCategories } from "@/features/courses/api/coursesApi";
+import { CategoryFilter } from "@/features/courses/ui/CategoryFilter";
 import type {
   CourseLanguage,
   CourseLevel,
@@ -7,6 +9,7 @@ import type {
   CourseMode,
   CoursePricingType,
 } from "@/features/courses/model/types/course";
+import type { Category } from "@/features/courses/model/types/category";
 import type { ApiError } from "@/shared/api/base";
 
 export const dynamic = "force-dynamic";
@@ -62,10 +65,10 @@ function formatPublishedDate(value: string | null) {
   }).format(new Date(value));
 }
 
-async function loadCourses() {
+async function loadCourses(categorySlug?: string) {
   try {
     return {
-      courses: await getCourses(),
+      courses: await getCourses(categorySlug),
       error: "",
     };
   } catch (error: unknown) {
@@ -78,8 +81,26 @@ async function loadCourses() {
   }
 }
 
-export default async function CatalogPage() {
-  const { courses, error } = await loadCourses();
+async function loadCategories(): Promise<Category[]> {
+  try {
+    return await getCategories();
+  } catch {
+    return [];
+  }
+}
+
+export default async function CatalogPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const { category } = await searchParams;
+  const categorySlug = typeof category === "string" ? category : undefined;
+
+  const [{ courses, error }, categories] = await Promise.all([
+    loadCourses(categorySlug),
+    loadCategories(),
+  ]);
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-10 text-slate-900">
@@ -109,9 +130,20 @@ export default async function CatalogPage() {
         </header>
 
         <section className="space-y-4">
+          {categories.length > 0 && (
+            <Suspense>
+              <CategoryFilter categories={categories} currentSlug={categorySlug} />
+            </Suspense>
+          )}
+
           <div>
             <h2 className="text-2xl font-semibold text-slate-950">
               {courses.length} course{courses.length === 1 ? "" : "s"}
+              {categorySlug ? (
+                <span className="ml-2 text-base font-normal text-slate-500">
+                  in &ldquo;{categories.find((c) => c.slug === categorySlug)?.name ?? categorySlug}&rdquo;
+                </span>
+              ) : null}
             </h2>
           </div>
 
@@ -122,8 +154,23 @@ export default async function CatalogPage() {
             </div>
           ) : courses.length === 0 ? (
             <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center shadow-sm">
-              <h3 className="text-xl font-semibold text-slate-950">No courses yet</h3>
-              <p className="mt-2 text-slate-600">The catalog will show courses here once they are created.</p>
+              {categorySlug ? (
+                <>
+                  <h3 className="text-xl font-semibold text-slate-950">Немає курсів у цій категорії</h3>
+                  <p className="mt-2 text-slate-600">Спробуйте обрати іншу категорію або скиньте фільтр.</p>
+                  <Link
+                    href="/catalog"
+                    className="mt-6 inline-block rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-700"
+                  >
+                    Скинути фільтр
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <h3 className="text-xl font-semibold text-slate-950">No courses yet</h3>
+                  <p className="mt-2 text-slate-600">The catalog will show courses here once they are created.</p>
+                </>
+              )}
             </div>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">

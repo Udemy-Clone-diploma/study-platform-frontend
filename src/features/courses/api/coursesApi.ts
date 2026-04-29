@@ -10,8 +10,10 @@ export async function getCategories(): Promise<Category[]> {
   return data;
 }
 
-export async function getCourses(categorySlug?: string): Promise<CourseListItem[]> {
-  const params = categorySlug ? { category: categorySlug } : {};
+export async function getCourses(categorySlug?: string, ordering?: string): Promise<CourseListItem[]> {
+  const params: Record<string, string> = {};
+  if (categorySlug) params.category = categorySlug;
+  if (ordering) params.ordering = ordering;
   const { data } = await api.get<CourseListItem[]>(COURSES_ENDPOINT, { params });
   return data;
 }

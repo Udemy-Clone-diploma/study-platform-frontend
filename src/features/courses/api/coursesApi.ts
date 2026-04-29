@@ -30,8 +30,3 @@ export async function getPopularCourses(): Promise<CourseListItem[]> {
   const { data } = await api.get<CourseListItem[]>(`${COURSES_ENDPOINT}popular-courses/`);
   return data;
 }
-
-export async function getCategories(): Promise<CourseCategory[]> {
-  const { data } = await api.get<CourseCategory[]>(`${COURSES_ENDPOINT}categories/`);
-  return data;
-}

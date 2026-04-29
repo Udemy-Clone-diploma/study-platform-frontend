@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { getCourses, getCategories } from "@/features/courses/api/coursesApi";
 import { CategoryFilter } from "@/features/courses/ui/CategoryFilter";
+import { SortDropdown } from "@/features/courses/ui/SortDropdown";
 import type {
   CourseLanguage,
   CourseLevel,
@@ -65,10 +66,10 @@ function formatPublishedDate(value: string | null) {
   }).format(new Date(value));
 }
 
-async function loadCourses(categorySlug?: string) {
+async function loadCourses(categorySlug?: string, ordering?: string) {
   try {
     return {
-      courses: await getCourses(categorySlug),
+      courses: await getCourses(categorySlug, ordering),
       error: "",
     };
   } catch (error: unknown) {
@@ -94,11 +95,12 @@ export default async function CatalogPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const { category } = await searchParams;
+  const { category, sort } = await searchParams;
   const categorySlug = typeof category === "string" ? category : undefined;
+  const ordering = typeof sort === "string" ? sort : undefined;
 
   const [{ courses, error }, categories] = await Promise.all([
-    loadCourses(categorySlug),
+    loadCourses(categorySlug, ordering),
     loadCategories(),
   ]);
 
@@ -136,7 +138,7 @@ export default async function CatalogPage({
             </Suspense>
           )}
 
-          <div>
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-2xl font-semibold text-slate-950">
               {courses.length} course{courses.length === 1 ? "" : "s"}
               {categorySlug ? (
@@ -145,6 +147,9 @@ export default async function CatalogPage({
                 </span>
               ) : null}
             </h2>
+            <Suspense>
+              <SortDropdown currentSort={ordering} />
+            </Suspense>
           </div>
 
           {error ? (

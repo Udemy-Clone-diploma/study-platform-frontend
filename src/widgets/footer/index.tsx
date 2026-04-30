@@ -1,11 +1,11 @@
 import Image from "next/image";
 
 const SOCIAL = [
-    { name: "Instagram", src: "/social-media-icons/instagrm.png" },
-    { name: "Google",    src: "/social-media-icons/Google.png" },
-    { name: "Behance",   src: "/social-media-icons/behance.png" },
-    { name: "LinkedIn",  src: "/social-media-icons/LinKedln.png" },
-    { name: "Facebook",  src: "/social-media-icons/Facebook.png" },
+    { name: "Instagram", src: "/social-media-icons/instagrm.png", href: "https://instagram.com" },
+    { name: "Google",    src: "/social-media-icons/Google.png",    href: "https://google.com" },
+    { name: "Behance",   src: "/social-media-icons/behance.png",   href: "https://behance.net" },
+    { name: "LinkedIn",  src: "/social-media-icons/LinKedln.png",  href: "https://linkedin.com" },
+    { name: "Facebook",  src: "/social-media-icons/Facebook.png",  href: "https://facebook.com" },
 ];
 
 const LINKS_LEFT  = ["Business", "Languages", "Personal development"];
@@ -51,7 +51,9 @@ export function Footer() {
                         {SOCIAL.map((s) => (
                             <a
                                 key={s.name}
-                                href="#"
+                                href={s.href}
+                                target="_blank"
+                                rel="noopener noreferrer"
                                 aria-label={s.name}
                                 className="shrink-0 transition-opacity hover:opacity-70"
                             >
@@ -83,13 +85,13 @@ export function Footer() {
                 >
                     <div className="flex-1 min-w-0 flex flex-col" style={{ gap: 12 }}>
                         {LINKS_LEFT.map((label) => (
-                            <FooterLink key={label} href="#">{label}</FooterLink>
+                            <span key={label} style={textStyle}>{label}</span>
                         ))}
                     </div>
 
                     <div className="flex-1 min-w-0 flex flex-col" style={{ gap: 12 }}>
                         {LINKS_RIGHT.map((label) => (
-                            <FooterLink key={label} href="#">{label}</FooterLink>
+                            <span key={label} style={textStyle}>{label}</span>
                         ))}
                     </div>
 

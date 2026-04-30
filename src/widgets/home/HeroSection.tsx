@@ -1,7 +1,8 @@
 import Image from "next/image";
-import Link from "next/link";
+import { cookies } from "next/headers";
 import { SectionContainer } from "@/shared/ui/SectionContainer";
 import { GetStartedButton } from "@/shared/ui/GetStartedButton";
+import { ContinueLearningButton } from "@/shared/ui/ContinueLearningButton";
 
 const TAGS = ["Skills", "Networking", "Growth"];
 
@@ -11,7 +12,10 @@ const PARTNERS = [
     { src: "/main/Skill Flow Studio.png",    alt: "Skill Flow Studio",    width: 238, height: 84 },
 ];
 
-export function HeroSection() {
+export async function HeroSection() {
+    const jar = await cookies();
+    const isLoggedIn = !!jar.get("access_token")?.value;
+
     return (
         <section style={{ position: "relative", overflow: "hidden" }}>
 
@@ -155,7 +159,7 @@ export function HeroSection() {
                             </div>
 
                             {/* Button */}
-                           <GetStartedButton />
+                            {isLoggedIn ? <ContinueLearningButton /> : <GetStartedButton />}
                         </div>
 
                         {/* Partners */}

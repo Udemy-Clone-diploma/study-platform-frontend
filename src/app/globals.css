@@ -1,35 +1,82 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-  --app-font-sans:
-    "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --app-font-display:
-    "Avenir Next", "Century Gothic", "Futura", "Trebuchet MS", sans-serif;
-  --app-font-mono:
-    "Cascadia Code", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  /* ── Brand palette ── */
+  --color-brand-lavender:     #a7bafa;
+  --color-brand-pink:         #fcc4c3;
+  --color-brand-cream:        #fff4da;
+  --color-brand-yellow:       #ffde8d;
+  --color-brand-yellow-light: #fff1d0;
+
+  /* ── Accent colors ── */
+  --color-blue:        #003aff;
+  --color-blue-dark:   #001354;
+  --color-pink-dark:   #8b2624;
+  --color-yellow-dark: #8a6201;
+  --color-gold:        #fdc43a;
+
+  /* ── Semantic colors ── */
+  --color-bg:           #ffffff;
+  --color-bg-surface:   #f9fafb;
+  --color-text-primary: #121212;
+  --color-text-secondary: #6b7280;
+  --color-text-subtle:  #374151;
+  --color-text-muted:   #9ca3af;
+  --color-border:       #e5e7eb;
+  --color-placeholder:  #d9d9d9;
+
+  /* ── Gradients ── */
+  --gradient-brand: linear-gradient(
+    90deg,
+    var(--color-brand-lavender) 0%,
+    var(--color-brand-pink)     50.96%,
+    var(--color-brand-cream)    100%
+  );
+
+  --gradient-card-blue: radial-gradient(
+    60.91% 60.91% at 50% 50%,
+    var(--color-brand-lavender) 0%,
+    var(--color-bg) 100%
+  );
+  --gradient-card-pink: radial-gradient(
+    60.91% 60.91% at 50% 50%,
+    var(--color-brand-pink) 0%,
+    var(--color-bg) 100%
+  );
+  --gradient-card-yellow: radial-gradient(
+    60.91% 60.91% at 50% 50%,
+    var(--color-brand-yellow-light) 0%,
+    var(--color-bg) 100%
+  );
+
+  --gradient-section-pastel: linear-gradient(
+    70.58deg,
+    rgba(167, 186, 250, 0.4)  1.09%,
+    rgba(252, 196, 195, 0.4) 50%,
+    rgba(255, 244, 218, 0.4) 98.91%
+  );
+
+
+  /* ── Shadows ── */
+  --shadow-card:      0px 0px 30px rgba(0, 0, 0, 0.16);
+  --shadow-usp-glass: inset 0px 2px 4px #ffffff;
+
+  /* ── Typography ── */
+  --font-base:   var(--font-mulish), sans-serif;
+  --font-accent: var(--font-source-code-pro), monospace;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-display: var(--app-font-display);
-  --font-sans: var(--app-font-sans);
-  --font-mono: var(--app-font-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-background: var(--color-bg);
+  --color-foreground: var(--color-text-primary);
+  --font-sans: var(--font-base);
+  --font-mono: var(--font-accent);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--app-font-sans);
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  font-family: var(--font-base);
 }
 
 @keyframes auth-appear {
@@ -37,7 +84,6 @@ body {
     opacity: 0;
     transform: translateY(24px) scale(0.98);
   }
-
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -49,7 +95,6 @@ body {
   100% {
     transform: translate3d(0, 0, 0) scale(1);
   }
-
   50% {
     transform: translate3d(0, -18px, 0) scale(1.04);
   }

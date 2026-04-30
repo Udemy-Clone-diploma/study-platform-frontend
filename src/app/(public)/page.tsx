@@ -1,4 +1,6 @@
 import Link from "next/link";
+
+
 import { getNewCourses, getPopularCourses, getCategories } from "@/features/courses/api/coursesApi";
 import { CourseCard } from "@/features/courses/ui/CourseCard";
 import type { ApiError } from "@/shared/api/base";
@@ -166,3 +168,6 @@ export default async function Home() {
     </main>
   );
 }
+
+
+

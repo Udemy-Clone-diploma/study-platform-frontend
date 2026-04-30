@@ -35,12 +35,12 @@ export async function Header() {
                 style={{ gap: "9.58%" }}
             >
                 {/* Left */}
-                <div className="flex items-center flex-1 min-w-0" style={{ gap: "8.49%" }}>
+                <div className="flex items-center flex-1 min-w-0 h-full" style={{ gap: "8.49%" }}>
 
-                    <div className="flex items-center shrink-0" style={{ gap: 60 }}>
+                    <div className="flex items-center shrink-0 h-full" style={{ gap: 60 }}>
                         <div style={{ width: 180, height: 60, background: "var(--color-placeholder)" }} />
 
-                        <nav className="flex items-center gap-8">
+                        <nav className="flex items-center gap-8 h-full">
                             <CatalogDropdown categories={categories} />
                             <Link
                                 href="/coming-soon?page=Blog"
@@ -63,9 +63,9 @@ export async function Header() {
                 </div>
 
                 {/* Right */}
-                <div className="shrink-0">
+                <div className="shrink-0 h-full">
                     {isLoggedIn ? (
-                        <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-6 h-full">
                             <Link
                                 href="/coming-soon?page=My+Courses"
                                 className="transition-opacity hover:opacity-70"

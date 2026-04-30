@@ -11,7 +11,6 @@ const itemStyle: React.CSSProperties = {
     fontSize: 16,
     fontWeight: 500,
     textTransform: "uppercase",
-    color: "var(--color-text-primary)",
     lineHeight: "20px",
 };
 
@@ -38,7 +37,7 @@ export function UserDropdown({ firstName }: { firstName: string | null }) {
     }
 
     return (
-        <div ref={ref} style={{ position: "relative" }}>
+        <div ref={ref} className="flex items-center h-full" style={{ position: "relative" }}>
             <button
                 onClick={() => setOpen((prev) => !prev)}
                 className="flex items-center gap-1.5 transition-opacity hover:opacity-70"
@@ -73,24 +72,27 @@ export function UserDropdown({ firstName }: { firstName: string | null }) {
                 <div
                     style={{
                         position: "absolute",
-                        top: "calc(100% + 12px)",
+                        top: "calc(100% + 8px)",
                         right: 0,
                         width: 220,
-                        background: "linear-gradient(90deg, var(--color-brand-lavender) -659.09%, var(--color-brand-pink) -214.34%, var(--color-brand-cream) 213.64%)",
+                        backgroundImage: "linear-gradient(90deg, var(--color-brand-lavender) 0%, var(--color-brand-pink) 50.96%, var(--color-brand-cream) 100%)",
+                        backgroundAttachment: "fixed",
+                        backgroundSize: "100vw 100%",
                         borderRadius: 12,
                         padding: "23px 117px 23px 16px",
                         zIndex: 50,
                     }}
                 >
                     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                        <Link href="/coming-soon?page=Profile" onClick={() => setOpen(false)} style={itemStyle}>
+                        <Link href="/coming-soon?page=Profile" onClick={() => setOpen(false)} className="dropdown-link" style={itemStyle}>
                             Profile
                         </Link>
-                        <Link href="/dashboard" onClick={() => setOpen(false)} style={itemStyle}>
+                        <Link href="/dashboard" onClick={() => setOpen(false)} className="dropdown-link" style={itemStyle}>
                             My Office
                         </Link>
                         <button
                             onClick={handleLogout}
+                            className="dropdown-link"
                             style={{
                                 ...itemStyle,
                                 background: "none",

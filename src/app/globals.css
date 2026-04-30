@@ -79,6 +79,14 @@ body {
   font-family: var(--font-base);
 }
 
+.dropdown-link {
+  color: var(--color-text-primary);
+  transition: color 0.15s;
+}
+.dropdown-link:hover {
+  color: var(--color-blue);
+}
+
 @keyframes auth-appear {
   from {
     opacity: 0;

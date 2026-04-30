@@ -9,6 +9,15 @@ type Props = {
     categories: Category[];
 };
 
+const itemStyle: React.CSSProperties = {
+    fontFamily: "var(--font-accent)",
+    fontSize: 16,
+    fontWeight: 500,
+    textTransform: "uppercase",
+    lineHeight: "20px",
+    whiteSpace: "nowrap",
+};
+
 export function CatalogDropdown({ categories }: Props) {
     const [open, setOpen] = useState(false);
     const ref = useRef<HTMLDivElement>(null);
@@ -24,7 +33,7 @@ export function CatalogDropdown({ categories }: Props) {
     }, []);
 
     return (
-        <div ref={ref} style={{ position: "relative" }}>
+        <div ref={ref} className="flex items-center h-full" style={{ position: "relative" }}>
             <button
                 onClick={() => setOpen((prev) => !prev)}
                 className="flex items-center gap-1 transition-opacity hover:opacity-70"
@@ -60,49 +69,40 @@ export function CatalogDropdown({ categories }: Props) {
                 <div
                     style={{
                         position: "absolute",
-                        top: "calc(100% + 12px)",
+                        top: "calc(100% + 8px)",
                         left: 0,
-                        background: "var(--color-bg)",
-                        borderRadius: 16,
-                        boxShadow: "0px 8px 32px rgba(0, 0, 0, 0.12)",
                         minWidth: 220,
+                        width: "max-content",
+                        backgroundImage: "linear-gradient(90deg, var(--color-brand-lavender) 0%, var(--color-brand-pink) 50.96%, var(--color-brand-cream) 100%)",
+                        backgroundAttachment: "fixed",
+                        backgroundSize: "100vw 100%",
+                        borderRadius: 12,
+                        padding: "23px 40px 23px 16px",
                         zIndex: 50,
-                        padding: "8px 0",
                     }}
                 >
-                    <Link
-                        href="/catalog"
-                        onClick={() => setOpen(false)}
-                        className="block px-5 py-3 transition-colors hover:bg-gray-50"
-                        style={{
-                            fontFamily: "var(--font-accent)",
-                            fontSize: 16,
-                            fontWeight: 500,
-                            color: "var(--color-text-primary)",
-                        }}
-                    >
-                        All Courses
-                    </Link>
-
-                    {categories.length > 0 && (
-                        <div style={{ borderTop: "1px solid var(--color-border)", margin: "4px 0" }} />
-                    )}
-
-                    {categories.map((cat) => (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                         <Link
-                            key={cat.id}
-                            href={`/catalog?category=${cat.slug}`}
+                            href="/catalog"
                             onClick={() => setOpen(false)}
-                            className="block px-5 py-3 transition-colors hover:bg-gray-50"
-                            style={{
-                                fontFamily: "var(--font-base)",
-                                fontSize: 15,
-                                color: "var(--color-text-subtle)",
-                            }}
+                            className="dropdown-link"
+                            style={itemStyle}
                         >
-                            {cat.name}
+                            All Courses
                         </Link>
-                    ))}
+
+                        {categories.map((cat) => (
+                            <Link
+                                key={cat.id}
+                                href={`/catalog?category=${cat.slug}`}
+                                onClick={() => setOpen(false)}
+                                className="dropdown-link"
+                                style={itemStyle}
+                            >
+                                {cat.name}
+                            </Link>
+                        ))}
+                    </div>
                 </div>
             )}
         </div>

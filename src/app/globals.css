@@ -17,6 +17,7 @@
 
   /* ── Semantic colors ── */
   --color-bg:           #ffffff;
+  --color-white:        #ffffff;
   --color-bg-surface:   #f9fafb;
   --color-text-primary: #121212;
   --color-text-secondary: #6b7280;

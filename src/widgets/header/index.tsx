@@ -8,6 +8,15 @@ import { UserDropdown } from "@/features/auth/ui/UserDropdown";
 import { GetStartedButton } from "@/shared/ui/GetStartedButton";
 import { SearchBar } from "@/shared/ui/SearchBar";
 
+const navLinkStyle: React.CSSProperties = {
+    fontFamily: "var(--font-accent)",
+    fontSize: "clamp(14px, 1.41vw, 20px)",
+    fontWeight: 500,
+    textTransform: "uppercase",
+    color: "var(--color-text-primary)",
+    lineHeight: 1.25,
+};
+
 export async function Header() {
     const [jar, categories] = await Promise.all([
         cookies(),
@@ -31,13 +40,18 @@ export async function Header() {
             }}
         >
             <div
-                className="max-w-[1420px] mx-auto h-full flex items-center px-4 md:px-6 xl:px-8"
-                style={{ gap: "9.58%" }}
+                className="mx-auto h-full flex items-center px-4 md:px-6 xl:px-8"
+                style={{ maxWidth: isLoggedIn ? 1840 : 1480, gap: "9.58%" }}
             >
                 {/* Left */}
-                <div className="flex items-center flex-1 min-w-0 h-full" style={{ gap: "8.49%" }}>
-
-                    <div className="flex items-center shrink-0 h-full" style={{ gap: 60 }}>
+                <div
+                    className="flex items-center flex-1 min-w-0 h-full"
+                    style={{ gap: isLoggedIn ? "3%" : "8.49%" }}
+                >
+                    <div
+                        className="flex items-center shrink-0 h-full"
+                        style={{ gap: isLoggedIn ? 48 : 60 }}
+                    >
                         <div style={{ width: 180, height: 60, background: "var(--color-placeholder)" }} />
 
                         <nav className="flex items-center gap-8 h-full">
@@ -45,14 +59,7 @@ export async function Header() {
                             <Link
                                 href="/coming-soon?page=Blog"
                                 className="transition-opacity hover:opacity-70"
-                                style={{
-                                    fontFamily: "var(--font-accent)",
-                                    fontSize: "clamp(14px, 1.41vw, 20px)",
-                                    fontWeight: 500,
-                                    textTransform: "uppercase",
-                                    color: "var(--color-text-primary)",
-                                    lineHeight: 1.25,
-                                }}
+                                style={navLinkStyle}
                             >
                                 Blog
                             </Link>
@@ -63,29 +70,27 @@ export async function Header() {
                 </div>
 
                 {/* Right */}
-                <div className="shrink-0 h-full">
+                <div className="shrink-0 h-full flex items-center">
                     {isLoggedIn ? (
-                        <div className="flex items-center gap-6 h-full">
+                        <div className="flex items-center h-full" style={{ gap: 40 }}>
                             <Link
                                 href="/coming-soon?page=My+Courses"
                                 className="transition-opacity hover:opacity-70"
-                                style={{
-                                    fontFamily: "var(--font-accent)",
-                                    fontSize: "clamp(14px, 1.41vw, 20px)",
-                                    fontWeight: 500,
-                                    textTransform: "uppercase",
-                                    color: "var(--color-text-primary)",
-                                }}
+                                style={navLinkStyle}
                             >
                                 My Courses
                             </Link>
-                            <button
-                                aria-label="Notifications"
-                                className="w-9 h-9 flex items-center justify-center transition-opacity hover:opacity-70"
-                            >
-                                <Image src="/layout/notifications-icon.png" alt="Notifications" width={24} height={24} />
-                            </button>
-                            <UserDropdown firstName={firstName} />
+
+                            <div className="flex items-center h-full" style={{ gap: 28 }}>
+                                <button
+                                    aria-label="Notifications"
+                                    className="flex items-center justify-center transition-opacity hover:opacity-70"
+                                    style={{ width: 40, height: 40 }}
+                                >
+                                    <Image src="/layout/notifications-icon.png" alt="Notifications" width={24} height={24} />
+                                </button>
+                                <UserDropdown firstName={firstName} />
+                            </div>
                         </div>
                     ) : (
                         <GetStartedButton />

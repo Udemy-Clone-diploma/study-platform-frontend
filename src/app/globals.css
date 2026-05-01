@@ -79,14 +79,33 @@ body {
   background: var(--card-bg);
   box-shadow: var(--shadow-card);
   cursor: pointer;
-  transition: background 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+  isolation: isolate;
+  transition: box-shadow 0.35s ease;
 }
-.course-card:hover {
+.course-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
   background: var(--color-bg);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+  z-index: -1;
+}
+.course-card:hover::before,
+.course-card[data-hovered="true"]::before {
+  opacity: 1;
+}
+.course-card:hover,
+.course-card[data-hovered="true"] {
   box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.16);
 }
+.course-card:active::before {
+  opacity: 0;
+}
 .course-card:active {
-  background: var(--card-bg);
   box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.16), 0 0 0 2px var(--card-border-color);
 }
 

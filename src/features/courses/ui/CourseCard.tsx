@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import type { CourseListItem } from "@/features/courses/model/types/course";
 import { formatPrice } from "@/features/courses/lib/formatPrice";
@@ -30,17 +33,23 @@ type Props = { course: CourseListItem };
 
 export function CourseCard({ course }: Props) {
     const theme = LEVEL[course.level] ?? LEVEL.beginner;
+    const [hovered, setHovered] = useState(false);
 
     return (
-        <Link href={`/courses/${course.id}`} style={{ textDecoration: "none", flexShrink: 0 }}>
+        <div
+            style={{ position: "relative", flexShrink: 0 }}
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
+        >
+        <Link href={`/courses/${course.id}`} style={{ textDecoration: "none", display: "block" }}>
         <article
             className="course-card"
+            data-hovered={hovered}
             style={{
                 "--card-bg": theme.gradient,
                 "--card-border-color": theme.badgeBg,
                 width: "23.75vw",
                 height: "18.85vw",
-                flexShrink: 0,
                 display: "flex",
                 flexDirection: "column",
                 borderRadius: 20,
@@ -48,7 +57,7 @@ export function CourseCard({ course }: Props) {
                 boxSizing: "border-box",
             } as React.CSSProperties}
         >
-            {/* Top row: price + heart */}
+            {/* Top row: price */}
             <div
                 style={{
                     display: "flex",
@@ -68,8 +77,6 @@ export function CourseCard({ course }: Props) {
                 >
                     {formatPrice(course)}
                 </span>
-
-                <WishlistButton />
             </div>
 
             {/* Image placeholder — grows to fill middle space */}
@@ -157,5 +164,10 @@ export function CourseCard({ course }: Props) {
             </div>
         </article>
         </Link>
+
+        <div style={{ position: "absolute", top: "1.25vw", right: "1.25vw", zIndex: 1 }}>
+            <WishlistButton />
+        </div>
+        </div>
     );
 }

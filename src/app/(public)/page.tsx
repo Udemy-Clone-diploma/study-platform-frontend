@@ -7,6 +7,7 @@ import { ValuePropositionSection } from "@/widgets/home/ValuePropositionSection"
 import { CategoriesSection } from "@/widgets/home/CategoriesSection";
 import { TestimonialsSection } from "@/widgets/home/TestimonialsSection";
 import { StoriesSection } from "@/widgets/home/StoriesSection";
+import { FeedbackSection } from "@/widgets/home/FeedbackSection";
 
 export const dynamic = "force-dynamic";
 
@@ -67,7 +68,7 @@ export default async function Home() {
                     width: "40vw",
                     height: "50vw",
                     left: "50%",
-                    top: "47vw",
+                    top: "46vw",
                     background: "var(--color-brand-lavender)",
                     opacity: 0.5,
                     filter: "blur(150px)",
@@ -98,6 +99,7 @@ export default async function Home() {
                 <PopularCoursesSection courses={popularCourses} />
                 <ValuePropositionSection />
                 <CategoriesSection categories={categories} />
+                <FeedbackSection />
                 <TestimonialsSection />
                 <StoriesSection />
             </div>

@@ -5,21 +5,24 @@ import { useState } from "react";
 
 export function WishlistButton() {
     const [liked, setLiked] = useState(false);
+    const [hovered, setHovered] = useState(false);
 
     return (
         <button
             aria-label={liked ? "Remove from wishlist" : "Add to wishlist"}
             onClick={(e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 setLiked((prev) => !prev);
             }}
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
             style={{
                 width: "2.08vw",
                 height: "2.08vw",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                background: "none",
                 border: "none",
                 cursor: "pointer",
                 padding: 0,

@@ -7,6 +7,7 @@ const CATEGORIES_ENDPOINT = "categories/";
 
 export type CourseListParams = {
   category?: string;
+  ordering?: string;
   search?: string;
 };
 
@@ -18,6 +19,7 @@ export async function getCategories(): Promise<Category[]> {
 export async function getCourses(filters: CourseListParams = {}): Promise<CourseListItem[]> {
   const params = {
     ...(filters.category ? { category: filters.category } : {}),
+    ...(filters.ordering ? { ordering: filters.ordering } : {}),
     ...(filters.search ? { search: filters.search } : {}),
   };
   const { data } = await api.get<CourseListItem[]>(COURSES_ENDPOINT, { params });

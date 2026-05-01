@@ -12,6 +12,7 @@ const itemStyle: React.CSSProperties = {
     fontWeight: 500,
     textTransform: "uppercase",
     lineHeight: "20px",
+    whiteSpace: "nowrap",
 };
 
 export function UserDropdown({ firstName }: { firstName: string | null }) {
@@ -84,11 +85,17 @@ export function UserDropdown({ firstName }: { firstName: string | null }) {
                     }}
                 >
                     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                        <Link href="/coming-soon?page=Profile" onClick={() => setOpen(false)} className="dropdown-link" style={itemStyle}>
-                            Profile
-                        </Link>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                            <Link href="/coming-soon?page=Profile" onClick={() => setOpen(false)} className="dropdown-link" style={itemStyle}>
+                                Profile
+                            </Link>
+                            <div style={{ width: "100%", height: 0, borderTop: "1px solid #FFFFFF" }} />
+                        </div>
                         <Link href="/dashboard" onClick={() => setOpen(false)} className="dropdown-link" style={itemStyle}>
                             My Office
+                        </Link>
+                        <Link href="/coming-soon?page=MyCourses" onClick={() => setOpen(false)} className="dropdown-link" style={itemStyle}>
+                            My Courses
                         </Link>
                         <button
                             onClick={handleLogout}
@@ -100,6 +107,7 @@ export function UserDropdown({ firstName }: { firstName: string | null }) {
                                 cursor: "pointer",
                                 padding: 0,
                                 textAlign: "left",
+                                color: "var(--color-pink-dark)",
                             }}
                         >
                             Exit

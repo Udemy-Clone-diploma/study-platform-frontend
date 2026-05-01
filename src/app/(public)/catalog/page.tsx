@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { getCourses, getCategories } from "@/features/courses/api/coursesApi";
 import { CategoryFilter } from "@/features/courses/ui/CategoryFilter";
+import { CourseSearch } from "@/features/courses/ui/CourseSearch";
 import type {
   CourseLanguage,
   CourseLevel,
@@ -65,10 +66,10 @@ function formatPublishedDate(value: string | null) {
   }).format(new Date(value));
 }
 
-async function loadCourses(categorySlug?: string) {
+async function loadCourses(categorySlug?: string, searchQuery?: string) {
   try {
     return {
-      courses: await getCourses(categorySlug),
+      courses: await getCourses({ category: categorySlug, search: searchQuery }),
       error: "",
     };
   } catch (error: unknown) {
@@ -94,11 +95,12 @@ export default async function CatalogPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const { category } = await searchParams;
+  const { category, search } = await searchParams;
   const categorySlug = typeof category === "string" ? category : undefined;
+  const searchQuery = typeof search === "string" ? search.trim() : undefined;
 
   const [{ courses, error }, categories] = await Promise.all([
-    loadCourses(categorySlug),
+    loadCourses(categorySlug, searchQuery),
     loadCategories(),
   ]);
 
@@ -130,6 +132,10 @@ export default async function CatalogPage({
         </header>
 
         <section className="space-y-4">
+          <Suspense>
+            <CourseSearch initialQuery={searchQuery} />
+          </Suspense>
+
           {categories.length > 0 && (
             <Suspense>
               <CategoryFilter categories={categories} currentSlug={categorySlug} />
@@ -144,6 +150,11 @@ export default async function CatalogPage({
                   in &ldquo;{categories.find((c) => c.slug === categorySlug)?.name ?? categorySlug}&rdquo;
                 </span>
               ) : null}
+              {searchQuery ? (
+                <span className="ml-2 text-base font-normal text-slate-500">
+                  matching &ldquo;{searchQuery}&rdquo;
+                </span>
+              ) : null}
             </h2>
           </div>
 
@@ -154,15 +165,15 @@ export default async function CatalogPage({
             </div>
           ) : courses.length === 0 ? (
             <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center shadow-sm">
-              {categorySlug ? (
+              {categorySlug || searchQuery ? (
                 <>
-                  <h3 className="text-xl font-semibold text-slate-950">Немає курсів у цій категорії</h3>
-                  <p className="mt-2 text-slate-600">Спробуйте обрати іншу категорію або скиньте фільтр.</p>
+                  <h3 className="text-xl font-semibold text-slate-950">No courses found</h3>
+                  <p className="mt-2 text-slate-600">Try another category or search phrase.</p>
                   <Link
                     href="/catalog"
                     className="mt-6 inline-block rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-700"
                   >
-                    Скинути фільтр
+                    Reset filters
                   </Link>
                 </>
               ) : (

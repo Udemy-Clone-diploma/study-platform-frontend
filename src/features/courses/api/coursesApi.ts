@@ -5,13 +5,21 @@ import type { Category } from "@/features/courses/model/types/category";
 const COURSES_ENDPOINT = "courses/";
 const CATEGORIES_ENDPOINT = "categories/";
 
+export type CourseListParams = {
+  category?: string;
+  search?: string;
+};
+
 export async function getCategories(): Promise<Category[]> {
   const { data } = await api.get<Category[]>(CATEGORIES_ENDPOINT);
   return data;
 }
 
-export async function getCourses(categorySlug?: string): Promise<CourseListItem[]> {
-  const params = categorySlug ? { category: categorySlug } : {};
+export async function getCourses(filters: CourseListParams = {}): Promise<CourseListItem[]> {
+  const params = {
+    ...(filters.category ? { category: filters.category } : {}),
+    ...(filters.search ? { search: filters.search } : {}),
+  };
   const { data } = await api.get<CourseListItem[]>(COURSES_ENDPOINT, { params });
   return data;
 }

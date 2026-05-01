@@ -66,10 +66,14 @@ function formatPublishedDate(value: string | null) {
   }).format(new Date(value));
 }
 
-async function loadCourses(categorySlug?: string, searchQuery?: string) {
+async function loadCourses(categorySlug?: string, searchQuery?: string, ordering?: string) {
   try {
     return {
-      courses: await getCourses({ category: categorySlug, search: searchQuery }),
+      courses: await getCourses({
+        category: categorySlug,
+        ordering,
+        search: searchQuery,
+      }),
       error: "",
     };
   } catch (error: unknown) {
@@ -95,12 +99,13 @@ export default async function CatalogPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const { category, search } = await searchParams;
+  const { category, search, sort } = await searchParams;
   const categorySlug = typeof category === "string" ? category : undefined;
   const searchQuery = typeof search === "string" ? search.trim() : undefined;
+  const ordering = typeof sort === "string" ? sort : undefined;
 
   const [{ courses, error }, categories] = await Promise.all([
-    loadCourses(categorySlug, searchQuery),
+    loadCourses(categorySlug, searchQuery, ordering),
     loadCategories(),
   ]);
 

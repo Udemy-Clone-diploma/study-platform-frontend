@@ -82,26 +82,31 @@ export function CatalogDropdown({ categories }: Props) {
                     }}
                 >
                     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                        <Link
-                            href="/catalog"
-                            onClick={() => setOpen(false)}
-                            className="dropdown-link"
-                            style={itemStyle}
-                        >
-                            All Courses
-                        </Link>
-
-                        {categories.map((cat) => (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                             <Link
-                                key={cat.id}
-                                href={`/catalog?category=${cat.slug}`}
+                                href="/catalog"
                                 onClick={() => setOpen(false)}
                                 className="dropdown-link"
                                 style={itemStyle}
                             >
-                                {cat.name}
+                                All Courses
                             </Link>
-                        ))}
+                            <div style={{ width: "100%", height: 0, borderTop: "1px solid #FFFFFF" }} />
+                        </div>
+
+                        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                            {categories.map((cat) => (
+                                <Link
+                                    key={cat.id}
+                                    href={`/catalog?category=${cat.slug}`}
+                                    onClick={() => setOpen(false)}
+                                    className="dropdown-link"
+                                    style={itemStyle}
+                                >
+                                    {cat.name}
+                                </Link>
+                            ))}
+                        </div>
                     </div>
                 </div>
             )}

@@ -5,15 +5,23 @@ import type { Category } from "@/features/courses/model/types/category";
 const COURSES_ENDPOINT = "courses/";
 const CATEGORIES_ENDPOINT = "categories/";
 
+export type CourseListParams = {
+  category?: string;
+  ordering?: string;
+  search?: string;
+};
+
 export async function getCategories(): Promise<Category[]> {
   const { data } = await api.get<Category[]>(CATEGORIES_ENDPOINT);
   return data;
 }
 
-export async function getCourses(categorySlug?: string, ordering?: string): Promise<CourseListItem[]> {
-  const params: Record<string, string> = {};
-  if (categorySlug) params.category = categorySlug;
-  if (ordering) params.ordering = ordering;
+export async function getCourses(filters: CourseListParams = {}): Promise<CourseListItem[]> {
+  const params = {
+    ...(filters.category ? { category: filters.category } : {}),
+    ...(filters.ordering ? { ordering: filters.ordering } : {}),
+    ...(filters.search ? { search: filters.search } : {}),
+  };
   const { data } = await api.get<CourseListItem[]>(COURSES_ENDPOINT, { params });
   return data;
 }

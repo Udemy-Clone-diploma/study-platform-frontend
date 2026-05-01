@@ -12,6 +12,7 @@ import type {
 } from "@/features/courses/model/types/course";
 import type { Category } from "@/features/courses/model/types/category";
 import type { ApiError } from "@/shared/api/base";
+import { CourseSearch } from "@/features/courses/ui/CourseSearch";
 
 export const dynamic = "force-dynamic";
 

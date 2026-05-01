@@ -52,7 +52,7 @@ export async function Header() {
                         className="flex items-center shrink-0 h-full"
                         style={{ gap: isLoggedIn ? 48 : 60 }}
                     >
-                        <div style={{ width: 180, height: 60, background: "var(--color-placeholder)" }} />
+                        <Link href="/" style={{ display: "block", width: 180, height: 60, background: "var(--color-placeholder)", flexShrink: 0 }} aria-label="Home" />
 
                         <nav className="flex items-center gap-8 h-full">
                             <CatalogDropdown categories={categories} />

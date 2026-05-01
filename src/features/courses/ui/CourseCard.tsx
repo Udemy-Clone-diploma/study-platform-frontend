@@ -1,42 +1,161 @@
+import Link from "next/link";
 import type { CourseListItem } from "@/features/courses/model/types/course";
+import { formatPrice } from "@/features/courses/lib/formatPrice";
+import { Stars } from "./Stars";
+import { WishlistButton } from "./WishlistButton";
 
-function formatPrice(course: CourseListItem) {
-  if (course.pricing_type === "free" || Number(course.price) === 0) {
-    return "Free";
-  }
+const LEVEL = {
+    beginner: {
+        gradient: "var(--gradient-card-yellow)",
+        badgeBg: "var(--color-brand-yellow)",
+        badgeText: "var(--color-yellow-dark)",
+        label: "Beginner",
+    },
+    intermediate: {
+        gradient: "var(--gradient-card-blue)",
+        badgeBg: "var(--color-brand-lavender)",
+        badgeText: "var(--color-blue-dark)",
+        label: "Intermediate",
+    },
+    advanced: {
+        gradient: "var(--gradient-card-pink)",
+        badgeBg: "var(--color-brand-pink)",
+        badgeText: "var(--color-pink-dark)",
+        label: "Advanced",
+    },
+} as const;
 
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(Number(course.price));
-}
 
-function formatStars(course: CourseListItem) {
-  const rating = Math.round(Number(course.rating_avg));
-  const filled = Math.min(Math.max(rating, 0), 5);
-  const empty = 5 - filled;
+type Props = { course: CourseListItem };
 
-  return "★".repeat(filled) + "☆".repeat(empty);
-}
+export function CourseCard({ course }: Props) {
+    const theme = LEVEL[course.level] ?? LEVEL.beginner;
 
-type CourseCardProps = {
-  course: CourseListItem;
-};
+    return (
+        <Link href={`/courses/${course.id}`} style={{ textDecoration: "none", flexShrink: 0 }}>
+        <article
+            className="course-card"
+            style={{
+                "--card-bg": theme.gradient,
+                "--card-border-color": theme.badgeBg,
+                width: "23.75vw",
+                height: "18.85vw",
+                flexShrink: 0,
+                display: "flex",
+                flexDirection: "column",
+                borderRadius: 20,
+                padding: "1.25vw",
+                boxSizing: "border-box",
+            } as React.CSSProperties}
+        >
+            {/* Top row: price + heart */}
+            <div
+                style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "flex-start",
+                    flexShrink: 0,
+                }}
+            >
+                <span
+                    style={{
+                        fontFamily: "var(--font-base)",
+                        fontWeight: 500,
+                        fontSize: "1.25vw",
+                        lineHeight: 1.25,
+                        color: "var(--color-text-primary)",
+                    }}
+                >
+                    {formatPrice(course)}
+                </span>
 
-export function CourseCard({ course }: CourseCardProps) {
-  return (
-    <article className="min-w-[456px] max-w-[456px] flex-none snap-center rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
-      <div className="flex items-center justify-between gap-3 text-xs text-slate-500">
-        <span className="rounded-full bg-slate-100 px-3 py-1">{course.category?.name ?? "General"}</span>
-        <span className="font-semibold text-slate-900">{formatPrice(course)}</span>
-      </div>
-      <h3 className="mt-4 text-lg font-semibold text-slate-950 line-clamp-2">{course.title}</h3>
-      <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-600">{course.short_description}</p>
-      <div className="mt-4 flex items-center justify-between text-sm text-slate-700">
-        <span>{course.teacher_name}</span>
-      </div>
-      <div className="mt-3 text-amber-500">{formatStars(course)}</div>
-    </article>
-  );
+                <WishlistButton />
+            </div>
+
+            {/* Image placeholder — grows to fill middle space */}
+            <div style={{ flex: 1 }} />
+
+            {/* Bottom block */}
+            <div
+                style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "0.208vw",
+                    flexShrink: 0,
+                }}
+            >
+                {/* Title */}
+                <h3
+                    style={{
+                        fontFamily: "var(--font-base)",
+                        fontWeight: 700,
+                        fontSize: "1.25vw",
+                        lineHeight: 1.25,
+                        textTransform: "uppercase",
+                        color: "var(--color-text-primary)",
+                        margin: 0,
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                    }}
+                >
+                    {course.title}
+                </h3>
+
+                {/* Level badge + teacher name */}
+                <div style={{ display: "flex", alignItems: "center", gap: "0.417vw" }}>
+                    <div
+                        style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            padding: "1px 8px",
+                            background: theme.badgeBg,
+                            borderRadius: 6,
+                            flexShrink: 0,
+                        }}
+                    >
+                        <span
+                            style={{
+                                fontFamily: "var(--font-accent)",
+                                fontWeight: 400,
+                                fontSize: "0.677vw",
+                                lineHeight: "18px",
+                                textTransform: "uppercase",
+                                color: theme.badgeText,
+                                whiteSpace: "nowrap",
+                            }}
+                        >
+                            {course.teacher_name}
+                        </span>
+                    </div>
+                </div>
+
+                {/* Stats: students + stars */}
+                <div
+                    style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        marginTop: "0.208vw",
+                    }}
+                >
+                    <span
+                        style={{
+                            fontFamily: "var(--font-base)",
+                            fontWeight: 400,
+                            fontSize: "0.833vw",
+                            lineHeight: 1.25,
+                            color: "var(--color-text-primary)",
+                        }}
+                    >
+                        {course.students_count.toLocaleString()} students
+                    </span>
+
+                    <Stars rating={course.rating_avg} />
+                </div>
+            </div>
+        </article>
+        </Link>
+    );
 }

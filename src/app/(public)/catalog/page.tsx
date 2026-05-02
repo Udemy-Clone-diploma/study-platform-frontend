@@ -1,8 +1,14 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { getCourses, getCategories } from "@/features/courses/api/coursesApi";
-import { CategoryFilter } from "@/features/courses/ui/CategoryFilter";
-import { SortDropdown } from "@/features/courses/ui/SortDropdown";
+import { getCategories, getCourses } from "@/features/courses/api/coursesApi";
+import {
+  buildCatalogHref,
+  type CatalogFilterState,
+  type CatalogSearchParams,
+  parseCatalogState,
+  resetCatalogFiltersHref,
+} from "@/features/courses/model/catalogFilters";
+import type { Category } from "@/features/courses/model/types/category";
 import type {
   CourseLanguage,
   CourseLevel,
@@ -10,9 +16,9 @@ import type {
   CourseMode,
   CoursePricingType,
 } from "@/features/courses/model/types/course";
-import type { Category } from "@/features/courses/model/types/category";
+import { CatalogFiltersSidebar } from "@/features/courses/ui/CatalogFiltersSidebar";
+import { SortDropdown } from "@/features/courses/ui/SortDropdown";
 import type { ApiError } from "@/shared/api/base";
-import { CourseSearch } from "@/features/courses/ui/CourseSearch";
 
 export const dynamic = "force-dynamic";
 
@@ -67,13 +73,22 @@ function formatPublishedDate(value: string | null) {
   }).format(new Date(value));
 }
 
-async function loadCourses(categorySlug?: string, searchQuery?: string, ordering?: string) {
+async function loadCourses(state: CatalogFilterState) {
   try {
     return {
       courses: await getCourses({
-        category: categorySlug,
-        ordering,
-        search: searchQuery,
+        category: state.category,
+        course_type: state.course_type,
+        delivery_type: state.delivery_type,
+        is_on_sale: state.is_on_sale,
+        language: state.language,
+        level: state.level,
+        mode: state.mode,
+        ordering: state.sort,
+        pricing_type: state.pricing_type,
+        rating_min: state.rating_min,
+        search: state.search,
+        with_certificate: state.with_certificate,
       }),
       error: "",
     };
@@ -98,181 +113,132 @@ async function loadCategories(): Promise<Category[]> {
 export default async function CatalogPage({
   searchParams,
 }: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+  searchParams: Promise<CatalogSearchParams>;
 }) {
-  const { category, search, sort } = await searchParams;
-  const categorySlug = typeof category === "string" ? category : undefined;
-  const searchQuery = typeof search === "string" ? search.trim() : undefined;
-  const ordering = typeof sort === "string" ? sort : undefined;
-
-  const [{ courses, error }, categories] = await Promise.all([
-    loadCourses(categorySlug, searchQuery, ordering),
-    loadCategories(),
-  ]);
+  const state = parseCatalogState(await searchParams);
+  const [{ courses, error }, categories] = await Promise.all([loadCourses(state), loadCategories()]);
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-10 text-slate-900">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
-        <header className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-          <div className="space-y-2">
-            <h1 className="text-3xl font-semibold">Catalog</h1>
-            <p className="text-sm text-slate-600">All courses available from the API.</p>
-          </div>
+    <main className="min-h-screen bg-[linear-gradient(110deg,#f1edff_0%,#fff7e9_100%)] px-6 py-8 text-[#111111]">
+      <div className="mx-auto w-full max-w-[1160px]">
+        <div className="mb-8 flex items-center justify-between gap-4">
+          <Link
+            href={buildCatalogHref(state, { filtersOpen: !state.filtersOpen })}
+            className={`inline-flex h-8 items-center gap-1 rounded-full px-4 text-[0.78rem] font-medium transition ${
+              state.filtersOpen ? "bg-black text-white" : "bg-white text-black shadow-sm"
+            }`}
+          >
+            <span className="text-[0.82rem]">{"\u2261"}</span>
+            All Filter
+          </Link>
 
-          <div className="flex flex-wrap gap-3">
-            <Link
-              href="/"
-              className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-            >
-              Home
-            </Link>
-            <a
-              href={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1/"}courses/`}
-              className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Courses API
-            </a>
-          </div>
-        </header>
-
-        <section className="space-y-4">
           <Suspense>
-            <CourseSearch initialQuery={searchQuery} />
+            <SortDropdown currentSort={state.sort} />
           </Suspense>
+        </div>
 
-          {categories.length > 0 && (
-            <Suspense>
-              <CategoryFilter categories={categories} currentSlug={categorySlug} />
-            </Suspense>
-          )}
+        <div className={`grid gap-5 ${state.filtersOpen ? "lg:grid-cols-[320px_1fr]" : ""}`}>
+          {state.filtersOpen ? <CatalogFiltersSidebar categories={categories} state={state} /> : null}
 
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-2xl font-semibold text-slate-950">
-              {courses.length} course{courses.length === 1 ? "" : "s"}
-              {categorySlug ? (
-                <span className="ml-2 text-base font-normal text-slate-500">
-                  in &ldquo;{categories.find((c) => c.slug === categorySlug)?.name ?? categorySlug}&rdquo;
-                </span>
-              ) : null}
-              {searchQuery ? (
-                <span className="ml-2 text-base font-normal text-slate-500">
-                  matching &ldquo;{searchQuery}&rdquo;
-                </span>
-              ) : null}
-            </h2>
-            <Suspense>
-              <SortDropdown currentSort={ordering} />
-            </Suspense>
-          </div>
-
-          {error ? (
-            <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-red-800 shadow-sm">
-              <h3 className="text-xl font-semibold">Courses are unavailable</h3>
-              <p className="mt-2 text-sm">{error}</p>
-            </div>
-          ) : courses.length === 0 ? (
-            <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center shadow-sm">
-              {categorySlug || searchQuery ? (
-                <>
-                  <h3 className="text-xl font-semibold text-slate-950">No courses found</h3>
-                  <p className="mt-2 text-slate-600">Try another category or search phrase.</p>
-                  <Link
-                    href="/catalog"
-                    className="mt-6 inline-block rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-700"
-                  >
-                    Reset filters
-                  </Link>
-                </>
-              ) : (
-                <>
-                  <h3 className="text-xl font-semibold text-slate-950">No courses yet</h3>
-                  <p className="mt-2 text-slate-600">The catalog will show courses here once they are created.</p>
-                </>
-              )}
-            </div>
-          ) : (
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {courses.map((course) => (
-                <article
-                  key={course.id}
-                  className="flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+          <section>
+            {error ? (
+              <div className="rounded-[8px] border border-red-200 bg-red-50 p-6 text-red-800 shadow-sm">
+                <h3 className="text-xl font-semibold">Courses are unavailable</h3>
+                <p className="mt-2 text-sm">{error}</p>
+              </div>
+            ) : courses.length === 0 ? (
+              <div className="rounded-[8px] bg-white p-10 text-center shadow-[0_8px_22px_rgba(76,68,87,0.12)]">
+                <h3 className="text-xl font-semibold">No courses found</h3>
+                <p className="mt-2 text-[#59545d]">Try another set of filters.</p>
+                <Link
+                  href={resetCatalogFiltersHref(state)}
+                  className="mt-6 inline-flex rounded-full bg-black px-6 py-2 text-sm font-medium text-white"
                 >
-                  <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                    <span>{course.category?.name ?? "General"}</span>
-                    <span>{LEVEL_LABELS[course.level]}</span>
-                    <span>|</span>
-                    <span>{LANGUAGE_LABELS[course.language]}</span>
-                  </div>
-
-                  <div className="mt-4 flex flex-1 flex-col">
-                    <div className="space-y-3">
-                      <h3 className="text-xl font-semibold text-slate-950">{course.title}</h3>
-                      <p className="line-clamp-3 text-sm leading-6 text-slate-600">
-                        {course.short_description}
-                      </p>
+                  Reset filters
+                </Link>
+              </div>
+            ) : (
+              <div className={`grid gap-4 md:grid-cols-2 ${state.filtersOpen ? "" : "xl:grid-cols-3"}`}>
+                {courses.map((course) => (
+                  <article
+                    key={course.id}
+                    className="flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+                  >
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                      <span>{course.category?.name ?? "General"}</span>
+                      <span>{LEVEL_LABELS[course.level]}</span>
+                      <span>|</span>
+                      <span>{LANGUAGE_LABELS[course.language]}</span>
                     </div>
 
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      <span className="rounded-md bg-slate-100 px-2 py-1 text-xs text-slate-700">
-                        {MODE_LABELS[course.mode]}
-                      </span>
-                      <span className="rounded-md bg-slate-100 px-2 py-1 text-xs text-slate-700">
-                        {PRICING_LABELS[course.pricing_type]}
-                      </span>
-                      {course.with_certificate ? (
-                        <span className="rounded-md bg-emerald-100 px-2 py-1 text-xs text-emerald-800">
-                          Certificate
+                    <div className="mt-4 flex flex-1 flex-col">
+                      <div className="space-y-3">
+                        <h3 className="text-xl font-semibold text-slate-950">{course.title}</h3>
+                        <p className="line-clamp-3 text-sm leading-6 text-slate-600">
+                          {course.short_description}
+                        </p>
+                      </div>
+
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <span className="rounded-md bg-slate-100 px-2 py-1 text-xs text-slate-700">
+                          {MODE_LABELS[course.mode]}
                         </span>
-                      ) : null}
+                        <span className="rounded-md bg-slate-100 px-2 py-1 text-xs text-slate-700">
+                          {PRICING_LABELS[course.pricing_type]}
+                        </span>
+                        {course.with_certificate ? (
+                          <span className="rounded-md bg-emerald-100 px-2 py-1 text-xs text-emerald-800">
+                            Certificate
+                          </span>
+                        ) : null}
+                      </div>
+
+                      <dl className="mt-5 grid grid-cols-2 gap-3 text-sm text-slate-700">
+                        <div>
+                          <dt className="text-slate-500">Teacher</dt>
+                          <dd className="mt-1 font-semibold text-slate-950">{course.teacher_name}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-slate-500">Published</dt>
+                          <dd className="mt-1 font-semibold text-slate-950">
+                            {formatPublishedDate(course.published_at)}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt className="text-slate-500">Duration</dt>
+                          <dd className="mt-1 font-semibold text-slate-950">
+                            {course.duration_hours}h | {course.lessons_count} lessons
+                          </dd>
+                        </div>
+                        <div>
+                          <dt className="text-slate-500">Rating</dt>
+                          <dd className="mt-1 font-semibold text-slate-950">
+                            {formatRating(course)} | {course.students_count.toLocaleString("en-US")} students
+                          </dd>
+                        </div>
+                      </dl>
                     </div>
 
-                    <dl className="mt-5 grid grid-cols-2 gap-3 text-sm text-slate-700">
+                    <div className="mt-5 flex items-end justify-between gap-4 border-t border-slate-200 pt-4">
                       <div>
-                        <dt className="text-slate-500">Teacher</dt>
-                        <dd className="mt-1 font-semibold text-slate-950">{course.teacher_name}</dd>
+                        <p className="text-sm text-slate-500">Price</p>
+                        <p className="text-2xl font-semibold text-slate-950">{formatPrice(course)}</p>
                       </div>
-                      <div>
-                        <dt className="text-slate-500">Published</dt>
-                        <dd className="mt-1 font-semibold text-slate-950">
-                          {formatPublishedDate(course.published_at)}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt className="text-slate-500">Duration</dt>
-                        <dd className="mt-1 font-semibold text-slate-950">
-                          {course.duration_hours}h | {course.lessons_count} lessons
-                        </dd>
-                      </div>
-                      <div>
-                        <dt className="text-slate-500">Rating</dt>
-                        <dd className="mt-1 font-semibold text-slate-950">
-                          {formatRating(course)} | {course.students_count.toLocaleString("en-US")} students
-                        </dd>
-                      </div>
-                    </dl>
-                  </div>
-
-                  <div className="mt-5 flex items-end justify-between gap-4 border-t border-slate-200 pt-4">
-                    <div>
-                      <p className="text-sm text-slate-500">Price</p>
-                      <p className="text-2xl font-semibold text-slate-950">{formatPrice(course)}</p>
+                      <a
+                        href={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1/"}courses/${course.id}/`}
+                        className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Course API
+                      </a>
                     </div>
-                    <a
-                      href={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1/"}courses/${course.id}/`}
-                      className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      Course API
-                    </a>
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
-        </section>
+                  </article>
+                ))}
+              </div>
+            )}
+          </section>
+        </div>
       </div>
     </main>
   );

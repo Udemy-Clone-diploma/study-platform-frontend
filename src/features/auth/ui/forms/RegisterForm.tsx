@@ -7,8 +7,9 @@ import {
   validateRegisterForm,
   validateRegisterIdentityStep,
 } from "@/features/auth/model/validation";
-import { RegisterFormErrors, RegisterFormData } from "@/features/auth/model/types/registerTypes";
+import { RegisterFormData } from "@/features/auth/model/types/registerTypes";
 import { registerUser } from "@/features/auth/api/authApi";
+import { useAuthForm } from "@/features/auth/model/useAuthForm";
 import { AuthField } from "@/features/auth/ui/AuthField";
 import { AuthShell } from "@/features/auth/ui/AuthShell";
 import { DateOfBirthPicker } from "@/features/auth/ui/DateOfBirthPicker";
@@ -28,117 +29,64 @@ const initialForm: RegisterFormData = {
 export function RegisterForm() {
   const router = useRouter();
 
-  const [formData, setFormData] = useState<RegisterFormData>(initialForm);
-  const [errors, setErrors] = useState<RegisterFormErrors>({});
-  const [apiError, setApiError] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [step, setStep] = useState<1 | 2>(1);
 
-  function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const { name, value } = event.target;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    setErrors((prev) => ({
-      ...prev,
-      [name]: "",
-    }));
-
-    setApiError("");
-  }
-
-  async function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (step === 1) {
-      handleContinue();
-      return;
-    }
-
-    const validationErrors = validateRegisterForm(formData);
-
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
-    }
-
-    setIsSubmitting(true);
-    setErrors({});
-    setApiError("");
-
-    try {
+  const {
+    formData,
+    errors,
+    apiError,
+    isSubmitting,
+    handleChange,
+    handleSubmit,
+    setFormData,
+    setErrors,
+    setApiError,
+  } = useAuthForm<RegisterFormData>({
+    initial: initialForm,
+    validate: validateRegisterForm,
+    fieldKeys: ["email", "firstName", "lastName", "password", "password_confirm"],
+    fieldKeyMap: { first_name: "firstName", last_name: "lastName" },
+    fallbackError: "We could not create your account. Please try again.",
+    submit: async (data) => {
       await registerUser({
-        email: formData.email.trim(),
-        first_name: formData.firstName.trim(),
-        last_name: formData.lastName.trim(),
-        date_of_birth: formData.dateOfBirth,
-        password: formData.password,
-        password_confirm: formData.password_confirm,
+        email: data.email.trim(),
+        first_name: data.firstName.trim(),
+        last_name: data.lastName.trim(),
+        date_of_birth: data.dateOfBirth,
+        password: data.password,
+        password_confirm: data.password_confirm,
         role: "student",
         language: "en",
       });
 
-      router.push(`/register/check-email?email=${encodeURIComponent(formData.email.trim())}`);
-    } catch (error: unknown) {
-      const typedError = error as {
-        message?: string;
-        fields?: Record<string, string | string[]>;
-      };
+      router.push(`/register/check-email?email=${encodeURIComponent(data.email.trim())}`);
+    },
+  });
 
-      if (typedError?.fields && typeof typedError.fields === "object") {
-        const backendFieldErrors: RegisterFormErrors = {};
+  function handleFormSubmit(event: React.FormEvent<HTMLFormElement>) {
+    if (step === 1) {
+      event.preventDefault();
+      const validationErrors = validateRegisterIdentityStep(formData);
 
-        Object.entries(typedError.fields).forEach(([key, value]) => {
-          const normalizedValue = Array.isArray(value) ? value[0] : String(value);
-
-          if (key === "first_name") {
-            backendFieldErrors.firstName = normalizedValue;
-          } else if (key === "last_name") {
-            backendFieldErrors.lastName = normalizedValue;
-          } else if (
-            key === "email" ||
-            key === "firstName" ||
-            key === "lastName" ||
-            key === "password" ||
-            key === "password_confirm"
-          ) {
-            backendFieldErrors[key] = normalizedValue;
-          }
-        });
-
-        setErrors((prev) => ({
-          ...prev,
-          ...backendFieldErrors,
-        }));
+      if (Object.keys(validationErrors).length > 0) {
+        setErrors(validationErrors);
+        return;
       }
 
-      setApiError(typedError?.message || "We could not create your account. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
-
-  function handleContinue() {
-    const validationErrors = validateRegisterIdentityStep(formData);
-
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
+      setErrors({});
+      setApiError("");
+      setStep(2);
       return;
     }
 
-    setErrors({});
-    setApiError("");
-    setStep(2);
+    handleSubmit(event);
   }
 
   return (
     <AuthShell>
-      <form onSubmit={handleSubmit} className="w-full">
+      <form onSubmit={handleFormSubmit} className="w-full">
         <div className="w-full space-y-8">
           <h1 className="text-center text-[2.05rem] font-normal tracking-[0.04em] text-[#0f0d10] uppercase">
             Sign Up

@@ -34,7 +34,7 @@ export function NewCoursesSection({ courses }: Props) {
                         display: "flex",
                         gap: "3.65vw",
                         width: "max-content",
-                        animation: "carousel-right 40s linear infinite",
+                        animation: "carousel-right 60s linear infinite",
                         animationPlayState: paused ? "paused" : "running",
                     }}
                 >

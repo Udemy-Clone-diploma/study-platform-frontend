@@ -55,8 +55,6 @@
 }
 
 @theme inline {
-  --color-background: var(--color-bg);
-  --color-foreground: var(--color-text-primary);
   --font-sans: var(--font-base);
   --font-mono: var(--font-accent);
 }
@@ -81,6 +79,7 @@ body {
   cursor: pointer;
   position: relative;
   isolation: isolate;
+  overflow: hidden;
   transition: box-shadow 0.35s ease;
 }
 .course-card::before {

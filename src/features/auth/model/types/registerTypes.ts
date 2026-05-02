@@ -4,6 +4,7 @@ export interface RegisterFormData {
   email: string;
   firstName: string;
   lastName: string;
+  dateOfBirth: string;
   password: string;
   password_confirm: string;
   role: UserRole;
@@ -14,6 +15,7 @@ export interface RegisterPayload {
   email: string;
   first_name: string;
   last_name: string;
+  date_of_birth: string;
   password: string;
   password_confirm: string;
   role: UserRole;

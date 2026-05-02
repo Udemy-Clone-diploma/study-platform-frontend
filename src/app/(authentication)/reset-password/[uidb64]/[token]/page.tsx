@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { Input } from "@/shared/ui/Input";
-import { ResendEmailForm } from "@/features/auth/ui/ResendEmailForm";
+import { ResendEmailForm } from "@/features/auth/ui/forms/ResendEmailForm";
+import { AuthField } from "@/features/auth/ui/AuthField";
+import { AuthPanel } from "@/features/auth/ui/AuthPanel";
+import { AccentButton } from "@/shared/ui/AccentButton";
 import {
   validatePasswordResetToken,
   confirmPasswordReset,
@@ -28,6 +30,8 @@ export default function ResetPasswordPage() {
   const [formData, setFormData] = useState<PasswordResetFormData>(initialForm);
   const [errors, setErrors] = useState<PasswordResetFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     if (!uidb64 || !token) return;
@@ -38,7 +42,7 @@ export default function ResetPasswordPage() {
       } catch (err: unknown) {
         const e = err as { detail?: string; message?: string };
         setPageStatus("invalid");
-        setPageMessage(e?.detail || e?.message || "Посилання недійсне або прострочене");
+        setPageMessage(e?.detail || e?.message || "This reset link is invalid or expired.");
       }
     }
     checkToken();
@@ -64,7 +68,7 @@ export default function ResetPasswordPage() {
     } catch (err: unknown) {
       const e = err as { detail?: string; message?: string };
       setPageStatus("error");
-      setPageMessage(e?.detail || e?.message || "Не вдалося змінити пароль. Спробуйте ще раз.");
+      setPageMessage(e?.detail || e?.message || "We could not update your password. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -72,113 +76,100 @@ export default function ResetPasswordPage() {
 
   if (pageStatus === "loading") {
     return (
-      <main className="flex justify-center items-center h-screen flex-col gap-4">
-        <section className="items-center text-center bg-gray-800 p-8 rounded-lg">
-          <p className="text-gray-400">Перевірка посилання...</p>
-        </section>
-      </main>
+      <AuthPanel title="Checking Link" description="We are validating your password reset link.">
+        <p className="text-sm text-[#3e3840]">Please wait...</p>
+      </AuthPanel>
     );
   }
 
   if (pageStatus === "invalid") {
     return (
-      <main className="flex justify-center items-center h-screen flex-col gap-4">
-        <section className="items-center text-center bg-gray-800 p-8 rounded-lg">
-          <h1>Посилання недійсне</h1>
-          <p className="text-sm text-gray-400 mt-1 mb-4">{pageMessage}</p>
+      <AuthPanel title="Invalid Link" description={pageMessage}>
+        <div className="space-y-5">
           <ResendEmailForm
             onResend={async (email) => {
               await requestPasswordReset({ email });
             }}
-            submitLabel="Надіслати новий лист"
-            successMessage="Якщо акаунт існує, ми надіслали новий лист. Перевірте вхідні або спам."
+            submitLabel="Send New Link"
+            successMessage="If an account exists, we sent a new email. Please check your inbox or spam folder."
           />
-          <p className="mt-4 text-sm text-gray-400">
-            <Link href="/login" className="text-blue-400 hover:underline">
-              Повернутися до входу
+          <p className="text-center text-[0.95rem] text-[#3e3840]">
+            <Link href="/login" className="text-[#3557ff] transition hover:text-[#1937cb]">
+              Back to sign in
             </Link>
           </p>
-        </section>
-      </main>
+        </div>
+      </AuthPanel>
     );
   }
 
   if (pageStatus === "success") {
     return (
-      <main className="flex justify-center items-center h-screen flex-col gap-4">
-        <section className="items-center text-center bg-gray-800 p-8 rounded-lg">
-          <h1>Пароль змінено!</h1>
-          <p className="text-sm text-gray-400 mt-1 mb-6">Ваш пароль успішно оновлено.</p>
-          <Link
-            href="/login"
-            className="align-middle mt-2 w-lg rounded-lg bg-gray-900 px-4 py-3 text-sm font-medium text-white transition duration-200 hover:bg-gray-900 block"
-          >
-            Увійти
-          </Link>
-        </section>
-      </main>
+      <AuthPanel title="Password Updated" description="Your password has been changed successfully.">
+        <AccentButton href="/login">
+          Sign In
+        </AccentButton>
+      </AuthPanel>
     );
   }
 
   if (pageStatus === "error") {
     return (
-      <main className="flex justify-center items-center h-screen flex-col gap-4">
-        <section className="items-center text-center bg-gray-800 p-8 rounded-lg">
-          <h1>Помилка</h1>
-          <p className="text-sm text-gray-400 mt-1 mb-6">{pageMessage}</p>
-          <button
-            onClick={() => {
-              setPageStatus("form");
-              setFormData(initialForm);
-            }}
-            className="align-middle mt-2 w-lg rounded-lg bg-gray-900 px-4 py-3 text-sm font-medium text-white transition duration-200 hover:bg-gray-900"
-          >
-            Спробувати ще раз
-          </button>
-        </section>
-      </main>
+      <AuthPanel title="Something Went Wrong" description={pageMessage}>
+        <AccentButton
+          type="button"
+          onClick={() => {
+            setPageStatus("form");
+            setFormData(initialForm);
+          }}
+        >
+          Try Again
+        </AccentButton>
+      </AuthPanel>
     );
   }
 
   return (
-    <main className="flex justify-center items-center h-screen flex-col gap-4">
-      <section className="items-center text-center bg-gray-800 p-8 rounded-lg">
-        <h1>Новий пароль</h1>
-        <p className="text-sm text-gray-400 mt-1 mb-6">
-          Введіть новий пароль. Він має містити щонайменше 8 символів, велику та малу літеру і
-          цифру.
-        </p>
+    <AuthPanel
+      title="New Password"
+      description="Choose a password with at least 8 characters, one uppercase letter, one lowercase letter, and one number."
+    >
+      <form onSubmit={handleSubmit} className="space-y-7">
+        <AuthField
+          id="password"
+          name="password"
+          type="password"
+          label="New Password"
+          placeholder="At least 8 characters"
+          value={formData.password}
+          onChange={handleChange}
+          error={errors.password}
+          autoComplete="new-password"
+          showPassword={showPassword}
+          onTogglePassword={() => setShowPassword((prev) => !prev)}
+        />
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <Input
-            id="password"
-            name="password"
-            type="password"
-            label="Новий пароль"
-            placeholder="Введіть новий пароль"
-            value={formData.password}
-            onChange={handleChange}
-            error={errors.password}
-          />
-          <Input
-            id="confirmPassword"
-            name="confirmPassword"
-            type="password"
-            label="Підтвердіть пароль"
-            placeholder="Повторіть новий пароль"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            error={errors.confirmPassword}
-          />
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="align-middle mt-2 w-full rounded-lg bg-gray-900 px-4 py-3 text-sm font-medium text-white transition duration-200 hover:bg-gray-900 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {isSubmitting ? "Збереження..." : "Зберегти пароль"}
-          </button>
-        </form>
-      </section>
-    </main>
+        <AuthField
+          id="confirmPassword"
+          name="confirmPassword"
+          type="password"
+          label="Confirm Password"
+          placeholder="Repeat your password"
+          value={formData.confirmPassword}
+          onChange={handleChange}
+          error={errors.confirmPassword}
+          autoComplete="new-password"
+          showPassword={showConfirmPassword}
+          onTogglePassword={() => setShowConfirmPassword((prev) => !prev)}
+        />
+
+        <AccentButton
+          type="submit"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? "Saving" : "Save Password"}
+        </AccentButton>
+      </form>
+    </AuthPanel>
   );
 }

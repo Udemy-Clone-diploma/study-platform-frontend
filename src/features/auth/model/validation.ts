@@ -1,78 +1,112 @@
 import { RegisterFormErrors, RegisterFormData } from "@/features/auth/model/types/registerTypes";
 import { LoginFormErrors, LoginFormData } from "@/features/auth/model/types/loginTypes";
 import type {
-    PasswordResetFormData,
-    PasswordResetFormErrors,
+  PasswordResetFormData,
+  PasswordResetFormErrors,
 } from "@/features/auth/model/types/passwordResetTypes";
 
 export function validateRegisterForm(values: RegisterFormData): RegisterFormErrors {
-    const errors: RegisterFormErrors = {};
+  const errors: RegisterFormErrors = {};
 
-    if (!values.email.trim()) {
-        errors.email = "Введіть email";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) {
-        errors.email = "Введіть коректний email";
+  Object.assign(errors, validateRegisterIdentityStep(values));
+  Object.assign(errors, validateRegisterPasswordStep(values));
+
+  return errors;
+}
+
+export function validateRegisterIdentityStep(values: RegisterFormData): RegisterFormErrors {
+  const errors: RegisterFormErrors = {};
+
+  if (!values.firstName.trim()) {
+    errors.firstName = "Enter your first name";
+  }
+
+  if (!values.lastName.trim()) {
+    errors.lastName = "Enter your last name";
+  }
+
+  if (!values.email.trim()) {
+    errors.email = "Enter your email";
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) {
+    errors.email = "Enter a valid email";
+  }
+
+  if (!values.dateOfBirth) {
+    errors.dateOfBirth = "Enter your date of birth";
+  } else {
+    const birthDate = new Date(`${values.dateOfBirth}T00:00:00`);
+    const today = new Date();
+
+    if (Number.isNaN(birthDate.getTime()) || birthDate > today) {
+      errors.dateOfBirth = "Enter a valid date of birth";
     }
+  }
 
-    if (!values.password) {
-        errors.password = "Введіть пароль";
-    } else if (values.password.length < 8) {
-        errors.password = "Пароль має містити щонайменше 8 символів";
-    } else if (!/(?=.*[a-z])/.test(values.password)) {
-        errors.password = "Пароль має містити хоча б одну малу літеру";
-    } else if (!/(?=.*[A-Z])/.test(values.password)) {
-        errors.password = "Пароль має містити хоча б одну велику літеру";
-    } else if (!/(?=.*\d)/.test(values.password)) {
-        errors.password = "Пароль має містити хоча б одну цифру";
-    }
+  return errors;
+}
 
-    if (!values.password_confirm) {
-        errors.password_confirm = "Підтвердіть пароль";
-    } else if (values.password !== values.password_confirm) {
-        errors.password_confirm = "Паролі не співпадають";
-    }
+export function validateRegisterPasswordStep(values: RegisterFormData): RegisterFormErrors {
+  const errors: RegisterFormErrors = {};
 
-    return errors;
+  if (!values.password) {
+    errors.password = "Enter your password";
+  } else if (values.password.length < 8) {
+    errors.password = "Password must contain at least 8 characters";
+  } else if (!/(?=.*[a-z])/.test(values.password)) {
+    errors.password = "Password must contain at least one lowercase letter";
+  } else if (!/(?=.*[A-Z])/.test(values.password)) {
+    errors.password = "Password must contain at least one uppercase letter";
+  } else if (!/(?=.*\d)/.test(values.password)) {
+    errors.password = "Password must contain at least one number";
+  }
+
+  if (!values.password_confirm) {
+    errors.password_confirm = "Confirm your password";
+  } else if (values.password !== values.password_confirm) {
+    errors.password_confirm = "Passwords do not match";
+  }
+
+  return errors;
 }
 
 export function validateLoginForm(values: LoginFormData): LoginFormErrors {
-    const errors: LoginFormErrors = {};
+  const errors: LoginFormErrors = {};
 
-    if (!values.email.trim()) {
-        errors.email = "Введіть email";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) {
-        errors.email = "Введіть коректний email";
-    }
+  if (!values.email.trim()) {
+    errors.email = "Enter your email";
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) {
+    errors.email = "Enter a valid email";
+  }
 
-    if (!values.password) {
-        errors.password = "Введіть пароль";
-    }
+  if (!values.password) {
+    errors.password = "Enter your password";
+  }
 
-    return errors;
+  return errors;
 }
 
 export function validatePasswordResetForm(
-    values: PasswordResetFormData
+  values: PasswordResetFormData
 ): PasswordResetFormErrors {
-    const errors: PasswordResetFormErrors = {};
+  const errors: PasswordResetFormErrors = {};
 
-    if (!values.password) {
-        errors.password = "Введіть пароль";
-    } else if (values.password.length < 8) {
-        errors.password = "Пароль має містити щонайменше 8 символів";
-    } else if (!/(?=.*[a-z])/.test(values.password)) {
-        errors.password = "Пароль має містити хоча б одну малу літеру";
-    } else if (!/(?=.*[A-Z])/.test(values.password)) {
-        errors.password = "Пароль має містити хоча б одну велику літеру";
-    } else if (!/(?=.*\d)/.test(values.password)) {
-        errors.password = "Пароль має містити хоча б одну цифру";
-    }
+  if (!values.password) {
+    errors.password = "Enter your password";
+  } else if (values.password.length < 8) {
+    errors.password = "Password must contain at least 8 characters";
+  } else if (!/(?=.*[a-z])/.test(values.password)) {
+    errors.password = "Password must contain at least one lowercase letter";
+  } else if (!/(?=.*[A-Z])/.test(values.password)) {
+    errors.password = "Password must contain at least one uppercase letter";
+  } else if (!/(?=.*\d)/.test(values.password)) {
+    errors.password = "Password must contain at least one number";
+  }
 
-    if (!values.confirmPassword) {
-        errors.confirmPassword = "Підтвердіть пароль";
-    } else if (values.password !== values.confirmPassword) {
-        errors.confirmPassword = "Паролі не співпадають";
-    }
+  if (!values.confirmPassword) {
+    errors.confirmPassword = "Confirm your password";
+  } else if (values.password !== values.confirmPassword) {
+    errors.confirmPassword = "Passwords do not match";
+  }
 
-    return errors;
+  return errors;
 }

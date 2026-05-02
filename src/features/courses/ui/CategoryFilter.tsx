@@ -21,6 +21,8 @@ export function CategoryFilter({ categories, currentSlug }: Props) {
       params.delete("category");
     }
 
+    params.delete("page");
+
     router.push(`?${params.toString()}`);
   }
 

@@ -24,6 +24,8 @@ export function CourseSearch({ initialQuery = "" }: Props) {
       params.delete("search");
     }
 
+    params.delete("page");
+
     router.push(params.toString() ? `?${params.toString()}` : "/catalog");
   }
 
@@ -32,6 +34,7 @@ export function CourseSearch({ initialQuery = "" }: Props) {
 
     const params = new URLSearchParams(searchParams.toString());
     params.delete("search");
+    params.delete("page");
 
     router.push(params.toString() ? `?${params.toString()}` : "/catalog");
   }

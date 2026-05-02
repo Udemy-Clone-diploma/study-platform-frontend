@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Input } from "@/shared/ui/Input";
 import { requestPasswordReset } from "@/features/auth/api/authApi";
+import { AuthField } from "@/features/auth/ui/AuthField";
+import { AuthPanel } from "@/features/auth/ui/AuthPanel";
+import { AccentButton } from "@/shared/ui/AccentButton";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -12,8 +14,8 @@ export default function ForgotPasswordPage() {
   const [isSent, setIsSent] = useState(false);
 
   function validateEmail(value: string): string {
-    if (!value.trim()) return "Введіть email";
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return "Введіть коректний email";
+    if (!value.trim()) return "Enter your email";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return "Enter a valid email";
     return "";
   }
 
@@ -38,67 +40,68 @@ export default function ForgotPasswordPage() {
 
   if (isSent) {
     return (
-      <main className="flex justify-center items-center h-screen flex-col gap-4">
-        <section className="items-center text-center bg-gray-800 p-8 rounded-lg">
-          <h1>Перевірте вхідні</h1>
-          <p className="text-sm text-gray-400 mt-2 mb-6">
-            Якщо акаунт з адресою <strong className="text-white">{email}</strong> існує, ми
-            надіслали посилання для скидання пароля.
-          </p>
-
-          <button
+      <AuthPanel
+        title="Check Email"
+        description={
+          <>
+            If an account exists for <strong>{email}</strong>, we sent a password reset link.
+          </>
+        }
+      >
+        <div className="space-y-5">
+          <AccentButton
+            type="button"
             onClick={() => setIsSent(false)}
-            className="w-full rounded-lg border border-gray-600 px-4 py-3 text-sm font-medium text-gray-300 hover:bg-gray-700 transition mb-3"
           >
-            Надіслати повторно
-          </button>
+            Send Again
+          </AccentButton>
 
-          <Link href="/login" className="text-sm text-blue-400 hover:underline">
-            Повернутися до входу
-          </Link>
-        </section>
-      </main>
+          <p className="text-center text-[0.95rem] text-[#3e3840]">
+            <Link href="/login" className="text-[#3557ff] transition hover:text-[#1937cb]">
+              Back to sign in
+            </Link>
+          </p>
+        </div>
+      </AuthPanel>
     );
   }
 
   return (
-    <main className="flex justify-center items-center h-screen flex-col gap-4">
-      <section className="items-center text-center bg-gray-800 p-8 rounded-lg">
-        <h1>Скидання пароля</h1>
-        <p className="text-sm text-gray-400 mt-1 mb-6">
-          Введіть email, повязаний із вашим акаунтом, і ми надішлемо посилання.
-        </p>
+    <AuthPanel
+      title="Reset Password"
+      description="Enter the email connected to your account and we will send a reset link."
+    >
+      <form onSubmit={handleSubmit} className="space-y-7">
+        <AuthField
+          id="email"
+          name="email"
+          type="email"
+          label="Email"
+          placeholder="you@example.com"
+          value={email}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            setEmailError("");
+          }}
+          error={emailError}
+          autoComplete="email"
+        />
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <Input
-            id="email"
-            name="email"
-            type="email"
-            label="Email"
-            placeholder="your@email.com"
-            value={email}
-            onChange={(e) => {
-              setEmail(e.target.value);
-              setEmailError("");
-            }}
-            error={emailError}
-          />
-
-          <button
+        <div className="flex flex-col items-center gap-5">
+          <AccentButton
             type="submit"
             disabled={isSubmitting}
-            className="align-middle mt-2 w-lg rounded-lg bg-gray-900 px-4 py-3 text-sm font-medium text-white transition duration-200 hover:bg-gray-900 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {isSubmitting ? "Надсилання..." : "Надіслати посилання"}
-          </button>
-        </form>
+            {isSubmitting ? "Sending" : "Send Link"}
+          </AccentButton>
 
-        <p className="mt-4 text-sm text-gray-400">
-          <Link href="/login" className="text-blue-400 hover:underline">
-            Повернутися до входу
-          </Link>
-        </p>
-      </section>
-    </main>
+          <p className="text-center text-[0.95rem] text-[#3e3840]">
+            <Link href="/login" className="text-[#3557ff] transition hover:text-[#1937cb]">
+              Back to sign in
+            </Link>
+          </p>
+        </div>
+      </form>
+    </AuthPanel>
   );
 }

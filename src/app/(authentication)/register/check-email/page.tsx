@@ -4,6 +4,8 @@ import { useSearchParams } from "next/navigation";
 import { useState, Suspense } from "react";
 import Link from "next/link";
 import { resendVerificationEmail } from "@/features/auth/api/authApi";
+import { AuthPanel } from "@/features/auth/ui/AuthPanel";
+import { AccentButton } from "@/shared/ui/AccentButton";
 
 function CheckEmailContent() {
   const searchParams = useSearchParams();
@@ -16,46 +18,47 @@ function CheckEmailContent() {
     try {
       await resendVerificationEmail(email);
       setStatus("sent");
-      setMessage("Лист надіслано повторно. Перевірте вхідні.");
+      setMessage("Verification email sent again. Please check your inbox.");
     } catch {
       setStatus("error");
-      setMessage("Щось пішло не так. Спробуйте пізніше.");
+      setMessage("Something went wrong. Please try again later.");
     }
   }
 
   const maskedEmail = email.replace(/(.{2})(.*)(@.*)/, "$1***$3");
 
   return (
-    <main className="flex justify-center items-center h-screen flex-col gap-4">
-      <section className="items-center text-center bg-gray-800 p-8 rounded-lg">
-        <h1>Перевірте вхідні</h1>
-        <p className="text-sm text-gray-400 mt-1 mb-6">
-          Ми надіслали лист на <strong className="text-white">{maskedEmail}</strong>. Перейдіть за
-          посиланням, щоб підтвердити акаунт.
-        </p>
-
-        {message && (
-          <p className={`text-sm mb-4 ${status === "error" ? "text-red-500" : "text-green-400"}`}>
+    <AuthPanel
+      title="Check Email"
+      description={
+        <>
+          We sent a verification link to <strong>{maskedEmail || "your email"}</strong>.
+        </>
+      }
+    >
+      <div className="space-y-5">
+        {message ? (
+          <p className={`text-sm ${status === "error" ? "text-[#be3b3b]" : "text-[#247a4d]"}`}>
             {message}
           </p>
-        )}
+        ) : null}
 
-        <button
+        <AccentButton
+          type="button"
           onClick={handleResend}
-          disabled={status === "loading" || status === "sent"}
-          className="align-middle mt-2 w-lg rounded-lg bg-gray-900 px-4 py-3 text-sm font-medium text-white transition duration-200 hover:bg-gray-900 disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={!email || status === "loading" || status === "sent"}
         >
-          {status === "loading" ? "Надсилання..." : "Надіслати повторно"}
-        </button>
+          {status === "loading" ? "Sending" : "Send Again"}
+        </AccentButton>
 
-        <p className="mt-4 text-sm text-gray-400">
-          Вже підтвердили?{" "}
-          <Link href="/login" className="text-blue-400 hover:underline">
-            Увійти
+        <p className="text-center text-[0.95rem] text-[#3e3840]">
+          Already verified?{" "}
+          <Link href="/login" className="text-[#3557ff] transition hover:text-[#1937cb]">
+            Sign in
           </Link>
         </p>
-      </section>
-    </main>
+      </div>
+    </AuthPanel>
   );
 }
 

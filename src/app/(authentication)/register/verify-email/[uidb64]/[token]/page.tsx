@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ResendEmailForm } from "@/features/auth/ui/ResendEmailForm";
+import { ResendEmailForm } from "@/features/auth/ui/forms/ResendEmailForm";
 import { resendVerificationEmail, verifyEmail } from "@/features/auth/api/authApi";
+import { AuthPanel } from "@/features/auth/ui/AuthPanel";
+import { AccentButton } from "@/shared/ui/AccentButton";
 
 export default function VerifyEmailPage() {
   const { uidb64, token } = useParams<{ uidb64: string; token: string }>();
@@ -25,7 +27,7 @@ export default function VerifyEmailPage() {
       } catch (error: unknown) {
         const e = error as { detail?: string; message?: string };
         setStatus("error");
-        setMessage(e?.detail || e?.message || "Invalid or expired link");
+        setMessage(e?.detail || e?.message || "Invalid or expired link.");
       }
     }
     verify();
@@ -33,57 +35,49 @@ export default function VerifyEmailPage() {
 
   if (status === "loading") {
     return (
-      <main className="flex justify-center items-center h-screen flex-col gap-4">
-        <section className="items-center text-center bg-gray-800 p-8 rounded-lg">
-          <p className="text-gray-400">Перевірка...</p>
-        </section>
-      </main>
+      <AuthPanel title="Checking Link" description="We are verifying your email address.">
+        <p className="text-sm text-[#3e3840]">Please wait...</p>
+      </AuthPanel>
     );
   }
 
   if (status === "success") {
     return (
-      <main className="flex justify-center items-center h-screen flex-col gap-4">
-        <section className="items-center text-center bg-gray-800 p-8 rounded-lg">
-          <h1>Email підтверджено ✓</h1>
-          <p className="text-sm text-gray-400 mt-2">{message}</p>
-          <p className="text-xs text-gray-500 mt-1">Перенаправлення на сторінку входу...</p>
-        </section>
-      </main>
+      <AuthPanel
+        title="Email Verified"
+        description={message || "Your email has been verified successfully."}
+      >
+        <p className="text-sm text-[#3e3840]">Redirecting to sign in...</p>
+      </AuthPanel>
     );
   }
 
   return (
-    <main className="flex justify-center items-center h-screen flex-col gap-4">
-      <section className="items-center text-center bg-gray-800 p-8 rounded-lg">
-        <h1>Помилка підтвердження</h1>
-
+    <AuthPanel title="Verification Failed" description={message}>
+      <div className="space-y-5">
         {!showResend ? (
-          <>
-            <p className="text-sm text-gray-400 mt-1 mb-4">{message}</p>
-            <button
-              onClick={() => setShowResend(true)}
-              className="align-middle mt-2 w-lg rounded-lg bg-gray-900 px-4 py-3 text-sm font-medium text-white transition duration-200 hover:bg-gray-900"
-            >
-              Надіслати лист повторно
-            </button>
-          </>
+          <AccentButton
+            type="button"
+            onClick={() => setShowResend(true)}
+          >
+            Send Again
+          </AccentButton>
         ) : (
           <ResendEmailForm
             onResend={async (email) => {
               await resendVerificationEmail(email);
               router.push(`/register/check-email?email=${encodeURIComponent(email)}`);
             }}
-            submitLabel="Надіслати лист підтвердження"
+            submitLabel="Send Verification"
           />
         )}
 
-        <p className="mt-4 text-sm text-gray-400">
-          <Link href="/login" className="text-blue-400 hover:underline">
-            Повернутися до входу
+        <p className="text-center text-[0.95rem] text-[#3e3840]">
+          <Link href="/login" className="text-[#3557ff] transition hover:text-[#1937cb]">
+            Back to sign in
           </Link>
         </p>
-      </section>
-    </main>
+      </div>
+    </AuthPanel>
   );
 }

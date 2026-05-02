@@ -8,7 +8,7 @@ type Props = {
   totalPages: number;
 };
 
-export function CataloguePagination({ currentPage, totalPages }: Props) {
+export function CatalogPagination({ currentPage, totalPages }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
 

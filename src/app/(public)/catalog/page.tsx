@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getCourses, getCategories } from "@/features/courses/api/coursesApi";
 import { CategoryFilter } from "@/features/courses/ui/CategoryFilter";
 import { SortDropdown } from "@/features/courses/ui/SortDropdown";
-import { CataloguePagination } from "@/features/courses/ui/CataloguePagination";
+import { CatalogPagination } from "@/features/courses/ui/CatalogPagination";
 import type {
   CourseLanguage,
   CourseLevel,
@@ -299,7 +299,7 @@ export default async function CatalogPage({
               </div>
 
               <Suspense>
-                <CataloguePagination currentPage={currentPage} totalPages={totalPages} />
+                <CatalogPagination currentPage={currentPage} totalPages={totalPages} />
               </Suspense>
             </>
           )}

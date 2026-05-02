@@ -13,10 +13,8 @@ import {
   requestPasswordReset,
 } from "@/features/auth/api/authApi";
 import { validatePasswordResetForm } from "@/features/auth/model/validation";
-import type {
-  PasswordResetFormData,
-  PasswordResetFormErrors,
-} from "@/features/auth/model/types/passwordResetTypes";
+import { useAuthForm } from "@/features/auth/model/useAuthForm";
+import type { PasswordResetFormData } from "@/features/auth/model/types/passwordResetTypes";
 
 type PageStatus = "loading" | "invalid" | "form" | "success" | "error";
 
@@ -27,11 +25,33 @@ export default function ResetPasswordPage() {
 
   const [pageStatus, setPageStatus] = useState<PageStatus>("loading");
   const [pageMessage, setPageMessage] = useState("");
-  const [formData, setFormData] = useState<PasswordResetFormData>(initialForm);
-  const [errors, setErrors] = useState<PasswordResetFormErrors>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const {
+    formData,
+    errors,
+    isSubmitting,
+    handleChange,
+    handleSubmit,
+    setFormData,
+  } = useAuthForm<PasswordResetFormData>({
+    initial: initialForm,
+    validate: validatePasswordResetForm,
+    fieldKeys: ["password", "confirmPassword"],
+    submit: async (data) => {
+      try {
+        await confirmPasswordReset(uidb64, token, { password: data.password });
+        setPageStatus("success");
+      } catch (err: unknown) {
+        const e = err as { detail?: string; message?: string };
+        setPageStatus("error");
+        setPageMessage(
+          e?.detail || e?.message || "We could not update your password. Please try again.",
+        );
+      }
+    },
+  });
 
   useEffect(() => {
     if (!uidb64 || !token) return;
@@ -47,32 +67,6 @@ export default function ResetPasswordPage() {
     }
     checkToken();
   }, [uidb64, token]);
-
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: "" }));
-  }
-
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const validationErrors = validatePasswordResetForm(formData);
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
-    }
-    setIsSubmitting(true);
-    try {
-      await confirmPasswordReset(uidb64, token, { password: formData.password });
-      setPageStatus("success");
-    } catch (err: unknown) {
-      const e = err as { detail?: string; message?: string };
-      setPageStatus("error");
-      setPageMessage(e?.detail || e?.message || "We could not update your password. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
 
   if (pageStatus === "loading") {
     return (

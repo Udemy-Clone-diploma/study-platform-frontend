@@ -5,11 +5,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { loginUser, getMe } from "@/features/auth/api/authApi";
 import { validateLoginForm } from "@/features/auth/model/validation";
-import {
-  LoginFormErrors,
-  LoginFormData,
-  LoginResponse,
-} from "@/features/auth/model/types/loginTypes";
+import { useAuthForm } from "@/features/auth/model/useAuthForm";
+import { LoginFormData } from "@/features/auth/model/types/loginTypes";
+import type { UserRole } from "@/features/auth/model/types/userData";
 import { setAuthCookies, setRoleCookie } from "@/shared/api/authCookies";
 import { AuthField } from "@/features/auth/ui/AuthField";
 import { AuthShell } from "@/features/auth/ui/AuthShell";
@@ -31,83 +29,29 @@ const initialForm: LoginFormData = {
 export function LoginForm() {
   const router = useRouter();
 
-  const [formData, setFormData] = useState<LoginFormData>(initialForm);
-  const [errors, setErrors] = useState<LoginFormErrors>({});
-  const [apiError, setApiError] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
-  function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const { name, value } = event.target;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    setErrors((prev) => ({
-      ...prev,
-      [name]: "",
-    }));
-
-    setApiError("");
-  }
-
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    const validationErrors = validateLoginForm(formData);
-
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
-    }
-
-    setIsSubmitting(true);
-    setErrors({});
-    setApiError("");
-
-    try {
-      const loginResponse: LoginResponse = await loginUser({
-        email: formData.email.trim(),
-        password: formData.password,
-      });
-
-      const user = await getMe(loginResponse.access);
-
-      await setAuthCookies(loginResponse.access, loginResponse.refresh);
-      await setRoleCookie(user.role);
-
-      router.push(ROLE_HOME[user.role] ?? "/dashboard");
-    } catch (error: unknown) {
-      const typedError = error as {
-        message?: string;
-        fields?: Record<string, string | string[]>;
-      };
-
-      if (typedError?.fields && typeof typedError.fields === "object") {
-        const backendFieldErrors: LoginFormErrors = {};
-
-        Object.entries(typedError.fields).forEach(([key, value]) => {
-          const normalizedValue = Array.isArray(value) ? value[0] : String(value);
-
-          if (key === "email" || key === "password") {
-            backendFieldErrors[key] = normalizedValue;
-          }
+  const { formData, errors, apiError, isSubmitting, handleChange, handleSubmit } =
+    useAuthForm<LoginFormData>({
+      initial: initialForm,
+      validate: validateLoginForm,
+      fieldKeys: ["email", "password"],
+      fallbackError: "We could not sign you in. Please try again.",
+      submit: async (data) => {
+        const loginResponse = await loginUser({
+          email: data.email.trim(),
+          password: data.password,
         });
 
-        setErrors((prev) => ({
-          ...prev,
-          ...backendFieldErrors,
-        }));
-      }
+        const user = await getMe(loginResponse.access);
 
-      setApiError(typedError?.message || "We could not sign you in. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
+        await setAuthCookies(loginResponse.access, loginResponse.refresh);
+        await setRoleCookie(user.role);
+
+        router.push(ROLE_HOME[user.role] ?? "/dashboard");
+      },
+    });
 
   return (
     <AuthShell contentClassName="max-w-[520px]">

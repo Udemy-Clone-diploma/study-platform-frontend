@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { getMe } from "@/features/auth/api/authApi";
 import { logout } from "@/features/auth/actions/logout";
 import type { UserData } from "@/features/auth/model/types/userData";
-import Link from "next/dist/client/link";
+import Link from "next/link";
 
 export default function DashboardPage() {
   const router = useRouter();

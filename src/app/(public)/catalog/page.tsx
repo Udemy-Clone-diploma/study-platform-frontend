@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getCourses, getCategories } from "@/features/courses/api/coursesApi";
 import { CategoryFilter } from "@/features/courses/ui/CategoryFilter";
 import { SortDropdown } from "@/features/courses/ui/SortDropdown";
+import { CatalogPagination } from "@/features/courses/ui/CatalogPagination";
 import type {
   CourseLanguage,
   CourseLevel,
@@ -12,8 +13,11 @@ import type {
 } from "@/features/courses/model/types/course";
 import type { Category } from "@/features/courses/model/types/category";
 import type { ApiError } from "@/shared/api/base";
+import { CourseSearch } from "@/features/courses/ui/CourseSearch";
 
 export const dynamic = "force-dynamic";
+
+const PAGE_SIZE = 12;
 
 const LEVEL_LABELS: Record<CourseLevel, string> = {
   beginner: "Beginner",
@@ -66,10 +70,24 @@ function formatPublishedDate(value: string | null) {
   }).format(new Date(value));
 }
 
-async function loadCourses(categorySlug?: string, ordering?: string) {
+async function loadCourses(
+  page: number,
+  categorySlug?: string,
+  searchQuery?: string,
+  ordering?: string,
+) {
   try {
+    const data = await getCourses({
+      category: categorySlug,
+      ordering,
+      search: searchQuery,
+      page,
+      page_size: PAGE_SIZE,
+    });
+
     return {
-      courses: await getCourses(categorySlug, ordering),
+      courses: data.results,
+      count: data.count,
       error: "",
     };
   } catch (error: unknown) {
@@ -77,6 +95,7 @@ async function loadCourses(categorySlug?: string, ordering?: string) {
 
     return {
       courses: [],
+      count: 0,
       error: apiError.message || apiError.detail || "Could not load courses.",
     };
   }
@@ -90,19 +109,31 @@ async function loadCategories(): Promise<Category[]> {
   }
 }
 
+function parsePage(value: string | string[] | undefined): number {
+  if (typeof value !== "string") {
+    return 1;
+  }
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
+}
+
 export default async function CatalogPage({
   searchParams,
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const { category, sort } = await searchParams;
+  const { category, search, sort, page } = await searchParams;
   const categorySlug = typeof category === "string" ? category : undefined;
+  const searchQuery = typeof search === "string" ? search.trim() : undefined;
   const ordering = typeof sort === "string" ? sort : undefined;
+  const currentPage = parsePage(page);
 
-  const [{ courses, error }, categories] = await Promise.all([
-    loadCourses(categorySlug, ordering),
+  const [{ courses, count, error }, categories] = await Promise.all([
+    loadCourses(currentPage, categorySlug, searchQuery, ordering),
     loadCategories(),
   ]);
+
+  const totalPages = Math.max(1, Math.ceil(count / PAGE_SIZE));
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-10 text-slate-900">
@@ -132,6 +163,10 @@ export default async function CatalogPage({
         </header>
 
         <section className="space-y-4">
+          <Suspense>
+            <CourseSearch initialQuery={searchQuery} />
+          </Suspense>
+
           {categories.length > 0 && (
             <Suspense>
               <CategoryFilter categories={categories} currentSlug={categorySlug} />
@@ -140,10 +175,15 @@ export default async function CatalogPage({
 
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-2xl font-semibold text-slate-950">
-              {courses.length} course{courses.length === 1 ? "" : "s"}
+              {count} course{count === 1 ? "" : "s"}
               {categorySlug ? (
                 <span className="ml-2 text-base font-normal text-slate-500">
                   in &ldquo;{categories.find((c) => c.slug === categorySlug)?.name ?? categorySlug}&rdquo;
+                </span>
+              ) : null}
+              {searchQuery ? (
+                <span className="ml-2 text-base font-normal text-slate-500">
+                  matching &ldquo;{searchQuery}&rdquo;
                 </span>
               ) : null}
             </h2>
@@ -159,15 +199,15 @@ export default async function CatalogPage({
             </div>
           ) : courses.length === 0 ? (
             <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center shadow-sm">
-              {categorySlug ? (
+              {categorySlug || searchQuery ? (
                 <>
-                  <h3 className="text-xl font-semibold text-slate-950">Немає курсів у цій категорії</h3>
-                  <p className="mt-2 text-slate-600">Спробуйте обрати іншу категорію або скиньте фільтр.</p>
+                  <h3 className="text-xl font-semibold text-slate-950">No courses found</h3>
+                  <p className="mt-2 text-slate-600">Try another category or search phrase.</p>
                   <Link
                     href="/catalog"
                     className="mt-6 inline-block rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-700"
                   >
-                    Скинути фільтр
+                    Reset filters
                   </Link>
                 </>
               ) : (
@@ -178,84 +218,90 @@ export default async function CatalogPage({
               )}
             </div>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {courses.map((course) => (
-                <article
-                  key={course.id}
-                  className="flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
-                >
-                  <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                    <span>{course.category?.name ?? "General"}</span>
-                    <span>{LEVEL_LABELS[course.level]}</span>
-                    <span>|</span>
-                    <span>{LANGUAGE_LABELS[course.language]}</span>
-                  </div>
-
-                  <div className="mt-4 flex flex-1 flex-col">
-                    <div className="space-y-3">
-                      <h3 className="text-xl font-semibold text-slate-950">{course.title}</h3>
-                      <p className="line-clamp-3 text-sm leading-6 text-slate-600">
-                        {course.short_description}
-                      </p>
+            <>
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {courses.map((course) => (
+                  <article
+                    key={course.id}
+                    className="flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+                  >
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                      <span>{course.category?.name ?? "General"}</span>
+                      <span>{LEVEL_LABELS[course.level]}</span>
+                      <span>|</span>
+                      <span>{LANGUAGE_LABELS[course.language]}</span>
                     </div>
 
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      <span className="rounded-md bg-slate-100 px-2 py-1 text-xs text-slate-700">
-                        {MODE_LABELS[course.mode]}
-                      </span>
-                      <span className="rounded-md bg-slate-100 px-2 py-1 text-xs text-slate-700">
-                        {PRICING_LABELS[course.pricing_type]}
-                      </span>
-                      {course.with_certificate ? (
-                        <span className="rounded-md bg-emerald-100 px-2 py-1 text-xs text-emerald-800">
-                          Certificate
+                    <div className="mt-4 flex flex-1 flex-col">
+                      <div className="space-y-3">
+                        <h3 className="text-xl font-semibold text-slate-950">{course.title}</h3>
+                        <p className="line-clamp-3 text-sm leading-6 text-slate-600">
+                          {course.short_description}
+                        </p>
+                      </div>
+
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <span className="rounded-md bg-slate-100 px-2 py-1 text-xs text-slate-700">
+                          {MODE_LABELS[course.mode]}
                         </span>
-                      ) : null}
+                        <span className="rounded-md bg-slate-100 px-2 py-1 text-xs text-slate-700">
+                          {PRICING_LABELS[course.pricing_type]}
+                        </span>
+                        {course.with_certificate ? (
+                          <span className="rounded-md bg-emerald-100 px-2 py-1 text-xs text-emerald-800">
+                            Certificate
+                          </span>
+                        ) : null}
+                      </div>
+
+                      <dl className="mt-5 grid grid-cols-2 gap-3 text-sm text-slate-700">
+                        <div>
+                          <dt className="text-slate-500">Teacher</dt>
+                          <dd className="mt-1 font-semibold text-slate-950">{course.teacher_name}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-slate-500">Published</dt>
+                          <dd className="mt-1 font-semibold text-slate-950">
+                            {formatPublishedDate(course.published_at)}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt className="text-slate-500">Duration</dt>
+                          <dd className="mt-1 font-semibold text-slate-950">
+                            {course.duration_hours}h | {course.lessons_count} lessons
+                          </dd>
+                        </div>
+                        <div>
+                          <dt className="text-slate-500">Rating</dt>
+                          <dd className="mt-1 font-semibold text-slate-950">
+                            {formatRating(course)} | {course.students_count.toLocaleString("en-US")} students
+                          </dd>
+                        </div>
+                      </dl>
                     </div>
 
-                    <dl className="mt-5 grid grid-cols-2 gap-3 text-sm text-slate-700">
+                    <div className="mt-5 flex items-end justify-between gap-4 border-t border-slate-200 pt-4">
                       <div>
-                        <dt className="text-slate-500">Teacher</dt>
-                        <dd className="mt-1 font-semibold text-slate-950">{course.teacher_name}</dd>
+                        <p className="text-sm text-slate-500">Price</p>
+                        <p className="text-2xl font-semibold text-slate-950">{formatPrice(course)}</p>
                       </div>
-                      <div>
-                        <dt className="text-slate-500">Published</dt>
-                        <dd className="mt-1 font-semibold text-slate-950">
-                          {formatPublishedDate(course.published_at)}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt className="text-slate-500">Duration</dt>
-                        <dd className="mt-1 font-semibold text-slate-950">
-                          {course.duration_hours}h | {course.lessons_count} lessons
-                        </dd>
-                      </div>
-                      <div>
-                        <dt className="text-slate-500">Rating</dt>
-                        <dd className="mt-1 font-semibold text-slate-950">
-                          {formatRating(course)} | {course.students_count.toLocaleString("en-US")} students
-                        </dd>
-                      </div>
-                    </dl>
-                  </div>
-
-                  <div className="mt-5 flex items-end justify-between gap-4 border-t border-slate-200 pt-4">
-                    <div>
-                      <p className="text-sm text-slate-500">Price</p>
-                      <p className="text-2xl font-semibold text-slate-950">{formatPrice(course)}</p>
+                      <a
+                        href={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1/"}courses/${course.id}/`}
+                        className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Course API
+                      </a>
                     </div>
-                    <a
-                      href={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1/"}courses/${course.id}/`}
-                      className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      Course API
-                    </a>
-                  </div>
-                </article>
-              ))}
-            </div>
+                  </article>
+                ))}
+              </div>
+
+              <Suspense>
+                <CatalogPagination currentPage={currentPage} totalPages={totalPages} />
+              </Suspense>
+            </>
           )}
         </section>
       </div>

@@ -27,6 +27,7 @@ export type CourseCategory = {
 
 export type CourseListItem = {
   id: number;
+  image: string | null;
   title: string;
   short_description: string;
   slug: string;

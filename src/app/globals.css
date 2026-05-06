@@ -16,12 +16,22 @@
   --color-gold:        #fdc43a;
 
   /* ── Semantic colors ── */
-  --color-bg:           #ffffff;
-  --color-text-primary: #121212;
-  --color-text-muted:   #9ca3af;
-  --color-placeholder:  #d9d9d9;
+  --color-bg:             #ffffff;
+  --color-text-primary:   #121212;
+  --color-text-secondary: #5e5e5e;
+  --color-text-muted:     #9ca3af;
+  --color-placeholder:    #d9d9d9;
+  --color-badge-lavender: rgba(167, 186, 250, 0.4);
 
   /* ── Gradients ── */
+  --gradient-blob: radial-gradient(
+    50% 50% at 50% 50%,
+    rgba(255, 244, 218, 0.72)  0%,
+    rgba(252, 196, 195, 0.72) 40%,
+    rgba(167, 186, 250, 0.72) 100%
+  );
+
+
   --gradient-brand: linear-gradient(
     90deg,
     var(--color-brand-lavender) 0%,
@@ -48,6 +58,12 @@
   /* ── Shadows ── */
   --shadow-card:      0px 4px 24px rgba(0, 0, 0, 0.10);
   --shadow-usp-glass: inset 0px 2px 4px #ffffff;
+  --shadow-lavander:      rgba(167, 186, 250, 0.8);
+  --shadow-pink:          rgba(252, 196, 195, 0.8);
+  --shadow-yellow:        rgba(244, 216, 150, 0.8);
+  --shadow-yellow-soft:   rgba(244, 216, 150, 0.72);
+  --shadow-pink-soft:     rgba(252, 196, 195, 0.72);
+  --shadow-lavander-soft: rgba(167, 186, 250, 0.72);
 
   /* ── Typography ── */
   --font-base:   var(--font-mulish), sans-serif;
@@ -106,6 +122,19 @@ body {
 }
 .course-card:active {
   box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.16), 0 0 0 2px var(--card-border-color);
+}
+
+.category-card-item:hover {
+  transform: translateY(-4px);
+}
+
+.catalog-btn:hover {
+  opacity: 0.82;
+  transform: translateY(-2px);
+}
+.catalog-btn:active {
+  opacity: 0.7;
+  transform: translateY(0);
 }
 
 @keyframes carousel-right {

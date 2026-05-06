@@ -12,8 +12,8 @@ export function SectionContainer({ children, style, className = "" }: Props) {
             className={className}
             style={{
                 width: "100%",
-                paddingLeft: "max(16px, calc((100vw - 1420px) / 2))",
-                paddingRight: "max(16px, calc((100vw - 1420px) / 2))",
+                paddingLeft: "13vw", 
+                paddingRight: "13vw",
                 ...style,
             }}
         >

@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { getNewCourses, getPopularCourses, getCategories } from "@/features/courses/api/coursesApi";
+import { getNewCourses, getPopularCourses } from "@/features/courses/api/coursesApi";
 import { HeroSection } from "@/widgets/home/HeroSection";
 import { NewCoursesSection } from "@/widgets/home/NewCoursesSection";
 import { PopularCoursesSection } from "@/widgets/home/PopularCoursesSection";
@@ -12,10 +12,9 @@ import { FeedbackSection } from "@/widgets/home/FeedbackSection";
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-    const [newCourses, popularCourses, categories] = await Promise.all([
+    const [newCourses, popularCourses] = await Promise.all([
         getNewCourses().catch(() => []),
         getPopularCourses().catch(() => []),
-        getCategories().catch(() => []),
     ]);
 
     return (
@@ -31,7 +30,7 @@ export default async function Home() {
                     height: "35vw",
                     right: "-2vw",
                     top: "5vw",
-                    background: "radial-gradient(50% 50% at 50% 50%, rgba(255,244,218,0.72) 0%, rgba(252,196,195,0.72) 42%, rgba(167,186,250,0.72) 100%)",
+                    background: "var(--gradient-blob)",
                     filter: "blur(90px)",
                     borderRadius: "50%",
                 }} />
@@ -43,7 +42,7 @@ export default async function Home() {
                     height: "32vw",
                     right: "20vw",
                     top: "10vw",
-                    background: "radial-gradient(50% 50% at 50% 50%, rgba(255,244,218,0.72) 0%, rgba(252,196,195,0.72) 37%, rgba(167,186,250,0.72) 100%)",
+                    background: "var(--gradient-blob)",
                     filter: "blur(90px)",
                     borderRadius: "50%",
                 }} />
@@ -98,7 +97,7 @@ export default async function Home() {
                 <NewCoursesSection courses={newCourses} />
                 <PopularCoursesSection courses={popularCourses} />
                 <ValuePropositionSection />
-                <CategoriesSection categories={categories} />
+                <CategoriesSection />
                 <FeedbackSection />
                 <TestimonialsSection />
                 <StoriesSection />

@@ -18,8 +18,7 @@ export async function HeroSection() {
 
     return (
         <section style={{ position: "relative", overflow: "hidden" }}>
-            {/* paddingLeft 13vw = 250px at 1920px, scales with viewport like blobs/image */}
-            <SectionContainer style={{ paddingLeft: "13vw", paddingTop: "8vw", paddingBottom: "5vw" }}>
+            <SectionContainer style={{paddingTop: "8vw", paddingBottom: "5vw" }}>
                 <div style={{ width: "36.5vw", display: "flex", flexDirection: "column", gap: "4.2vw", position: "relative", zIndex: 1 }}>
 
                     {/* Main content block */}
@@ -87,7 +86,7 @@ export async function HeroSection() {
                                     justifyContent: "center",
                                     flexShrink: 0,
                                 }}>
-                                    <svg width="1.25vw" height="1.25vw" viewBox="0 0 24 24" fill="#FDC43A" style={{ width: "1.25vw", height: "1.25vw" }}>
+                                    <svg width="1.25vw" height="1.25vw" viewBox="0 0 24 24" fill="var(--color-gold)" style={{ width: "1.25vw", height: "1.25vw" }}>
                                         <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                                     </svg>
                                 </span>

@@ -30,8 +30,7 @@ export function ValuePropositionSection() {
                 backgroundPosition: "center",
             }}
         >
-            {/* 13vw matches HeroSection side padding — 250px at 1920px */}
-            <SectionContainer style={{ paddingLeft: "13vw", paddingRight: "13vw" }}>
+            <SectionContainer style={{  paddingBottom: "6.25vw" }}>
                 <div
                     style={{
                         display: "flex",
@@ -80,7 +79,7 @@ export function ValuePropositionSection() {
                                     alignSelf: "flex-start",
                                     alignItems: "center",
                                     padding: "0 0.52vw",
-                                    background: "rgba(167, 186, 250, 0.55)",
+                                    background: "var(--color-badge-lavender)",
                                     borderRadius: 4,
                                     height: "0.99vw",
                                 }}

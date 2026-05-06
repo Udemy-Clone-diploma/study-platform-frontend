@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import type { CourseListItem } from "@/features/courses/model/types/course";
 import { formatPrice } from "@/features/courses/lib/formatPrice";
@@ -34,6 +35,7 @@ type Props = { course: CourseListItem };
 export function CourseCard({ course }: Props) {
     const theme = LEVEL[course.level] ?? LEVEL.beginner;
     const [hovered, setHovered] = useState(false);
+    const [imgError, setImgError] = useState(false);
 
     return (
         <div
@@ -79,8 +81,19 @@ export function CourseCard({ course }: Props) {
                 </span>
             </div>
 
-            {/* Image placeholder — grows to fill middle space */}
-            <div style={{ flex: 1 }} />
+            {/* Course image */}
+            <div style={{ height: "7vw", flexShrink: 0, position: "relative", borderRadius: 12, overflow: "hidden", margin: "0.625vw 0" }}>
+                {course.image && !imgError ? (
+                    <Image
+                        src={course.image}
+                        alt={course.title}
+                        fill
+                        unoptimized
+                        style={{ objectFit: "contain" }}
+                        onError={() => setImgError(true)}
+                    />
+                ) : null}
+            </div>
 
             {/* Bottom block */}
             <div
@@ -88,7 +101,7 @@ export function CourseCard({ course }: Props) {
                     display: "flex",
                     flexDirection: "column",
                     gap: "0.208vw",
-                    flexShrink: 0,
+                    marginTop: "auto",
                 }}
             >
                 {/* Title */}

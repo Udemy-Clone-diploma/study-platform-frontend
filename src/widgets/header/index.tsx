@@ -5,7 +5,7 @@ import { getCategories } from "@/features/courses/api/coursesApi";
 import { getMe } from "@/features/auth/api/authApi";
 import { CatalogDropdown } from "@/features/courses/ui/CatalogDropdown";
 import { UserDropdown } from "@/features/auth/ui/UserDropdown";
-import { GetStartedButton } from "@/shared/ui/GetStartedButton";
+import { AccentButton } from "@/shared/ui/AccentButton";
 import { SearchBar } from "@/shared/ui/SearchBar";
 
 const navLinkStyle: React.CSSProperties = {
@@ -40,8 +40,8 @@ export async function Header() {
             }}
         >
             <div
-                className="mx-auto h-full flex items-center px-4 md:px-6 xl:px-8"
-                style={{ maxWidth: isLoggedIn ? 1840 : 1480, gap: "9.58%" }}
+                className="mx-auto h-full flex items-center"
+                style={{ maxWidth: isLoggedIn ? 1840 : 1480, gap: "9.58%", paddingInline: "max(16px, 2.22vw)" }}
             >
                 {/* Left */}
                 <div
@@ -52,7 +52,7 @@ export async function Header() {
                         className="flex items-center shrink-0 h-full"
                         style={{ gap: isLoggedIn ? 48 : 60 }}
                     >
-                        <div style={{ width: 180, height: 60, background: "var(--color-placeholder)" }} />
+                        <Link href="/" style={{ display: "block", width: 180, height: 60, background: "var(--color-placeholder)", flexShrink: 0 }} aria-label="Home" />
 
                         <nav className="flex items-center gap-8 h-full">
                             <CatalogDropdown categories={categories} />
@@ -93,7 +93,7 @@ export async function Header() {
                             </div>
                         </div>
                     ) : (
-                        <GetStartedButton />
+                        <AccentButton href="/login" size="md" style={{ fontSize: "clamp(10px, 1.41vw, 20px)", height: "clamp(36px, 3.61vw, 52px)", padding: "0 clamp(16px, 1.94vw, 28px)" }}>Get Started</AccentButton>
                     )}
                 </div>
             </div>

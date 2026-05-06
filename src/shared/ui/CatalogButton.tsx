@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export function CatalogButton() {
     return (
@@ -25,26 +26,13 @@ export function CatalogButton() {
             }}
         >
             To catalog
-            <span
-                style={{
-                    width: "clamp(18px, 1.46vw, 28px)",
-                    height: "clamp(18px, 1.46vw, 28px)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
-                }}
-            >
-                <svg viewBox="0 0 28 28" fill="none" width="100%" height="100%">
-                    <path
-                        d="M7 21L21 7M21 7H10M21 7V18"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                    />
-                </svg>
-            </span>
+            <Image
+                src="/icons/arrow-goto.png"
+                alt=""
+                width={14}
+                height={14}
+                style={{ width: "clamp(8px, 1.04vw, 14px)", height: "auto", flexShrink: 0 }}
+            />
         </Link>
     );
 }

@@ -22,6 +22,8 @@
   --color-text-muted:     #9ca3af;
   --color-placeholder:    #d9d9d9;
   --color-badge-lavender: rgba(167, 186, 250, 0.4);
+  --color-white-20: rgba(255, 255, 255, 0.2);
+  --color-white-60: rgba(255, 255, 255, 0.6);
 
   /* ── Gradients ── */
   --gradient-blob: radial-gradient(
@@ -37,6 +39,13 @@
     var(--color-brand-lavender) 0%,
     var(--color-brand-pink)     50.96%,
     var(--color-brand-cream)    100%
+  );
+
+  --gradient-feedback: linear-gradient(
+    70.58deg,
+    rgba(167, 186, 250, 0.4) 1.09%,
+    rgba(252, 196, 195, 0.4) 50%,
+    rgba(255, 244, 218, 0.4) 98.91%
   );
 
   --gradient-card-blue: radial-gradient(
@@ -56,7 +65,8 @@
   );
 
   /* ── Shadows ── */
-  --shadow-card:      0px 4px 24px rgba(0, 0, 0, 0.10);
+  --shadow-card:        0px 4px 24px rgba(0, 0, 0, 0.10);
+  --shadow-testimonial: 0px 0px 15px rgba(0, 0, 0, 0.15);
   --shadow-usp-glass: inset 0px 2px 4px #ffffff;
   --shadow-lavander:      rgba(167, 186, 250, 0.8);
   --shadow-pink:          rgba(252, 196, 195, 0.8);
@@ -137,6 +147,15 @@ body {
   transform: translateY(0);
 }
 
+.drag-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  user-select: none;
+}
+.drag-scroll::-webkit-scrollbar {
+  display: none;
+}
+
 @keyframes carousel-right {
   from { transform: translateX(-50%); }
   to   { transform: translateX(0); }
@@ -151,6 +170,16 @@ body {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+}
+
+@keyframes mentor-card-in {
+  from { opacity: 0; transform: scale(0.97); }
+  to   { opacity: 1; transform: scale(1);    }
+}
+
+@keyframes mentor-card-out {
+  from { opacity: 1; transform: scale(1);    }
+  to   { opacity: 0; transform: scale(0.97); }
 }
 
 @keyframes auth-drift {

@@ -104,7 +104,9 @@ export async function HeroSection() {
                         </div>
 
                         {/* Button */}
-                        {isLoggedIn ? <ContinueLearningButton /> : <GetStartedButton />}
+                        <div style={{ alignSelf: "flex-start" }}>
+                            {isLoggedIn ? <ContinueLearningButton /> : <GetStartedButton />}
+                        </div>
                     </div>
 
                     {/* Partners */}

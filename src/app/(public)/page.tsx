@@ -1,20 +1,22 @@
 import Image from "next/image";
 import { getNewCourses, getPopularCourses } from "@/features/courses/api/coursesApi";
+import { getTopTeachers } from "@/features/users/api/teachersApi";
 import { HeroSection } from "@/widgets/home/HeroSection";
 import { NewCoursesSection } from "@/widgets/home/NewCoursesSection";
 import { PopularCoursesSection } from "@/widgets/home/PopularCoursesSection";
-import { ValuePropositionSection } from "@/widgets/home/ValuePropositionSection";
+import { PlatformBenefitsSection } from "@/widgets/home/PlatformBenefitsSection";
 import { CategoriesSection } from "@/widgets/home/CategoriesSection";
-import { TestimonialsSection } from "@/widgets/home/TestimonialsSection";
-import { StoriesSection } from "@/widgets/home/StoriesSection";
-import { FeedbackSection } from "@/widgets/home/FeedbackSection";
+import { StudentReviewsSection } from "@/widgets/home/StudentReviewsSection";
+import { StudentStoriesSection } from "@/widgets/home/StudentStoriesSection";
+import { TopMentorsSection } from "@/widgets/home/TopMentorsSection";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-    const [newCourses, popularCourses] = await Promise.all([
+    const [newCourses, popularCourses, topTeachers] = await Promise.all([
         getNewCourses().catch(() => []),
         getPopularCourses().catch(() => []),
+        getTopTeachers().catch(() => []),
     ]);
 
     return (
@@ -96,11 +98,11 @@ export default async function Home() {
                 <HeroSection />
                 <NewCoursesSection courses={newCourses} />
                 <PopularCoursesSection courses={popularCourses} />
-                <ValuePropositionSection />
+                <PlatformBenefitsSection />
                 <CategoriesSection />
-                <FeedbackSection />
-                <TestimonialsSection />
-                <StoriesSection />
+                <TopMentorsSection teachers={topTeachers} />
+                <StudentReviewsSection />
+                <StudentStoriesSection />
             </div>
         </main>
     );

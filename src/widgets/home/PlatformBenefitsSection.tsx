@@ -21,7 +21,7 @@ const USP_CARDS = [
     },
 ];
 
-export function ValuePropositionSection() {
+export function PlatformBenefitsSection() {
     return (
         <section
             style={{

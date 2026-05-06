@@ -1,8 +1,7 @@
 import Image from "next/image";
 import { cookies } from "next/headers";
 import { SectionContainer } from "@/shared/ui/SectionContainer";
-import { GetStartedButton } from "@/shared/ui/GetStartedButton";
-import { ContinueLearningButton } from "@/shared/ui/ContinueLearningButton";
+import { AccentButton } from "@/shared/ui/AccentButton";
 
 const TAGS = ["Skills", "Networking", "Growth"];
 
@@ -105,7 +104,10 @@ export async function HeroSection() {
 
                         {/* Button */}
                         <div style={{ alignSelf: "flex-start" }}>
-                            {isLoggedIn ? <ContinueLearningButton /> : <GetStartedButton />}
+                            {isLoggedIn
+                                ? <AccentButton href="/coming-soon?page=Continue+Learning" size="md">Continue Learning</AccentButton>
+                                : <AccentButton href="/login" size="md">Get Started</AccentButton>
+                            }
                         </div>
                     </div>
 

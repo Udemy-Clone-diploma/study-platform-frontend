@@ -5,7 +5,7 @@ import { getCategories } from "@/features/courses/api/coursesApi";
 import { getMe } from "@/features/auth/api/authApi";
 import { CatalogDropdown } from "@/features/courses/ui/CatalogDropdown";
 import { UserDropdown } from "@/features/auth/ui/UserDropdown";
-import { GetStartedButton } from "@/shared/ui/GetStartedButton";
+import { AccentButton } from "@/shared/ui/AccentButton";
 import { SearchBar } from "@/shared/ui/SearchBar";
 
 const navLinkStyle: React.CSSProperties = {
@@ -93,7 +93,7 @@ export async function Header() {
                             </div>
                         </div>
                     ) : (
-                        <GetStartedButton />
+                        <AccentButton href="/login" size="md">Get Started</AccentButton>
                     )}
                 </div>
             </div>

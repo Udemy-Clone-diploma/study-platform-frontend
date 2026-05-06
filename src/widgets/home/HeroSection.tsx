@@ -105,8 +105,8 @@ export async function HeroSection() {
                         {/* Button */}
                         <div style={{ alignSelf: "flex-start" }}>
                             {isLoggedIn
-                                ? <AccentButton href="/coming-soon?page=Continue+Learning" size="md">Continue Learning</AccentButton>
-                                : <AccentButton href="/login" size="md">Get Started</AccentButton>
+                                ? <AccentButton href="/coming-soon?page=Continue+Learning" size="md" style={{ fontSize: "clamp(14px, 1.41vw, 20px)", height: "clamp(36px, 3.61vw, 52px)", padding: "0 clamp(16px, 1.94vw, 28px)" }}>Continue Learning</AccentButton>
+                                : <AccentButton href="/login" size="md" style={{ fontSize: "clamp(14px, 1.41vw, 20px)", height: "clamp(36px, 3.61vw, 52px)", padding: "0 clamp(16px, 1.94vw, 28px)" }}>Get Started</AccentButton>
                             }
                         </div>
                     </div>

@@ -40,8 +40,8 @@ export async function Header() {
             }}
         >
             <div
-                className="mx-auto h-full flex items-center px-4 md:px-6 xl:px-8"
-                style={{ maxWidth: isLoggedIn ? 1840 : 1480, gap: "9.58%" }}
+                className="mx-auto h-full flex items-center"
+                style={{ maxWidth: isLoggedIn ? 1840 : 1480, gap: "9.58%", paddingInline: "max(16px, 2.22vw)" }}
             >
                 {/* Left */}
                 <div
@@ -93,7 +93,7 @@ export async function Header() {
                             </div>
                         </div>
                     ) : (
-                        <AccentButton href="/login" size="md">Get Started</AccentButton>
+                        <AccentButton href="/login" size="md" style={{ fontSize: "clamp(10px, 1.41vw, 20px)", height: "clamp(36px, 3.61vw, 52px)", padding: "0 clamp(16px, 1.94vw, 28px)" }}>Get Started</AccentButton>
                     )}
                 </div>
             </div>

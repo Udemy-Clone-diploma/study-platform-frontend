@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getClientCookie } from "@/shared/lib/cookies";
-import type { UserRole } from "@/features/auth/model/types/userData";
+import type { UserRole } from "@/entities/user";
 
 type WithAuthOptions = {
   allowedRoles: UserRole[];

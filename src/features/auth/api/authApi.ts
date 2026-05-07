@@ -6,8 +6,7 @@ import {
   LoginResponse,
   TokenRefreshResponse,
 } from "@/features/auth/model/types/loginTypes";
-import { UserData } from "@/features/auth/model/types/userData";
-import { UserProfile } from "@/features/auth/model/types/profilesTypes";
+import type { UserData, UserProfile } from "@/entities/user";
 
 import type {
   PasswordResetRequestPayload,
@@ -31,13 +30,6 @@ export async function logoutUser(refresh: string): Promise<{ detail: string }> {
 
 export async function refreshToken(refresh: string): Promise<TokenRefreshResponse> {
   const { data } = await api.post<TokenRefreshResponse>("auth/refresh/", { refresh });
-  return data;
-}
-
-export async function getMe(accessToken?: string): Promise<UserData> {
-  const { data } = await api.get<UserData>("auth/me/", {
-    headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
-  });
   return data;
 }
 

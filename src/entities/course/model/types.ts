@@ -13,17 +13,19 @@ export type CourseType = "profession" | "qualification" | "knowledge";
 export type CoursePricingType = "free" | "full_payment" | "installment";
 export type CourseStatus = "draft" | "review" | "published" | "archived";
 
-export type CourseTag = {
-  id: number;
-  name: string;
-};
-
-export type CourseCategory = {
+export type Category = {
   id: number;
   name: string;
   slug: string;
   description: string;
 };
+
+export type CourseTag = {
+  id: number;
+  name: string;
+};
+
+export type CourseCategory = Category;
 
 export type CourseListItem = {
   id: number;

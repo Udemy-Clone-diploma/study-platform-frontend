@@ -42,35 +42,40 @@ export function CourseSearch({ initialQuery = "" }: Props) {
   return (
     <form
       onSubmit={submitSearch}
-      className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row"
+      className="flex h-[36px] w-full max-w-[430px] items-center gap-2 rounded-full border border-[#a7bafa] bg-white px-7 shadow-[0_0_18px_rgba(252,196,195,0.28)]"
     >
       <label className="sr-only" htmlFor="course-search">
         Search courses
       </label>
+      <svg
+        aria-hidden="true"
+        className="h-5 w-5 shrink-0 text-[#121212]"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={1.8}
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-4.3-4.3m1.3-5.7a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" />
+      </svg>
       <input
         id="course-search"
         value={query}
         onChange={(event) => setQuery(event.target.value)}
-        placeholder="Search by title, teacher, category, or tag"
-        className="min-h-11 flex-1 rounded-lg border border-slate-300 px-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-900 focus:ring-2 focus:ring-slate-200"
+        placeholder="Search"
+        className="h-full min-w-0 flex-1 border-none bg-transparent text-[0.78rem] text-[#121212] outline-none placeholder:text-[#d9d9d9]"
       />
-      <div className="flex gap-2">
-        {initialQuery ? (
-          <button
-            type="button"
-            onClick={clearSearch}
-            className="min-h-11 rounded-lg border border-slate-300 px-4 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-          >
-            Clear
-          </button>
-        ) : null}
+      {initialQuery ? (
         <button
-          type="submit"
-          className="min-h-11 rounded-lg bg-slate-900 px-5 text-sm font-medium text-white transition hover:bg-slate-700"
+          type="button"
+          onClick={clearSearch}
+          className="text-[0.7rem] font-medium text-[#5e5e5e] transition hover:text-[#121212]"
         >
-          Search
+          Clear
         </button>
-      </div>
+      ) : null}
+      <button type="submit" className="sr-only">
+        Search
+      </button>
     </form>
   );
 }

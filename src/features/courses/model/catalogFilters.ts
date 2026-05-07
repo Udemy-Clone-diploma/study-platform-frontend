@@ -4,7 +4,7 @@ import type {
   CourseLevel,
   CourseMode,
   CourseType,
-} from "@/features/courses/model/types/course";
+} from "@/entities/course";
 
 export type CatalogSearchParams = {
   [key: string]: string | string[] | undefined;

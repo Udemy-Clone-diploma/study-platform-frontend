@@ -54,13 +54,13 @@ export function SortDropdown({ currentSort }: Props) {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((prev) => !prev)}
-        className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+        className="flex h-10 items-center gap-1 bg-transparent text-[0.78rem] font-medium text-[#121212] transition hover:text-[#003aff]"
         aria-haspopup="listbox"
         aria-expanded={open}
       >
         <span>{activeOption?.label ?? "Sort by"}</span>
         <svg
-          className={`h-4 w-4 text-slate-500 transition-transform ${open ? "rotate-180" : ""}`}
+          className={`h-4 w-4 text-[#121212] transition-transform ${open ? "rotate-180" : ""}`}
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -73,7 +73,7 @@ export function SortDropdown({ currentSort }: Props) {
       {open && (
         <ul
           role="listbox"
-          className="absolute right-0 z-10 mt-1 w-52 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-lg"
+          className="absolute right-0 z-10 mt-1 w-52 overflow-hidden rounded-[8px] border border-[#f3d9de] bg-white py-1 shadow-[0_10px_24px_rgba(0,0,0,0.12)]"
         >
           {SORT_OPTIONS.map((option) => (
             <li key={option.value} role="option" aria-selected={option.value === activeOption?.value}>

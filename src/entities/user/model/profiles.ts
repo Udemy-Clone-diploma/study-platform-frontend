@@ -1,5 +1,5 @@
 export interface StudentProfile {
-  date_of_birth: string | null; // ISO 8601: "YYYY-MM-DD"
+  date_of_birth: string | null;
   learning_goals: string;
   education_level: string;
 }

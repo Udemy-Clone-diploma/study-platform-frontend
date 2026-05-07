@@ -2,9 +2,9 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { getMe } from "@/features/auth/api/authApi";
+import { getMe } from "@/entities/user";
 import { logout } from "@/features/auth/actions/logout";
-import type { UserData } from "@/features/auth/model/types/userData";
+import type { UserData } from "@/entities/user";
 import Link from "next/link";
 
 export default function DashboardPage() {

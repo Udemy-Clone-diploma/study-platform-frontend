@@ -1,4 +1,4 @@
-import { UserProfile } from "@/features/auth/model/types/profilesTypes";
+import type { UserProfile } from "./profiles";
 
 export type UserRole = "student" | "teacher" | "moderator" | "administrator";
 export type UserStatus = "active" | "inactive";
@@ -17,3 +17,12 @@ export interface UserData<TProfile extends UserProfile = UserProfile> {
   date_joined: string;
   profile: TProfile;
 }
+
+export type TopTeacher = {
+  teacher_id: number;
+  name: string;
+  avatar: string | null;
+  specialization: string | null;
+  experience: string | null;
+  rating: string;
+};

@@ -12,7 +12,6 @@ import { setAuthCookies, setRoleCookie } from "@/shared/api/authCookies";
 import { AuthField } from "@/features/auth/ui/AuthField";
 import { AuthShell } from "@/features/auth/ui/AuthShell";
 import { AccentButton } from "@/shared/ui/AccentButton";
-import type { UserRole } from "@/features/auth/model/types/userData";
 
 const ROLE_HOME: Record<UserRole, string> = {
   administrator: "/admin",

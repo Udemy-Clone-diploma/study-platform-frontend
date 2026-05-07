@@ -5,7 +5,6 @@ import { useState } from "react";
 
 export function WishlistButton() {
     const [liked, setLiked] = useState(false);
-    const [hovered, setHovered] = useState(false);
 
     return (
         <button
@@ -15,8 +14,6 @@ export function WishlistButton() {
                 e.stopPropagation();
                 setLiked((prev) => !prev);
             }}
-            onMouseEnter={() => setHovered(true)}
-            onMouseLeave={() => setHovered(false)}
             style={{
                 width: "2.08vw",
                 height: "2.08vw",

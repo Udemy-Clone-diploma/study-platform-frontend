@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from "react";
 
 type AccentButtonBaseProps = {
   children: ReactNode;
@@ -14,6 +14,7 @@ type AccentButtonAsButtonProps = AccentButtonBaseProps &
 
 type AccentButtonAsLinkProps = AccentButtonBaseProps & {
   href: string;
+  style?: CSSProperties;
 };
 
 type AccentButtonProps = AccentButtonAsButtonProps | AccentButtonAsLinkProps;
@@ -36,7 +37,7 @@ export function AccentButton({
 
   if ("href" in props && props.href) {
     return (
-      <Link href={props.href} className={classes}>
+      <Link href={props.href} className={classes} style={props.style}>
         {children}
       </Link>
     );

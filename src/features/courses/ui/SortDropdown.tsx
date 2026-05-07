@@ -35,6 +35,7 @@ export function SortDropdown({ currentSort }: Props) {
     } else {
       params.delete("sort");
     }
+    params.delete("page");
     router.push(`?${params.toString()}`);
     setOpen(false);
   }

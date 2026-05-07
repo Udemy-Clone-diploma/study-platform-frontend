@@ -1,5 +1,9 @@
 import { api } from "@/shared/api/base";
-import type { CourseDetail, CourseListItem } from "@/features/courses/model/types/course";
+import type {
+  CourseDetail,
+  CourseListItem,
+  Paginated,
+} from "@/features/courses/model/types/course";
 import type { Category } from "@/features/courses/model/types/category";
 
 const COURSES_ENDPOINT = "courses/";
@@ -18,6 +22,8 @@ export type CourseListParams = {
   rating_min?: string;
   search?: string;
   with_certificate?: boolean;
+  page?: number;
+  page_size?: number;
 };
 
 export async function getCategories(): Promise<Category[]> {
@@ -25,7 +31,9 @@ export async function getCategories(): Promise<Category[]> {
   return data;
 }
 
-export async function getCourses(filters: CourseListParams = {}): Promise<CourseListItem[]> {
+export async function getCourses(
+  filters: CourseListParams = {},
+): Promise<Paginated<CourseListItem>> {
   const params = {
     ...(filters.category ? { category: filters.category } : {}),
     ...(filters.course_type ? { course_type: filters.course_type } : {}),
@@ -39,8 +47,10 @@ export async function getCourses(filters: CourseListParams = {}): Promise<Course
     ...(filters.rating_min ? { rating_min: filters.rating_min } : {}),
     ...(filters.search ? { search: filters.search } : {}),
     ...(filters.with_certificate !== undefined ? { with_certificate: filters.with_certificate } : {}),
+    ...(filters.page ? { page: filters.page } : {}),
+    ...(filters.page_size ? { page_size: filters.page_size } : {}),
   };
-  const { data } = await api.get<CourseListItem[]>(COURSES_ENDPOINT, { params });
+  const { data } = await api.get<Paginated<CourseListItem>>(COURSES_ENDPOINT, { params });
   return data;
 }
 
@@ -58,4 +68,3 @@ export async function getPopularCourses(): Promise<CourseListItem[]> {
   const { data } = await api.get<CourseListItem[]>(`${COURSES_ENDPOINT}popular-courses/`);
   return data;
 }
- 

@@ -1,3 +1,10 @@
+export type Paginated<T> = {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
+};
+
 export type CourseLevel = "beginner" | "intermediate" | "advanced";
 export type CourseLanguage = "english" | "ukrainian" | "spanish";
 export type CourseMode = "self_learning" | "with_teacher";
@@ -20,6 +27,7 @@ export type CourseCategory = {
 
 export type CourseListItem = {
   id: number;
+  image: string | null;
   title: string;
   short_description: string;
   slug: string;

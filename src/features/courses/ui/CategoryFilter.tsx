@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import type { Category } from "@/features/courses/model/types/category";
+import type { Category } from "@/entities/course";
 
 type Props = {
   categories: Category[];
@@ -12,44 +12,30 @@ export function CategoryFilter({ categories, currentSlug }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  function selectCategory(slug: string | null) {
+  function selectCategory(slug: string) {
     const params = new URLSearchParams(searchParams.toString());
 
-    if (slug) {
-      params.set("category", slug);
-    } else {
+    if (currentSlug === slug) {
       params.delete("category");
+    } else {
+      params.set("category", slug);
     }
 
     params.delete("page");
-
-    router.push(`?${params.toString()}`);
+    router.push(params.toString() ? `?${params.toString()}` : "/catalog");
   }
 
   return (
-    <div className="flex flex-wrap gap-2">
-      <button
-        onClick={() => selectCategory(null)}
-        className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
-          !currentSlug
-            ? "bg-slate-900 text-white"
-            : "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
-        }`}
-      >
-        Всі категорії
-      </button>
-
-      {categories.map((cat) => (
+    <div className="flex min-w-0 flex-wrap items-center gap-2">
+      {categories.map((category) => (
         <button
-          key={cat.id}
-          onClick={() => selectCategory(cat.slug)}
-          className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
-            currentSlug === cat.slug
-              ? "bg-slate-900 text-white"
-              : "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
+          key={category.id}
+          onClick={() => selectCategory(category.slug)}
+          className={`h-[22px] rounded-full px-4 text-[0.72rem] font-medium leading-[22px] text-[#121212] transition ${
+            currentSlug === category.slug ? "bg-[#a7bafa]" : "bg-white hover:bg-[#fff4da]"
           }`}
         >
-          {cat.name}
+          {category.name}
         </button>
       ))}
     </div>

@@ -1,6 +1,6 @@
 import Image from "next/image";
-import { getNewCourses, getPopularCourses } from "@/features/courses/api/coursesApi";
-import { getTopTeachers } from "@/features/users/api/teachersApi";
+import { getNewCourses, getPopularCourses } from "@/entities/course";
+import { getTopTeachers } from "@/entities/user";
 import { HeroSection } from "@/widgets/home/HeroSection";
 import { NewCoursesSection } from "@/widgets/home/NewCoursesSection";
 import { PopularCoursesSection } from "@/widgets/home/PopularCoursesSection";

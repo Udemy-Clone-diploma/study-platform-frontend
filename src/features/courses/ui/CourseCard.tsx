@@ -3,8 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import type { CourseListItem } from "@/features/courses/model/types/course";
-import { formatPrice } from "@/features/courses/lib/formatPrice";
+import { formatPrice, type CourseListItem } from "@/entities/course";
 import { Stars } from "./Stars";
 import { WishlistButton } from "./WishlistButton";
 

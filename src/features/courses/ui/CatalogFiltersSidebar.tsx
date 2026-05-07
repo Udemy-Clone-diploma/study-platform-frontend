@@ -1,4 +1,4 @@
-import type { Category } from "@/features/courses/model/types/category";
+import type { Category } from "@/entities/course";
 import {
   buildCatalogHref,
   COURSE_TYPE_LABELS,

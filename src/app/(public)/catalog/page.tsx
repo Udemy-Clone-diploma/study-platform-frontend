@@ -1,20 +1,18 @@
 import { Suspense } from "react";
+import Image from "next/image";
 import Link from "next/link";
-import { getCategories, getCourses } from "@/features/courses/api/coursesApi";
+import { getCategories, getCourses, type Category } from "@/entities/course";
 import {
   buildCatalogHref,
-  LANGUAGE_LABELS,
-  LEVEL_LABELS,
-  MODE_LABELS,
   type CatalogFilterState,
   type CatalogSearchParams,
   parseCatalogState,
   resetCatalogFiltersHref,
 } from "@/features/courses/model/catalogFilters";
-import type { Category } from "@/features/courses/model/types/category";
-import type { CourseListItem, CoursePricingType } from "@/features/courses/model/types/course";
 import { CatalogFiltersSidebar } from "@/features/courses/ui/CatalogFiltersSidebar";
 import { CatalogPagination } from "@/features/courses/ui/CatalogPagination";
+import { CategoryFilter } from "@/features/courses/ui/CategoryFilter";
+import { CourseCard } from "@/features/courses/ui/CourseCard";
 import { CourseSearch } from "@/features/courses/ui/CourseSearch";
 import { SortDropdown } from "@/features/courses/ui/SortDropdown";
 import type { ApiError } from "@/shared/api/base";
@@ -22,40 +20,6 @@ import type { ApiError } from "@/shared/api/base";
 export const dynamic = "force-dynamic";
 
 const PAGE_SIZE = 12;
-
-const PRICING_LABELS: Record<CoursePricingType, string> = {
-  free: "Free",
-  full_payment: "Full payment",
-  installment: "Installment",
-};
-
-function formatPrice(course: CourseListItem) {
-  if (course.pricing_type === "free" || Number(course.price) === 0) {
-    return "Free";
-  }
-
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(Number(course.price));
-}
-
-function formatRating(course: CourseListItem) {
-  return Number(course.rating_avg).toFixed(1);
-}
-
-function formatPublishedDate(value: string | null) {
-  if (!value) {
-    return "Coming soon";
-  }
-
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date(value));
-}
 
 function firstParam(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
@@ -126,17 +90,37 @@ export default async function CatalogPage({
   const totalPages = Math.max(1, Math.ceil(count / PAGE_SIZE));
 
   return (
-    <main className="min-h-screen bg-[linear-gradient(110deg,#f1edff_0%,#fff7e9_100%)] px-6 py-8 text-[#111111]">
-      <div className="mx-auto w-full max-w-[1160px]">
-        <div className="mb-8 flex flex-col gap-4">
-          <div className="flex flex-wrap items-center justify-between gap-4">
+    <main className="min-h-screen bg-[linear-gradient(110deg,#f1edff_0%,#fff7e9_100%)] px-6 pb-12 pt-9 text-[#111111]">
+      <div className="mx-auto w-full max-w-[1420px]">
+        <div className="mb-20 flex flex-col gap-20">
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <Suspense>
+              <CourseSearch initialQuery={state.search} />
+            </Suspense>
+
+            {categories.length > 0 ? (
+              <Suspense>
+                <CategoryFilter categories={categories} currentSlug={state.category} />
+              </Suspense>
+            ) : null}
+          </div>
+
+          <div className="flex h-10 items-center justify-between   bg-transparent px-3">
             <Link
               href={buildCatalogHref(state, { filtersOpen: !state.filtersOpen })}
-              className={`inline-flex h-8 items-center gap-1 rounded-full px-4 text-[0.78rem] font-medium transition ${
-                state.filtersOpen ? "bg-black text-white" : "bg-white text-black shadow-sm"
+              className={`inline-flex h-10 items-center gap-2 rounded-full px-5 font-[family-name:var(--font-mulish)] text-[1rem] font-normal transition ${
+                state.filtersOpen
+                  ? "bg-[#09070a] text-white shadow-[0_10px_24px_rgba(0,0,0,0.12)]"
+                  : "bg-white text-[#121212] hover:bg-[#fff4da]"
               }`}
             >
-              <span className="text-[0.82rem]">{"\u2261"}</span>
+              <Image
+                src="/icons/filter.png"
+                alt=""
+                width={16}
+                height={16}
+                className={`h-4 w-4 shrink-0 ${state.filtersOpen ? "invert" : ""}`}
+              />
               All Filter
             </Link>
 
@@ -144,27 +128,9 @@ export default async function CatalogPage({
               <SortDropdown currentSort={state.sort} />
             </Suspense>
           </div>
-
-          <Suspense>
-            <CourseSearch initialQuery={state.search} />
-          </Suspense>
-
-          <h2 className="text-2xl font-semibold text-slate-950">
-            {count} course{count === 1 ? "" : "s"}
-            {state.category ? (
-              <span className="ml-2 text-base font-normal text-slate-500">
-                in &ldquo;{categories.find((category) => category.slug === state.category)?.name ?? state.category}&rdquo;
-              </span>
-            ) : null}
-            {state.search ? (
-              <span className="ml-2 text-base font-normal text-slate-500">
-                matching &ldquo;{state.search}&rdquo;
-              </span>
-            ) : null}
-          </h2>
         </div>
 
-        <div className={`grid gap-5 ${state.filtersOpen ? "lg:grid-cols-[320px_1fr]" : ""}`}>
+        <div className={`grid gap-5 ${state.filtersOpen ? "lg:grid-cols-[460px_1fr]" : ""}`}>
           {state.filtersOpen ? <CatalogFiltersSidebar categories={categories} state={state} /> : null}
 
           <section>
@@ -186,80 +152,9 @@ export default async function CatalogPage({
               </div>
             ) : (
               <>
-                <div className={`grid gap-4 md:grid-cols-2 ${state.filtersOpen ? "" : "xl:grid-cols-3"}`}>
+                <div className="flex flex-wrap gap-6">
                   {courses.map((course) => (
-                    <article
-                      key={course.id}
-                      className="flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
-                    >
-                      <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                        <span>{course.category?.name ?? "General"}</span>
-                        <span>{LEVEL_LABELS[course.level]}</span>
-                        <span>|</span>
-                        <span>{LANGUAGE_LABELS[course.language]}</span>
-                      </div>
-
-                      <div className="mt-4 flex flex-1 flex-col">
-                        <div className="space-y-3">
-                          <h3 className="text-xl font-semibold text-slate-950">{course.title}</h3>
-                          <p className="line-clamp-3 text-sm leading-6 text-slate-600">
-                            {course.short_description}
-                          </p>
-                        </div>
-
-                        <div className="mt-4 flex flex-wrap gap-2">
-                          <span className="rounded-md bg-slate-100 px-2 py-1 text-xs text-slate-700">
-                            {MODE_LABELS[course.mode]}
-                          </span>
-                          <span className="rounded-md bg-slate-100 px-2 py-1 text-xs text-slate-700">
-                            {PRICING_LABELS[course.pricing_type]}
-                          </span>
-                          {course.with_certificate ? (
-                            <span className="rounded-md bg-emerald-100 px-2 py-1 text-xs text-emerald-800">
-                              Certificate
-                            </span>
-                          ) : null}
-                        </div>
-
-                        <dl className="mt-5 grid grid-cols-2 gap-3 text-sm text-slate-700">
-                          <div>
-                            <dt className="text-slate-500">Teacher</dt>
-                            <dd className="mt-1 font-semibold text-slate-950">{course.teacher_name}</dd>
-                          </div>
-                          <div>
-                            <dt className="text-slate-500">Published</dt>
-                            <dd className="mt-1 font-semibold text-slate-950">
-                              {formatPublishedDate(course.published_at)}
-                            </dd>
-                          </div>
-                          <div>
-                            <dt className="text-slate-500">Duration</dt>
-                            <dd className="mt-1 font-semibold text-slate-950">
-                              {course.duration_hours}h | {course.lessons_count} lessons
-                            </dd>
-                          </div>
-                          <div>
-                            <dt className="text-slate-500">Rating</dt>
-                            <dd className="mt-1 font-semibold text-slate-950">
-                              {formatRating(course)} | {course.students_count.toLocaleString("en-US")} students
-                            </dd>
-                          </div>
-                        </dl>
-                      </div>
-
-                      <div className="mt-5 flex items-end justify-between gap-4 border-t border-slate-200 pt-4">
-                        <div>
-                          <p className="text-sm text-slate-500">Price</p>
-                          <p className="text-2xl font-semibold text-slate-950">{formatPrice(course)}</p>
-                        </div>
-                        <Link
-                          href={`/courses/${course.id}`}
-                          className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-                        >
-                          Details
-                        </Link>
-                      </div>
-                    </article>
+                    <CourseCard key={course.id} course={course} />
                   ))}
                 </div>
 

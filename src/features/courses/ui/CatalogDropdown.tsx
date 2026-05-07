@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import type { Category } from "@/features/courses/model/types/category";
+import type { Category } from "@/entities/course";
 
 type Props = {
     categories: Category[];

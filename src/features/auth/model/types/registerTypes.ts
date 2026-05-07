@@ -1,4 +1,4 @@
-import { UserLanguage, UserRole } from "@/features/auth/model/types/userData";
+import type { UserLanguage, UserRole } from "@/entities/user";
 
 export interface RegisterFormData {
   email: string;

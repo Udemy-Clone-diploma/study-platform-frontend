@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import type { UserRole } from "@/features/auth/model/types/userData";
+import type { UserRole } from "@/entities/user";
 
 type RouteRule = {
   pattern: RegExp;

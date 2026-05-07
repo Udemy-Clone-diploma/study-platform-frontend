@@ -1,6 +1,6 @@
 "use client";
 
-import type { CourseListItem } from "@/features/courses/model/types/course";
+import type { CourseListItem } from "@/entities/course";
 import { CourseCard } from "@/features/courses/ui/CourseCard";
 import { SectionContainer } from "@/shared/ui/SectionContainer";
 import { useState } from "react";

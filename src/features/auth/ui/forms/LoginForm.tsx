@@ -3,11 +3,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { loginUser, getMe } from "@/features/auth/api/authApi";
+import { getMe } from "@/entities/user";
+import { loginUser } from "@/features/auth/api/authApi";
 import { validateLoginForm } from "@/features/auth/model/validation";
 import { useAuthForm } from "@/features/auth/model/useAuthForm";
 import { LoginFormData } from "@/features/auth/model/types/loginTypes";
-import type { UserRole } from "@/features/auth/model/types/userData";
+import type { UserRole } from "@/entities/user";
 import { setAuthCookies, setRoleCookie } from "@/shared/api/authCookies";
 import { AuthField } from "@/features/auth/ui/AuthField";
 import { AuthShell } from "@/features/auth/ui/AuthShell";

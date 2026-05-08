@@ -6,7 +6,7 @@ import {
   LoginResponse,
   TokenRefreshResponse,
 } from "@/features/auth/model/types/loginTypes";
-import type { UserData, UserProfile } from "@/entities/user";
+import type { UserData } from "@/entities/user";
 
 import type {
   PasswordResetRequestPayload,
@@ -38,8 +38,13 @@ export async function updateMe(data: Partial<UserData>): Promise<UserData> {
   return response.data;
 }
 
-export async function updateMeProfile(data: UserProfile): Promise<UserData> {
-  const response = await api.patch<UserData>("auth/me/profile/", data);
+export async function updateTeacherProfile(data: { bio?: string; experience?: string; specialization?: string }): Promise<UserData> {
+  const response = await api.patch<UserData>("auth/me/profile/teacher/", data);
+  return response.data;
+}
+
+export async function updateStudentProfile(data: { date_of_birth?: string | null; learning_goals?: string; education_level?: string }): Promise<UserData> {
+  const response = await api.patch<UserData>("auth/me/profile/student/", data);
   return response.data;
 }
 

@@ -18,13 +18,15 @@ type Props = {
     editing: boolean;
     avatarPreview: string | null;
     socialLinks: SocialLinks;
+    teacherRating?: string | null;
+    showSocial?: boolean;
     onSocialChange: (key: keyof SocialLinks, value: string) => void;
     onAvatarChange: (file: File) => void;
     onEdit: () => void;
     onCancel: () => void;
 };
 
-export function ProfileSidebar({ user, editing, avatarPreview, socialLinks, onSocialChange, onAvatarChange, onEdit, onCancel }: Props) {
+export function ProfileSidebar({ user, editing, avatarPreview, socialLinks, teacherRating, showSocial = true, onSocialChange, onAvatarChange, onEdit, onCancel }: Props) {
     const fullName = `${user.first_name} ${user.last_name}`.trim();
     const fileRef = useRef<HTMLInputElement>(null);
 
@@ -95,8 +97,21 @@ export function ProfileSidebar({ user, editing, avatarPreview, socialLinks, onSo
                 {fullName || "—"}
             </div>
 
+            {/* Teacher rating */}
+            {teacherRating && parseFloat(teacherRating) > 0 && (
+                <div style={{
+                    display: "flex", alignItems: "center", gap: "0.417vw",
+                    fontFamily: "var(--font-base)", fontWeight: 600,
+                    fontSize: "1.25vw", color: "var(--color-text-primary)",
+                }}>
+                    <span>⭐</span>
+                    <span>{parseFloat(teacherRating).toFixed(1)}</span>
+                </div>
+            )}
+
             {/* Social media */}
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.833vw" }}>
+            {showSocial && <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.833vw" }}>
+
                 <span style={{
                     fontFamily: "var(--font-base)", fontWeight: 400,
                     fontSize: "1.667vw", color: "var(--color-text-primary)", lineHeight: 1.25,
@@ -140,7 +155,7 @@ export function ProfileSidebar({ user, editing, avatarPreview, socialLinks, onSo
                         })}
                     </div>
                 )}
-            </div>
+            </div>}
 
             {/* Edit / Cancel button */}
             {editing ? (

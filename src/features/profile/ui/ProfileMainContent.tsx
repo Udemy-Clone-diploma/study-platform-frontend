@@ -10,6 +10,7 @@ type Props = {
     firstName: string;
     lastName: string;
     language: UserLanguage;
+    showSubtitle?: boolean;
     onFirstNameChange: (v: string) => void;
     onLastNameChange: (v: string) => void;
     onLanguageChange: (v: UserLanguage) => void;
@@ -20,6 +21,7 @@ type Props = {
 export function ProfileMainContent({
     user, editing, saving, completionPercent,
     firstName, lastName, language,
+    showSubtitle = true,
     onFirstNameChange, onLastNameChange, onLanguageChange,
     onSave, children,
 }: Props) {
@@ -37,13 +39,15 @@ export function ProfileMainContent({
                 }}>
                     My profile
                 </h1>
-                <p style={{
-                    marginTop: "0.417vw", marginBottom: 0,
-                    fontFamily: "var(--font-base)", fontSize: "1.04vw", fontWeight: 500,
-                    color: "var(--color-text-primary)", letterSpacing: "-0.011em",
-                }}>
-                    Please fill in your details. This will help us provide you with even better course recommendations.
-                </p>
+                {showSubtitle && (
+                    <p style={{
+                        marginTop: "0.417vw", marginBottom: 0,
+                        fontFamily: "var(--font-base)", fontSize: "1.04vw", fontWeight: 500,
+                        color: "var(--color-text-primary)", letterSpacing: "-0.011em",
+                    }}>
+                        Please fill in your details. This will help us provide you with even better course recommendations.
+                    </p>
+                )}
             </div>
 
             {/* Progress bar */}

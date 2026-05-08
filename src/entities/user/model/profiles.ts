@@ -8,6 +8,7 @@ export interface TeacherProfile {
   bio: string;
   experience: string;
   specialization: string;
+  rating: string;
 }
 
 export interface ModeratorProfile {

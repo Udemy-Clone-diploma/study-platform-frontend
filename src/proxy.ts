@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import type { UserRole } from "@/entities/user";
+import { AUTH_COOKIE_NAMES } from "@/shared/api/config/authCookies";
 
 type RouteRule = {
   pattern: RegExp;
@@ -15,12 +16,12 @@ const PROTECTED_ROUTES: RouteRule[] = [
     loginRedirect: "/admin/login",
   },
   {
-    pattern: /^\/teacher(\/|$)/,
+    pattern: /^\/teacher-dashboard(\/|$)/,
     allowedRoles: ["teacher"],
     loginRedirect: "/login",
   },
   {
-    pattern: /^\/dashboard(\/|$)/,
+    pattern: /^\/student-dashboard(\/|$)/,
     allowedRoles: ["student", "teacher"],
     loginRedirect: "/login",
   },
@@ -29,8 +30,8 @@ const PROTECTED_ROUTES: RouteRule[] = [
 const ROLE_HOME: Record<UserRole, string> = {
   administrator: "/admin",
   moderator: "/admin",
-  teacher: "/teacher",
-  student: "/dashboard",
+  teacher: "/teacher-dashboard",
+  student: "/student-dashboard",
 };
 
 const PUBLIC_PATHS = new Set(["/", "/login", "/register", "/admin/login"]);
@@ -55,13 +56,13 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const accessToken = request.cookies.get("access_token")?.value;
+  const accessToken = request.cookies.get(AUTH_COOKIE_NAMES.access)?.value;
 
   if (!accessToken) {
     return NextResponse.redirect(new URL(rule.loginRedirect, request.url));
   }
 
-  const role = request.cookies.get("user_role")?.value as UserRole | undefined;
+  const role = request.cookies.get(AUTH_COOKIE_NAMES.role)?.value as UserRole | undefined;
 
   if (!role || !rule.allowedRoles.includes(role)) {
     const home = role ? ROLE_HOME[role] : "/login";

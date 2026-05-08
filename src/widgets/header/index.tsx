@@ -1,10 +1,10 @@
-import { cookies } from "next/headers";
 import Image from "next/image";
 import Link from "next/link";
 import { getCategories } from "@/entities/course";
 import { getMe } from "@/entities/user";
 import { CatalogDropdown } from "@/features/courses/ui/CatalogDropdown";
 import { UserDropdown } from "@/features/auth/ui/UserDropdown";
+import { getAccessToken } from "@/shared/api/authCookies";
 import { AccentButton } from "@/shared/ui/AccentButton";
 import { SearchBar } from "@/shared/ui/SearchBar";
 
@@ -17,17 +17,20 @@ const navLinkStyle: React.CSSProperties = {
     lineHeight: 1.25,
 };
 
-export async function Header() {
-    const [jar, categories] = await Promise.all([
-        cookies(),
+type HeaderProps = {
+    borderRadius?: React.CSSProperties["borderRadius"];
+};
+
+export async function Header({ borderRadius = "0px 0px 20px 20px" }: HeaderProps) {
+    const [accessToken, categories] = await Promise.all([
+        getAccessToken(),
         getCategories().catch(() => []),
     ]);
 
-    const accessToken = jar.get("access_token")?.value;
     const isLoggedIn = !!accessToken;
 
-    const firstName = isLoggedIn
-        ? await getMe(accessToken).then((u) => u.first_name).catch(() => null)
+    const user = isLoggedIn
+        ? await getMe(accessToken).catch(() => null)
         : null;
 
     return (
@@ -36,7 +39,7 @@ export async function Header() {
             style={{
                 background: "var(--gradient-brand)",
                 height: "76px",
-                borderRadius: "0px 0px 20px 20px",
+                borderRadius,
             }}
         >
             <div
@@ -89,7 +92,7 @@ export async function Header() {
                                 >
                                     <Image src="/layout/notifications-icon.png" alt="Notifications" width={24} height={24} />
                                 </button>
-                                <UserDropdown firstName={firstName} />
+                                <UserDropdown firstName={user?.first_name ?? null} role={user?.role ?? null} />
                             </div>
                         </div>
                     ) : (

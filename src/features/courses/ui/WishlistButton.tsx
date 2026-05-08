@@ -27,7 +27,7 @@ export function WishlistButton() {
             }}
         >
             <Image
-                src={liked ? "/icons/heart fill.png" : "/icons/heart.png"}
+                src={liked ? "/icons/heart fill.svg" : "/icons/heart.png"}
                 alt=""
                 width={28}
                 height={25}

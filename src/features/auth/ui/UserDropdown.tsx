@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import type { UserRole } from "@/entities/user";
 import { logout } from "@/features/auth/actions/logout";
 
 const itemStyle: React.CSSProperties = {
@@ -15,7 +16,14 @@ const itemStyle: React.CSSProperties = {
     whiteSpace: "nowrap",
 };
 
-export function UserDropdown({ firstName }: { firstName: string | null }) {
+const ROLE_HOME: Record<UserRole, string> = {
+    administrator: "/admin",
+    moderator: "/admin",
+    teacher: "/teacher-dashboard",
+    student: "/student-dashboard",
+};
+
+export function UserDropdown({ firstName, role }: { firstName: string | null; role: UserRole | null }) {
     const [open, setOpen] = useState(false);
     const ref = useRef<HTMLDivElement>(null);
     const router = useRouter();
@@ -91,7 +99,7 @@ export function UserDropdown({ firstName }: { firstName: string | null }) {
                             </Link>
                             <div style={{ width: "100%", height: 0, borderTop: "1px solid #FFFFFF" }} />
                         </div>
-                        <Link href="/dashboard" onClick={() => setOpen(false)} className="dropdown-link" style={itemStyle}>
+                        <Link href={role ? ROLE_HOME[role] : "/student-dashboard"} onClick={() => setOpen(false)} className="dropdown-link" style={itemStyle}>
                             My Office
                         </Link>
                         <Link href="/coming-soon?page=MyCourses" onClick={() => setOpen(false)} className="dropdown-link" style={itemStyle}>

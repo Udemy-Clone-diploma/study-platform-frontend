@@ -17,8 +17,8 @@ import { AccentButton } from "@/shared/ui/AccentButton";
 const ROLE_HOME: Record<UserRole, string> = {
   administrator: "/admin",
   moderator: "/admin",
-  teacher: "/teacher",
-  student: "/dashboard",
+  teacher: "/teacher-dashboard",
+  student: "/student-dashboard",
 };
 
 const initialForm: LoginFormData = {
@@ -49,7 +49,7 @@ export function LoginForm() {
         await setAuthCookies(loginResponse.access, loginResponse.refresh);
         await setRoleCookie(user.role);
 
-        router.push(ROLE_HOME[user.role] ?? "/dashboard");
+        router.push(ROLE_HOME[user.role] ?? "/student-dashboard");
       },
     });
 

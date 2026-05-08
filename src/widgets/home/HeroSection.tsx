@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { cookies } from "next/headers";
+import { getAccessToken } from "@/shared/api/authCookies";
 import { SectionContainer } from "@/shared/ui/SectionContainer";
 import { AccentButton } from "@/shared/ui/AccentButton";
 
@@ -12,8 +12,7 @@ const PARTNERS = [
 ];
 
 export async function HeroSection() {
-    const jar = await cookies();
-    const isLoggedIn = !!jar.get("access_token")?.value;
+    const isLoggedIn = !!(await getAccessToken());
 
     return (
         <section style={{ position: "relative", overflow: "hidden" }}>

@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { AUTH_COOKIE_NAMES } from "@/shared/api/config/authCookies";
 import { getClientCookie } from "@/shared/lib/cookies";
 import type { UserRole } from "@/entities/user";
 
@@ -15,7 +16,7 @@ export function withAuth<P extends object>(
 ) {
   function ProtectedComponent(props: P) {
     const router = useRouter();
-    const role = getClientCookie("user_role") as UserRole | undefined;
+    const role = getClientCookie(AUTH_COOKIE_NAMES.role) as UserRole | undefined;
     const isAuthorized = !!role && allowedRoles.includes(role);
 
     useEffect(() => {

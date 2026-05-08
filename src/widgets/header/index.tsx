@@ -96,7 +96,7 @@ export async function Header({ borderRadius = "0px 0px 20px 20px" }: HeaderProps
                             </div>
                         </div>
                     ) : (
-                        <AccentButton href="/login" size="md" style={{ fontSize: "clamp(10px, 1.41vw, 20px)", height: "clamp(36px, 3.61vw, 52px)", padding: "0 clamp(16px, 1.94vw, 28px)" }}>Get Started</AccentButton>
+                        <AccentButton href="/login" size="md" style={{ height: "clamp(36px, 3.61vw, 52px)", minWidth: "unset", fontSize: "clamp(10px, 1.41vw, 20px)", padding: "0 clamp(16px, 1.94vw, 28px)" }}>Get Started</AccentButton>
                     )}
                 </div>
             </div>

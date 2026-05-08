@@ -43,6 +43,19 @@ export async function updateMeProfile(data: UserProfile): Promise<UserData> {
   return response.data;
 }
 
+export async function uploadAvatar(file: File): Promise<UserData> {
+  const form = new FormData();
+  form.append("avatar", file);
+  const response = await api.patch<UserData>("auth/me/", form, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return response.data;
+}
+
+export async function changePassword(payload: { old_password: string; new_password: string }): Promise<void> {
+  await api.post("auth/change-password/", payload);
+}
+
 export async function verifyEmail(uidb64: string, token: string): Promise<{ detail: string }> {
   const { data } = await api.get<{ detail: string }>(`auth/verify-email/${uidb64}/${token}/`);
   return data;

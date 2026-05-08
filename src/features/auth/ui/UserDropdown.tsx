@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
@@ -94,7 +94,7 @@ export function UserDropdown({ firstName, role }: { firstName: string | null; ro
                 >
                     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                            <Link href="/coming-soon?page=Profile" onClick={() => setOpen(false)} className="dropdown-link" style={itemStyle}>
+                            <Link href="/profile" onClick={() => setOpen(false)} className="dropdown-link" style={itemStyle}>
                                 Profile
                             </Link>
                             <div style={{ width: "100%", height: 0, borderTop: "1px solid #FFFFFF" }} />
@@ -126,3 +126,4 @@ export function UserDropdown({ firstName, role }: { firstName: string | null; ro
         </div>
     );
 }
+

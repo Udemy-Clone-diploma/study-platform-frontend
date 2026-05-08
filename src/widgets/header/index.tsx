@@ -92,7 +92,7 @@ export async function Header({ borderRadius = "0px 0px 20px 20px" }: HeaderProps
                                 >
                                     <Image src="/layout/notifications-icon.png" alt="Notifications" width={24} height={24} />
                                 </button>
-                                <UserDropdown firstName={user?.first_name ?? null} role={user?.role ?? null} />
+                                <UserDropdown firstName={user?.first_name ?? null} role={user?.role ?? null} avatar={user?.avatar ?? null} />
                             </div>
                         </div>
                     ) : (

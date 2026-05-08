@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AUTH_COOKIE_NAMES } from "@/shared/api/config/authCookies";
 import { getClientCookie } from "@/shared/lib/cookies";
@@ -16,10 +16,17 @@ export function withAuth<P extends object>(
 ) {
   function ProtectedComponent(props: P) {
     const router = useRouter();
-    const role = getClientCookie(AUTH_COOKIE_NAMES.role) as UserRole | undefined;
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+      setMounted(true);
+    }, []);
+
+    const role = mounted ? (getClientCookie(AUTH_COOKIE_NAMES.role) as UserRole | undefined) : undefined;
     const isAuthorized = !!role && allowedRoles.includes(role);
 
     useEffect(() => {
+      if (!mounted) return;
       if (!role) {
         router.replace("/login");
         return;
@@ -28,9 +35,9 @@ export function withAuth<P extends object>(
       if (!isAuthorized) {
         router.replace("/403");
       }
-    }, [isAuthorized, role, router]);
+    }, [mounted, isAuthorized, role, router]);
 
-    if (!isAuthorized) {
+    if (!mounted || !isAuthorized) {
       return null;
     }
 

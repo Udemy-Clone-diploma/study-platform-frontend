@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
@@ -23,7 +23,7 @@ const ROLE_HOME: Record<UserRole, string> = {
     student: "/student-dashboard",
 };
 
-export function UserDropdown({ firstName, role }: { firstName: string | null; role: UserRole | null }) {
+export function UserDropdown({ firstName, role, avatar }: { firstName: string | null; role: UserRole | null; avatar: string | null }) {
     const [open, setOpen] = useState(false);
     const ref = useRef<HTMLDivElement>(null);
     const router = useRouter();
@@ -61,7 +61,13 @@ export function UserDropdown({ firstName, role }: { firstName: string | null; ro
                     padding: 0,
                 }}
             >
-                <Image src="/layout/user-icon.png" alt="User" width={24} height={24} style={{ width: 24, height: 24 }} />
+                {avatar ? (
+                    <div style={{ width: 32, height: 32, borderRadius: "50%", overflow: "hidden", flexShrink: 0 }}>
+                        <Image src={avatar} alt="User" width={32} height={32} unoptimized style={{ width: 32, height: 32, objectFit: "cover" }} />
+                    </div>
+                ) : (
+                    <Image src="/layout/user-icon.png" alt="User" width={24} height={24} style={{ width: 24, height: 24 }} />
+                )}
                 {firstName ?? "User"}
                 <span style={{
                     width: 36,
@@ -94,7 +100,7 @@ export function UserDropdown({ firstName, role }: { firstName: string | null; ro
                 >
                     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                            <Link href="/coming-soon?page=Profile" onClick={() => setOpen(false)} className="dropdown-link" style={itemStyle}>
+                            <Link href="/profile" onClick={() => setOpen(false)} className="dropdown-link" style={itemStyle}>
                                 Profile
                             </Link>
                             <div style={{ width: "100%", height: 0, borderTop: "1px solid #FFFFFF" }} />
@@ -126,3 +132,4 @@ export function UserDropdown({ firstName, role }: { firstName: string | null; ro
         </div>
     );
 }
+

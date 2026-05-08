@@ -25,6 +25,11 @@ const PROTECTED_ROUTES: RouteRule[] = [
     allowedRoles: ["student", "teacher"],
     loginRedirect: "/login",
   },
+  {
+    pattern: /^\/profile(\/|$)/,
+    allowedRoles: ["student", "teacher", "moderator", "administrator"],
+    loginRedirect: "/login",
+  },
 ];
 
 const ROLE_HOME: Record<UserRole, string> = {

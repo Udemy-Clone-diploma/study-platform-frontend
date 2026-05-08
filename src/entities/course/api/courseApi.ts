@@ -22,8 +22,8 @@ export type CourseListParams = {
 };
 
 export async function getCategories(): Promise<Category[]> {
-  const { data } = await api.get<Category[]>(CATEGORIES_ENDPOINT);
-  return data;
+  const { data } = await api.get<{ results: Category[] }>(CATEGORIES_ENDPOINT);
+  return data.results;
 }
 
 export async function getCourses(

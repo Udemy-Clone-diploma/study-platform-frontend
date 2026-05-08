@@ -19,9 +19,20 @@ type AccentButtonAsLinkProps = AccentButtonBaseProps & {
 
 type AccentButtonProps = AccentButtonAsButtonProps | AccentButtonAsLinkProps;
 
-const sizeClasses = {
-  sm: "min-w-[8.4rem] px-9 py-3 text-[0.73rem] tracking-[0.32em]",
-  md: "h-[52px] min-w-[200px] px-7 text-[1.25rem] tracking-normal",
+// All values derived from original fixed sizes at 1920px viewport
+const sizeStyles: Record<"sm" | "md", CSSProperties> = {
+  sm: {
+    minWidth: "clamp(100px, 7vw, 134px)",
+    padding: "clamp(8px, 0.625vw, 12px) clamp(20px, 1.875vw, 36px)",
+    fontSize: "clamp(9px, 0.61vw, 12px)",
+    letterSpacing: "0.32em",
+  },
+  md: {
+    height: "clamp(36px, 2.71vw, 52px)",
+    minWidth: "clamp(140px, 10.42vw, 200px)",
+    padding: "0 clamp(16px, 1.46vw, 28px)",
+    fontSize: "clamp(13px, 1.04vw, 20px)",
+  },
 };
 
 const baseClasses =
@@ -33,18 +44,19 @@ export function AccentButton({
   size = "sm",
   ...props
 }: AccentButtonProps) {
-  const classes = `${baseClasses} ${sizeClasses[size]} ${className}`.trim();
+  const classes = `${baseClasses} ${className}`.trim();
 
   if ("href" in props && props.href) {
     return (
-      <Link href={props.href} className={classes} style={props.style}>
+      <Link href={props.href} className={classes} style={{ ...sizeStyles[size], ...props.style }}>
         {children}
       </Link>
     );
   }
 
+  const { style: buttonStyle, ...buttonProps } = props as AccentButtonAsButtonProps;
   return (
-    <button className={classes} {...props}>
+    <button className={classes} style={{ ...sizeStyles[size], ...buttonStyle }} {...buttonProps}>
       {children}
     </button>
   );

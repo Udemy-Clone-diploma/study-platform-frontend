@@ -1,7 +1,7 @@
 "use client";
 
 import type { CourseListItem } from "@/entities/course";
-import { CourseCard } from "@/features/courses/ui/CourseCard";
+import { CourseCard } from "@/features/courses";
 import { SectionContainer } from "@/shared/ui/SectionContainer";
 import { useState } from "react";
 

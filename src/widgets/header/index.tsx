@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { getCategories } from "@/entities/course";
 import { getMe } from "@/entities/user";
-import { CatalogDropdown } from "@/features/courses/ui/CatalogDropdown";
+import { CatalogDropdown } from "@/features/courses";
 import { UserDropdown } from "@/features/auth/ui/UserDropdown";
 import { getAccessToken } from "@/shared/api/authCookies";
 import { AccentButton } from "@/shared/ui/AccentButton";

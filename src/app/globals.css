@@ -1,6 +1,12 @@
 @import "tailwindcss";
 
+/* Font stacks reference next/font runtime vars — must stay in :root, not @theme */
 :root {
+  --font-base:   var(--font-mulish), sans-serif;
+  --font-accent: var(--font-source-code-pro), monospace;
+}
+
+@theme {
   /* ── Brand palette ── */
   --color-brand-lavender:     #a7bafa;
   --color-brand-pink:         #fcc4c3;
@@ -10,13 +16,14 @@
 
   /* ── Accent colors ── */
   --color-blue:        #003aff;
-  --color-blue-dark:   #001354;
+  --color-blue-dark:   #0b257c;
   --color-pink-dark:   #8b2624;
   --color-yellow-dark: #8a6201;
   --color-gold:        #fdc43a;
 
   /* ── Semantic colors ── */
   --color-bg:             #ffffff;
+  --color-bg-surface:     #f9fafb;
   --color-text-primary:   #121212;
   --color-text-secondary: #5e5e5e;
   --color-text-muted:     #9ca3af;
@@ -25,6 +32,11 @@
   --color-white-20: rgba(255, 255, 255, 0.2);
   --color-white-60: rgba(255, 255, 255, 0.6);
 
+  /* ── Catalog tokens ── */
+  --color-catalog-highlight:       rgba(167, 186, 250, 0.3);
+  --color-catalog-category-active: rgba(167, 186, 250, 0.6);
+  --color-catalog-placeholder:     #bfbfbf;
+
   /* ── Gradients ── */
   --gradient-blob: radial-gradient(
     50% 50% at 50% 50%,
@@ -32,7 +44,6 @@
     rgba(252, 196, 195, 0.72) 40%,
     rgba(167, 186, 250, 0.72) 100%
   );
-
 
   --gradient-brand: linear-gradient(
     90deg,
@@ -64,22 +75,34 @@
     var(--color-bg) 100%
   );
 
+  --gradient-catalog-bg: linear-gradient(
+    to top right,
+    rgba(167, 186, 250, 0.32) 0%,
+    rgba(252, 196, 195, 0.32) 50%,
+    rgba(255, 244, 218, 0.32) 100%
+  );
+
+  --gradient-catalog-border: linear-gradient(
+    90deg,
+    rgba(167, 186, 250, 1) 0%,
+    rgba(252, 196, 195, 1) 50%,
+    rgba(255, 244, 218, 1) 100%
+  );
+
   /* ── Shadows ── */
   --shadow-card:        0px 4px 24px rgba(0, 0, 0, 0.10);
   --shadow-testimonial: 0px 0px 15px rgba(0, 0, 0, 0.15);
-  --shadow-usp-glass: inset 0px 2px 4px #ffffff;
+  --shadow-usp-glass:   inset 0px 2px 4px #ffffff;
   --shadow-lavander:      rgba(167, 186, 250, 0.8);
   --shadow-pink:          rgba(252, 196, 195, 0.8);
   --shadow-yellow:        rgba(244, 216, 150, 0.8);
   --shadow-yellow-soft:   rgba(244, 216, 150, 0.72);
   --shadow-pink-soft:     rgba(252, 196, 195, 0.72);
   --shadow-lavander-soft: rgba(167, 186, 250, 0.72);
-
-  /* ── Typography ── */
-  --font-base:   var(--font-mulish), sans-serif;
-  --font-accent: var(--font-source-code-pro), monospace;
+  --shadow-sort-dropdown: 0px 0px 5.2px rgba(54, 54, 54, 0.25);
 }
 
+/* Fonts reference next/font runtime vars — @theme inline passes values through as-is */
 @theme inline {
   --font-sans: var(--font-base);
   --font-mono: var(--font-accent);
@@ -97,6 +120,29 @@ body {
 }
 .dropdown-link:hover {
   color: var(--color-blue);
+}
+
+.gradient-border {
+  background:
+    linear-gradient(#fff, #fff) padding-box,
+    var(--gradient-catalog-border) border-box;
+  border: 2px solid transparent;
+}
+
+.bg-catalog-page {
+  position: relative;
+  background: var(--gradient-catalog-bg);
+}
+.bg-catalog-page::before {
+  content: "";
+  position: absolute;
+  top: -20px;
+  left: 0;
+  right: 0;
+  height: 20px;
+  background: var(--gradient-catalog-bg);
+  pointer-events: none;
+  z-index: -1;
 }
 
 .course-card {

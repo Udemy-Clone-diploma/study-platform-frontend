@@ -31,6 +31,10 @@
   --color-badge-lavender: rgba(167, 186, 250, 0.4);
   --color-white-20: rgba(255, 255, 255, 0.2);
   --color-white-60: rgba(255, 255, 255, 0.6);
+  --color-white-85: rgba(255, 255, 255, 0.85);
+  --color-surface:        #f3f4f6;
+  --color-overlay-dark:   rgba(0, 0, 0, 0.35);
+  --color-cancel-hover:   #4a4a4a;
 
   /* ── Catalog tokens ── */
   --color-catalog-highlight:       rgba(167, 186, 250, 0.3);
@@ -43,6 +47,14 @@
     rgba(255, 244, 218, 0.72)  0%,
     rgba(252, 196, 195, 0.72) 40%,
     rgba(167, 186, 250, 0.72) 100%
+  );
+
+
+  --gradient-profile-line: linear-gradient(
+    180deg,
+    var(--color-brand-lavender) 0%,
+    var(--color-brand-pink)     50.96%,
+    var(--color-brand-cream)    100%
   );
 
   --gradient-brand: linear-gradient(

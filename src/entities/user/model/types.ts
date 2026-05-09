@@ -16,6 +16,10 @@ export interface UserData<TProfile extends UserProfile = UserProfile> {
   is_blocked: boolean;
   date_joined: string;
   profile: TProfile;
+  instagram: string;
+  linkedin: string;
+  facebook: string;
+  behance: string;
 }
 
 export type TopTeacher = {

@@ -22,8 +22,8 @@ export type CourseListParams = {
 };
 
 export async function getCategories(): Promise<Category[]> {
-  const { data } = await api.get<Category[]>(CATEGORIES_ENDPOINT);
-  return data;
+  const { data } = await api.get<Category[] | Paginated<Category>>(CATEGORIES_ENDPOINT);
+  return Array.isArray(data) ? data : data.results;
 }
 
 export async function getCourses(
@@ -49,8 +49,8 @@ export async function getCourses(
   return data;
 }
 
-export async function getCourseById(courseId: number | string): Promise<CourseDetail> {
-  const { data } = await api.get<CourseDetail>(`${COURSES_ENDPOINT}${courseId}/`);
+export async function getCourseBySlug(slug: string): Promise<CourseDetail> {
+  const { data } = await api.get<CourseDetail>(`${COURSES_ENDPOINT}${slug}/`);
   return data;
 }
 

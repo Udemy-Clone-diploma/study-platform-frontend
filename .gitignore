@@ -23,7 +23,7 @@ build/
 # local .env
 .env.local
 
-# pnpm store (local cache, never commit)
+# pnpm store
 .pnpm-store/
 
 # misc

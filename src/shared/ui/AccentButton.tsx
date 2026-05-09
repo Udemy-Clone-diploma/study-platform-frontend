@@ -25,7 +25,7 @@ const sizeClasses = {
 };
 
 const baseClasses =
-  "inline-flex items-center justify-center rounded-full bg-[#09070a] font-[family-name:var(--font-source-code-pro)] font-medium text-white uppercase transition hover:bg-black/85 disabled:cursor-not-allowed disabled:opacity-60";
+  "inline-flex items-center justify-center rounded-full bg-[#09070a] font-(family-name:--font-source-code-pro) font-medium text-white uppercase transition hover:bg-black/85 disabled:cursor-not-allowed disabled:opacity-60";
 
 export function AccentButton({
   children,

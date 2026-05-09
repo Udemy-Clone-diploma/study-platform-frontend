@@ -1,5 +1,7 @@
 "use client";
 
+import { ChevronIcon } from "./icons/ChevronIcon";
+
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
@@ -9,37 +11,31 @@ interface PaginationProps {
 const ELLIPSIS = "ellipsis" as const;
 type PageItem = number | typeof ELLIPSIS;
 
+const ANCHOR = 4;
+const WING = 4;
+
 function buildPageItems(currentPage: number, totalPages: number): PageItem[] {
-  if (totalPages <= 7) {
-    return Array.from({ length: totalPages }, (_, index) => index + 1);
+  if (totalPages <= ANCHOR * 2 + WING * 2 + 1) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
   }
 
-  const items: PageItem[] = [1];
-
-  if (currentPage > 4) {
-    items.push(ELLIPSIS);
+  const visible = new Set<number>();
+  for (let i = 1; i <= ANCHOR; i++) visible.add(i);
+  for (let i = totalPages - ANCHOR + 1; i <= totalPages; i++) visible.add(i);
+  for (let i = currentPage - WING; i <= currentPage + WING; i++) {
+    if (i >= 1 && i <= totalPages) visible.add(i);
   }
 
-  const windowStart = Math.max(2, currentPage - 1);
-  const windowEnd = Math.min(totalPages - 1, currentPage + 1);
-
-  for (let page = windowStart; page <= windowEnd; page++) {
-    items.push(page);
+  const sorted = Array.from(visible).sort((a, b) => a - b);
+  const items: PageItem[] = [];
+  for (let i = 0; i < sorted.length; i++) {
+    if (i > 0 && sorted[i] - sorted[i - 1] > 1) items.push(ELLIPSIS);
+    items.push(sorted[i]);
   }
-
-  if (currentPage < totalPages - 3) {
-    items.push(ELLIPSIS);
-  }
-
-  items.push(totalPages);
   return items;
 }
 
 export function Pagination({ currentPage, totalPages, onPageChange }: PaginationProps) {
-  if (totalPages <= 1) {
-    return null;
-  }
-
   const isFirst = currentPage <= 1;
   const isLast = currentPage >= totalPages;
   const items = buildPageItems(currentPage, totalPages);
@@ -47,22 +43,26 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
   return (
     <nav
       aria-label="Pagination"
-      className="flex flex-wrap items-center justify-center gap-2 py-6"
+      className="mx-auto flex w-fit items-center gap-12 rounded-3xl bg-white/60 px-2 py-1.5 text-(--color-text-primary)"
     >
       <button
         type="button"
         onClick={() => onPageChange(currentPage - 1)}
         disabled={isFirst}
-        className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+        className="flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-(--color-catalog-highlight) disabled:cursor-not-allowed disabled:opacity-40"
         aria-label="Previous page"
       >
-        Prev
+        <ChevronIcon direction="left" className="h-10 w-10" />
       </button>
 
-      <ul className="hidden items-center gap-1 sm:flex">
+      <ul className="flex items-center gap-3">
         {items.map((item, index) =>
           item === ELLIPSIS ? (
-            <li key={`ellipsis-${index}`} aria-hidden="true" className="px-2 text-slate-500">
+            <li
+              key={`ellipsis-${index}`}
+              aria-hidden="true"
+              className="flex h-10 w-10 items-center justify-center text-xl font-medium leading-none"
+            >
               ...
             </li>
           ) : (
@@ -71,10 +71,10 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
                 type="button"
                 onClick={() => onPageChange(item)}
                 aria-current={item === currentPage ? "page" : undefined}
-                className={`min-w-[2.5rem] rounded-lg px-3 py-2 text-sm font-medium transition ${
+                className={`flex h-10 w-10 items-center justify-center rounded-full text-xl font-medium leading-none transition ${
                   item === currentPage
-                    ? "bg-slate-900 text-white"
-                    : "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
+                    ? "bg-(--color-text-primary) text-white"
+                    : "hover:bg-(--color-catalog-highlight)"
                 }`}
               >
                 {item}
@@ -84,18 +84,14 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
         )}
       </ul>
 
-      <span className="text-sm text-slate-600 sm:hidden" aria-live="polite">
-        Page {currentPage} of {totalPages}
-      </span>
-
       <button
         type="button"
         onClick={() => onPageChange(currentPage + 1)}
         disabled={isLast}
-        className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+        className="flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-(--color-catalog-highlight) disabled:cursor-not-allowed disabled:opacity-40"
         aria-label="Next page"
       >
-        Next
+        <ChevronIcon direction="right" className="h-10 w-10" />
       </button>
     </nav>
   );

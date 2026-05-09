@@ -20,6 +20,12 @@ out/
 # production
 build/
 
+# local .env
+.env.local
+
+# pnpm store (local cache, never commit)
+.pnpm-store/
+
 # misc
 .DS_Store
 Thumbs.db

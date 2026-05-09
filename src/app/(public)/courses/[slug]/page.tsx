@@ -3,9 +3,9 @@ import Link from "next/link";
 export default async function CourseDetailPage({
     params,
 }: {
-    params: Promise<{ id: string }>;
+    params: Promise<{ slug: string }>;
 }) {
-    const { id } = await params;
+    const { slug } = await params;
 
     return (
         <div
@@ -46,7 +46,7 @@ export default async function CourseDetailPage({
                         marginBottom: 20,
                     }}
                 >
-                    Course #{id}
+                    Course {slug}
                 </h1>
 
                 <p

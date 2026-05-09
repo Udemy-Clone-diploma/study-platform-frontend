@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Search, X } from "lucide-react";
 
 type Props = {
   initialQuery?: string;
@@ -42,40 +43,33 @@ export function CourseSearch({ initialQuery = "" }: Props) {
   return (
     <form
       onSubmit={submitSearch}
-      className="flex h-[36px] w-full max-w-[430px] items-center gap-2 rounded-full border border-[#a7bafa] bg-white px-7 shadow-[0_0_18px_rgba(252,196,195,0.28)]"
+      className="gradient-border flex h-[60px] w-full shrink-0 items-center gap-3 rounded-[40px] px-[30px] lg:w-[460px]"
     >
+      <Search
+        aria-hidden="true"
+        strokeWidth={2.25}
+        className="h-6 w-6 shrink-0 text-(--color-text-primary)"
+      />
       <label className="sr-only" htmlFor="course-search">
         Search courses
       </label>
-      <svg
-        aria-hidden="true"
-        className="h-5 w-5 shrink-0 text-[#121212]"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth={1.8}
-      >
-        <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-4.3-4.3m1.3-5.7a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" />
-      </svg>
       <input
         id="course-search"
         value={query}
         onChange={(event) => setQuery(event.target.value)}
         placeholder="Search"
-        className="h-full min-w-0 flex-1 border-none bg-transparent text-[0.78rem] text-[#121212] outline-none placeholder:text-[#d9d9d9]"
+        className="h-full flex-1 bg-transparent text-xl font-medium text-(--color-text-primary) outline-none placeholder:font-normal placeholder:text-(--color-catalog-placeholder)"
       />
       {initialQuery ? (
         <button
           type="button"
           onClick={clearSearch}
-          className="text-[0.7rem] font-medium text-[#5e5e5e] transition hover:text-[#121212]"
+          aria-label="Clear search"
+          className="shrink-0 text-(--color-text-secondary) transition-opacity hover:opacity-70"
         >
-          Clear
+          <X className="h-5 w-5" />
         </button>
       ) : null}
-      <button type="submit" className="sr-only">
-        Search
-      </button>
     </form>
   );
 }

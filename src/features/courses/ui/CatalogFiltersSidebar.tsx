@@ -9,9 +9,9 @@ import {
   LANGUAGE_LABELS,
   LEVEL_LABELS,
   MODE_LABELS,
-} from "@/features/courses/model/catalogFilters";
-import { CatalogFilterCheckbox } from "@/features/courses/ui/CatalogFilterCheckbox";
-import { CollapsibleFilterSection } from "@/features/courses/ui/CollapsibleFilterSection";
+} from "../model/catalogFilters";
+import { CatalogFilterCheckbox } from "./CatalogFilterCheckbox";
+import { CollapsibleFilterSection } from "./CollapsibleFilterSection";
 
 function ToggleOption({
   inset = false,

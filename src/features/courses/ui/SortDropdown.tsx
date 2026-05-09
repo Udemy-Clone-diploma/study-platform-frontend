@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
+import { ChevronDown } from "lucide-react";
 
 export type SortOption = {
   label: string;
@@ -9,12 +10,14 @@ export type SortOption = {
 };
 
 export const SORT_OPTIONS: SortOption[] = [
-  { label: "Newest", value: "-created_at" },
-  { label: "Most popular", value: "-students_count" },
-  { label: "Top rated", value: "-rating_avg" },
-  { label: "Price: low to high", value: "price" },
-  { label: "Price: high to low", value: "-price" },
+  { label: "By popularity", value: "-students_count" },
+  { label: "By rating", value: "-rating_avg" },
+  { label: "By novelty", value: "-created_at" },
+  { label: "Cheap at first", value: "price" },
+  { label: "Expensive at first", value: "-price" },
 ];
+
+export const DEFAULT_SORT = SORT_OPTIONS[0].value;
 
 type Props = {
   currentSort: string | undefined;
@@ -27,6 +30,7 @@ export function SortDropdown({ currentSort }: Props) {
   const ref = useRef<HTMLDivElement>(null);
 
   const activeOption = SORT_OPTIONS.find((o) => o.value === currentSort);
+  const highlightedValue = activeOption?.value ?? DEFAULT_SORT;
 
   function selectSort(value: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -53,42 +57,42 @@ export function SortDropdown({ currentSort }: Props) {
   return (
     <div ref={ref} className="relative">
       <button
+        type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="flex h-10 items-center gap-1 bg-transparent text-[0.78rem] font-medium text-[#121212] transition hover:text-[#003aff]"
+        className="flex items-center gap-2 text-xl font-medium text-(--color-text-primary) transition-opacity hover:opacity-70"
         aria-haspopup="listbox"
         aria-expanded={open}
       >
         <span>{activeOption?.label ?? "Sort by"}</span>
-        <svg
-          className={`h-4 w-4 text-[#121212] transition-transform ${open ? "rotate-180" : ""}`}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={2}
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-        </svg>
+        <ChevronDown
+          aria-hidden="true"
+          className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`}
+        />
       </button>
 
       {open && (
         <ul
           role="listbox"
-          className="absolute right-0 z-10 mt-1 w-52 overflow-hidden rounded-[8px] border border-[#f3d9de] bg-white py-1 shadow-[0_10px_24px_rgba(0,0,0,0.12)]"
+          className="absolute right-0 z-10 mt-2 flex w-55 flex-col gap-3 rounded-xl bg-(--color-bg) p-5 shadow-(--shadow-sort-dropdown)"
         >
-          {SORT_OPTIONS.map((option) => (
-            <li key={option.value} role="option" aria-selected={option.value === activeOption?.value}>
-              <button
-                onClick={() => selectSort(option.value)}
-                className={`w-full px-4 py-2 text-left text-sm transition hover:bg-slate-50 ${
-                  option.value === activeOption?.value
-                    ? "font-semibold text-slate-950"
-                    : "text-slate-700"
-                }`}
-              >
-                {option.label}
-              </button>
-            </li>
-          ))}
+          {SORT_OPTIONS.map((option) => {
+            const selected = option.value === highlightedValue;
+            return (
+              <li key={option.value} role="option" aria-selected={selected} className="w-full">
+                <button
+                  type="button"
+                  onClick={() => selectSort(option.value)}
+                  className={`w-full text-left text-xl font-medium transition-colors ${
+                    selected
+                      ? "text-(--color-blue)"
+                      : "text-(--color-text-primary) hover:text-(--color-blue)"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>

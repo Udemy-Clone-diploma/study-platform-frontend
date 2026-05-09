@@ -6,7 +6,7 @@ import {
   LoginResponse,
   TokenRefreshResponse,
 } from "@/features/auth/model/types/loginTypes";
-import type { UserData } from "@/entities/user";
+import type { StudentProfile, TeacherProfile, ModeratorProfile, UserData } from "@/entities/user";
 
 import type {
   PasswordResetRequestPayload,
@@ -38,13 +38,20 @@ export async function updateMe(data: Partial<UserData>): Promise<UserData> {
   return response.data;
 }
 
-export async function updateTeacherProfile(data: { bio?: string; experience?: string; specialization?: string }): Promise<UserData> {
-  const response = await api.patch<UserData>("auth/me/profile/teacher/", data);
+export async function updateTeacherProfile(data: Partial<TeacherProfile>): Promise<TeacherProfile> {
+  const response = await api.patch<TeacherProfile>("auth/me/profile/teacher/", data);
   return response.data;
 }
 
-export async function updateStudentProfile(data: { date_of_birth?: string | null; learning_goals?: string; education_level?: string }): Promise<UserData> {
-  const response = await api.patch<UserData>("auth/me/profile/student/", data);
+export async function updateStudentProfile(data: Partial<StudentProfile>): Promise<StudentProfile> {
+  const response = await api.patch<StudentProfile>("auth/me/profile/student/", data);
+  return response.data;
+}
+
+export async function updateModeratorProfile(
+  data: Partial<ModeratorProfile>,
+): Promise<ModeratorProfile> {
+  const response = await api.patch<ModeratorProfile>("auth/me/profile/moderator/", data);
   return response.data;
 }
 

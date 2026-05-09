@@ -1,38 +1,25 @@
 "use client";
 
-import Image from "next/image";
+import { Heart } from "lucide-react";
 import { useState } from "react";
 
 export function WishlistButton() {
-    const [liked, setLiked] = useState(false);
+  const [liked, setLiked] = useState(false);
 
-    return (
-        <button
-            aria-label={liked ? "Remove from wishlist" : "Add to wishlist"}
-            onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setLiked((prev) => !prev);
-            }}
-            style={{
-                width: "2.08vw",
-                height: "2.08vw",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                border: "none",
-                cursor: "pointer",
-                padding: 0,
-                flexShrink: 0,
-            }}
-        >
-            <Image
-                src={liked ? "/icons/heart fill.svg" : "/icons/heart.png"}
-                alt=""
-                width={28}
-                height={25}
-                style={{ width: "1.458vw", height: "auto" }}
-            />
-        </button>
-    );
+  return (
+    <button
+      type="button"
+      aria-label={liked ? "Remove from wishlist" : "Add to wishlist"}
+      aria-pressed={liked}
+      onClick={() => setLiked((prev) => !prev)}
+      className="flex h-8 w-8 items-center justify-center rounded-full text-(--color-pink-dark) transition hover:scale-110 sm:h-9 sm:w-9"
+    >
+      <Heart
+        aria-hidden="true"
+        className="h-4 w-4 sm:h-5 sm:w-5"
+        fill={liked ? "currentColor" : "transparent"}
+        strokeWidth={1.75}
+      />
+    </button>
+  );
 }

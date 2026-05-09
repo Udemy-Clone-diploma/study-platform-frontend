@@ -1,3 +1,7 @@
+import type { Category } from "./category";
+import type { CourseModule } from "./module";
+import type { Teacher } from "./teacher";
+
 export type Paginated<T> = {
   count: number;
   next: string | null;
@@ -13,19 +17,10 @@ export type CourseType = "profession" | "qualification" | "knowledge";
 export type CoursePricingType = "free" | "full_payment" | "installment";
 export type CourseStatus = "draft" | "review" | "published" | "archived";
 
-export type Category = {
-  id: number;
-  name: string;
-  slug: string;
-  description: string;
-};
-
 export type CourseTag = {
   id: number;
   name: string;
 };
-
-export type CourseCategory = Category;
 
 export type CourseListItem = {
   id: number;
@@ -34,7 +29,7 @@ export type CourseListItem = {
   short_description: string;
   slug: string;
   teacher_name: string;
-  category: CourseCategory | null;
+  category: Category | null;
   level: CourseLevel;
   language: CourseLanguage;
   mode: CourseMode;
@@ -53,12 +48,13 @@ export type CourseListItem = {
   tags: CourseTag[];
 };
 
-export type CourseDetail = CourseListItem & {
+export type CourseDetail = Omit<CourseListItem, "teacher_name"> & {
   full_description: string;
-  teacher_id: number;
+  teacher: Teacher;
   moderator_id: number | null;
   installment_count: number | null;
   installment_amount: string | null;
+  modules: CourseModule[];
   created_at: string;
   updated_at: string;
 };

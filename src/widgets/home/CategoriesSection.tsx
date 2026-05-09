@@ -1,6 +1,6 @@
 import Image from "next/image";
-import { CategoryCard, type CategoryCardData } from "@/features/courses/ui/CategoryCard";
-import { CatalogButton } from "@/shared/ui/CatalogButton";
+import { CategoryCard, type CategoryCardData } from "@/features/courses";
+import { GradientButton } from "@/shared/ui/GradientButton";
 import { SectionContainer } from "@/shared/ui/SectionContainer";
 
 const CATEGORIES: CategoryCardData[] = [
@@ -153,7 +153,20 @@ export function CategoriesSection() {
                         </div>
                     </div>
 
-                    <CatalogButton />
+                    <GradientButton href="/catalog">
+                        To catalog
+                        <Image
+                            src="/icons/arrow-goto.png"
+                            alt=""
+                            width={14}
+                            height={14}
+                            style={{
+                                width: "clamp(8px, 1.04vw, 14px)",
+                                height: "auto",
+                                flexShrink: 0,
+                            }}
+                        />
+                    </GradientButton>
                 </div>
 
                 {/* Staggered grid */}

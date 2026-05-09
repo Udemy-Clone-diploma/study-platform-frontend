@@ -20,6 +20,12 @@ out/
 # production
 build/
 
+# local .env
+.env.local
+
+# pnpm store
+.pnpm-store/
+
 # misc
 .DS_Store
 Thumbs.db
@@ -41,6 +47,7 @@ next-env.d.ts
 # IDE
 .vscode/
 .idea/
+.claude/settings.local.json
 
 # Python testing
 .pytest_cache/

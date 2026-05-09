@@ -1,20 +1,22 @@
 import { Suspense } from "react";
-import Image from "next/image";
 import Link from "next/link";
+import { SlidersHorizontal } from "lucide-react";
 import { getCategories, getCourses, type Category } from "@/entities/course";
 import {
   buildCatalogHref,
-  type CatalogFilterState,
-  type CatalogSearchParams,
+  CatalogFiltersSidebar,
+  CatalogPagination,
+  CategoryFilter,
+  CourseCard,
+  CourseSearch,
+  DEFAULT_SORT,
+  SortDropdown,
   parseCatalogState,
   resetCatalogFiltersHref,
-} from "@/features/courses/model/catalogFilters";
-import { CatalogFiltersSidebar } from "@/features/courses/ui/CatalogFiltersSidebar";
-import { CatalogPagination } from "@/features/courses/ui/CatalogPagination";
-import { CategoryFilter } from "@/features/courses/ui/CategoryFilter";
-import { CourseCard } from "@/features/courses/ui/CourseCard";
-import { CourseSearch } from "@/features/courses/ui/CourseSearch";
-import { SortDropdown } from "@/features/courses/ui/SortDropdown";
+  type CatalogFilterState,
+  type CatalogSearchParams,
+} from "@/features/courses";
+import { CatalogHero } from "@/widgets/catalog/CatalogHero";
 import type { ApiError } from "@/shared/api/base";
 
 export const dynamic = "force-dynamic";
@@ -40,7 +42,7 @@ async function loadCourses(state: CatalogFilterState, page: number) {
       language: state.language,
       level: state.level,
       mode: state.mode,
-      ordering: state.sort,
+      ordering: state.sort ?? DEFAULT_SORT,
       pricing_type: state.pricing_type,
       rating_min: state.rating_min,
       search: state.search,
@@ -89,83 +91,84 @@ export default async function CatalogPage({
 
   const totalPages = Math.max(1, Math.ceil(count / PAGE_SIZE));
 
+  const showPagination = !error && courses.length > 0;
+
   return (
-    <main className="min-h-screen bg-[linear-gradient(110deg,#f1edff_0%,#fff7e9_100%)] px-6 pb-12 pt-9 text-[#111111]">
-      <div className="mx-auto w-full max-w-[1420px]">
-        <div className="mb-20 flex flex-col gap-20">
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            <Suspense>
-              <CourseSearch initialQuery={state.search} />
-            </Suspense>
+    <div className="bg-catalog-page flex min-h-screen w-full flex-col text-(--color-text-primary)">
+      <div className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col px-4 pb-25 pt-50 md:px-8">
+        <CatalogHero />
 
-            {categories.length > 0 ? (
-              <Suspense>
-                <CategoryFilter categories={categories} currentSlug={state.category} />
-              </Suspense>
-            ) : null}
-          </div>
+        <div className="mt-15 flex w-full flex-col items-stretch gap-6 lg:flex-row lg:items-center">
+          <Suspense>
+            <CourseSearch initialQuery={state.search} />
+          </Suspense>
 
-          <div className="flex h-10 items-center justify-between   bg-transparent px-3">
+          <Suspense>
+            <CategoryFilter categories={categories} currentSlug={state.category} />
+          </Suspense>
+        </div>
+
+        {/* Figma spec: 150px gap from search row to filter bar. Alt if it feels too disconnected: mt-24 (96px). */}
+        <div className="mt-37.5 flex flex-col gap-14">
+          <div className="flex items-center justify-between gap-4">
             <Link
               href={buildCatalogHref(state, { filtersOpen: !state.filtersOpen })}
-              className={`inline-flex h-10 items-center gap-2 rounded-full px-5 font-[family-name:var(--font-mulish)] text-[1rem] font-normal transition ${
+              className={`flex h-10 min-w-[132px] items-center justify-center gap-2 rounded-full px-4 text-xl font-medium transition-colors ${
                 state.filtersOpen
-                  ? "bg-[#09070a] text-white shadow-[0_10px_24px_rgba(0,0,0,0.12)]"
-                  : "bg-white text-[#121212] hover:bg-[#fff4da]"
+                  ? "bg-(--color-text-primary) text-white"
+                  : "bg-(--color-bg) text-(--color-text-primary) hover:bg-(--color-bg-surface)"
               }`}
             >
-              <Image
-                src="/icons/filter.png"
-                alt=""
-                width={16}
-                height={16}
-                className={`h-4 w-4 shrink-0 ${state.filtersOpen ? "invert" : ""}`}
-              />
-              All Filter
+              <SlidersHorizontal aria-hidden="true" className="h-4 w-4" />
+              <span>All Filters</span>
             </Link>
 
             <Suspense>
               <SortDropdown currentSort={state.sort} />
             </Suspense>
           </div>
-        </div>
 
-        <div className={`grid gap-5 ${state.filtersOpen ? "lg:grid-cols-[460px_1fr]" : ""}`}>
-          {state.filtersOpen ? <CatalogFiltersSidebar categories={categories} state={state} /> : null}
+          <div className={`grid gap-5 ${state.filtersOpen ? "lg:grid-cols-[460px_1fr]" : ""}`}>
+            {state.filtersOpen ? (
+              <CatalogFiltersSidebar categories={categories} state={state} />
+            ) : null}
 
-          <section>
-            {error ? (
-              <div className="rounded-[8px] border border-red-200 bg-red-50 p-6 text-red-800 shadow-sm">
-                <h3 className="text-xl font-semibold">Courses are unavailable</h3>
-                <p className="mt-2 text-sm">{error}</p>
-              </div>
-            ) : courses.length === 0 ? (
-              <div className="rounded-[8px] bg-white p-10 text-center shadow-[0_8px_22px_rgba(76,68,87,0.12)]">
-                <h3 className="text-xl font-semibold">No courses found</h3>
-                <p className="mt-2 text-[#59545d]">Try another set of filters.</p>
-                <Link
-                  href={resetCatalogFiltersHref(state)}
-                  className="mt-6 inline-flex rounded-full bg-black px-6 py-2 text-sm font-medium text-white"
-                >
-                  Reset filters
-                </Link>
-              </div>
-            ) : (
-              <>
-                <div className="flex flex-wrap gap-6">
+            <section>
+              {error ? (
+                <div className="rounded-[8px] border border-red-200 bg-red-50 p-6 text-red-800 shadow-sm">
+                  <h3 className="text-xl font-semibold">Courses are unavailable</h3>
+                  <p className="mt-2 text-sm">{error}</p>
+                </div>
+              ) : courses.length === 0 ? (
+                <div className="rounded-[8px] bg-white p-10 text-center shadow-[0_8px_22px_rgba(76,68,87,0.12)]">
+                  <h3 className="text-xl font-semibold">No courses found</h3>
+                  <p className="mt-2 text-(--color-text-secondary)">Try another set of filters.</p>
+                  <Link
+                    href={resetCatalogFiltersHref(state)}
+                    className="mt-6 inline-flex rounded-full bg-(--color-text-primary) px-6 py-2 text-sm font-medium text-white"
+                  >
+                    Reset filters
+                  </Link>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                   {courses.map((course) => (
                     <CourseCard key={course.id} course={course} />
                   ))}
                 </div>
-
-                <Suspense>
-                  <CatalogPagination currentPage={currentPage} totalPages={totalPages} />
-                </Suspense>
-              </>
-            )}
-          </section>
+              )}
+            </section>
+          </div>
         </div>
+
+        {showPagination ? (
+          <Suspense>
+            <div className="mt-auto pt-10">
+              <CatalogPagination currentPage={currentPage} totalPages={totalPages} />
+            </div>
+          </Suspense>
+        ) : null}
       </div>
-    </main>
+    </div>
   );
 }

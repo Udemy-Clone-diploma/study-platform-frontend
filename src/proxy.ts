@@ -51,6 +51,17 @@ function isPublicPath(pathname: string): boolean {
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  if (pathname === "/health") {
+    return NextResponse.json(
+      { status: "ok", service: "frontend" },
+      {
+        headers: {
+          "Cache-Control": "no-store",
+        },
+      },
+    );
+  }
+
   if (isPublicPath(pathname)) {
     return NextResponse.next();
   }

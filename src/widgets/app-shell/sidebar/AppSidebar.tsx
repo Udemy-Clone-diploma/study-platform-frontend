@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useState } from "react";
 import { SidebarNavItem } from "@/features/app-shell/ui/SidebarNavItem";
 import type { SidebarItem } from "@/features/app-shell/model/types";
 
@@ -9,23 +10,35 @@ type AppSidebarProps = {
 };
 
 export function AppSidebar({ items }: AppSidebarProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
   return (
-    <aside className="group/sidebar z-30 w-20 shrink-0 self-stretch overflow-hidden bg-[#A7BAFA] transition-[width] duration-200 hover:w-[292px]">
-      <nav className="flex flex-col gap-2.5 pb-[476px] pt-[104px]" aria-label="Application navigation">
+    <aside
+      className={[
+        "z-30 shrink-0 self-stretch overflow-hidden bg-[#A7BAFA] px-4 pt-[28px] transition-[width] duration-200",
+        isExpanded ? "w-[292px]" : "w-20",
+      ].join(" ")}
+    >
+      <nav className="flex w-full flex-col gap-[28px] p-0" aria-label="Application navigation">
         <button
           type="button"
           aria-label="Menu"
-          className="mb-4 flex h-10 items-center rounded-sm pl-5 text-[#092878] transition-colors duration-200 hover:bg-[linear-gradient(90deg,#fff4da_0%,#fcc4c3_49%,#fcc4c3_100%)] group-hover/sidebar:hover:bg-[linear-gradient(90deg,#fff4da_0%,#fcc4c3_49%,#a7bafa_100%)]"
+          aria-expanded={isExpanded}
+          onClick={() => setIsExpanded((expanded) => !expanded)}
+          className={[
+            "flex h-12 w-full items-center overflow-hidden rounded-sm text-[#092878] transition-[background-color,background-image,margin,padding,width] duration-200",
+            isExpanded
+              ? "-mx-4 w-[calc(100%+2rem)] pl-4 hover:bg-[linear-gradient(90deg,#fff4da_0%,#fcc4c3_49%,#a7bafa_100%)]"
+              : "hover:bg-[linear-gradient(90deg,#fff4da_0%,#fcc4c3_49%,#fcc4c3_100%)]",
+          ].join(" ")}
         >
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center">
-            <span className="flex h-7 w-7 items-center justify-center">
-              <Image src="/icons/menu.svg" alt="" width={24} height={24} className="h-6 w-6 object-contain" />
-            </span>
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center">
+            <Image src="/icons/menu.svg" alt="" width={40} height={40} className="h-10 w-10 object-contain" />
           </span>
         </button>
 
         {items.map((item) => (
-          <SidebarNavItem key={item.id} item={item} />
+          <SidebarNavItem key={item.id} item={item} isExpanded={isExpanded} />
         ))}
       </nav>
     </aside>

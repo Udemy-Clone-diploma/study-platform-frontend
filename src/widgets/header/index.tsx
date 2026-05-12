@@ -77,7 +77,7 @@ export async function Header({ borderRadius = "0px 0px 20px 20px" }: HeaderProps
                     {isLoggedIn ? (
                         <div className="flex items-center h-full" style={{ gap: 40 }}>
                             <Link
-                                href="/coming-soon?page=My+Courses"
+                                href={user?.role === "teacher" ? "/teacher-dashboard/courses" : "/student-dashboard/courses"}
                                 className="transition-opacity hover:opacity-70"
                                 style={navLinkStyle}
                             >

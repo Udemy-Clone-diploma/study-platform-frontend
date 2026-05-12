@@ -13,7 +13,7 @@ const TABS = [
   "Active",
   "Drafts",
   "Pending moderation",
-  "Needs revision",
+  "For review",
   "Completed",
 ] as const;
 type Tab = (typeof TABS)[number];
@@ -22,7 +22,7 @@ const TAB_STATUSES: Partial<Record<Tab, CourseStatus[]>> = {
   Active: ["published"],
   Drafts: ["draft"],
   "Pending moderation": ["review"],
-  "Needs revision": ["needs_revision"],
+  "For review": ["needs_revision"],
   Completed: ["archived"],
 };
 

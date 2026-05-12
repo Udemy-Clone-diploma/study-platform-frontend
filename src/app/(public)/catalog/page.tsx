@@ -95,7 +95,7 @@ export default async function CatalogPage({
 
   return (
     <div className="bg-catalog-page flex min-h-screen w-full flex-col text-(--color-text-primary)">
-      <div className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col px-4 pb-25 pt-50 md:px-8">
+      <div className="mx-auto flex w-full max-w-[1480px] flex-1 flex-col px-4 pb-25 pt-50 md:px-8">
         <CatalogHero />
 
         <div className="mt-15 flex w-full flex-col items-stretch gap-6 lg:flex-row lg:items-center">
@@ -151,7 +151,10 @@ export default async function CatalogPage({
                   </Link>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <div
+                  className="grid justify-center gap-6"
+                  style={{ gridTemplateColumns: "repeat(auto-fit, 456px)" }}
+                >
                   {courses.map((course) => (
                     <CourseCard key={course.id} course={course} />
                   ))}

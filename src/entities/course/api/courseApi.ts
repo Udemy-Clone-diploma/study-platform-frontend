@@ -1,5 +1,6 @@
 import { api } from "@/shared/api/base";
-import type { Category, CourseDetail, CourseListItem, Paginated } from "../model/types";
+import type { Category } from "../model/category";
+import type { CourseDetail, CourseListItem, Paginated } from "../model/types";
 
 const COURSES_ENDPOINT = "courses/";
 const CATEGORIES_ENDPOINT = "categories/";

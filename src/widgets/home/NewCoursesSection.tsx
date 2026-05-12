@@ -6,6 +6,7 @@ import { SectionContainer } from "@/shared/ui/SectionContainer";
 import { useState } from "react";
 
 type Props = { courses: CourseListItem[] };
+const COURSE_CARD_WIDTH = "clamp(260px, 23vw, 360px)";
 
 export function NewCoursesSection({ courses }: Props) {
     const doubled = [...courses, ...courses];
@@ -39,7 +40,12 @@ export function NewCoursesSection({ courses }: Props) {
                     }}
                 >
                     {doubled.map((course, i) => (
-                        <CourseCard key={`${course.id}-${i}`} course={course} />
+                        <div
+                            key={`${course.id}-${i}`}
+                            style={{ width: COURSE_CARD_WIDTH, flex: `0 0 ${COURSE_CARD_WIDTH}` }}
+                        >
+                            <CourseCard course={course} />
+                        </div>
                     ))}
                 </div>
             </div>

@@ -117,10 +117,10 @@ export default function TeacherCoursesPage() {
         >
           Add Course
           <Image
-            src="/icons/arrow-goto.png"
+            src="/icons/add.svg"
             alt=""
-            width={28}
-            height={28}
+            width={14}
+            height={14}
             style={{ width: "clamp(18px, 1.94vw, 28px)", height: "clamp(18px, 1.94vw, 28px)" }}
           />
         </Link>
@@ -157,7 +157,7 @@ export default function TeacherCoursesPage() {
                     imageSrc={course.image}
                     iconSrc={LEVEL_ICON[course.level] ?? "/icons/curses.svg"}
                     rating={
-                      course.status === "archived"
+                      course.status === "archived" || course.status === "published"
                         ? Number(course.rating_avg)
                         : undefined
                     }

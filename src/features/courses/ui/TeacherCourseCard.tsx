@@ -91,7 +91,7 @@ export function TeacherCourseCard({
                 {title}
               </h3>
 
-              {status === "completed" && rating !== undefined ? (
+              {(status === "completed" || status === "active") && rating !== undefined ? (
                 <div className="flex shrink-0 items-center" style={{ gap: "clamp(2px, 0.14vw, 2px)" }}>
                   <Image
                     src="/icons/star fill.png"

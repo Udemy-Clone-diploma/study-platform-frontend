@@ -7,3 +7,5 @@ export * from "./ui/CategoryFilter";
 export * from "./ui/CourseCard";
 export * from "./ui/CourseSearch";
 export * from "./ui/SortDropdown";
+export * from "./ui/StudentCourseCard";
+export * from "./ui/TeacherCourseCard";

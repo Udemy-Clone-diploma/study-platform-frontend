@@ -64,3 +64,17 @@ export async function getPopularCourses(): Promise<CourseListItem[]> {
   const { data } = await api.get<CourseListItem[]>(`${COURSES_ENDPOINT}popular-courses/`);
   return data;
 }
+
+export async function getEnrolledCourses(page = 1): Promise<Paginated<CourseListItem>> {
+  const { data } = await api.get<Paginated<CourseListItem>>(`${COURSES_ENDPOINT}enrolled/`, {
+    params: { page, page_size: 100 },
+  });
+  return data;
+}
+
+export async function getTeacherCourses(page = 1): Promise<Paginated<CourseListItem>> {
+  const { data } = await api.get<Paginated<CourseListItem>>(`${COURSES_ENDPOINT}my-courses/`, {
+    params: { page, page_size: 100 },
+  });
+  return data;
+}

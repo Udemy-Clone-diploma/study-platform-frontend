@@ -23,6 +23,13 @@ const ROLE_HOME: Record<UserRole, string> = {
     student: "/student-dashboard",
 };
 
+const ROLE_COURSES: Record<UserRole, string> = {
+    administrator: "/admin",
+    moderator: "/admin",
+    teacher: "/teacher-dashboard/courses",
+    student: "/student-dashboard/courses",
+};
+
 export function UserDropdown({ firstName, role, avatar }: { firstName: string | null; role: UserRole | null; avatar: string | null }) {
     const [open, setOpen] = useState(false);
     const ref = useRef<HTMLDivElement>(null);
@@ -108,7 +115,7 @@ export function UserDropdown({ firstName, role, avatar }: { firstName: string | 
                         <Link href={role ? ROLE_HOME[role] : "/student-dashboard"} onClick={() => setOpen(false)} className="dropdown-link" style={itemStyle}>
                             My Office
                         </Link>
-                        <Link href="/coming-soon?page=MyCourses" onClick={() => setOpen(false)} className="dropdown-link" style={itemStyle}>
+                        <Link href={role ? ROLE_COURSES[role] : "/student-dashboard/courses"} onClick={() => setOpen(false)} className="dropdown-link" style={itemStyle}>
                             My Courses
                         </Link>
                         <button

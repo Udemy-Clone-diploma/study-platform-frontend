@@ -35,7 +35,7 @@ export async function Header({ borderRadius = "0px 0px 20px 20px" }: HeaderProps
 
     return (
         <header
-            className="w-full shrink-0"
+            className="relative z-10 w-full shrink-0"
             style={{
                 background: "var(--gradient-brand)",
                 height: "76px",

@@ -1,4 +1,6 @@
 import { api } from "@/shared/api/base";
+import { API_BASE_URL } from "@/shared/api/config/baseUrl";
+import { getAccessToken } from "@/shared/api/authCookies";
 import type { Category } from "../model/category";
 import type { CourseDetail, CourseListItem, Paginated } from "../model/types";
 
@@ -77,4 +79,32 @@ export async function getTeacherCourses(page = 1): Promise<Paginated<CourseListI
     params: { page, page_size: 100 },
   });
   return data;
+}
+
+export async function getWishlist(page = 1): Promise<Paginated<CourseListItem>> {
+  const { data } = await api.get<Paginated<CourseListItem>>(`${COURSES_ENDPOINT}wishlist/`, {
+    params: { page, page_size: 100 },
+  });
+  return data;
+}
+
+export async function toggleWishlist(slug: string): Promise<{ is_wishlisted: boolean }> {
+  const { data } = await api.post<{ is_wishlisted: boolean }>(`${COURSES_ENDPOINT}${slug}/wishlist/`);
+  return data;
+}
+
+export async function getWishlistSlugs(): Promise<string[]> {
+  const token = await getAccessToken();
+  if (!token) return [];
+  try {
+    const res = await fetch(`${API_BASE_URL}courses/wishlist/?page_size=100`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+    if (!res.ok) return [];
+    const data: Paginated<{ slug: string }> = await res.json();
+    return data.results.map((c) => c.slug);
+  } catch {
+    return [];
+  }
 }

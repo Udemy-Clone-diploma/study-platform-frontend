@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { SlidersHorizontal } from "lucide-react";
 import { getCategories, getCourses, type Category } from "@/entities/course";
+import { getWishlistSlugs } from "@/entities/course";
 import {
   buildCatalogHref,
   CatalogFiltersSidebar,
@@ -84,10 +85,12 @@ export default async function CatalogPage({
   const state = parseCatalogState(params);
   const currentPage = parsePage(params);
 
-  const [{ courses, count, error }, categories] = await Promise.all([
+  const [{ courses, count, error }, categories, wishlistedSlugs] = await Promise.all([
     loadCourses(state, currentPage),
     loadCategories(),
+    getWishlistSlugs().catch(() => []),
   ]);
+  const wishlistSet = new Set(wishlistedSlugs);
 
   const totalPages = Math.max(1, Math.ceil(count / PAGE_SIZE));
 
@@ -156,7 +159,7 @@ export default async function CatalogPage({
                   style={{ gridTemplateColumns: "repeat(auto-fit, 456px)" }}
                 >
                   {courses.map((course) => (
-                    <CourseCard key={course.id} course={course} />
+                    <CourseCard key={course.id} course={course} isWishlisted={wishlistSet.has(course.slug)} />
                   ))}
                 </div>
               )}

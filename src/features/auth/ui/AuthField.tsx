@@ -34,7 +34,7 @@ export function AuthField({
         <input
           id={id}
           type={resolvedType}
-          className={`min-w-0 flex-1 border-0 bg-transparent text-base text-[#1a171b] outline-none placeholder:text-[#8b858d] ${className}`}
+          className={`min-w-0 flex-1 border-0 bg-transparent text-base text-[#1a171b] outline-none placeholder:text-[#8b858d] [&:-webkit-autofill]:[box-shadow:0_0_0_1000px_#ffffff_inset] [&:-webkit-autofill]:[-webkit-text-fill-color:#1a171b] ${className}`}
           {...props}
         />
 

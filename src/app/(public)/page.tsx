@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { getNewCourses, getPopularCourses } from "@/entities/course";
+import { getNewCourses, getPopularCourses, getWishlistSlugs } from "@/entities/course";
 import { getTopTeachers } from "@/entities/user";
 import { HeroSection } from "@/widgets/home/HeroSection";
 import { NewCoursesSection } from "@/widgets/home/NewCoursesSection";
@@ -13,10 +13,11 @@ import { TopMentorsSection } from "@/widgets/home/TopMentorsSection";
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-    const [newCourses, popularCourses, topTeachers] = await Promise.all([
+    const [newCourses, popularCourses, topTeachers, wishlistedSlugs] = await Promise.all([
         getNewCourses().catch(() => []),
         getPopularCourses().catch(() => []),
         getTopTeachers().catch(() => []),
+        getWishlistSlugs().catch(() => []),
     ]);
 
     return (
@@ -96,8 +97,8 @@ export default async function Home() {
                     />
                 </div>
                 <HeroSection />
-                <NewCoursesSection courses={newCourses} />
-                <PopularCoursesSection courses={popularCourses} />
+                <NewCoursesSection courses={newCourses} wishlistedSlugs={wishlistedSlugs} />
+                <PopularCoursesSection courses={popularCourses} wishlistedSlugs={wishlistedSlugs} />
                 <PlatformBenefitsSection />
                 <CategoriesSection />
                 <TopMentorsSection teachers={topTeachers} />

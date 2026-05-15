@@ -1,6 +1,6 @@
 import type { CourseListItem } from "../model/types";
 
-export function formatPrice(course: CourseListItem) {
+export function formatPrice(course: Pick<CourseListItem, "pricing_type" | "price">) {
   if (course.pricing_type === "free" || Number(course.price) === 0) {
     return "Free";
   }

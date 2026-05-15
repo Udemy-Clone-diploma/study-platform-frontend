@@ -1,5 +1,6 @@
 import type { Category } from "./category";
 import type { CourseModule } from "./module";
+import type { CourseTag } from "./tag";
 import type { Teacher } from "./teacher";
 
 export type Paginated<T> = {
@@ -16,11 +17,6 @@ export type CourseDeliveryType = "self_paced" | "scheduled" | "individual" | "gr
 export type CourseType = "profession" | "qualification" | "knowledge";
 export type CoursePricingType = "free" | "full_payment" | "installment";
 export type CourseStatus = "draft" | "review" | "needs_revision" | "published" | "archived";
-
-export type CourseTag = {
-  id: number;
-  name: string;
-};
 
 export type CourseListItem = {
   id: number;

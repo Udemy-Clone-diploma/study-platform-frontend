@@ -13,7 +13,9 @@ api.interceptors.request.use((config) => {
   const accessToken = getClientCookie(AUTH_COOKIE_NAMES.access);
   const headers = AxiosHeaders.from(config.headers);
 
-  if (!headers.has("Content-Type")) {
+  if (typeof FormData !== "undefined" && config.data instanceof FormData) {
+    headers.delete("Content-Type");
+  } else if (!headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
 

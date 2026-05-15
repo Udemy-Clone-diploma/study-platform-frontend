@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import type { CourseLevel } from "@/entities/course";
 
 export type TeacherCourseStatus =
   | "draft"
@@ -10,12 +11,10 @@ export type TeacherCourseStatus =
   | "needs_revision"
   | "completed";
 
-const STATUS_GRADIENT: Record<TeacherCourseStatus, string> = {
-  draft: "var(--gradient-card-pink)",
-  active: "var(--gradient-card-yellow)",
-  pending_moderation: "var(--gradient-card-blue)",
-  needs_revision: "var(--gradient-card-blue)",
-  completed: "var(--gradient-card-yellow)",
+const LEVEL_GRADIENT: Record<CourseLevel, string> = {
+  beginner:     "var(--gradient-card-blue)",
+  intermediate: "var(--gradient-card-yellow)",
+  advanced:     "var(--gradient-card-pink)",
 };
 
 const STATUS_ICON: Record<TeacherCourseStatus, string | null> = {
@@ -28,6 +27,7 @@ const STATUS_ICON: Record<TeacherCourseStatus, string | null> = {
 
 type Props = {
   title: string;
+  level: CourseLevel;
   status: TeacherCourseStatus;
   imageSrc?: string | null;
   iconSrc: string;
@@ -39,6 +39,7 @@ type Props = {
 /** Course card for the teacher My Courses page*/
 export function TeacherCourseCard({
   title,
+  level,
   status,
   imageSrc,
   iconSrc,
@@ -46,7 +47,7 @@ export function TeacherCourseCard({
   rating,
   slug,
 }: Props) {
-  const gradient = STATUS_GRADIENT[status];
+  const gradient = LEVEL_GRADIENT[level];
   const statusIcon = STATUS_ICON[status];
   const clamped =
     progressPercent !== undefined
@@ -59,7 +60,7 @@ export function TeacherCourseCard({
 
   return (
     <Link
-      href={`/teacher-dashboard/courses/${slug}`}
+      href={`/teacher-dashboard/courses/${slug}/edit`}
       className={[
         "flex items-center justify-center shadow-(--shadow-my-courses-card) transition-[box-shadow,filter] hover:shadow-[0px_0px_40px_rgba(0,0,0,0.22)] focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-blue)",
         isCompleted ? "grayscale" : "",

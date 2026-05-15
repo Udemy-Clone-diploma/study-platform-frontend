@@ -37,8 +37,15 @@ const baseStyle: CSSProperties = {
   flexShrink: 0,
 };
 
+const disabledStyle: CSSProperties = {
+  background: "var(--color-draft)",
+  color: "var(--color-text-secondary)",
+  cursor: "not-allowed",
+};
+
 export function GradientButton({ children, className, style, ...props }: GradientButtonProps) {
-  const mergedStyle = { ...baseStyle, ...style };
+  const isDisabled = !("href" in props) && !!(props as GradientButtonAsButtonProps).disabled;
+  const mergedStyle = { ...baseStyle, ...(isDisabled ? disabledStyle : {}), ...style };
 
   if ("href" in props && props.href) {
     return (

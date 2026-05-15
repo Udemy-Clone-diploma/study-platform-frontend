@@ -2,6 +2,7 @@ import { api } from "@/shared/api/base";
 import { API_BASE_URL } from "@/shared/api/config/baseUrl";
 import { getAccessToken } from "@/shared/api/authCookies";
 import type { Category } from "../model/category";
+import type { CourseModule } from "../model/module";
 import type { CourseDetail, CourseListItem, Paginated } from "../model/types";
 
 const COURSES_ENDPOINT = "courses/";
@@ -88,6 +89,31 @@ export async function getWishlist(page = 1): Promise<Paginated<CourseListItem>> 
   return data;
 }
 
+export async function createCourse(data: Record<string, unknown>): Promise<CourseDetail> {
+  const { data: result } = await api.post<CourseDetail>(COURSES_ENDPOINT, data);
+  return result;
+}
+
+export async function updateCourse(slug: string, data: Record<string, unknown>): Promise<CourseDetail> {
+  const { data: result } = await api.patch<CourseDetail>(`${COURSES_ENDPOINT}${slug}/`, data);
+  return result;
+}
+
+export async function uploadCourseImage(slug: string, imageFile: File): Promise<void> {
+  const formData = new FormData();
+  formData.append("image", imageFile);
+  await api.patch(`${COURSES_ENDPOINT}${slug}/`, formData);
+}
+
+export async function uploadCourseIcon(slug: string, iconSrc: string, iconName: string): Promise<void> {
+  try {
+    const res = await fetch(iconSrc);
+    if (!res.ok) return;
+    const blob = await res.blob();
+    await uploadCourseImage(slug, new File([blob], `${iconName}-pic.png`, { type: "image/png" }));
+  } catch { /* best-effort */ }
+}
+
 export async function toggleWishlist(slug: string): Promise<{ is_wishlisted: boolean }> {
   const { data } = await api.post<{ is_wishlisted: boolean }>(`${COURSES_ENDPOINT}${slug}/wishlist/`);
   return data;
@@ -107,4 +133,31 @@ export async function getWishlistSlugs(): Promise<string[]> {
   } catch {
     return [];
   }
+}
+
+export async function createModule(
+  courseSlug: string,
+  data: { title: string },
+): Promise<CourseModule> {
+  const { data: result } = await api.post<CourseModule>(
+    `${COURSES_ENDPOINT}${courseSlug}/modules/`,
+    data,
+  );
+  return result;
+}
+
+export async function updateModule(
+  courseSlug: string,
+  moduleId: number,
+  data: { title: string },
+): Promise<CourseModule> {
+  const { data: result } = await api.patch<CourseModule>(
+    `${COURSES_ENDPOINT}${courseSlug}/modules/${moduleId}/`,
+    data,
+  );
+  return result;
+}
+
+export async function deleteModule(courseSlug: string, moduleId: number): Promise<void> {
+  await api.delete(`${COURSES_ENDPOINT}${courseSlug}/modules/${moduleId}/`);
 }

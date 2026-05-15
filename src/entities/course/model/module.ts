@@ -3,6 +3,8 @@ export type CourseLesson = {
   title: string;
   order: number;
   duration_minutes: number | null;
+  content?: string;
+  video_url?: string;
 };
 
 export type CourseModule = {

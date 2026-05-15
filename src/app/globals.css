@@ -6,7 +6,7 @@
   --font-accent: var(--font-source-code-pro), monospace;
 }
 
-@theme {
+@theme { 
   /* ── Brand palette ── */
   --color-brand-lavender:     #a7bafa;
   --color-brand-pink:         #fcc4c3;
@@ -101,7 +101,20 @@
     rgba(255, 244, 218, 1) 100%
   );
 
+  /* ── Course-creation page ── */
+  --color-bg-creation: #d6e0ff;
+  --color-draft:       #cacaca;
+
+  /* ── Form / UI ── */
+  --color-input-bg:      #e9e9e9;
+  --color-border-light:  #e9e9e9;
+  --color-danger:        #e74c3c;
+  --color-modal-overlay: rgba(167, 186, 250, 0.65);
+  --color-error-surface: rgba(239, 68, 68, 0.06);
+
   /* ── Shadows ── */
+  --shadow-dashboard-card: 0px 0px 17px rgba(0, 0, 0, 0.16);
+  --shadow-modal:          0px 0px 40px rgba(0, 0, 0, 0.2);
   --shadow-card:        0px 4px 24px rgba(0, 0, 0, 0.10);
   --shadow-testimonial: 0px 0px 15px rgba(0, 0, 0, 0.15);
   --shadow-usp-glass:   inset 0px 2px 4px #ffffff;
@@ -125,6 +138,11 @@ body {
   background: var(--color-bg);
   color: var(--color-text-primary);
   font-family: var(--font-base);
+}
+
+::placeholder {
+  color: var(--color-text-primary);
+  opacity: 1;
 }
 
 .dropdown-link {

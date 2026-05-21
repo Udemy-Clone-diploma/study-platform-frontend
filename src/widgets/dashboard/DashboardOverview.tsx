@@ -1,16 +1,8 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
+import { MyCoursesDashboardWidget } from "./MyCoursesDashboardWidget";
 
 type DashboardRole = "student" | "teacher";
-
-type CourseCardData = {
-  title: string;
-  subtitle: string;
-  icon: string;
-  accent: string;
-  metric: string;
-  metricType: "progress" | "rating";
-};
 
 type DashboardListItem = {
   course: string;
@@ -29,44 +21,6 @@ type ProgressItem = {
   accent: string;
   value: number;
 };
-
-const studentCourses: CourseCardData[] = [
-  {
-    title: "UX/UI Design Principles Compact",
-    subtitle: "Christine Vallaure",
-    icon: "/icons/curses.svg",
-    accent: "from-[#dff8f4] via-[#fef3f6] to-[#d7ddff]",
-    metric: "35%",
-    metricType: "progress",
-  },
-  {
-    title: "Marketing Strategy Lab",
-    subtitle: "Christine Vallaure",
-    icon: "/icons/world.png",
-    accent: "from-[#fff3dc] via-[#ffe7ef] to-[#eee9ff]",
-    metric: "35%",
-    metricType: "progress",
-  },
-];
-
-const teacherCourses: CourseCardData[] = [
-  {
-    title: "UX/UI Design Principles Compact",
-    subtitle: "Mentor track",
-    icon: "/icons/curses.svg",
-    accent: "from-[#dff8f4] via-[#fef3f6] to-[#d7ddff]",
-    metric: "4.9",
-    metricType: "rating",
-  },
-  {
-    title: "UX/UI Design Principles Compact",
-    subtitle: "Design cohort",
-    icon: "/icons/world.png",
-    accent: "from-[#fff3dc] via-[#ffe7ef] to-[#eee9ff]",
-    metric: "3.5",
-    metricType: "rating",
-  },
-];
 
 const studentTasks: DashboardListItem[] = [
   {
@@ -236,18 +190,26 @@ export function DashboardOverview({ role }: { role: DashboardRole }) {
 function StudentDashboard() {
   return (
     <section className="min-h-[calc(100vh-76px)] bg-white">
-      <div className="grid min-h-[calc(100vh-76px)] grid-cols-[minmax(0,1fr)_240px]">
-        <div className="grid grid-cols-[minmax(0,1.6fr)_minmax(300px,0.9fr)] gap-6 px-10 py-8">
-          <div className="flex min-w-0 flex-col gap-5">
-            <DashboardToolbar count="7" />
-            <div className="grid grid-cols-2 gap-4">
-              <CourseCards courses={studentCourses} />
-            </div>
+      <div
+        className="grid min-h-[calc(100vh-76px)]"
+        style={{ gridTemplateColumns: "1fr clamp(200px, 17.19vw, 330px)" }}
+      >
+        <div
+          className="grid"
+          style={{
+            gridTemplateColumns: "clamp(400px, 42.71vw, 820px) clamp(280px, 24.48vw, 470px)",
+            gap: "clamp(12px, 1.25vw, 24px)",
+            paddingInline: "clamp(16px, 2.08vw, 40px)",
+            paddingBlock: "clamp(16px, 1.67vw, 32px)",
+          }}
+        >
+          <div className="flex min-w-0 flex-col" style={{ gap: "clamp(12px, 1.04vw, 20px)" }}>
+            <MyCoursesDashboardWidget role="student" />
             <GrowthCard score="4.9" />
             <TodoPanel title="To Do" secondaryLabel="Overdue" items={studentTasks.slice(0, 3)} />
           </div>
 
-          <div className="flex min-w-0 flex-col gap-5">
+          <div className="flex min-w-0 flex-col" style={{ gap: "clamp(12px, 1.04vw, 20px)" }}>
             <CompactTaskPanel items={studentTasks} />
             <NotesPanel items={studentNotes} />
           </div>
@@ -262,18 +224,32 @@ function StudentDashboard() {
 function TeacherDashboard() {
   return (
     <section className="min-h-[calc(100vh-76px)] bg-white">
-      <div className="grid min-h-[calc(100vh-76px)] grid-cols-[minmax(0,1fr)_240px]">
-        <div className="grid grid-cols-[minmax(0,1.45fr)_minmax(300px,0.85fr)] gap-5 px-10 py-8">
-          <div className="flex min-w-0 flex-col gap-5">
-            <DashboardToolbar count="20" />
-            <div className="grid grid-cols-2 gap-4">
-              <CourseCards courses={teacherCourses} />
-            </div>
+      <div
+        className="grid min-h-[calc(100vh-76px)]"
+        style={{ gridTemplateColumns: "1fr clamp(200px, 17.19vw, 330px)" }}
+      >
+        <div
+          className="grid"
+          style={{
+            gridTemplateColumns: "clamp(400px, 42.71vw, 820px) clamp(280px, 24.48vw, 470px)",
+            gap: "clamp(12px, 1.25vw, 24px)",
+            paddingInline: "clamp(16px, 2.08vw, 40px)",
+            paddingBlock: "clamp(16px, 1.67vw, 32px)",
+          }}
+        >
+          <div className="flex min-w-0 flex-col" style={{ gap: "clamp(12px, 1.04vw, 20px)" }}>
+            <MyCoursesDashboardWidget role="teacher" />
             <GrowthCard score="4.0" />
             <TodoPanel title="Check" secondaryLabel="Verified" items={teacherChecks} teacher />
           </div>
 
-          <div className="flex min-w-0 flex-col gap-5 pt-[57px]">
+          <div
+            className="flex min-w-0 flex-col"
+            style={{
+              gap: "clamp(12px, 1.04vw, 20px)",
+              paddingTop: "clamp(32px, 2.97vw, 57px)",
+            }}
+          >
             <StudentTotalCard />
             <CourseProgressPanel items={progressItems} />
           </div>
@@ -282,57 +258,6 @@ function TeacherDashboard() {
         <ScheduleRail />
       </div>
     </section>
-  );
-}
-
-function DashboardToolbar({ count }: { count: string }) {
-  return (
-    <div className="flex items-center justify-between gap-4">
-      <div className="flex h-9 min-w-[260px] items-center justify-between rounded-[18px] bg-[#A7BAFA] px-5 text-sm font-bold text-[#071948] shadow-[0_6px_14px_rgba(0,0,0,0.18)]">
-        <span>My courses</span>
-        <span>{count}</span>
-      </div>
-
-      <button className="h-9 min-w-[130px] rounded-[18px] bg-[linear-gradient(90deg,#a7bafa_0%,#fcc4c3_56%,#fff4da_100%)] px-6 font-mono text-sm uppercase tracking-normal text-black transition-opacity hover:opacity-85">
-        All -&gt;
-      </button>
-    </div>
-  );
-}
-
-function CourseCards({ courses }: { courses: CourseCardData[] }) {
-  return (
-    <>
-      {courses.map((course) => (
-        <Card key={`${course.title}-${course.metric}`} className="min-h-[100px] p-6">
-          <div className="flex h-full items-center gap-4">
-            <IconTile accent={course.accent} icon={course.icon} />
-            <div className="min-w-0 flex-1">
-              <h3 className="line-clamp-2 text-[11px] font-black uppercase leading-3 text-black">
-                {course.title}
-              </h3>
-              <p className="mt-1 inline-block rounded-sm bg-[#ffde8d] px-1.5 py-0.5 font-mono text-[8px] uppercase leading-none text-[#8b2624]">
-                {course.subtitle}
-              </p>
-              {course.metricType === "progress" ? (
-                <div className="mt-3 flex items-center gap-2">
-                  <div className="h-0.5 flex-1 bg-[#d8ddff]">
-                    <div className="h-full w-[35%] bg-[#003aff]" />
-                  </div>
-                  <span className="text-[10px] font-bold text-black">{course.metric}</span>
-                </div>
-              ) : null}
-            </div>
-            {course.metricType === "rating" ? (
-              <div className="flex items-center gap-1 text-base font-medium text-black">
-                <Image src="/icons/star fill.png" alt="" width={16} height={16} className="h-4 w-4" />
-                <span>{course.metric}</span>
-              </div>
-            ) : null}
-          </div>
-        </Card>
-      ))}
-    </>
   );
 }
 

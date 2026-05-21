@@ -155,6 +155,7 @@
   --shadow-pink-soft: rgba(252, 196, 195, 0.72);
   --shadow-lavander-soft: rgba(167, 186, 250, 0.72);
   --shadow-sort-dropdown: 0px 0px 5.2px rgba(54, 54, 54, 0.25);
+  --shadow-my-courses-card: 0px 0px 30px rgba(0, 0, 0, 0.16);
 }
 
 /* Fonts reference next/font runtime vars — @theme inline passes values through as-is */
@@ -248,6 +249,44 @@ body {
 .catalog-btn:active {
   opacity: 0.7;
   transform: translateY(0);
+}
+
+.bg-wishlist {
+  position: relative;
+  isolation: isolate;
+}
+.bg-wishlist::before {
+  content: "";
+  position: fixed;
+  top: 20vh;
+  left: 60vh;
+  width: 40vw;
+  height: 60vh;
+  background: #fcc4c3;
+  opacity: 0.5;
+  filter: blur(130px);
+  transform: rotate(45deg) scale(1.4);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.bg-my-courses {
+  position: relative;
+  isolation: isolate;
+}
+.bg-my-courses::before {
+  content: "";
+  position: fixed;
+  top: 20vh;
+  left: 60vh;
+  width: 40vw;
+  height: 60vh;
+  background: #fcc4c3;
+  opacity: 0.5;
+  filter: blur(130px);
+  transform: rotate(33.8deg) scale(1.4);
+  pointer-events: none;
+  z-index: -1;
 }
 
 .drag-scroll {

@@ -5,6 +5,7 @@ export * from "./mocks/courseDetail";
 export * from "./model/types";
 export * from "./model/category";
 export * from "./model/cohort";
+export * from "./model/enrollment";
 export * from "./model/module";
 export * from "./model/pricing";
 export * from "./model/review";

@@ -25,9 +25,9 @@ const LEVEL_THEME = {
   },
 } as const;
 
-type Props = { course: CourseListItem };
+type Props = { course: CourseListItem; isWishlisted?: boolean };
 
-export function CourseCard({ course }: Props) {
+export function CourseCard({ course, isWishlisted = false }: Props) {
   const theme = LEVEL_THEME[course.level] ?? LEVEL_THEME.beginner;
   const [imageBroken, setImageBroken] = useState(false);
   const showImage = course.image && !imageBroken;
@@ -88,7 +88,7 @@ export function CourseCard({ course }: Props) {
       </Link>
 
       <div className="absolute top-4 right-4">
-        <WishlistButton />
+        <WishlistButton slug={course.slug} initialLiked={isWishlisted} />
       </div>
     </div>
   );

@@ -5,9 +5,10 @@ import { CourseCard } from "@/features/courses";
 import { SectionContainer } from "@/shared/ui/SectionContainer";
 import { useState } from "react";
 
-type Props = { courses: CourseListItem[] };
+type Props = { courses: CourseListItem[]; wishlistedSlugs: string[] };
 
-export function NewCoursesSection({ courses }: Props) {
+export function NewCoursesSection({ courses, wishlistedSlugs }: Props) {
+    const wishlistSet = new Set(wishlistedSlugs);
     const doubled = [...courses, ...courses];
     const [paused, setPaused] = useState(false);
 
@@ -39,7 +40,7 @@ export function NewCoursesSection({ courses }: Props) {
                     }}
                 >
                     {doubled.map((course, i) => (
-                        <CourseCard key={`${course.id}-${i}`} course={course} />
+                        <CourseCard key={`${course.id}-${i}`} course={course} isWishlisted={wishlistSet.has(course.slug)} />
                     ))}
                 </div>
             </div>

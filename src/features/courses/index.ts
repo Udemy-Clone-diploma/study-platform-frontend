@@ -1,3 +1,4 @@
+export * from "./api/coursesApi";
 export * from "./model/catalogFilters";
 export * from "./ui/CatalogDropdown";
 export * from "./ui/CatalogFiltersSidebar";
@@ -6,4 +7,7 @@ export * from "./ui/CategoryCard";
 export * from "./ui/CategoryFilter";
 export * from "./ui/CourseCard";
 export * from "./ui/CourseSearch";
+export * from "./ui/EnrollButton";
 export * from "./ui/SortDropdown";
+export * from "./ui/StudentCourseCard";
+export * from "./ui/TeacherCourseCard";

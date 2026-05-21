@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { useState } from "react";
 import type { ReactNode } from "react";
+import { ChevronDown } from "lucide-react";
 
 type CollapsibleFilterSectionProps = {
   title: string;
@@ -10,6 +10,7 @@ type CollapsibleFilterSectionProps = {
   defaultOpen?: boolean;
 };
 
+/** Catalog sidebar section with an expand/collapse header. */
 export function CollapsibleFilterSection({
   title,
   children,
@@ -25,14 +26,12 @@ export function CollapsibleFilterSection({
         className="flex w-full items-center justify-between text-left"
         aria-expanded={isOpen}
       >
-        <h2 className="text-[0.76rem] font-medium text-[#211e23]">{title}</h2>
-        <Image
-          src="/icons/weui_arrow-outlined.png"
-          alt=""
+        <h2 className="text-[0.76rem] font-medium text-(--color-text-primary)">{title}</h2>
+        <ChevronDown
           aria-hidden="true"
-          width={25}
-          height={25}
-          className={`h-[25px] w-[25px] object-contain transition ${isOpen ? "" : "rotate-180"}`}
+          className={`h-5 w-5 text-(--color-text-primary) transition-transform ${
+            isOpen ? "rotate-180" : ""
+          }`}
         />
       </button>
 

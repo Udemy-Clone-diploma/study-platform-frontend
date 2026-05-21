@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import Image from "next/image";
 import Link from "next/link";
+import { ChevronDown } from "lucide-react";
 import type { Category } from "@/entities/course";
 
 type Props = {
@@ -51,18 +51,10 @@ export function CatalogDropdown({ categories }: Props) {
                 }}
             >
                 Catalog
-                <span style={{
-                    width: 36,
-                    height: 36,
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
-                    transition: "transform 0.2s",
-                    transform: open ? "rotate(180deg)" : "rotate(0deg)",
-                }}>
-                    <Image src="/icons/caret-down.png" alt="" width={16} height={8} />
-                </span>
+                <ChevronDown
+                    aria-hidden="true"
+                    className={`h-4 w-4 shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
+                />
             </button>
 
             {open && (

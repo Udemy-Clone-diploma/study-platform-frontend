@@ -27,7 +27,7 @@ export function CourseSearch({ initialQuery = "" }: Props) {
 
     params.delete("page");
 
-    router.push(params.toString() ? `?${params.toString()}` : "/catalog");
+    router.push(params.toString() ? `?${params.toString()}` : "/catalog", { scroll: false });
   }
 
   function clearSearch() {
@@ -37,7 +37,7 @@ export function CourseSearch({ initialQuery = "" }: Props) {
     params.delete("search");
     params.delete("page");
 
-    router.push(params.toString() ? `?${params.toString()}` : "/catalog");
+    router.push(params.toString() ? `?${params.toString()}` : "/catalog", { scroll: false });
   }
 
   return (

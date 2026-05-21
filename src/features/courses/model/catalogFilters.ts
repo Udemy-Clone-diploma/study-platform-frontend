@@ -19,7 +19,6 @@ export type CatalogFilterState = {
   language?: string;
   level?: string;
   mode?: string;
-  pricing_type?: string;
   rating_min?: string;
   search?: string;
   sort?: string;
@@ -76,7 +75,6 @@ export function parseCatalogState(params: CatalogSearchParams): CatalogFilterSta
     language: firstParam(params.language),
     level: firstParam(params.level),
     mode: firstParam(params.mode),
-    pricing_type: firstParam(params.pricing_type),
     rating_min: firstParam(params.rating_min),
     search: firstParam(params.search)?.trim(),
     sort: firstParam(params.sort),
@@ -130,7 +128,6 @@ export function buildCatalogHref(
   if (next.language) params.set("language", next.language);
   if (next.level) params.set("level", next.level);
   if (next.mode) params.set("mode", next.mode);
-  if (next.pricing_type) params.set("pricing_type", next.pricing_type);
   if (next.rating_min) params.set("rating_min", next.rating_min);
   if (next.search) params.set("search", next.search);
   if (next.sort) params.set("sort", next.sort);
@@ -149,7 +146,6 @@ export function resetCatalogFiltersHref(state: CatalogFilterState) {
     language: undefined,
     level: undefined,
     mode: undefined,
-    pricing_type: undefined,
     rating_min: undefined,
     with_certificate: undefined,
   });

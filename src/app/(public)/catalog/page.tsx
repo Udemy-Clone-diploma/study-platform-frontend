@@ -43,7 +43,6 @@ async function loadCourses(state: CatalogFilterState, page: number) {
       level: state.level,
       mode: state.mode,
       ordering: state.sort ?? DEFAULT_SORT,
-      pricing_type: state.pricing_type,
       rating_min: state.rating_min,
       search: state.search,
       with_certificate: state.with_certificate,

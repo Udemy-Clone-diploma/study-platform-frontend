@@ -6,11 +6,11 @@ import {
   mockCourseDetail,
   mockCourseReviews,
 } from "@/entities/course";
-import { CourseDetailView } from "@/widgets/course-detail";
+import { CourseReviewsView } from "@/widgets/course-detail";
 
 export const revalidate = 60;
 
-export default async function CourseDetailPage({
+export default async function CourseReviewsPage({
   params,
 }: {
   params: Promise<{ slug: string }>;
@@ -18,7 +18,7 @@ export default async function CourseDetailPage({
   const { slug } = await params;
 
   if (slug === MOCK_COURSE_DETAIL_SLUG) {
-    return <CourseDetailView course={mockCourseDetail} reviews={mockCourseReviews} />;
+    return <CourseReviewsView courseTitle={mockCourseDetail.title} reviews={mockCourseReviews} />;
   }
 
   const course = await getCourseBySlug(slug).catch(() => null);
@@ -28,5 +28,5 @@ export default async function CourseDetailPage({
     .then((page) => page.results)
     .catch(() => []);
 
-  return <CourseDetailView course={course} reviews={reviews} />;
+  return <CourseReviewsView courseTitle={course.title} reviews={reviews} />;
 }

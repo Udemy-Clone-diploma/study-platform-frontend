@@ -3,6 +3,7 @@ export type CourseLesson = {
   title: string;
   order: number;
   duration_minutes: number | null;
+  is_preview: boolean;
 };
 
 export type CourseModule = {

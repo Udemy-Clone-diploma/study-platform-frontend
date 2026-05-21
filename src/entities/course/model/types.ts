@@ -1,5 +1,7 @@
 import type { Category } from "./category";
+import type { CourseCohort } from "./cohort";
 import type { CourseModule } from "./module";
+import type { PricingPlan } from "./pricing";
 import type { CourseTag } from "./tag";
 import type { Teacher } from "./teacher";
 
@@ -15,7 +17,6 @@ export type CourseLanguage = "english" | "ukrainian" | "spanish";
 export type CourseMode = "self_learning" | "with_teacher";
 export type CourseDeliveryType = "self_paced" | "scheduled" | "individual" | "group";
 export type CourseType = "profession" | "qualification" | "knowledge";
-export type CoursePricingType = "free" | "full_payment" | "installment";
 export type CourseStatus = "draft" | "review" | "published" | "archived";
 
 export type CourseListItem = {
@@ -31,8 +32,10 @@ export type CourseListItem = {
   mode: CourseMode;
   delivery_type: CourseDeliveryType;
   course_type: CourseType;
-  pricing_type: CoursePricingType;
-  price: string;
+  /** Cheapest pricing plan's price, computed by the backend. Null when the course is free. */
+  price: string | null;
+  /** Cheapest pricing plan's currency. Null when the course is free. */
+  currency: PricingPlan["currency"] | null;
   duration_hours: number;
   lessons_count: number;
   with_certificate: boolean;
@@ -44,12 +47,21 @@ export type CourseListItem = {
   tags: CourseTag[];
 };
 
-export type CourseDetail = Omit<CourseListItem, "teacher_name"> & {
+export type CourseDetail = Omit<CourseListItem, "teacher_name" | "price" | "currency"> & {
+  subtitle: string | null;
+  /** Course-specific pull-quote. Belongs on the course, not the teacher (one teacher, many courses). */
+  quote: string | null;
   full_description: string;
   teacher: Teacher;
   moderator_id: number | null;
-  installment_count: number | null;
-  installment_amount: string | null;
+  /** True when the current authenticated user is enrolled. False for anonymous users. */
+  is_enrolled: boolean;
+  /** Number of submitted reviews, kept in sync by a backend signal. */
+  rating_count: number;
+  /** Empty array when the course is free. */
+  pricing_plans: PricingPlan[];
+  /** Empty array when no cohorts are scheduled. */
+  cohorts: CourseCohort[];
   modules: CourseModule[];
   created_at: string;
   updated_at: string;

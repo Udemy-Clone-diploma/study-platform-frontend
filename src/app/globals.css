@@ -2,66 +2,90 @@
 
 /* Font stacks reference next/font runtime vars — must stay in :root, not @theme */
 :root {
-  --font-base:   var(--font-mulish), sans-serif;
+  --font-base: var(--font-mulish), sans-serif;
   --font-accent: var(--font-source-code-pro), monospace;
 }
 
 @theme {
   /* ── Brand palette ── */
-  --color-brand-lavender:     #a7bafa;
-  --color-brand-pink:         #fcc4c3;
-  --color-brand-cream:        #fff4da;
-  --color-brand-yellow:       #ffde8d;
+  --color-brand-lavender: #a7bafa;
+  --color-brand-lavender-soft: #d6e0ff;
+  --color-brand-pink: #fcc4c3;
+  --color-brand-cream: #fff4da;
+  --color-brand-yellow: #ffde8d;
   --color-brand-yellow-light: #fff1d0;
 
   /* ── Accent colors ── */
-  --color-blue:        #003aff;
-  --color-blue-dark:   #0b257c;
-  --color-pink-dark:   #8b2624;
+  --color-blue: #003aff;
+  --color-blue-dark: #0b257c;
+  --color-pink-dark: #8b2624;
   --color-yellow-dark: #8a6201;
-  --color-gold:        #fdc43a;
+  --color-gold: #fdc43a;
 
   /* ── Semantic colors ── */
-  --color-bg:             #ffffff;
-  --color-bg-surface:     #f9fafb;
-  --color-text-primary:   #121212;
+  --color-bg: #ffffff;
+  --color-bg-surface: #f9fafb;
+  --color-text-primary: #121212;
   --color-text-secondary: #5e5e5e;
-  --color-text-muted:     #9ca3af;
-  --color-placeholder:    #d9d9d9;
+  --color-text-muted: #9ca3af;
+  --color-placeholder: #d9d9d9;
   --color-badge-lavender: rgba(167, 186, 250, 0.4);
   --color-white-20: rgba(255, 255, 255, 0.2);
+  --color-white-50: rgba(255, 255, 255, 0.5);
   --color-white-60: rgba(255, 255, 255, 0.6);
   --color-white-85: rgba(255, 255, 255, 0.85);
-  --color-surface:        #f3f4f6;
-  --color-overlay-dark:   rgba(0, 0, 0, 0.35);
-  --color-cancel-hover:   #4a4a4a;
+  --color-surface: #f3f4f6;
+  --color-overlay-dark: rgba(0, 0, 0, 0.35);
+  --color-cancel-hover: #4a4a4a;
 
   /* ── Catalog tokens ── */
-  --color-catalog-highlight:       rgba(167, 186, 250, 0.3);
+  --color-catalog-highlight: rgba(167, 186, 250, 0.3);
   --color-catalog-category-active: rgba(167, 186, 250, 0.6);
-  --color-catalog-placeholder:     #bfbfbf;
+  --color-catalog-placeholder: #bfbfbf;
 
   /* ── Gradients ── */
   --gradient-blob: radial-gradient(
     50% 50% at 50% 50%,
-    rgba(255, 244, 218, 0.72)  0%,
+    rgba(255, 244, 218, 0.72) 0%,
     rgba(252, 196, 195, 0.72) 40%,
     rgba(167, 186, 250, 0.72) 100%
   );
 
+  /* One reusable ellipse pattern — apply to a round element and just vary its size */
+  --gradient-ellipse: radial-gradient(
+    circle,
+    var(--color-brand-cream) 0%,
+    var(--color-brand-pink) 50%,
+    var(--color-brand-lavender) 100%
+  );
+
+  /* Soft decorative glows — fade fully to transparent so they never show a clipped edge */
+  --gradient-glow-teacher: radial-gradient(
+    circle,
+    rgba(230, 208, 240, 0.5) 0%,
+    rgba(230, 208, 240, 0.5) 33%,
+    rgba(252, 196, 195, 0.5) 88%,
+    rgba(252, 196, 195, 0) 100%
+  );
+  --gradient-glow-lavender: radial-gradient(
+    ellipse,
+    rgba(167, 186, 250, 0.5) 0%,
+    rgba(167, 186, 250, 0.4) 42%,
+    rgba(167, 186, 250, 0) 72%
+  );
 
   --gradient-profile-line: linear-gradient(
     180deg,
     var(--color-brand-lavender) 0%,
-    var(--color-brand-pink)     50.96%,
-    var(--color-brand-cream)    100%
+    var(--color-brand-pink) 50.96%,
+    var(--color-brand-cream) 100%
   );
 
   --gradient-brand: linear-gradient(
     90deg,
     var(--color-brand-lavender) 0%,
-    var(--color-brand-pink)     50.96%,
-    var(--color-brand-cream)    100%
+    var(--color-brand-pink) 50.96%,
+    var(--color-brand-cream) 100%
   );
 
   --gradient-feedback: linear-gradient(
@@ -101,15 +125,34 @@
     rgba(255, 244, 218, 1) 100%
   );
 
+  --gradient-schedule-card: linear-gradient(
+    140deg,
+    rgba(255, 255, 255, 0.92) 0%,
+    rgba(252, 196, 195, 0.18) 100%
+  );
+
+  --gradient-pricing-card: radial-gradient(
+    80% 80% at 50% 50%,
+    rgba(214, 224, 255, 0.85) 0%,
+    rgba(214, 224, 255, 0.55) 100%
+  );
+
+  --gradient-instructor-card: linear-gradient(
+    115deg,
+    rgba(214, 224, 255, 0.45) 0%,
+    rgba(252, 196, 195, 0.35) 55%,
+    rgba(255, 244, 218, 0.45) 100%
+  );
+
   /* ── Shadows ── */
-  --shadow-card:        0px 4px 24px rgba(0, 0, 0, 0.10);
+  --shadow-card: 0px 4px 24px rgba(0, 0, 0, 0.1);
   --shadow-testimonial: 0px 0px 15px rgba(0, 0, 0, 0.15);
-  --shadow-usp-glass:   inset 0px 2px 4px #ffffff;
-  --shadow-lavander:      rgba(167, 186, 250, 0.8);
-  --shadow-pink:          rgba(252, 196, 195, 0.8);
-  --shadow-yellow:        rgba(244, 216, 150, 0.8);
-  --shadow-yellow-soft:   rgba(244, 216, 150, 0.72);
-  --shadow-pink-soft:     rgba(252, 196, 195, 0.72);
+  --shadow-usp-glass: inset 0px 2px 4px #ffffff;
+  --shadow-lavander: rgba(167, 186, 250, 0.8);
+  --shadow-pink: rgba(252, 196, 195, 0.8);
+  --shadow-yellow: rgba(244, 216, 150, 0.8);
+  --shadow-yellow-soft: rgba(244, 216, 150, 0.72);
+  --shadow-pink-soft: rgba(252, 196, 195, 0.72);
   --shadow-lavander-soft: rgba(167, 186, 250, 0.72);
   --shadow-sort-dropdown: 0px 0px 5.2px rgba(54, 54, 54, 0.25);
 }
@@ -167,7 +210,7 @@ body {
   transition: box-shadow 0.35s ease;
 }
 .course-card::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
@@ -189,7 +232,9 @@ body {
   opacity: 0;
 }
 .course-card:active {
-  box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.16), 0 0 0 2px var(--card-border-color);
+  box-shadow:
+    0px 0px 30px rgba(0, 0, 0, 0.16),
+    0 0 0 2px var(--card-border-color);
 }
 
 .category-card-item:hover {
@@ -215,8 +260,12 @@ body {
 }
 
 @keyframes carousel-right {
-  from { transform: translateX(-50%); }
-  to   { transform: translateX(0); }
+  from {
+    transform: translateX(-50%);
+  }
+  to {
+    transform: translateX(0);
+  }
 }
 
 @keyframes auth-appear {
@@ -231,13 +280,25 @@ body {
 }
 
 @keyframes mentor-card-in {
-  from { opacity: 0; transform: scale(0.97); }
-  to   { opacity: 1; transform: scale(1);    }
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 @keyframes mentor-card-out {
-  from { opacity: 1; transform: scale(1);    }
-  to   { opacity: 0; transform: scale(0.97); }
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.97);
+  }
 }
 
 @keyframes auth-drift {

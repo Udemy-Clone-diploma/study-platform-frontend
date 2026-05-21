@@ -1,72 +1,66 @@
 "use client";
 
 import { useId, useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { Astroid, ChevronDown } from "lucide-react";
 import type { CourseModule } from "@/entities/course";
-import { formatLessonDuration } from "@/entities/course";
 
 type Props = { courseModule: CourseModule };
 
-/** Accordion row for a course module. Collapsed by default; click or Enter/Space toggles. */
+/** Accordion row for a course module. Module pill + title on the left, chevron on the right; expands to a list of lessons. */
 export function CourseModuleItem({ courseModule }: Props) {
   const [open, setOpen] = useState(false);
   const panelId = useId();
   const headerId = useId();
 
   return (
-    <div className="flex flex-col gap-3 border-b border-(--color-text-primary)/20 pb-5">
+    <div className="flex flex-col gap-5 border-b border-(--color-text-primary) py-6 last:border-b-0">
       <button
         type="button"
         id={headerId}
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center justify-between gap-3 text-left"
+        className="flex w-full items-center gap-3 text-left"
       >
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="rounded-full bg-(--color-catalog-highlight) px-3 py-0.5 text-base font-semibold text-(--color-blue-dark)">
-            Module {courseModule.order}
-          </span>
-          <span className="text-xl font-semibold text-(--color-text-primary)">
-            {courseModule.title}
-          </span>
-        </div>
+        <span className="inline-flex flex-shrink-0 items-center justify-center rounded-[20px] bg-(--color-brand-lavender-soft) px-3 py-0.5 text-xl font-semibold text-(--color-blue)">
+          Module {courseModule.order}
+        </span>
+        <span className="flex-1 text-xl font-semibold text-(--color-text-primary)">
+          {courseModule.title}
+        </span>
         <ChevronDown
           aria-hidden="true"
-          className={`h-6 w-6 flex-shrink-0 text-(--color-text-primary) transition-transform ${open ? "rotate-180" : ""}`}
+          className={`h-8 w-8 flex-shrink-0 text-(--color-text-primary) transition-transform ${open ? "rotate-180" : ""}`}
         />
       </button>
-
-      {courseModule.description && (
-        <p className="text-base text-(--color-text-secondary)">{courseModule.description}</p>
-      )}
 
       {open && (
         <ul
           id={panelId}
           role="region"
           aria-labelledby={headerId}
-          className="mt-2 flex flex-col gap-2 pl-2"
+          className="ml-auto flex w-full max-w-[849px] flex-col gap-1"
         >
-          {courseModule.lessons.map((lesson) => {
-            const duration = formatLessonDuration(lesson.duration_minutes);
-            return (
-              <li
-                key={lesson.id}
-                className="flex flex-wrap items-center justify-between gap-2 text-lg text-(--color-text-primary)"
-              >
-                <span>
-                  <span className="text-(--color-text-secondary)">Lesson {lesson.order}:</span>{" "}
-                  {lesson.title}
+          {courseModule.lessons.map((lesson) => (
+            <li
+              key={lesson.id}
+              className="flex items-center gap-3 text-xl text-(--color-text-primary)"
+            >
+              <Astroid
+                aria-hidden="true"
+                className="h-3.5 w-3.5 flex-shrink-0 text-(--color-text-primary)"
+                fill="currentColor"
+              />
+              <span className="flex-1">
+                Lesson {lesson.order}: {lesson.title}.
+              </span>
+              {lesson.is_preview && (
+                <span className="flex-shrink-0 rounded-full bg-(--color-catalog-highlight) px-3 py-0.5 font-(family-name:--font-accent) text-sm uppercase text-(--color-blue)">
+                  Free preview
                 </span>
-                {duration && (
-                  <span className="font-(family-name:--font-source-code-pro) text-sm uppercase text-(--color-text-secondary)">
-                    {duration}
-                  </span>
-                )}
-              </li>
-            );
-          })}
+              )}
+            </li>
+          ))}
         </ul>
       )}
     </div>

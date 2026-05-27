@@ -10,8 +10,6 @@ import {
   CategoryFilter,
   CourseCard,
   CourseSearch,
-  DEFAULT_SORT,
-  SortDropdown,
   parseCatalogState,
   resetCatalogFiltersHref,
   type CatalogFilterState,
@@ -43,7 +41,9 @@ async function loadCourses(state: CatalogFilterState, page: number) {
       language: state.language,
       level: state.level,
       mode: state.mode,
-      ordering: state.sort ?? DEFAULT_SORT,
+      plan_kind: state.plan_kind,
+      price_min: state.price_min ? Number(state.price_min) : undefined,
+      price_max: state.price_max ? Number(state.price_max) : undefined,
       rating_min: state.rating_min,
       search: state.search,
       with_certificate: state.with_certificate,
@@ -124,10 +124,6 @@ export default async function CatalogPage({
               <SlidersHorizontal aria-hidden="true" className="h-4 w-4" />
               <span>All Filters</span>
             </Link>
-
-            <Suspense>
-              <SortDropdown currentSort={state.sort} />
-            </Suspense>
           </div>
 
           <div className={`grid gap-5 ${state.filtersOpen ? "lg:grid-cols-[460px_1fr]" : ""}`}>

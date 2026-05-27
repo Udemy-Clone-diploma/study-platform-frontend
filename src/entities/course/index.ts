@@ -1,7 +1,6 @@
 export * from "./api/courseApi";
 export * from "./lib/formatDuration";
 export * from "./lib/formatPrice";
-export * from "./mocks/courseDetail";
 export * from "./model/types";
 export * from "./model/category";
 export * from "./model/cohort";

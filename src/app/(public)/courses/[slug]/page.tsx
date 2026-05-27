@@ -1,11 +1,5 @@
 import { notFound } from "next/navigation";
-import {
-  getCourseBySlug,
-  getCourseReviews,
-  MOCK_COURSE_DETAIL_SLUG,
-  mockCourseDetail,
-  mockCourseReviews,
-} from "@/entities/course";
+import { getCourseBySlug, getCourseReviews } from "@/entities/course";
 import { CourseDetailView } from "@/widgets/course-detail";
 
 export const revalidate = 60;
@@ -17,8 +11,13 @@ export default async function CourseDetailPage({
 }) {
   const { slug } = await params;
 
-  if (slug === MOCK_COURSE_DETAIL_SLUG) {
-    return <CourseDetailView course={mockCourseDetail} reviews={mockCourseReviews} />;
+  if (process.env.NODE_ENV !== "production") {
+    const { MOCK_COURSE_DETAIL_SLUG, mockCourseDetail, mockCourseReviews } = await import(
+      "@/entities/course/mocks/courseDetail"
+    );
+    if (slug === MOCK_COURSE_DETAIL_SLUG) {
+      return <CourseDetailView course={mockCourseDetail} reviews={mockCourseReviews} />;
+    }
   }
 
   const course = await getCourseBySlug(slug).catch(() => null);

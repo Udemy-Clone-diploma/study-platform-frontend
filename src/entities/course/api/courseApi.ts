@@ -20,7 +20,7 @@ export type CourseListParams = {
   level?: string;
   mode?: string;
   ordering?: string;
-  /** Comma-separated list of pricing plan kinds the course must offer. Per PR #56. */
+  /** Pricing plan kinds, comma-separated (e.g. "group,individual"). Backend matches courses offering any of the listed kinds. */
   plan_kind?: string;
   price_min?: number;
   price_max?: number;

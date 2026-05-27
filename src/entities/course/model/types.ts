@@ -24,6 +24,8 @@ export type CourseListItem = {
   id: number;
   image: string | null;
   title: string;
+  /** Optional tagline. Backend exposes it on both list and detail per PR #56. */
+  subtitle: string | null;
   short_description: string;
   slug: string;
   teacher_name: string;
@@ -42,6 +44,8 @@ export type CourseListItem = {
   with_certificate: boolean;
   is_on_sale: boolean;
   rating_avg: string;
+  /** Count of reviews. Kept in sync by a backend signal on Review save/delete. */
+  rating_count: number;
   students_count: number;
   status: CourseStatus;
   published_at: string | null;
@@ -49,7 +53,6 @@ export type CourseListItem = {
 };
 
 export type CourseDetail = Omit<CourseListItem, "teacher_name" | "price" | "currency"> & {
-  subtitle: string | null;
   /** Course-specific pull-quote. Belongs on the course, not the teacher (one teacher, many courses). */
   quote: string | null;
   full_description: string;
@@ -57,8 +60,6 @@ export type CourseDetail = Omit<CourseListItem, "teacher_name" | "price" | "curr
   moderator_id: number | null;
   /** True when the current authenticated user is enrolled. False for anonymous users. */
   is_enrolled: boolean;
-  /** Number of submitted reviews, kept in sync by a backend signal. */
-  rating_count: number;
   /** Empty array when the course is free. */
   pricing_plans: PricingPlan[];
   /** Empty array when no cohorts are scheduled. */

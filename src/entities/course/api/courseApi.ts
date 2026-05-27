@@ -6,22 +6,36 @@ import type { CourseCohort } from "../model/cohort";
 import type { LessonDetail } from "../model/module";
 import type { PricingPlan } from "../model/pricing";
 import type { CourseReview } from "../model/review";
-import type { CourseDetail, CourseListItem, Paginated } from "../model/types";
+import type {
+  CourseDeliveryType,
+  CourseDetail,
+  CourseLanguage,
+  CourseLevel,
+  CourseListItem,
+  CourseMode,
+  CourseType,
+  Paginated,
+} from "../model/types";
 
 const COURSES = "courses/";
 const CATEGORIES = "categories/";
 
+/**
+ * Backend accepts these enum-like filters as comma-separated values
+ * (e.g. `?delivery_type=self_paced,group`). Caller passes arrays; the API
+ * function joins. Single-value filters (`category`, `rating_min`) stay
+ * stringly-typed because the backend matches them exactly.
+ */
 export type CourseListParams = {
   category?: string;
-  course_type?: string;
-  delivery_type?: string;
+  course_type?: Array<CourseType>;
+  delivery_type?: Array<CourseDeliveryType>;
   is_on_sale?: boolean;
-  language?: string;
-  level?: string;
-  mode?: string;
+  language?: Array<CourseLanguage>;
+  level?: Array<CourseLevel>;
+  mode?: Array<CourseMode>;
   ordering?: string;
-  /** Pricing plan kinds, comma-separated (e.g. "group,individual"). Backend matches courses offering any of the listed kinds. */
-  plan_kind?: string;
+  plan_kind?: Array<PricingPlan["kind"]>;
   price_min?: number;
   price_max?: number;
   rating_min?: string;
@@ -39,14 +53,14 @@ export async function getCategories(): Promise<Category[]> {
 export async function getCourses(filters: CourseListParams = {}): Promise<Paginated<CourseListItem>> {
   const params = {
     ...(filters.category ? { category: filters.category } : {}),
-    ...(filters.course_type ? { course_type: filters.course_type } : {}),
-    ...(filters.delivery_type ? { delivery_type: filters.delivery_type } : {}),
+    ...(filters.course_type?.length ? { course_type: filters.course_type.join(",") } : {}),
+    ...(filters.delivery_type?.length ? { delivery_type: filters.delivery_type.join(",") } : {}),
     ...(filters.is_on_sale !== undefined ? { is_on_sale: filters.is_on_sale } : {}),
-    ...(filters.language ? { language: filters.language } : {}),
-    ...(filters.level ? { level: filters.level } : {}),
-    ...(filters.mode ? { mode: filters.mode } : {}),
+    ...(filters.language?.length ? { language: filters.language.join(",") } : {}),
+    ...(filters.level?.length ? { level: filters.level.join(",") } : {}),
+    ...(filters.mode?.length ? { mode: filters.mode.join(",") } : {}),
     ...(filters.ordering ? { ordering: filters.ordering } : {}),
-    ...(filters.plan_kind ? { plan_kind: filters.plan_kind } : {}),
+    ...(filters.plan_kind?.length ? { plan_kind: filters.plan_kind.join(",") } : {}),
     ...(filters.price_min !== undefined ? { price_min: filters.price_min } : {}),
     ...(filters.price_max !== undefined ? { price_max: filters.price_max } : {}),
     ...(filters.rating_min ? { rating_min: filters.rating_min } : {}),
@@ -82,7 +96,7 @@ export async function getPopularCourses(): Promise<CourseListItem[]> {
  */
 export async function getLesson(slug: string, lessonId: number): Promise<LessonDetail> {
   const { data } = await api.get<LessonDetail>(
-    `${COURSES_ENDPOINT}${slug}/lessons/${lessonId}/`,
+    `${COURSES}${slug}/lessons/${lessonId}/`,
   );
   return data;
 }
@@ -112,7 +126,7 @@ export async function createPricingPlan(
   body: PricingPlanInput,
 ): Promise<PricingPlan> {
   const { data } = await api.post<PricingPlan>(
-    `${COURSES_ENDPOINT}${slug}/pricing-plans/`,
+    `${COURSES}${slug}/pricing-plans/`,
     body,
   );
   return data;
@@ -124,14 +138,14 @@ export async function updatePricingPlan(
   body: Partial<PricingPlanInput>,
 ): Promise<PricingPlan> {
   const { data } = await api.patch<PricingPlan>(
-    `${COURSES_ENDPOINT}${slug}/pricing-plans/${id}/`,
+    `${COURSES}${slug}/pricing-plans/${id}/`,
     body,
   );
   return data;
 }
 
 export async function deletePricingPlan(slug: string, id: number): Promise<void> {
-  await api.delete(`${COURSES_ENDPOINT}${slug}/pricing-plans/${id}/`);
+  await api.delete(`${COURSES}${slug}/pricing-plans/${id}/`);
 }
 
 export type CohortInput = Omit<CourseCohort, "id">;
@@ -141,7 +155,7 @@ export type CohortInput = Omit<CourseCohort, "id">;
  * `hours_per_week_max` must be >= `hours_per_week_min`.
  */
 export async function createCohort(slug: string, body: CohortInput): Promise<CourseCohort> {
-  const { data } = await api.post<CourseCohort>(`${COURSES_ENDPOINT}${slug}/cohorts/`, body);
+  const { data } = await api.post<CourseCohort>(`${COURSES}${slug}/cohorts/`, body);
   return data;
 }
 
@@ -151,14 +165,14 @@ export async function updateCohort(
   body: Partial<CohortInput>,
 ): Promise<CourseCohort> {
   const { data } = await api.patch<CourseCohort>(
-    `${COURSES_ENDPOINT}${slug}/cohorts/${id}/`,
+    `${COURSES}${slug}/cohorts/${id}/`,
     body,
   );
   return data;
 }
 
 export async function deleteCohort(slug: string, id: number): Promise<void> {
-  await api.delete(`${COURSES_ENDPOINT}${slug}/cohorts/${id}/`);
+  await api.delete(`${COURSES}${slug}/cohorts/${id}/`);
 }
 
 export type ReviewSubmission = {
@@ -177,7 +191,7 @@ export async function submitCourseReview(
   body: ReviewSubmission,
 ): Promise<CourseReview> {
   const { data } = await api.post<CourseReview>(
-    `${COURSES_ENDPOINT}${slug}/reviews/`,
+    `${COURSES}${slug}/reviews/`,
     body,
   );
   return data;

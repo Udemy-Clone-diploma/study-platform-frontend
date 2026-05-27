@@ -5,6 +5,7 @@ export interface StudentProfile {
 }
 
 export interface TeacherProfile {
+  id: number;
   bio: string;
   experience: string;
   specialization: string;

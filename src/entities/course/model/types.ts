@@ -55,6 +55,7 @@ export type CourseDetail = Omit<CourseListItem, "teacher_name" | "price" | "curr
   full_description: string;
   teacher: Teacher;
   moderator_id: number | null;
+  total_duration_minutes: number;
   /** True when the current authenticated user is enrolled. False for anonymous users. */
   is_enrolled: boolean;
   /** Number of submitted reviews, kept in sync by a backend signal. */

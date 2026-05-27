@@ -85,6 +85,7 @@ export function MyCoursesDashboardWidget({ role }: Props) {
               <TeacherCourseCard
                 key={course.id}
                 title={course.title}
+                level={course.level}
                 status={BACKEND_TO_UI[course.status] ?? "draft"}
                 imageSrc={course.image}
                 iconSrc={LEVEL_ICON[course.level] ?? "/icons/curses.svg"}

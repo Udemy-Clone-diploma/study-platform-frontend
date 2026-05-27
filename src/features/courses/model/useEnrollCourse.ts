@@ -5,7 +5,7 @@ import { useState } from "react";
 import type { ApiError } from "@/shared/api/base";
 import { AUTH_COOKIE_NAMES } from "@/shared/api/config/authCookies";
 import { getClientCookie } from "@/shared/lib/cookies";
-import { enrollInCourse } from "../api/coursesApi";
+import { createEnrollment } from "../api/coursesApi";
 
 const STUDENT_ONLY_MESSAGE = "Enrollment is available only for students.";
 const ALREADY_ENROLLED_MESSAGE = "You are already enrolled in this course.";
@@ -47,7 +47,7 @@ export function useEnrollCourse(courseId: number) {
     setMessage("");
 
     try {
-      await enrollInCourse(courseId);
+      await createEnrollment(courseId);
       setEnrolled(true);
       router.push("/student-dashboard/courses");
     } catch (err) {

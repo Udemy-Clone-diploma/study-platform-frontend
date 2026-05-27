@@ -99,6 +99,28 @@ export async function getCourseReviews(
   return data;
 }
 
+export type ReviewSubmission = {
+  rating: number;
+  text: string;
+};
+
+/**
+ * Post a review for a course. Backend requires the authenticated user to be a
+ * student with active enrollment.
+ * Throws a normalized ApiError on failure: 401 (anonymous), 403 (not enrolled),
+ * 409 (already reviewed).
+ */
+export async function submitCourseReview(
+  slug: string,
+  body: ReviewSubmission,
+): Promise<CourseReview> {
+  const { data } = await api.post<CourseReview>(
+    `${COURSES_ENDPOINT}${slug}/reviews/`,
+    body,
+  );
+  return data;
+}
+
 export type EnrollResult = { status: "enrolled" };
 
 /**

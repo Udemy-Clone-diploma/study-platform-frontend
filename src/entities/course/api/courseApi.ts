@@ -116,6 +116,11 @@ export async function toggleWishlist(slug: string): Promise<{ is_wishlisted: boo
   return data;
 }
 
+/**
+ * Server-component path. Bypasses the axios `api` instance because its request
+ * interceptor reads the access token from `document.cookie`, which doesn't
+ * exist on the server. Pulls the token via the cookies() Server Action instead.
+ */
 export async function getWishlistSlugs(): Promise<string[]> {
   const token = await getAccessToken();
   if (!token) return [];

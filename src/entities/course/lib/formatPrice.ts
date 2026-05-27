@@ -1,16 +1,14 @@
-type PriceLikeCourse = {
-  pricing_type: string;
-  price: string;
-};
+import type { CourseListItem } from "../model/types";
 
-export function formatPrice(course: PriceLikeCourse) {
-  if (course.pricing_type === "free" || Number(course.price) === 0) {
+/** Format the headline (cheapest plan) price for a course card. Returns "Free" when the course has no priced plan. */
+export function formatPrice(course: Pick<CourseListItem, "price" | "currency">): string {
+  if (course.price == null || Number(course.price) === 0) {
     return "Free";
   }
 
   return new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: "USD",
+    currency: course.currency ?? "USD",
     maximumFractionDigits: 0,
   }).format(Number(course.price));
 }

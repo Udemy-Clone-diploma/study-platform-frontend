@@ -2,6 +2,7 @@ import { api } from "@/shared/api/base";
 import { API_BASE_URL } from "@/shared/api/config/baseUrl";
 import { getAccessToken } from "@/shared/api/authCookies";
 import type { Category } from "../model/category";
+import type { CourseReview } from "../model/review";
 import type { CourseDetail, CourseListItem, Paginated } from "../model/types";
 
 const COURSES_ENDPOINT = "courses/";
@@ -16,7 +17,6 @@ export type CourseListParams = {
   level?: string;
   mode?: string;
   ordering?: string;
-  pricing_type?: string;
   rating_min?: string;
   search?: string;
   with_certificate?: boolean;
@@ -41,7 +41,6 @@ export async function getCourses(
     ...(filters.level ? { level: filters.level } : {}),
     ...(filters.mode ? { mode: filters.mode } : {}),
     ...(filters.ordering ? { ordering: filters.ordering } : {}),
-    ...(filters.pricing_type ? { pricing_type: filters.pricing_type } : {}),
     ...(filters.rating_min ? { rating_min: filters.rating_min } : {}),
     ...(filters.search ? { search: filters.search } : {}),
     ...(filters.with_certificate !== undefined ? { with_certificate: filters.with_certificate } : {}),
@@ -64,6 +63,30 @@ export async function getNewCourses(): Promise<CourseListItem[]> {
 
 export async function getPopularCourses(): Promise<CourseListItem[]> {
   const { data } = await api.get<CourseListItem[]>(`${COURSES_ENDPOINT}popular-courses/`);
+  return data;
+}
+
+/** Paginated public reviews for a course, newest first. */
+export async function getCourseReviews(
+  slug: string,
+  page = 1,
+): Promise<Paginated<CourseReview>> {
+  const { data } = await api.get<Paginated<CourseReview>>(
+    `${COURSES_ENDPOINT}${slug}/reviews/`,
+    { params: { page } },
+  );
+  return data;
+}
+
+export type EnrollResult = { status: "enrolled" };
+
+/**
+ * Enroll the authenticated user in a course.
+ * Throws a normalized ApiError on failure: status 401 (not authenticated),
+ * 402 (payment required for paid courses), 409 (already enrolled).
+ */
+export async function enrollInCourse(slug: string): Promise<EnrollResult> {
+  const { data } = await api.post<EnrollResult>(`${COURSES_ENDPOINT}${slug}/enroll/`);
   return data;
 }
 

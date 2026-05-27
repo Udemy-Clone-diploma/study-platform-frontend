@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { StudentCourseCard, TeacherCourseCard, type TeacherCourseStatus } from "@/features/courses";
 import { getEnrolledCourses, getTeacherCourses } from "@/entities/course";

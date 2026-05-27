@@ -2,8 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { SidebarNavItem } from "@/features/app-shell/ui/SidebarNavItem";
-import type { SidebarItem } from "@/features/app-shell/model/types";
+import { SidebarNavItem, type SidebarItem } from "@/features/app-shell";
 
 type AppSidebarProps = {
   items: SidebarItem[];

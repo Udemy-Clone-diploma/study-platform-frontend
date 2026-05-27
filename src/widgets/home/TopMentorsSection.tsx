@@ -3,8 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { SectionContainer } from "@/shared/ui/SectionContainer";
-import { MentorCard } from "@/features/users/ui/MentorCard";
-import type { Mentor } from "@/features/users/ui/MentorCard";
+import { MentorCard, type Mentor } from "@/features/users";
 import type { TopTeacher } from "@/entities/user";
 
 type Props = { teachers: TopTeacher[] };

@@ -3,23 +3,15 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { getMe } from "@/entities/user";
+import { getMe, getRoleHome } from "@/entities/user";
 import { loginUser } from "@/features/auth/api/authApi";
 import { validateLoginForm } from "@/features/auth/model/validation";
 import { useAuthForm } from "@/features/auth/model/useAuthForm";
 import { LoginFormData } from "@/features/auth/model/types/loginTypes";
-import type { UserRole } from "@/entities/user";
 import { setAuthCookies, setRoleCookie } from "@/shared/api/authCookies";
 import { AuthField } from "@/features/auth/ui/AuthField";
 import { AuthShell } from "@/features/auth/ui/AuthShell";
 import { AccentButton } from "@/shared/ui/AccentButton";
-
-const ROLE_HOME: Record<UserRole, string> = {
-  administrator: "/admin",
-  moderator: "/admin",
-  teacher: "/teacher-dashboard",
-  student: "/student-dashboard",
-};
 
 const initialForm: LoginFormData = {
   email: "",
@@ -49,7 +41,7 @@ export function LoginForm() {
         await setAuthCookies(loginResponse.access, loginResponse.refresh);
         await setRoleCookie(user.role);
 
-        router.push(ROLE_HOME[user.role] ?? "/student-dashboard");
+        router.push(getRoleHome(user.role));
       },
     });
 

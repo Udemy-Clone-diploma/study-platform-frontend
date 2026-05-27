@@ -1,5 +1,5 @@
 import { SectionContainer } from "@/shared/ui/SectionContainer";
-import { StudentReviewCard, type StudentReview } from "@/features/users/ui/StudentReviewCard";
+import { StudentReviewCard, type StudentReview } from "@/features/users";
 
 const ROW1: StudentReview[] = [
     {

@@ -3,8 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import { useState, Suspense } from "react";
 import Link from "next/link";
-import { resendVerificationEmail } from "@/features/auth/api/authApi";
-import { AuthPanel } from "@/features/auth/ui/AuthPanel";
+import { AuthPanel, resendVerificationEmail } from "@/features/auth";
 import { AccentButton } from "@/shared/ui/AccentButton";
 
 function CheckEmailContent() {

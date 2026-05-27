@@ -1,6 +1,6 @@
 import { Header } from "@/widgets/header";
 import { AppSidebar } from "./sidebar/AppSidebar";
-import type { SidebarItem } from "@/features/app-shell/model/types";
+import type { SidebarItem } from "@/features/app-shell";
 
 type AppShellProps = {
   children: React.ReactNode;

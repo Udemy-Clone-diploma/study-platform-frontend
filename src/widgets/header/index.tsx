@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getCategories } from "@/entities/course";
 import { getMe } from "@/entities/user";
 import { CatalogDropdown } from "@/features/courses";
-import { UserDropdown } from "@/features/auth/ui/UserDropdown";
+import { UserDropdown } from "@/features/auth";
 import { getAccessToken } from "@/shared/api/authCookies";
 import { AccentButton } from "@/shared/ui/AccentButton";
 import { SearchBar } from "@/shared/ui/SearchBar";

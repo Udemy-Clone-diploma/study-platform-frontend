@@ -3,9 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ResendEmailForm } from "@/features/auth/ui/forms/ResendEmailForm";
-import { resendVerificationEmail, verifyEmail } from "@/features/auth/api/authApi";
-import { AuthPanel } from "@/features/auth/ui/AuthPanel";
+import { AuthPanel, ResendEmailForm, resendVerificationEmail, verifyEmail } from "@/features/auth";
 import { AccentButton } from "@/shared/ui/AccentButton";
 
 export default function VerifyEmailPage() {

@@ -1,15 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { withAuth } from "@/features/auth/ui/withAuth";
+import { updateMe, uploadAvatar, updateTeacherProfile, updateStudentProfile, withAuth } from "@/features/auth";
 import { getMe } from "@/entities/user";
-import { updateMe, uploadAvatar, updateTeacherProfile, updateStudentProfile } from "@/features/auth/api/authApi";
 import type { UserData, UserLanguage, TeacherProfile, StudentProfile } from "@/entities/user";
-import { ProfileBgBlobs } from "@/features/profile/ui/ProfileBgBlobs";
-import { ProfileSidebar, type SocialLinks } from "@/features/profile/ui/ProfileSidebar";
-import { ProfileMainContent } from "@/features/profile/ui/ProfileMainContent";
-import { TeacherFields } from "@/features/profile/ui/TeacherFields";
-import { StudentFields } from "@/features/profile/ui/StudentFields";
+import {
+  ProfileBgBlobs,
+  ProfileMainContent,
+  ProfileSidebar,
+  StudentFields,
+  TeacherFields,
+  type SocialLinks,
+} from "@/features/profile";
 
 const GRAD_LINE: React.CSSProperties = {
     width: "4px", flexShrink: 0,

@@ -3,18 +3,18 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ResendEmailForm } from "@/features/auth/ui/forms/ResendEmailForm";
-import { AuthField } from "@/features/auth/ui/AuthField";
-import { AuthPanel } from "@/features/auth/ui/AuthPanel";
 import { AccentButton } from "@/shared/ui/AccentButton";
 import {
-  validatePasswordResetToken,
+  AuthField,
+  AuthPanel,
+  ResendEmailForm,
   confirmPasswordReset,
   requestPasswordReset,
-} from "@/features/auth/api/authApi";
-import { validatePasswordResetForm } from "@/features/auth/model/validation";
-import { useAuthForm } from "@/features/auth/model/useAuthForm";
-import type { PasswordResetFormData } from "@/features/auth/model/types/passwordResetTypes";
+  useAuthForm,
+  validatePasswordResetForm,
+  validatePasswordResetToken,
+  type PasswordResetFormData,
+} from "@/features/auth";
 
 type PageStatus = "loading" | "invalid" | "form" | "success" | "error";
 

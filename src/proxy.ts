@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import type { UserRole } from "@/entities/user";
+import { ROLE_HOME, type UserRole } from "@/entities/user";
 import { AUTH_COOKIE_NAMES } from "@/shared/api/config/authCookies";
 
 type RouteRule = {
@@ -31,13 +31,6 @@ const PROTECTED_ROUTES: RouteRule[] = [
     loginRedirect: "/login",
   },
 ];
-
-const ROLE_HOME: Record<UserRole, string> = {
-  administrator: "/admin",
-  moderator: "/admin",
-  teacher: "/teacher-dashboard",
-  student: "/student-dashboard",
-};
 
 const PUBLIC_PATHS = new Set(["/", "/login", "/register", "/admin/login"]);
 
@@ -82,7 +75,7 @@ export function proxy(request: NextRequest) {
 
   if (!role || !rule.allowedRoles.includes(role)) {
     const home = role ? ROLE_HOME[role] : "/login";
-    return NextResponse.redirect(new URL(home ?? "/login", request.url));
+    return NextResponse.redirect(new URL(home, request.url));
   }
 
   return NextResponse.next();

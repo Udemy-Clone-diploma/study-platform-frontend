@@ -4,12 +4,12 @@ import { CheckCircle2, Loader2, LogIn } from "lucide-react";
 import { useEnrollCourse } from "../model/useEnrollCourse";
 
 type Props = {
-  courseId: number;
+  slug: string;
 };
 
 /** Button that enrolls the current student into a course. */
-export function EnrollButton({ courseId }: Props) {
-  const { enroll, enrolled, loading, message } = useEnrollCourse(courseId);
+export function EnrollButton({ slug }: Props) {
+  const { enroll, enrolled, loading, message } = useEnrollCourse(slug);
   const Icon = enrolled ? CheckCircle2 : loading ? Loader2 : LogIn;
 
   return (

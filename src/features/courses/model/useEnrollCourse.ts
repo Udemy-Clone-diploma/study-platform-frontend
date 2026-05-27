@@ -2,26 +2,17 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { enrollInCourse } from "@/entities/course";
 import type { ApiError } from "@/shared/api/base";
 import { AUTH_COOKIE_NAMES } from "@/shared/api/config/authCookies";
 import { getClientCookie } from "@/shared/lib/cookies";
-import { enrollInCourse } from "../api/coursesApi";
 
 const STUDENT_ONLY_MESSAGE = "Enrollment is available only for students.";
 const ALREADY_ENROLLED_MESSAGE = "You are already enrolled in this course.";
+const PAID_COURSE_MESSAGE = "This course requires payment. See pricing on the course page.";
 const ENROLL_FAILED_MESSAGE = "Could not enroll in this course.";
 
-function fieldMessage(error: Partial<ApiError>, field: string): string | undefined {
-  const value = error.fields?.[field];
-  if (Array.isArray(value)) return value.join(" ");
-  return value;
-}
-
-function isAlreadyEnrolled(message: string | undefined) {
-  return message?.toLowerCase().includes("already enrolled") ?? false;
-}
-
-export function useEnrollCourse(courseId: number) {
+export function useEnrollCourse(slug: string) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [enrolled, setEnrolled] = useState(false);
@@ -47,7 +38,7 @@ export function useEnrollCourse(courseId: number) {
     setMessage("");
 
     try {
-      await enrollInCourse(courseId);
+      await enrollInCourse(slug);
       setEnrolled(true);
       router.push("/student-dashboard/courses");
     } catch (err) {
@@ -58,16 +49,18 @@ export function useEnrollCourse(courseId: number) {
         return;
       }
 
-      const courseError = fieldMessage(apiError, "course_id");
-      const serverMessage = courseError || apiError.detail || apiError.message;
-
-      if (isAlreadyEnrolled(serverMessage)) {
+      if (apiError.status === 409) {
         setEnrolled(true);
         setMessage(ALREADY_ENROLLED_MESSAGE);
         return;
       }
 
-      setMessage(serverMessage || ENROLL_FAILED_MESSAGE);
+      if (apiError.status === 402) {
+        setMessage(PAID_COURSE_MESSAGE);
+        return;
+      }
+
+      setMessage(apiError.detail || apiError.message || ENROLL_FAILED_MESSAGE);
     } finally {
       setLoading(false);
     }

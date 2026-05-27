@@ -1,4 +1,5 @@
 export type CourseCohort = {
+  id: number;
   duration_months: number;
   hours_per_week_min: number;
   hours_per_week_max: number;

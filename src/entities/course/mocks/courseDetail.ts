@@ -83,6 +83,7 @@ export const mockCourseDetail: CourseDetail = {
   ],
   cohorts: [
     {
+      id: 1,
       duration_months: 4,
       hours_per_week_min: 2,
       hours_per_week_max: 4,

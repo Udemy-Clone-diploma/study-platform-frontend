@@ -2,6 +2,9 @@ import { api } from "@/shared/api/base";
 import { API_BASE_URL } from "@/shared/api/config/baseUrl";
 import { getAccessToken } from "@/shared/api/authCookies";
 import type { Category } from "../model/category";
+import type { CourseCohort } from "../model/cohort";
+import type { LessonDetail } from "../model/module";
+import type { PricingPlan } from "../model/pricing";
 import type { CourseReview } from "../model/review";
 import type { CourseDetail, CourseListItem, Paginated } from "../model/types";
 
@@ -17,6 +20,10 @@ export type CourseListParams = {
   level?: string;
   mode?: string;
   ordering?: string;
+  /** Pricing plan kinds, comma-separated (e.g. "group,individual"). Backend matches courses offering any of the listed kinds. */
+  plan_kind?: string;
+  price_min?: number;
+  price_max?: number;
   rating_min?: string;
   search?: string;
   with_certificate?: boolean;
@@ -39,6 +46,9 @@ export async function getCourses(filters: CourseListParams = {}): Promise<Pagina
     ...(filters.level ? { level: filters.level } : {}),
     ...(filters.mode ? { mode: filters.mode } : {}),
     ...(filters.ordering ? { ordering: filters.ordering } : {}),
+    ...(filters.plan_kind ? { plan_kind: filters.plan_kind } : {}),
+    ...(filters.price_min !== undefined ? { price_min: filters.price_min } : {}),
+    ...(filters.price_max !== undefined ? { price_max: filters.price_max } : {}),
     ...(filters.rating_min ? { rating_min: filters.rating_min } : {}),
     ...(filters.search ? { search: filters.search } : {}),
     ...(filters.with_certificate !== undefined ? { with_certificate: filters.with_certificate } : {}),
@@ -64,6 +74,19 @@ export async function getPopularCourses(): Promise<CourseListItem[]> {
   return data;
 }
 
+/**
+ * Full lesson payload. Preview lessons are public; locked lessons require an
+ * active enrollment, ownership of the course, or moderator/admin role.
+ * Backend returns 403 if the user is not allowed and 404 if the lesson is
+ * missing or in a different course's slug.
+ */
+export async function getLesson(slug: string, lessonId: number): Promise<LessonDetail> {
+  const { data } = await api.get<LessonDetail>(
+    `${COURSES_ENDPOINT}${slug}/lessons/${lessonId}/`,
+  );
+  return data;
+}
+
 /** Paginated public reviews for a course, newest first. */
 export async function getCourseReviews(
   slug: string,
@@ -72,6 +95,90 @@ export async function getCourseReviews(
   const { data } = await api.get<Paginated<CourseReview>>(
     `${COURSES}${slug}/reviews/`,
     { params: { page } },
+  );
+  return data;
+}
+
+export type PricingPlanInput = Omit<PricingPlan, "id">;
+
+/**
+ * Create a pricing plan on a course. Course-owner or admin only.
+ * Backend constraints: at most one plan per `kind` (duplicate → 409),
+ * installment fields must both be set or both null,
+ * `installment_count * installment_amount >= price` when installments are used.
+ */
+export async function createPricingPlan(
+  slug: string,
+  body: PricingPlanInput,
+): Promise<PricingPlan> {
+  const { data } = await api.post<PricingPlan>(
+    `${COURSES_ENDPOINT}${slug}/pricing-plans/`,
+    body,
+  );
+  return data;
+}
+
+export async function updatePricingPlan(
+  slug: string,
+  id: number,
+  body: Partial<PricingPlanInput>,
+): Promise<PricingPlan> {
+  const { data } = await api.patch<PricingPlan>(
+    `${COURSES_ENDPOINT}${slug}/pricing-plans/${id}/`,
+    body,
+  );
+  return data;
+}
+
+export async function deletePricingPlan(slug: string, id: number): Promise<void> {
+  await api.delete(`${COURSES_ENDPOINT}${slug}/pricing-plans/${id}/`);
+}
+
+export type CohortInput = Omit<CourseCohort, "id">;
+
+/**
+ * Create a cohort on a course. Course-owner or admin only.
+ * `hours_per_week_max` must be >= `hours_per_week_min`.
+ */
+export async function createCohort(slug: string, body: CohortInput): Promise<CourseCohort> {
+  const { data } = await api.post<CourseCohort>(`${COURSES_ENDPOINT}${slug}/cohorts/`, body);
+  return data;
+}
+
+export async function updateCohort(
+  slug: string,
+  id: number,
+  body: Partial<CohortInput>,
+): Promise<CourseCohort> {
+  const { data } = await api.patch<CourseCohort>(
+    `${COURSES_ENDPOINT}${slug}/cohorts/${id}/`,
+    body,
+  );
+  return data;
+}
+
+export async function deleteCohort(slug: string, id: number): Promise<void> {
+  await api.delete(`${COURSES_ENDPOINT}${slug}/cohorts/${id}/`);
+}
+
+export type ReviewSubmission = {
+  rating: number;
+  text: string;
+};
+
+/**
+ * Post a review for a course. Backend requires the authenticated user to be a
+ * student with active enrollment.
+ * Throws a normalized ApiError on failure: 401 (anonymous), 403 (not enrolled),
+ * 409 (already reviewed).
+ */
+export async function submitCourseReview(
+  slug: string,
+  body: ReviewSubmission,
+): Promise<CourseReview> {
+  const { data } = await api.post<CourseReview>(
+    `${COURSES_ENDPOINT}${slug}/reviews/`,
+    body,
   );
   return data;
 }

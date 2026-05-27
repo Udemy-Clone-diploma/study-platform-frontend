@@ -29,6 +29,18 @@ export type CourseTest = {
   questions: CourseQuestion[];
 };
 
+export type LessonContentType = "video" | "text";
+
+/**
+ * Full lesson payload returned by `GET /courses/<slug>/lessons/<id>/`.
+ * The short shape used inside `CourseModule.lessons[]` is `CourseLesson`.
+ */
+export type LessonDetail = CourseLesson & {
+  content_type: LessonContentType;
+  video_url: string | null;
+  body_html: string | null;
+};
+
 export type CourseModule = {
   id: number;
   title: string;

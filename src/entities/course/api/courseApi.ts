@@ -2,7 +2,9 @@ import { api } from "@/shared/api/base";
 import { API_BASE_URL } from "@/shared/api/config/baseUrl";
 import { getAccessToken } from "@/shared/api/authCookies";
 import type { Category } from "../model/category";
+import type { CourseCohort } from "../model/cohort";
 import type { LessonDetail } from "../model/module";
+import type { PricingPlan } from "../model/pricing";
 import type { CourseReview } from "../model/review";
 import type { CourseDetail, CourseListItem, Paginated } from "../model/types";
 
@@ -97,6 +99,68 @@ export async function getCourseReviews(
     { params: { page } },
   );
   return data;
+}
+
+export type PricingPlanInput = Omit<PricingPlan, "id">;
+
+/**
+ * Create a pricing plan on a course. Course-owner or admin only.
+ * Backend constraints: at most one plan per `kind` (duplicate → 409),
+ * installment fields must both be set or both null,
+ * `installment_count * installment_amount >= price` when installments are used.
+ */
+export async function createPricingPlan(
+  slug: string,
+  body: PricingPlanInput,
+): Promise<PricingPlan> {
+  const { data } = await api.post<PricingPlan>(
+    `${COURSES_ENDPOINT}${slug}/pricing-plans/`,
+    body,
+  );
+  return data;
+}
+
+export async function updatePricingPlan(
+  slug: string,
+  id: number,
+  body: Partial<PricingPlanInput>,
+): Promise<PricingPlan> {
+  const { data } = await api.patch<PricingPlan>(
+    `${COURSES_ENDPOINT}${slug}/pricing-plans/${id}/`,
+    body,
+  );
+  return data;
+}
+
+export async function deletePricingPlan(slug: string, id: number): Promise<void> {
+  await api.delete(`${COURSES_ENDPOINT}${slug}/pricing-plans/${id}/`);
+}
+
+export type CohortInput = Omit<CourseCohort, "id">;
+
+/**
+ * Create a cohort on a course. Course-owner or admin only.
+ * `hours_per_week_max` must be >= `hours_per_week_min`.
+ */
+export async function createCohort(slug: string, body: CohortInput): Promise<CourseCohort> {
+  const { data } = await api.post<CourseCohort>(`${COURSES_ENDPOINT}${slug}/cohorts/`, body);
+  return data;
+}
+
+export async function updateCohort(
+  slug: string,
+  id: number,
+  body: Partial<CohortInput>,
+): Promise<CourseCohort> {
+  const { data } = await api.patch<CourseCohort>(
+    `${COURSES_ENDPOINT}${slug}/cohorts/${id}/`,
+    body,
+  );
+  return data;
+}
+
+export async function deleteCohort(slug: string, id: number): Promise<void> {
+  await api.delete(`${COURSES_ENDPOINT}${slug}/cohorts/${id}/`);
 }
 
 export type ReviewSubmission = {

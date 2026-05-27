@@ -42,10 +42,10 @@ export function CourseHero({ course }: Props) {
   const hasReviews = course.rating_count > 0;
 
   return (
-    <section className="grid grid-cols-1 items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,600px)] lg:gap-12">
-      <div className="flex flex-col gap-[60px]">
-        <div className="flex flex-col gap-10">
-          <div className="flex flex-col gap-5">
+    <section className="grid grid-cols-1 items-center gap-8 sm:gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,600px)] lg:gap-12">
+      <div className="flex flex-col gap-10 lg:gap-[60px]">
+        <div className="flex flex-col gap-6 sm:gap-10">
+          <div className="flex flex-col gap-4 sm:gap-5">
             <span
               className={`inline-flex w-fit items-center rounded-md px-3 py-0.5 font-(family-name:--font-accent) text-sm uppercase ${LEVEL_BADGE[course.level]}`}
             >
@@ -53,11 +53,11 @@ export function CourseHero({ course }: Props) {
             </span>
 
             <div className="flex flex-col gap-1">
-              <h1 className="text-5xl leading-tight text-(--color-text-primary) lg:text-6xl xl:text-7xl">
+              <h1 className="text-3xl leading-tight text-(--color-text-primary) sm:text-4xl lg:text-6xl xl:text-7xl">
                 {course.title}
               </h1>
               {course.subtitle && (
-                <p className="text-2xl text-(--color-text-secondary) lg:text-4xl">
+                <p className="text-xl text-(--color-text-secondary) sm:text-2xl lg:text-4xl">
                   {course.subtitle}
                 </p>
               )}
@@ -69,10 +69,10 @@ export function CourseHero({ course }: Props) {
           </div>
 
           <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-1 text-xl text-(--color-text-primary)">
+            <div className="flex items-center gap-1 text-base text-(--color-text-primary) sm:text-xl">
               <Star
                 aria-hidden="true"
-                className="h-9 w-9 flex-shrink-0"
+                className="h-6 w-6 flex-shrink-0 sm:h-9 sm:w-9"
                 fill={hasReviews ? "var(--color-gold)" : "transparent"}
                 stroke="var(--color-gold)"
               />
@@ -85,7 +85,7 @@ export function CourseHero({ course }: Props) {
               )}
             </div>
 
-            <ul className="flex flex-wrap items-center gap-3">
+            <ul className="flex flex-wrap items-center gap-2 sm:gap-3">
               <MetaPill>Language: {LANGUAGE_LABEL[course.language]}</MetaPill>
               <MetaPill>{MODE_LABEL[course.mode]}</MetaPill>
               <MetaPill>{LEVEL_META_LABEL[course.level]}</MetaPill>
@@ -118,8 +118,13 @@ export function CourseHero({ course }: Props) {
             {course.title}
           </div>
         )}
-        <div className="absolute bottom-[12%] left-[6%] inline-flex items-center rounded-[20px] border border-(--color-blue) bg-(--color-brand-lavender) px-8 py-2 shadow-(--shadow-card)">
-          <span className="text-2xl font-semibold text-(--color-blue)">{course.teacher.name}</span>
+        <div
+          aria-hidden="true"
+          className="absolute bottom-[12%] left-[6%] inline-flex items-center rounded-[20px] border border-(--color-blue) bg-(--color-brand-lavender) px-4 py-2 shadow-(--shadow-card) sm:px-8"
+        >
+          <span className="text-base font-semibold text-(--color-blue) sm:text-2xl">
+            {course.teacher.name}
+          </span>
         </div>
       </div>
     </section>
@@ -128,7 +133,7 @@ export function CourseHero({ course }: Props) {
 
 function MetaPill({ children }: { children: React.ReactNode }) {
   return (
-    <li className="rounded-full border border-(--color-brand-pink) bg-(--color-bg-surface) px-3 py-1 text-xl text-(--color-text-primary)">
+    <li className="rounded-full border border-(--color-brand-pink) bg-(--color-bg-surface) px-3 py-1 text-base text-(--color-text-primary) sm:text-xl">
       {children}
     </li>
   );

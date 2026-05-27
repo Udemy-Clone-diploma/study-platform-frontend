@@ -32,8 +32,8 @@ export function CourseReviewsView({ courseTitle, reviews }: Props) {
       />
 
       <SectionContainer>
-        <article className="flex flex-col gap-12 py-20 lg:gap-16 lg:py-28">
-          <h1 className="text-4xl text-(--color-text-primary) lg:text-5xl">
+        <article className="flex flex-col gap-8 py-12 sm:gap-12 sm:py-16 lg:gap-16 lg:py-28">
+          <h1 className="text-2xl text-(--color-text-primary) sm:text-3xl lg:text-5xl">
             Reviews of the &ldquo;{courseTitle}&rdquo; course
           </h1>
 
@@ -42,14 +42,14 @@ export function CourseReviewsView({ courseTitle, reviews }: Props) {
               {reviews.map((review, i) => (
                 <li
                   key={review.id}
-                  className={`w-full max-w-[1180px] ${i % 2 === 0 ? "self-start" : "self-end"}`}
+                  className={`w-full max-w-[1180px] ${i % 2 === 0 ? "self-start" : "lg:self-end"}`}
                 >
                   <CourseReviewCard review={review} showRating={false} />
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="text-lg text-(--color-text-secondary)">No reviews yet.</p>
+            <p className="text-base text-(--color-text-secondary) sm:text-lg">No reviews yet.</p>
           )}
         </article>
       </SectionContainer>

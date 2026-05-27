@@ -67,30 +67,34 @@ export function CoursePricingBlock({ plans, slug }: Props) {
   };
 
   return (
-    <section className="flex flex-col gap-10">
+    <section className="flex flex-col gap-8 sm:gap-10">
       <div className="flex flex-col gap-4">
         <SectionBadge>Tuition Fees &amp; Payment Options</SectionBadge>
-        <p className="max-w-[1180px] text-2xl text-(--color-text-primary)">
+        <p className="max-w-[1180px] text-lg text-(--color-text-primary) sm:text-xl lg:text-2xl">
           Choose the format that best fits your goals and budget. We offer flexible payment plans
           for your convenience.
         </p>
       </div>
 
-      {/* Cards sit side by side; gap-x is the 261px space between them. To raise/lower a
-          single card, add a vertical offset to its <article> below, e.g. translate-y-[40px]. */}
-      <div className="flex flex-wrap items-start justify-center gap-x-62 gap-y-12">
+      {/* Cards sit side by side; gap-x is the 261px space between them on desktop. On
+          mobile they stack with a moderate gap. To raise/lower a single card, add a
+          vertical offset to its <article> below, e.g. translate-y-[40px]. */}
+      <div className="flex flex-wrap items-start justify-center gap-x-8 gap-y-8 sm:gap-y-12 xl:gap-x-62">
         {plans.map((plan) => {
           const Icon = KIND_ICON[plan.kind];
           return (
             <article
               key={plan.id}
-              className="flex h-[469px] w-[460px] flex-col items-center justify-center gap-10 rounded-[20px] border border-(--color-bg) bg-(--color-white-20) px-6 py-11 backdrop-blur-md"
+              className="flex w-full max-w-[460px] flex-col items-center justify-center gap-8 rounded-[20px] border border-(--color-bg) bg-(--color-white-20) px-6 py-8 backdrop-blur-md sm:gap-10 sm:py-11 lg:h-[469px] lg:w-[460px]"
             >
-              <div className="flex flex-col items-center gap-10">
+              <div className="flex flex-col items-center gap-8 sm:gap-10">
                 <div className="flex flex-col items-center gap-2">
                   <div className="flex items-center gap-2">
-                    <Icon className="h-8 w-8 text-(--color-text-primary)" aria-hidden="true" />
-                    <h3 className="text-4xl text-(--color-text-primary)">
+                    <Icon
+                      className="h-6 w-6 text-(--color-text-primary) sm:h-8 sm:w-8"
+                      aria-hidden="true"
+                    />
+                    <h3 className="text-2xl text-(--color-text-primary) sm:text-3xl lg:text-4xl">
                       {KIND_LABEL[plan.kind]}
                     </h3>
                   </div>
@@ -99,9 +103,9 @@ export function CoursePricingBlock({ plans, slug }: Props) {
                   </p>
                 </div>
 
-                <div className="flex flex-col items-center gap-7">
+                <div className="flex flex-col items-center gap-6 sm:gap-7">
                   <PriceRow label="Full Price:">
-                    <span className="font-(family-name:--font-accent) text-2xl font-bold uppercase">
+                    <span className="font-(family-name:--font-accent) text-xl font-bold uppercase sm:text-2xl">
                       {formatPlanPrice(plan.price, plan.currency)}
                     </span>
                     <span className="text-base">(one-time payment)</span>
@@ -109,7 +113,7 @@ export function CoursePricingBlock({ plans, slug }: Props) {
 
                   {plan.installment_count && plan.installment_amount && (
                     <PriceRow label="Installment Plan:">
-                      <span className="font-(family-name:--font-accent) text-2xl font-bold uppercase">
+                      <span className="font-(family-name:--font-accent) text-xl font-bold uppercase sm:text-2xl">
                         {formatPlanPrice(plan.installment_amount, plan.currency)}
                       </span>
                       <span className="text-base">({plan.installment_count} monthly payment)</span>
@@ -139,8 +143,8 @@ export function CoursePricingBlock({ plans, slug }: Props) {
 function PriceRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col items-center gap-1 text-(--color-text-primary)">
-      <span className="font-(family-name:--font-accent) text-2xl uppercase">{label}</span>
-      <div className="flex items-center gap-1">{children}</div>
+      <span className="font-(family-name:--font-accent) text-xl uppercase sm:text-2xl">{label}</span>
+      <div className="flex flex-wrap items-center justify-center gap-x-1">{children}</div>
     </div>
   );
 }

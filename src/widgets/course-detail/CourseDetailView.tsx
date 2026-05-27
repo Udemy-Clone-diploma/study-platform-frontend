@@ -18,7 +18,7 @@ export function CourseDetailView({ course, reviews }: Props) {
   return (
     <div className="relative isolate overflow-x-clip bg-(--color-bg)">
       <SectionContainer>
-        <article className="flex flex-col gap-28 pt-20 lg:gap-32 lg:pt-24">
+        <article className="flex flex-col gap-16 pt-12 sm:gap-20 sm:pt-16 lg:gap-32 lg:pt-24">
           <section>
             <CourseHero course={course} />
           </section>
@@ -32,13 +32,13 @@ export function CourseDetailView({ course, reviews }: Props) {
             <CourseTeacher teacher={course.teacher} quote={course.quote} />
           </section>
 
-          <section className="grid grid-cols-1 gap-x-[111px] gap-y-10 lg:grid-cols-[minmax(0,1fr)_369px]">
+          <section className="grid grid-cols-1 gap-x-8 gap-y-8 sm:gap-x-12 lg:grid-cols-[minmax(0,1fr)_369px] lg:gap-x-[111px] lg:gap-y-10">
             <div className="lg:col-span-2">
               <div className="flex flex-col gap-2">
-                <h2 className="text-5xl text-(--color-text-primary) lg:text-6xl">
+                <h2 className="text-3xl text-(--color-text-primary) sm:text-4xl lg:text-6xl">
                   Course Curriculum
                 </h2>
-                <p className="text-3xl text-(--color-text-secondary)">
+                <p className="text-xl text-(--color-text-secondary) sm:text-2xl lg:text-3xl">
                   {course.lessons_count} Video Lessons | {course.modules.length}{" "}
                   {course.modules.length === 1 ? "Module" : "Modules"}
                 </p>
@@ -69,30 +69,31 @@ export function CourseDetailView({ course, reviews }: Props) {
         </article>
       </SectionContainer>
 
-      <div className="my-20 lg:my-28">
+      <div className="my-12 sm:my-16 lg:my-28">
         <CourseFeedback reviews={reviews} reviewsHref={`/courses/${course.slug}/reviews`} />
       </div>
 
       {hasPricingPlans && (
         <SectionContainer>
-          <section className="relative pb-24 mb-[180px] lg:mb-[260px]">
+          <section className="relative mb-20 pb-12 sm:mb-32 sm:pb-16 lg:mb-[260px] lg:pb-24">
             <DecorBlob
               className="top-[-25%] left-1/2 h-[1000px] w-[1600px] -translate-x-1/2"
               gradient="var(--gradient-glow-lavender)"
             />
-            {/* Decorative molecule renders, arranged left / centre / right.
+            {/* Decorative molecule renders, arranged left / centre / right. Hidden below
+                lg because the absolute positioning overlaps the stacked pricing cards.
                 Move one with its left-/right-/top- value; spin with rotate-[Ndeg]. */}
             <DecorImage
               src="/backgrounds/00 4.png"
-              className="absolute top-[10%] left-[-8%] -z-10 rotate-[0deg]"
+              className="absolute top-[10%] left-[-8%] -z-10 hidden rotate-[0deg] lg:block"
             />
             <DecorImage
               src="/backgrounds/00 3.png"
-              className="absolute top-[20%] left-[50%] -z-10 -translate-x-1/2 scale-x-[-1] scale-y-[-1] rotate-[-20deg]"
+              className="absolute top-[20%] left-[50%] -z-10 hidden -translate-x-1/2 scale-x-[-1] scale-y-[-1] rotate-[-20deg] lg:block"
             />
             <DecorImage
               src="/backgrounds/00 2.png"
-              className="absolute top-[1%] right-[-7%] -z-10 rotate-[170deg]"
+              className="absolute top-[1%] right-[-7%] -z-10 hidden rotate-[170deg] lg:block"
             />
             <CoursePricingBlock plans={course.pricing_plans} slug={course.slug} />
           </section>

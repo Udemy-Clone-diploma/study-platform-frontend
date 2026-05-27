@@ -12,12 +12,14 @@ export function CourseReviewCard({ review, showRating = true }: Props) {
   const initial = review.student.name.charAt(0);
 
   return (
-    <article className="flex h-full flex-col gap-2.5 rounded-[20px] bg-(--color-bg) px-6 pt-7 pb-8 shadow-(--shadow-testimonial)">
-      <p className="flex-1 text-xl text-(--color-text-secondary)">{review.text}</p>
+    <article className="flex h-full flex-col gap-2.5 rounded-[20px] bg-(--color-bg) px-5 pt-6 pb-6 shadow-(--shadow-testimonial) sm:px-6 sm:pt-7 sm:pb-8">
+      <p className="flex-1 text-base text-(--color-text-secondary) sm:text-lg lg:text-xl">
+        {review.text}
+      </p>
 
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="relative h-13 w-13 flex-shrink-0 overflow-hidden rounded-full bg-(--color-placeholder)">
+          <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-full bg-(--color-placeholder) sm:h-13 sm:w-13">
             {review.student.avatar ? (
               <Image
                 src={review.student.avatar}
@@ -55,7 +57,7 @@ export function CourseReviewCard({ review, showRating = true }: Props) {
               <Star
                 key={i}
                 aria-hidden="true"
-                className="h-9 w-9"
+                className="h-6 w-6 sm:h-8 sm:w-8 lg:h-9 lg:w-9"
                 fill={i < review.rating ? "var(--color-gold)" : "transparent"}
                 stroke="var(--color-gold)"
                 strokeWidth={1.5}

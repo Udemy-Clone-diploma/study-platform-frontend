@@ -33,7 +33,7 @@ export function CategoryFilter({ categories, currentSlug }: Props) {
 
     params.delete("page");
 
-    router.push(params.toString() ? `?${params.toString()}` : "/catalog");
+    router.push(params.toString() ? `?${params.toString()}` : "/catalog", { scroll: false });
   }
 
   return (

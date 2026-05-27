@@ -94,6 +94,8 @@ function ProfilePage() {
 
     function handleCancel() {
         if (user) {
+            setFirstName(user.first_name);
+            setLastName(user.last_name);
             setSocialLinks(socialFromUser(user));
             setLanguage(user.language);
             if (user.role === "teacher") {
@@ -143,13 +145,15 @@ function ProfilePage() {
             });
 
             if (user?.role === "teacher") {
-                updated = await updateTeacherProfile({ specialization, experience, bio });
+                const profile = await updateTeacherProfile({ specialization, experience, bio });
+                updated = { ...updated, profile };
             } else if (user?.role === "student") {
-                updated = await updateStudentProfile({
+                const profile = await updateStudentProfile({
                     date_of_birth:   dateOfBirth || null,
                     learning_goals:  learningGoals,
                     education_level: educationLevel,
                 });
+                updated = { ...updated, profile };
             }
 
             if (avatarFile) {

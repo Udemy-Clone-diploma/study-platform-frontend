@@ -13,8 +13,8 @@ export const SORT_OPTIONS: SortOption[] = [
   { label: "By popularity", value: "-students_count" },
   { label: "By rating", value: "-rating_avg" },
   { label: "By novelty", value: "-created_at" },
-  { label: "Cheap at first", value: "price" },
-  { label: "Expensive at first", value: "-price" },
+  { label: "Cheap at first", value: "min_price" },
+  { label: "Expensive at first", value: "-min_price" },
 ];
 
 export const DEFAULT_SORT = SORT_OPTIONS[0].value;
@@ -40,7 +40,7 @@ export function SortDropdown({ currentSort }: Props) {
       params.delete("sort");
     }
     params.delete("page");
-    router.push(`?${params.toString()}`);
+    router.push(`?${params.toString()}`, { scroll: false });
     setOpen(false);
   }
 

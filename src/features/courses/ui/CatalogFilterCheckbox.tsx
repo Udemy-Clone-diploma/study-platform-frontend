@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Check } from "lucide-react";
 
 type CatalogFilterCheckboxProps = {
   checked: boolean;
@@ -7,6 +8,7 @@ type CatalogFilterCheckboxProps = {
   inset?: boolean;
 };
 
+/** Single filter row in the catalog sidebar; renders as a Link so the URL stays the source of truth. */
 export function CatalogFilterCheckbox({
   checked,
   href,
@@ -16,28 +18,18 @@ export function CatalogFilterCheckbox({
   return (
     <Link
       href={href}
-      className={`flex items-center gap-2 text-[0.73rem] leading-tight text-[#5c5660] ${
+      scroll={false}
+      className={`flex items-center gap-2 text-[0.73rem] leading-tight text-(--color-text-secondary) ${
         inset ? "ml-5" : ""
       }`}
     >
       <span
-        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-[2px] border-2 ${
-          checked ? "border-[#0b55ff] bg-[#A7BAFA]/60" : "border-[#0b55ff] bg-transparent"
+        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-[2px] border-2 border-(--color-blue) ${
+          checked ? "bg-(--color-catalog-category-active)" : "bg-transparent"
         }`}
       >
         {checked ? (
-          <svg
-            aria-hidden="true"
-            viewBox="0 0 20 20"
-            className="h-4 w-4 text-[#0b55ff]"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="3.2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M4 10.5 8.2 14.5 16 5.5" />
-          </svg>
+          <Check aria-hidden="true" className="h-4 w-4 text-(--color-blue)" strokeWidth={3} />
         ) : null}
       </span>
       {label}

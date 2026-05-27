@@ -3,6 +3,7 @@ export type CourseLesson = {
   title: string;
   order: number;
   duration_minutes: number | null;
+  is_preview: boolean;
   content?: string;
   video_url?: string;
   min_score?: number | null;

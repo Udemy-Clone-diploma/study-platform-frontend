@@ -95,9 +95,9 @@ export function CatalogFiltersSidebar({
           ))}
         </CollapsibleFilterSection>
 
-        <p className="text-[0.73rem] text-[#7a747d]">In the group</p>
+        <p className="text-[0.73rem] text-(--color-text-secondary)">In the group</p>
 
-        <div className="h-px bg-[#9a9cff]" />
+        <div className="h-px bg-(--color-brand-lavender)" />
 
         <CollapsibleFilterSection title="Course rating">
           {["5", "4", "3"].map((rating) => (
@@ -163,11 +163,6 @@ export function CatalogFiltersSidebar({
               filtersOpen: true,
             })}
             label="Sale"
-            inset
-          />
-          <ToggleOption
-            option={{ label: "Combo", param: "pricing_type", value: "installment" }}
-            state={state}
             inset
           />
         </CollapsibleFilterSection>

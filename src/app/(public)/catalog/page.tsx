@@ -1,7 +1,17 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { SlidersHorizontal } from "lucide-react";
-import { getCategories, getCourses, type Category } from "@/entities/course";
+import {
+  getCategories,
+  getCourses,
+  type Category,
+  type CourseDeliveryType,
+  type CourseLanguage,
+  type CourseLevel,
+  type CourseMode,
+  type CourseType,
+  type PricingPlan,
+} from "@/entities/course";
 import { getWishlistSlugs } from "@/entities/course";
 import {
   buildCatalogHref,
@@ -31,17 +41,28 @@ function parsePage(params: CatalogSearchParams): number {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
 }
 
+/**
+ * URL filter values arrive as user-controlled comma-separated strings. The
+ * backend ignores unknown values, so we trust the cast at this boundary
+ * instead of validating every entry against the union members.
+ */
+function splitFilter<T extends string>(value: string | undefined): Array<T> | undefined {
+  if (!value) return undefined;
+  const parts = value.split(",").filter(Boolean) as Array<T>;
+  return parts.length ? parts : undefined;
+}
+
 async function loadCourses(state: CatalogFilterState, page: number) {
   try {
     const data = await getCourses({
       category: state.category,
-      course_type: state.course_type,
-      delivery_type: state.delivery_type,
+      course_type: splitFilter<CourseType>(state.course_type),
+      delivery_type: splitFilter<CourseDeliveryType>(state.delivery_type),
       is_on_sale: state.is_on_sale,
-      language: state.language,
-      level: state.level,
-      mode: state.mode,
-      plan_kind: state.plan_kind,
+      language: splitFilter<CourseLanguage>(state.language),
+      level: splitFilter<CourseLevel>(state.level),
+      mode: splitFilter<CourseMode>(state.mode),
+      plan_kind: splitFilter<PricingPlan["kind"]>(state.plan_kind),
       price_min: state.price_min ? Number(state.price_min) : undefined,
       price_max: state.price_max ? Number(state.price_max) : undefined,
       rating_min: state.rating_min,

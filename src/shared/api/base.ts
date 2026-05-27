@@ -7,6 +7,7 @@ import { getClientCookie } from "@/shared/lib/cookies";
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
+  timeout: 10000,
 });
 
 api.interceptors.request.use((config) => {

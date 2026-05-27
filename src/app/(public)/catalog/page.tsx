@@ -22,6 +22,7 @@ import {
   CourseSearch,
   parseCatalogState,
   resetCatalogFiltersHref,
+  SortDropdown,
   type CatalogFilterState,
   type CatalogSearchParams,
 } from "@/features/courses";
@@ -52,7 +53,7 @@ function splitFilter<T extends string>(value: string | undefined): Array<T> | un
   return parts.length ? parts : undefined;
 }
 
-async function loadCourses(state: CatalogFilterState, page: number) {
+async function loadCourses(state: CatalogFilterState, page: number, ordering: string | undefined) {
   try {
     const data = await getCourses({
       category: state.category,
@@ -62,6 +63,7 @@ async function loadCourses(state: CatalogFilterState, page: number) {
       language: splitFilter<CourseLanguage>(state.language),
       level: splitFilter<CourseLevel>(state.level),
       mode: splitFilter<CourseMode>(state.mode),
+      ordering,
       plan_kind: splitFilter<PricingPlan["kind"]>(state.plan_kind),
       price_min: state.price_min ? Number(state.price_min) : undefined,
       price_max: state.price_max ? Number(state.price_max) : undefined,
@@ -104,9 +106,10 @@ export default async function CatalogPage({
   const params = await searchParams;
   const state = parseCatalogState(params);
   const currentPage = parsePage(params);
+  const ordering = firstParam(params.sort);
 
   const [{ courses, count, error }, categories, wishlistedSlugs] = await Promise.all([
-    loadCourses(state, currentPage),
+    loadCourses(state, currentPage, ordering),
     loadCategories(),
     getWishlistSlugs().catch(() => []),
   ]);
@@ -145,6 +148,10 @@ export default async function CatalogPage({
               <SlidersHorizontal aria-hidden="true" className="h-4 w-4" />
               <span>All Filters</span>
             </Link>
+
+            <Suspense>
+              <SortDropdown currentSort={ordering} />
+            </Suspense>
           </div>
 
           <div className={`grid gap-5 ${state.filtersOpen ? "lg:grid-cols-[460px_1fr]" : ""}`}>

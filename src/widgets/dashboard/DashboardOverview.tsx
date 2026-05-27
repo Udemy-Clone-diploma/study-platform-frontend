@@ -389,9 +389,9 @@ function CourseProgressPanel({ items }: { items: ProgressItem[] }) {
     <Card className="max-h-[472px] overflow-hidden p-4">
       <h2 className="mb-3 text-base font-bold text-black">Course progress</h2>
       <ScrollableList>
-        {items.map((item) => (
+        {items.map((item, i) => (
           <div
-            key={`${item.title}-${item.value}`}
+            key={`${item.title}-${item.value}-${i}`}
             className="mb-2 flex min-h-[64px] items-center gap-3 rounded-md border border-black/5 bg-white px-3 shadow-[0_1px_8px_rgba(0,0,0,0.12)]"
           >
             <IconTile accent={item.accent} icon={item.icon} size="sm" />

@@ -2,15 +2,23 @@
 
 import { useState } from "react";
 import { ChevronDown, Play, Plus } from "lucide-react";
-import type { CourseModule } from "@/entities/course";
+import type { CourseModule, CourseLesson } from "@/entities/course";
 import { GradientButton } from "@/shared/ui/GradientButton";
 import { LessonRow } from "./LessonRow";
+import { TestRow } from "./TestRow";
+import type { CourseTest } from "@/entities/course";
 
 type Props = {
   module: CourseModule;
   index: number;
   onEdit: () => void;
   onDelete: () => void;
+  onAddLesson: () => void;
+  onEditLesson: (lesson: CourseLesson) => void;
+  onDeleteLesson: (lessonId: number) => void;
+  onAddTest?: () => void;
+  onEditTest?: (test: CourseTest) => void;
+  onDeleteTest?: (testId: number) => void;
 };
 
 const metaSt: React.CSSProperties = {
@@ -28,11 +36,47 @@ const sectionTitleSt: React.CSSProperties = {
   color: "var(--color-text-primary)",
 };
 
+const emptyCardSt: React.CSSProperties = {
+  background: "var(--color-bg)",
+  border: "2px solid var(--color-border-light)",
+  borderRadius: 16,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "clamp(28px, 2.43vw, 35px) 24px",
+};
+
+const emptyTextSt: React.CSSProperties = {
+  fontFamily: "var(--font-base)",
+  fontWeight: 700,
+  fontSize: "clamp(14px, 1.39vw, 20px)",
+  color: "var(--color-text-secondary)",
+  textAlign: "center",
+};
+
+const outlinedBtnSt: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: "clamp(8px, 0.69vw, 10px)",
+  height: "clamp(38px, 3.06vw, 44px)",
+  background: "var(--color-bg)",
+  border: "1px solid var(--color-draft)",
+  borderRadius: 28,
+  fontFamily: "var(--font-accent)",
+  fontWeight: 500,
+  fontSize: "clamp(14px, 1.39vw, 20px)",
+  letterSpacing: "-0.011em",
+  color: "var(--color-text-primary)",
+  cursor: "pointer",
+  padding: "4px clamp(14px, 1.25vw, 24px)",
+};
+
 /** Expandable module card — edit/delete always visible in the header. */
-export function ModuleCard({ module, index, onEdit, onDelete }: Props) {
+export function ModuleCard({ module, index, onEdit, onDelete, onAddLesson, onEditLesson, onDeleteLesson, onAddTest, onEditTest, onDeleteTest }: Props) {
   const [open, setOpen] = useState(false);
   const lessonCount = module.lessons.length;
-  const testCount = 0;
+  const testCount = module.tests?.length ?? 0;
 
   return (
     <div
@@ -114,7 +158,6 @@ export function ModuleCard({ module, index, onEdit, onDelete }: Props) {
 
           {/* Lessons section */}
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-            {/* Section header */}
             <div className="flex items-center justify-between">
               <div className="flex items-center" style={{ gap: 8 }}>
                 <Play size={20} style={{ color: "var(--color-text-primary)", flexShrink: 0 }} />
@@ -122,6 +165,7 @@ export function ModuleCard({ module, index, onEdit, onDelete }: Props) {
               </div>
               <GradientButton
                 type="button"
+                onClick={onAddLesson}
                 style={{ gap: 8, minWidth: "clamp(160px, 10.42vw, 200px)", height: "clamp(38px, 2.29vw, 44px)" }}
               >
                 <Plus size={16} />
@@ -129,18 +173,32 @@ export function ModuleCard({ module, index, onEdit, onDelete }: Props) {
               </GradientButton>
             </div>
 
-            {/* Lesson rows */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "clamp(8px, 0.52vw, 10px)" }}>
-              {lessonCount === 0 ? (
-                <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(13px, 0.83vw, 16px)", color: "var(--color-text-secondary)", padding: "4px 0" }}>
-                  No lessons yet
-                </p>
-              ) : (
-                module.lessons.map((lesson, i) => (
-                  <LessonRow key={lesson.id} lesson={lesson} index={i} />
-                ))
-              )}
-            </div>
+            {lessonCount === 0 ? (
+              <div style={emptyCardSt}>
+                <div className="flex flex-col items-center" style={{ gap: "clamp(16px, 1.39vw, 20px)" }}>
+                  <div className="flex flex-col items-center" style={{ gap: "clamp(8px, 0.83vw, 12px)" }}>
+                    <Play size={40} style={{ width: "clamp(32px, 2.78vw, 40px)", height: "clamp(32px, 2.78vw, 40px)", color: "var(--color-text-primary)" }} />
+                    <span style={emptyTextSt}>No lessons in this module yet</span>
+                  </div>
+                  <button type="button" onClick={onAddLesson} className="transition hover:opacity-80" style={outlinedBtnSt}>
+                    <Plus size={20} />
+                    Create First Lesson
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "clamp(8px, 0.52vw, 10px)" }}>
+                {module.lessons.map((lesson, i) => (
+                  <LessonRow
+                    key={lesson.id}
+                    lesson={lesson}
+                    index={i}
+                    onEdit={() => onEditLesson(lesson)}
+                    onDelete={() => onDeleteLesson(lesson.id)}
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Divider */}
@@ -148,7 +206,6 @@ export function ModuleCard({ module, index, onEdit, onDelete }: Props) {
 
           {/* Tests section */}
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-            {/* Section header */}
             <div className="flex items-center justify-between">
               <div className="flex items-center" style={{ gap: 8 }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -157,6 +214,7 @@ export function ModuleCard({ module, index, onEdit, onDelete }: Props) {
               </div>
               <button
                 type="button"
+                onClick={onAddTest}
                 className="inline-flex items-center justify-center transition hover:opacity-80"
                 style={{
                   gap: 8,
@@ -179,12 +237,32 @@ export function ModuleCard({ module, index, onEdit, onDelete }: Props) {
               </button>
             </div>
 
-            {/* Test rows */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "clamp(8px, 0.52vw, 10px)" }}>
-              <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(13px, 0.83vw, 16px)", color: "var(--color-text-secondary)", padding: "4px 0" }}>
-                No tests yet
-              </p>
-            </div>
+            {testCount === 0 ? (
+              <div style={emptyCardSt}>
+                <div className="flex flex-col items-center" style={{ gap: "clamp(16px, 1.39vw, 20px)" }}>
+                  <div className="flex flex-col items-center" style={{ gap: "clamp(8px, 0.83vw, 12px)" }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/icons/copy-check.svg" alt="" style={{ width: "clamp(32px, 2.78vw, 40px)", height: "clamp(32px, 2.78vw, 40px)" }} />
+                    <span style={emptyTextSt}>No tests in this module yet</span>
+                  </div>
+                  <button type="button" onClick={onAddTest} className="transition hover:opacity-80" style={outlinedBtnSt}>
+                    <Plus size={20} />
+                    Create First Test
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "clamp(8px, 0.52vw, 10px)" }}>
+                {(module.tests as CourseTest[]).map((test) => (
+                  <TestRow
+                    key={test.id}
+                    test={{ id: test.id, title: test.title, question_count: test.questions?.length, pass_percent: test.passing_score }}
+                    onEdit={onEditTest ? () => onEditTest(test) : undefined}
+                    onDelete={onDeleteTest ? () => onDeleteTest(test.id) : undefined}
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
         </div>

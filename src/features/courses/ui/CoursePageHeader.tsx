@@ -7,11 +7,13 @@ import { GradientButton } from "@/shared/ui/GradientButton";
 type Props = {
   title: string;
   saving: boolean;
+  canPublish?: boolean;
   onSaveDraft: () => void;
+  onContinue?: () => void;
 };
 
 /** Shared page header for course creation / edit pages. */
-export function CoursePageHeader({ title, saving, onSaveDraft }: Props) {
+export function CoursePageHeader({ title, saving, canPublish = false, onSaveDraft, onContinue }: Props) {
   return (
     <div
       className="flex flex-wrap items-center justify-between"
@@ -37,7 +39,7 @@ export function CoursePageHeader({ title, saving, onSaveDraft }: Props) {
           <Save size={20} />
           {saving ? "Saving..." : "Save Draft"}
         </AccentButton>
-        <GradientButton type="button" disabled style={{ gap: "clamp(8px, 0.83vw, 12px)" }}>
+        <GradientButton type="button" disabled={!canPublish} onClick={onContinue} style={{ gap: "clamp(8px, 0.83vw, 12px)" }}>
           Continue to Review &amp; Publish
           <ArrowUpRight size={20} aria-hidden="true" />
         </GradientButton>

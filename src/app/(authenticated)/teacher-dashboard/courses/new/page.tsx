@@ -16,6 +16,7 @@ import type { CourseBasicsFormValues } from "@/features/courses";
 import { getMe } from "@/entities/user";
 import type { TeacherProfile } from "@/entities/user";
 import type { ApiError } from "@/shared/api/base";
+import { mapApiFieldErrors } from "@/shared/lib/apiErrors";
 
 const EMPTY_FORM: CourseBasicsFormValues = { title: "", description: "", category_id: "", level: "", price: "" };
 
@@ -81,10 +82,7 @@ export default function NewCoursePage() {
     } catch (err) {
       const apiErr = err as Partial<ApiError>;
       if (apiErr.fields && Object.keys(apiErr.fields).length > 0) {
-        const mapped: Record<string, string> = {};
-        for (const [k, v] of Object.entries(apiErr.fields))
-          mapped[k] = Array.isArray(v) ? v.join(" ") : String(v);
-        setFieldErrors(mapped);
+        setFieldErrors(mapApiFieldErrors(apiErr.fields));
       } else {
         setGeneralError(apiErr.message ?? "Failed to create course.");
       }

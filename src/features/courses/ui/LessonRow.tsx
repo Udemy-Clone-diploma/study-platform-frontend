@@ -1,7 +1,7 @@
 "use client";
 
 type Props = {
-  lesson: { id: number; title: string };
+  lesson: { id: number; title: string; video_url?: string };
   index: number;
   onEdit?: () => void;
   onDelete?: () => void;

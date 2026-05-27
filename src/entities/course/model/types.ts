@@ -54,6 +54,7 @@ export type CourseDetail = Omit<CourseListItem, "teacher_name"> & {
   moderator_id: number | null;
   installment_count: number | null;
   installment_amount: string | null;
+  total_duration_minutes: number;
   modules: CourseModule[];
   created_at: string;
   updated_at: string;

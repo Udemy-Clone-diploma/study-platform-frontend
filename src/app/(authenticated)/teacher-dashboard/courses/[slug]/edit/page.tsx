@@ -14,6 +14,7 @@ import {
 } from "@/features/courses";
 import type { CourseBasicsFormValues } from "@/features/courses";
 import type { ApiError } from "@/shared/api/base";
+import { mapApiFieldErrors } from "@/shared/lib/apiErrors";
 
 async function matchIconToImage(imageUrl: string): Promise<string | null> {
   try {
@@ -109,10 +110,7 @@ export default function EditCourseBasicsPage() {
     } catch (err) {
       const apiErr = err as Partial<ApiError>;
       if (apiErr.fields && Object.keys(apiErr.fields).length > 0) {
-        const mapped: Record<string, string> = {};
-        for (const [k, v] of Object.entries(apiErr.fields))
-          mapped[k] = Array.isArray(v) ? v.join(" ") : String(v);
-        setFieldErrors(mapped);
+        setFieldErrors(mapApiFieldErrors(apiErr.fields));
       } else {
         setGeneralError(apiErr.message ?? "Failed to update course.");
       }

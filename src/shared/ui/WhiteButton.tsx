@@ -2,10 +2,14 @@
 
 import { ArrowLeft } from "lucide-react";
 
-type Props = React.ButtonHTMLAttributes<HTMLButtonElement>;
+type Props = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  /** Pass an icon node to override the default ArrowLeft, or null to hide it. */
+  icon?: React.ReactNode;
+};
 
-/** White outlined pill button with a left arrow — used for back/cancel actions. */
-export function WhiteButton({ children, ...props }: Props) {
+/** White outlined pill button — default shows ArrowLeft icon for back/cancel actions. */
+export function WhiteButton({ children, icon, ...props }: Props) {
+  const displayIcon = icon !== undefined ? icon : <ArrowLeft size={20} />;
   return (
     <button
       type="button"
@@ -15,8 +19,8 @@ export function WhiteButton({ children, ...props }: Props) {
         gap: "clamp(8px, 0.69vw, 10px)",
         minWidth: "clamp(160px, 13.89vw, 200px)",
         height: "clamp(38px, 3.06vw, 44px)",
-        background: "#FFFFFF",
-        border: "1px solid #CACACA",
+        background: "var(--color-bg)",
+        border: "1px solid var(--color-draft)",
         borderRadius: 28,
         fontFamily: "var(--font-accent)",
         fontWeight: 500,
@@ -28,7 +32,7 @@ export function WhiteButton({ children, ...props }: Props) {
         ...props.style,
       }}
     >
-      <ArrowLeft size={20} />
+      {displayIcon}
       {children}
     </button>
   );

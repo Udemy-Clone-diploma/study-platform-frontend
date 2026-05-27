@@ -17,6 +17,10 @@ export type CourseListParams = {
   level?: string;
   mode?: string;
   ordering?: string;
+  /** Comma-separated list of pricing plan kinds the course must offer. Per PR #56. */
+  plan_kind?: string;
+  price_min?: number;
+  price_max?: number;
   rating_min?: string;
   search?: string;
   with_certificate?: boolean;
@@ -41,6 +45,9 @@ export async function getCourses(
     ...(filters.level ? { level: filters.level } : {}),
     ...(filters.mode ? { mode: filters.mode } : {}),
     ...(filters.ordering ? { ordering: filters.ordering } : {}),
+    ...(filters.plan_kind ? { plan_kind: filters.plan_kind } : {}),
+    ...(filters.price_min !== undefined ? { price_min: filters.price_min } : {}),
+    ...(filters.price_max !== undefined ? { price_max: filters.price_max } : {}),
     ...(filters.rating_min ? { rating_min: filters.rating_min } : {}),
     ...(filters.search ? { search: filters.search } : {}),
     ...(filters.with_certificate !== undefined ? { with_certificate: filters.with_certificate } : {}),

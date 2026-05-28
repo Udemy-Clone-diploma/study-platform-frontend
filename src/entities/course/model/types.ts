@@ -49,6 +49,9 @@ export type CourseListItem = {
   students_count: number;
   status: CourseStatus;
   published_at: string | null;
+  created_at: string;
+  /** Date the current student was granted access. Null for non-enrolled contexts (teacher, catalog). */
+  enrolled_at: string | null;
   tags: CourseTag[];
 };
 

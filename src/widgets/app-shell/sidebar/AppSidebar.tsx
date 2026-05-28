@@ -14,7 +14,7 @@ export function AppSidebar({ items }: AppSidebarProps) {
   return (
     <aside
       className={[
-        "z-30 shrink-0 self-stretch overflow-hidden bg-[#A7BAFA] px-4 pt-[28px] transition-[width] duration-200",
+        "sticky top-0 h-screen z-30 shrink-0 overflow-y-auto overflow-x-hidden bg-[#A7BAFA] px-4 pt-[28px] transition-[width] duration-200",
         isExpanded ? "w-[292px]" : "w-20",
       ].join(" ")}
     >

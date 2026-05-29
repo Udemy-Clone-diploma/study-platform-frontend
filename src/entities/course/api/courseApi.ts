@@ -244,6 +244,34 @@ export async function submitCourseForReview(slug: string): Promise<void> {
   await api.patch(`${COURSES}${slug}/`, { status: "review" });
 }
 
+export async function deleteCourse(slug: string): Promise<void> {
+  await api.delete(`${COURSES}${slug}/`);
+}
+
+export async function archiveCourse(slug: string): Promise<void> {
+  await api.patch(`${COURSES}${slug}/`, { status: "archived" });
+}
+
+/** Move course back to draft (from review or needs_revision). */
+export async function withdrawCourseFromReview(slug: string): Promise<void> {
+  await api.patch(`${COURSES}${slug}/`, { status: "draft" });
+}
+
+/** Move archived course back to draft. */
+export async function unarchiveCourse(slug: string): Promise<void> {
+  await api.patch(`${COURSES}${slug}/`, { status: "draft" });
+}
+
+/** Set status to "hidden": removed from catalog, enrolled students keep access. */
+export async function hideCourse(slug: string): Promise<void> {
+  await api.patch(`${COURSES}${slug}/`, { status: "hidden" });
+}
+
+/** Re-publish a hidden course (open for new enrollments). */
+export async function openCourse(slug: string): Promise<void> {
+  await api.patch(`${COURSES}${slug}/`, { status: "published" });
+}
+
 export async function uploadCourseImage(slug: string, imageFile: File): Promise<void> {
   const formData = new FormData();
   formData.append("image", imageFile);

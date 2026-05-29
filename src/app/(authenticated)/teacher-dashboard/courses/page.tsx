@@ -1,11 +1,21 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { TeacherCourseCard, type TeacherCourseStatus } from "@/features/courses";
 import { Pagination } from "@/shared/ui/Pagination";
-import { getTeacherCourses } from "@/entities/course";
+import {
+  getTeacherCourses,
+  deleteCourse,
+  archiveCourse,
+  withdrawCourseFromReview,
+  unarchiveCourse,
+  hideCourse,
+  openCourse,
+  submitCourseForReview,
+} from "@/entities/course";
 import type { CourseListItem, CourseLevel, CourseStatus } from "@/entities/course";
 import type { ApiError } from "@/shared/api/base";
 import { useViewportPageSize } from "@/shared/lib/useViewportPageSize";
@@ -33,6 +43,7 @@ const BACKEND_TO_UI: Record<CourseStatus, TeacherCourseStatus> = {
   review: "pending_moderation",
   needs_revision: "needs_revision",
   published: "active",
+  hidden: "hidden",
   archived: "completed",
 };
 
@@ -53,6 +64,7 @@ function getCourseMonthLabel(course: CourseListItem): string {
 }
 
 export default function TeacherCoursesPage() {
+  const router = useRouter();
   const [courses, setCourses] = useState<CourseListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -69,6 +81,28 @@ export default function TeacherCoursesPage() {
       )
       .finally(() => setLoading(false));
   }, []);
+
+  function updateStatus(slug: string, newStatus: CourseStatus) {
+    setCourses((prev) => prev.map((c) => (c.slug === slug ? { ...c, status: newStatus } : c)));
+  }
+
+  function removeCourse(slug: string) {
+    setCourses((prev) => prev.filter((c) => c.slug !== slug));
+  }
+
+  function makeHandlers(course: CourseListItem) {
+    const { slug } = course;
+    return {
+      onEdit:      () => router.push(`/teacher-dashboard/courses/${slug}/edit`),
+      onPublish:   () => submitCourseForReview(slug).then(() => updateStatus(slug, "review")).catch(() => {}),
+      onWithdraw:  () => withdrawCourseFromReview(slug).then(() => updateStatus(slug, "draft")).catch(() => {}),
+      onArchive:   () => archiveCourse(slug).then(() => updateStatus(slug, "archived")).catch(() => {}),
+      onUnarchive: () => unarchiveCourse(slug).then(() => updateStatus(slug, "draft")).catch(() => {}),
+      onDelete:    () => deleteCourse(slug).then(() => removeCourse(slug)).catch(() => {}),
+      onHide:      () => hideCourse(slug).then(() => updateStatus(slug, "hidden")).catch(() => {}),
+      onOpen:      () => openCourse(slug).then(() => updateStatus(slug, "published")).catch(() => {}),
+    };
+  }
 
   const filtered = courses
     .filter((course) => {
@@ -194,6 +228,8 @@ export default function TeacherCoursesPage() {
                             : undefined
                         }
                         slug={course.slug}
+                        enrolledCount={course.students_count}
+                        {...makeHandlers(course)}
                       />
                     ))}
                 </div>

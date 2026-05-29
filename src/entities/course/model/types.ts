@@ -53,6 +53,13 @@ export type CourseListItem = {
   /** Date the current student was granted access. Null for non-enrolled contexts (teacher, catalog). */
   enrolled_at: string | null;
   tags: CourseTag[];
+  /**
+   * Present only on teacher my-courses list. Null when the course has no pending edit.
+   * "draft"         — edits saved but not yet submitted for moderation
+   * "pending"       — submitted for moderation (editing locked)
+   * "needs_revision"— moderator returned for revision
+   */
+  pending_edit_status: "draft" | "pending" | "needs_revision" | null;
 };
 
 export type CourseDetail = Omit<CourseListItem, "teacher_name" | "price" | "currency"> & {

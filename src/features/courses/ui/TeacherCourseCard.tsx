@@ -17,12 +17,15 @@ const LEVEL_GRADIENT: Record<CourseLevel, string> = {
 };
 
 const STATUS_ICON: Record<TeacherCourseStatus, string | null> = {
-  draft:              "/icons/pen.svg",
-  active:             null,
-  pending_moderation: "/icons/clock.svg",
-  needs_revision:     "/icons/exclamationmark-triangle.svg",
-  hidden:             null,
-  completed:          null,
+  draft:                "/icons/pen.svg",
+  active:               null,
+  active_draft_edit:    "/icons/pen.svg",
+  active_pending_edit:  "/icons/clock.svg",
+  active_needs_revision:"/icons/exclamationmark-triangle.svg",
+  pending_moderation:   "/icons/clock.svg",
+  needs_revision:       "/icons/exclamationmark-triangle.svg",
+  hidden:               null,
+  completed:            null,
 };
 
 // ----- modal config -------------------------------------------------------
@@ -35,7 +38,10 @@ type ModalKind =
   | "hidden-archive"
   | "withdraw"
   | "unarchive"
-  | "publish";
+  | "publish"
+  | "submit-changes"
+  | "discard-changes"
+  | "withdraw-edit";
 
 type ModalConfig = {
   title: string;
@@ -62,6 +68,12 @@ function modalConfig(kind: ModalKind, enrolledCount: number): ModalConfig {
       return { title: "Unarchive", description: "This course will be moved back to Draft. Are you sure?", confirmLabel: "Unarchive" };
     case "publish":
       return { title: "Submit for Review", description: "Are you sure you want to submit this course for moderation?", confirmLabel: "Submit" };
+    case "submit-changes":
+      return { title: "Submit Changes for Review", description: "Are you sure you want to submit your edits for moderation? You will not be able to edit further until the moderator reviews them.", confirmLabel: "Submit" };
+    case "discard-changes":
+      return { title: "Discard Changes", description: "Are you sure you want to discard all pending changes? The published course will remain unaffected.", confirmLabel: "Discard" };
+    case "withdraw-edit":
+      return { title: "Withdraw Edit from Moderation", description: "Your changes will be moved back to draft state so you can continue editing. The published course is unaffected.", confirmLabel: "Withdraw" };
   }
 }
 
@@ -85,6 +97,10 @@ type Props = {
   onDelete?: () => void;
   onHide?: () => void;
   onOpen?: () => void;
+  onEditChanges?: () => void;
+  onSubmitChanges?: () => void;
+  onWithdrawEdit?: () => void;
+  onDiscardChanges?: () => void;
 };
 
 /** Course card for the teacher My Courses page */
@@ -92,23 +108,30 @@ export function TeacherCourseCard({
   title, level, status, imageSrc, iconSrc, progressPercent, rating, slug,
   enrolledCount = 0,
   onEdit, onPublish, onWithdraw, onArchive, onUnarchive, onDelete, onHide, onOpen,
+  onEditChanges, onSubmitChanges, onWithdrawEdit, onDiscardChanges,
 }: Props) {
-  const gradient  = LEVEL_GRADIENT[level];
+  const gradient   = LEVEL_GRADIENT[level];
   const statusIcon = STATUS_ICON[status];
-  const clamped = progressPercent !== undefined ? Math.min(Math.max(progressPercent, 0), 100) : undefined;
-  const thumbSize = "clamp(36px, 4.17vw, 60px)";
-  const iconSize  = "clamp(16px, 1.67vw, 24px)";
+  const clamped    = progressPercent !== undefined ? Math.min(Math.max(progressPercent, 0), 100) : undefined;
+  const thumbSize  = "clamp(36px, 4.17vw, 60px)";
+  const iconSize   = "clamp(16px, 1.67vw, 24px)";
 
   const [modal, setModal] = useState<ModalKind | null>(null);
 
   function handleAction(action: MenuAction) {
     switch (action) {
-      case "edit":      onEdit?.(); break;
-      case "open":      onOpen?.(); break;
-      case "publish":   setModal("publish"); break;
-      case "delete":    setModal(enrolledCount > 0 ? "delete-hide" : "delete"); break;
-      case "withdraw":  setModal("withdraw"); break;
-      case "unarchive": setModal("unarchive"); break;
+      case "edit":            onEdit?.();                  break;
+      case "open":            onOpen?.();                  break;
+      case "publish":         setModal("publish");         break;
+      case "withdraw":        setModal("withdraw");        break;
+      case "unarchive":       setModal("unarchive");       break;
+      case "edit-changes":    onEditChanges?.();           break;
+      case "submit-changes":  setModal("submit-changes");  break;
+      case "withdraw-edit":   setModal("withdraw-edit");   break;
+      case "discard-changes": setModal("discard-changes"); break;
+      case "delete":
+        setModal(enrolledCount > 0 ? "delete-hide" : "delete");
+        break;
       case "archive":
         if (status === "hidden") setModal(enrolledCount > 0 ? "hidden-archive" : "archive");
         else setModal(enrolledCount > 0 ? "archive-hide" : "archive");
@@ -119,19 +142,24 @@ export function TeacherCourseCard({
   function handleConfirm() {
     if (!modal) return;
     switch (modal) {
-      case "delete":         onDelete?.();    break;
-      case "delete-hide":    onHide?.();      break;
-      case "archive":        onArchive?.();   break;
-      case "archive-hide":   onHide?.();      break;
-      case "hidden-archive": onArchive?.();   break;
-      case "withdraw":       onWithdraw?.();  break;
-      case "unarchive":      onUnarchive?.(); break;
-      case "publish":        onPublish?.();   break;
+      case "delete":          onDelete?.();         break;
+      case "delete-hide":     onHide?.();           break;
+      case "archive":         onArchive?.();        break;
+      case "archive-hide":    onHide?.();           break;
+      case "hidden-archive":  onArchive?.();        break;
+      case "withdraw":        onWithdraw?.();       break;
+      case "unarchive":       onUnarchive?.();      break;
+      case "publish":         onPublish?.();        break;
+      case "submit-changes":  onSubmitChanges?.();  break;
+      case "discard-changes": onDiscardChanges?.(); break;
+      case "withdraw-edit":   onWithdrawEdit?.();   break;
     }
     setModal(null);
   }
 
   const cfg = modal ? modalConfig(modal, enrolledCount) : null;
+
+  const showRating = (status === "completed" || status === "active" || status === "active_draft_edit" || status === "active_pending_edit" || status === "active_needs_revision") && rating !== undefined;
 
   return (
     <>
@@ -168,12 +196,13 @@ export function TeacherCourseCard({
                 {title}
               </h3>
 
-              {(status === "completed" || status === "active") && rating !== undefined ? (
+              {showRating && (
                 <div className="flex shrink-0 items-center" style={{ gap: "clamp(2px, 0.14vw, 2px)" }}>
                   <Image src="/icons/star fill.png" alt="" width={24} height={24} style={{ width: iconSize, height: iconSize }} />
                   <span className="text-(--color-text-primary)" style={{ fontSize: "clamp(14px, 1.39vw, 20px)" }}>{rating}</span>
                 </div>
-              ) : status === "hidden" ? (
+              )}
+              {status === "hidden" ? (
                 <div className="flex shrink-0 items-center justify-center" style={{ width: "clamp(24px, 2.5vw, 36px)", height: "clamp(24px, 2.5vw, 36px)" }}>
                   <EyeOff style={{ width: iconSize, height: iconSize }} />
                 </div>

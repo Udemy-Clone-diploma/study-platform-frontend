@@ -1,6 +1,7 @@
 export * from "./api/courseApi";
 export * from "./api/moduleApi";
 export * from "./api/lessonApi";
+export * from "./api/pendingEditApi";
 export * from "./api/testApi";
 export * from "./api/questionApi";
 export * from "./lib/formatDuration";
@@ -11,6 +12,7 @@ export * from "./model/completion";
 export * from "./model/cohort";
 export * from "./model/enrollment";
 export * from "./model/module";
+export * from "./model/pending-edit";
 export * from "./model/pricing";
 export * from "./model/review";
 export * from "./model/tag";

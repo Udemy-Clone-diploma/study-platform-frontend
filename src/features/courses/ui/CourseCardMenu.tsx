@@ -6,12 +6,26 @@ import { MoreVertical, Pencil, Send, Trash2, RotateCcw, Archive, ArchiveRestore,
 export type TeacherCourseStatus =
   | "draft"
   | "active"
+  | "active_draft_edit"
+  | "active_pending_edit"
+  | "active_needs_revision"
   | "pending_moderation"
   | "needs_revision"
   | "hidden"
   | "completed";
 
-export type MenuAction = "edit" | "publish" | "delete" | "withdraw" | "archive" | "unarchive" | "open";
+export type MenuAction =
+  | "edit"
+  | "publish"
+  | "delete"
+  | "withdraw"
+  | "archive"
+  | "unarchive"
+  | "open"
+  | "edit-changes"
+  | "submit-changes"
+  | "withdraw-edit"
+  | "discard-changes";
 
 type MenuItem = {
   label: string;
@@ -22,21 +36,37 @@ type MenuItem = {
 
 const MENU_BY_STATUS: Record<TeacherCourseStatus, MenuItem[]> = {
   draft: [
-    { label: "Edit",              action: "edit",      Icon: Pencil },
-    { label: "Submit for Review", action: "publish",   Icon: Send   },
-    { label: "Delete",            action: "delete",    Icon: Trash2, danger: true },
+    { label: "Edit",              action: "edit",    Icon: Pencil },
+    { label: "Submit for Review", action: "publish", Icon: Send   },
+    { label: "Delete",            action: "delete",  Icon: Trash2, danger: true },
   ],
   pending_moderation: [
     { label: "Withdraw from Moderation", action: "withdraw", Icon: RotateCcw },
   ],
   needs_revision: [
-    { label: "Withdraw from Moderation", action: "withdraw", Icon: RotateCcw },
-    { label: "Edit",                     action: "edit",     Icon: Pencil   },
-    { label: "Re-submit for Review",     action: "publish",  Icon: Send     },
+    { label: "Withdraw from Moderation", action: "withdraw",  Icon: RotateCcw },
+    { label: "Edit",                     action: "edit",      Icon: Pencil   },
+    { label: "Re-submit for Review",     action: "publish",   Icon: Send     },
   ],
   active: [
     { label: "Edit",    action: "edit",    Icon: Pencil  },
     { label: "Archive", action: "archive", Icon: Archive },
+  ],
+  /** Published + draft pending edit (saved but not submitted) */
+  active_draft_edit: [
+    { label: "Edit Changes",          action: "edit-changes",    Icon: Pencil   },
+    { label: "Submit Changes",        action: "submit-changes",  Icon: Send     },
+    { label: "Discard Changes",       action: "discard-changes", Icon: Trash2, danger: true },
+  ],
+  /** Published + pending edit submitted for moderation (locked) */
+  active_pending_edit: [
+    { label: "Withdraw from Moderation", action: "withdraw-edit", Icon: RotateCcw },
+  ],
+  /** Published + edit returned by moderator */
+  active_needs_revision: [
+    { label: "Edit Changes",    action: "edit-changes",   Icon: Pencil },
+    { label: "Submit Changes",  action: "submit-changes", Icon: Send   },
+    { label: "Discard Changes", action: "discard-changes", Icon: Trash2, danger: true },
   ],
   hidden: [
     { label: "Edit",    action: "edit",    Icon: Pencil      },

@@ -14,6 +14,9 @@ import {
   hideCourse,
   openCourse,
   submitCourseForReview,
+  submitPendingEdit,
+  withdrawPendingEdit,
+  discardPendingEdit,
 } from "@/entities/course";
 import type { CourseListItem, CourseLevel, CourseStatus } from "@/entities/course";
 import type { ApiError } from "@/shared/api/base";
@@ -29,26 +32,35 @@ const TABS = [
 type Tab = (typeof TABS)[number];
 
 const TAB_STATUSES: Partial<Record<Tab, CourseStatus[]>> = {
-  Active: ["published"],
+  Active: ["published", "hidden"],
   Drafts: ["draft"],
   "Pending moderation": ["review"],
   "For review": ["needs_revision"],
   Completed: ["archived"],
 };
 
-const BACKEND_TO_UI: Record<CourseStatus, TeacherCourseStatus> = {
-  draft: "draft",
-  review: "pending_moderation",
-  needs_revision: "needs_revision",
-  published: "active",
-  hidden: "hidden",
-  archived: "completed",
-};
+function resolveCardStatus(course: CourseListItem): TeacherCourseStatus {
+  const { status, pending_edit_status } = course;
+  if ((status === "published" || status === "hidden") && pending_edit_status) {
+    if (pending_edit_status === "pending")       return "active_pending_edit";
+    if (pending_edit_status === "needs_revision") return "active_needs_revision";
+    return "active_draft_edit";
+  }
+  const MAP: Record<CourseStatus, TeacherCourseStatus> = {
+    draft:          "draft",
+    review:         "pending_moderation",
+    needs_revision: "needs_revision",
+    published:      "active",
+    hidden:         "hidden",
+    archived:       "completed",
+  };
+  return MAP[status] ?? "draft";
+}
 
 const LEVEL_ICON: Record<CourseLevel, string> = {
-  beginner: "/icons/curses.svg",
+  beginner:     "/icons/curses.svg",
   intermediate: "/icons/world.png",
-  advanced: "/icons/statistics.svg",
+  advanced:     "/icons/statistics.svg",
 };
 
 const CURRENT_YEAR = new Date().getFullYear();
@@ -58,6 +70,8 @@ function getCourseMonthLabel(course: CourseListItem): string {
   const monthName = date.toLocaleString("en-US", { month: "long" });
   return date.getFullYear() === CURRENT_YEAR ? monthName : `${monthName} ${date.getFullYear()}`;
 }
+
+type PendingEditStatus = NonNullable<CourseListItem["pending_edit_status"]>;
 
 export default function TeacherCoursesPage() {
   const router = useRouter();
@@ -79,6 +93,12 @@ export default function TeacherCoursesPage() {
     setCourses((prev) => prev.map((c) => (c.slug === slug ? { ...c, status: newStatus } : c)));
   }
 
+  function updatePendingStatus(slug: string, newPending: PendingEditStatus | null) {
+    setCourses((prev) =>
+      prev.map((c) => (c.slug === slug ? { ...c, pending_edit_status: newPending } : c)),
+    );
+  }
+
   function removeCourse(slug: string) {
     setCourses((prev) => prev.filter((c) => c.slug !== slug));
   }
@@ -94,6 +114,11 @@ export default function TeacherCoursesPage() {
       onDelete:    () => deleteCourse(slug).then(() => removeCourse(slug)).catch(() => {}),
       onHide:      () => hideCourse(slug).then(() => updateStatus(slug, "hidden")).catch(() => {}),
       onOpen:      () => openCourse(slug).then(() => updateStatus(slug, "published")).catch(() => {}),
+      // Pending edit actions
+      onEditChanges:    () => router.push(`/teacher-dashboard/courses/${slug}/edit`),
+      onSubmitChanges:  () => submitPendingEdit(slug).then(() => updatePendingStatus(slug, "pending")).catch(() => {}),
+      onWithdrawEdit:   () => withdrawPendingEdit(slug).then(() => updatePendingStatus(slug, "draft")).catch(() => {}),
+      onDiscardChanges: () => discardPendingEdit(slug).then(() => updatePendingStatus(slug, null)).catch(() => {}),
     };
   }
 
@@ -197,7 +222,7 @@ export default function TeacherCoursesPage() {
                       key={course.id}
                       title={course.title}
                       level={course.level}
-                      status={BACKEND_TO_UI[course.status] ?? "draft"}
+                      status={resolveCardStatus(course)}
                       imageSrc={course.image}
                       iconSrc={LEVEL_ICON[course.level] ?? "/icons/curses.svg"}
                       rating={

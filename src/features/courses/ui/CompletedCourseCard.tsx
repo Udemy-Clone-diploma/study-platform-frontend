@@ -79,7 +79,7 @@ export function CompletedCourseCard({
               {title}
             </h3>
             <span
-              className="inline-block max-w-full truncate font-(family-name:--font-accent) uppercase leading-none"
+              className="self-start inline-block max-w-full truncate font-(family-name:--font-accent) uppercase leading-none"
               style={{
                 background: theme.badgeBg,
                 color: theme.badgeText,
@@ -93,19 +93,19 @@ export function CompletedCourseCard({
           </div>
         </div>
 
-        <div className="flex items-center" style={{ gap: "clamp(4px, 0.42vw, 6px)" }}>
-          <div className="h-0.5 flex-1 overflow-hidden rounded-full bg-(--color-brand-lavender)">
-            <div
-              className="h-full rounded-full bg-(--color-blue)"
-              style={{ width: `${clamped}%` }}
-            />
-          </div>
+        <div className="flex justify-end">
           <span
-            className="shrink-0 font-(family-name:--font-accent) font-semibold uppercase text-(--color-text-primary)"
+            className="font-(family-name:--font-accent) font-semibold uppercase text-(--color-text-primary)"
             style={{ fontSize: "clamp(10px, 1.11vw, 16px)" }}
           >
             {clamped}%
           </span>
+        </div>
+        <div className="h-0.5 overflow-hidden rounded-full bg-(--color-brand-lavender)">
+          <div
+            className="h-full rounded-full bg-(--color-blue)"
+            style={{ width: `${clamped}%` }}
+          />
         </div>
       </div>
     </button>

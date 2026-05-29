@@ -145,7 +145,7 @@ export function TeacherCourseCard({
           style={{
             background: gradient,
             borderRadius: "clamp(12px, 1.39vw, 20px)",
-            padding: "clamp(10px, 1.25vw, 19px) clamp(8px, 0.83vw, 12px)",
+            padding: "clamp(10px, 2.09vw, 40px) clamp(8px, 0.83vw, 12px)",
             gap: "clamp(4px, 0.56vw, 8px)",
           }}
         >

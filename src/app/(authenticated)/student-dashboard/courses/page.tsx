@@ -16,7 +16,6 @@ const LEVEL_ICON: Record<CourseLevel, string> = {
   intermediate: "/icons/world.png",
   advanced: "/icons/statistics.svg",
 };
-
 const RESERVED_PX = 300;
 const CURRENT_YEAR = new Date().getFullYear();
 
@@ -94,7 +93,7 @@ export default function StudentCoursesPage() {
 
   useEffect(() => {
     if (pageSlice.length > 0) recalc();
-  }, [pageSlice.length, recalc]);
+  }, [pageSlice.length, safePage, recalc]);
 
   function handlePageChange(newPage: number) {
     setPage(newPage);
@@ -134,7 +133,7 @@ export default function StudentCoursesPage() {
                   ? "text-(--color-text-primary) underline underline-offset-4"
                   : "text-(--color-text-secondary) hover:text-(--color-text-primary)",
               ].join(" ")}
-              style={{ fontSize: "clamp(14px, 1.67vw, 24px)" }}
+              style={{ fontSize: "clamp(14px, 1.39vw, 24px)" }}
             >
               {tab}
             </button>

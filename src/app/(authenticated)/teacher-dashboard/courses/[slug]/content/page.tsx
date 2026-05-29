@@ -22,6 +22,8 @@ import {
   savePendingEditModules,
   discardPendingEdit,
   nextTempId,
+  uploadLessonDocument,
+  deleteLessonDocument,
 } from "@/entities/course";
 import type { CourseDetail, CourseModule, CourseLesson, CourseTest } from "@/entities/course";
 import type { SnapshotModule, SnapshotQuestion } from "@/entities/course";
@@ -231,6 +233,30 @@ export default function CourseContentPage() {
   function openEditLessonModal(moduleId: number, lesson: CourseLesson) { setLessonModal({ open: true, mode: "edit", moduleId, lesson }); }
   function closeLessonModal() { setLessonModal({ open: false }); }
 
+  async function _syncDocuments(moduleId: number, lessonId: number, values: LessonFormValues) {
+    if (!slug || lessonId <= 0) return;
+    await Promise.all(
+      values.deleted_document_ids.map((id) => deleteLessonDocument(slug, moduleId, lessonId, id)),
+    );
+    const uploaded = await Promise.all(
+      values.new_documents.map((file) => uploadLessonDocument(slug, moduleId, lessonId, file)),
+    );
+    setModuleList((prev) =>
+      prev.map((m) =>
+        m.id === moduleId
+          ? {
+              ...m,
+              lessons: m.lessons.map((l) => {
+                if (l.id !== lessonId) return l;
+                const kept = (l.documents ?? []).filter((d) => !values.deleted_document_ids.includes(d.id));
+                return { ...l, documents: [...kept, ...uploaded] };
+              }),
+            }
+          : m,
+      ),
+    );
+  }
+
   async function handleSaveLesson(values: LessonFormValues) {
     if (!slug || !lessonModal.open) return;
     const { mode, moduleId } = lessonModal;
@@ -274,6 +300,7 @@ export default function CourseContentPage() {
               }
             : m,
         );
+        if (lessonId > 0) await _syncDocuments(moduleId, lessonId, values);
       } else return;
       setModuleList(updated);
       await flushSnapshot(updated);
@@ -283,6 +310,7 @@ export default function CourseContentPage() {
         setModuleList((prev) =>
           prev.map((m) => m.id === moduleId ? { ...m, lessons: [...m.lessons, newLesson] } : m),
         );
+        await _syncDocuments(moduleId, newLesson.id, values);
       } else if (lessonId !== null) {
         const updated = await updateLesson(slug, moduleId, lessonId, payload);
         setModuleList((prev) =>
@@ -292,6 +320,7 @@ export default function CourseContentPage() {
               : m,
           ),
         );
+        await _syncDocuments(moduleId, lessonId, values);
       }
     }
     closeLessonModal();
@@ -640,8 +669,12 @@ export default function CourseContentPage() {
             title: lessonModal.lesson.title,
             content: lessonModal.lesson.content ?? "",
             video_url: lessonModal.lesson.video_url ?? undefined,
+            original_video_name: lessonModal.lesson.original_video_name,
             duration_minutes: lessonModal.lesson.duration_minutes != null ? String(lessonModal.lesson.duration_minutes) : "",
             min_score: lessonModal.lesson.min_score != null ? String(lessonModal.lesson.min_score) : "",
+            existing_documents: lessonModal.lesson.documents ?? [],
+            new_documents: [],
+            deleted_document_ids: [],
           } : undefined}
           onClose={closeLessonModal}
           onSave={handleSaveLesson}

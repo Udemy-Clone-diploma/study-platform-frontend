@@ -1,5 +1,5 @@
 import { api } from "@/shared/api/base";
-import type { CourseLesson } from "../model/module";
+import type { CourseLesson, LessonDocument } from "../model/module";
 
 const COURSES = "courses/";
 
@@ -60,4 +60,30 @@ export async function deleteLesson(
   lessonId: number,
 ): Promise<void> {
   await api.delete(`${COURSES}${courseSlug}/modules/${moduleId}/lessons/${lessonId}/`);
+}
+
+export async function uploadLessonDocument(
+  courseSlug: string,
+  moduleId: number,
+  lessonId: number,
+  file: File,
+): Promise<LessonDocument> {
+  const fd = new FormData();
+  fd.append("file", file);
+  const { data } = await api.post<LessonDocument>(
+    `${COURSES}${courseSlug}/modules/${moduleId}/lessons/${lessonId}/documents/`,
+    fd,
+  );
+  return data;
+}
+
+export async function deleteLessonDocument(
+  courseSlug: string,
+  moduleId: number,
+  lessonId: number,
+  docId: number,
+): Promise<void> {
+  await api.delete(
+    `${COURSES}${courseSlug}/modules/${moduleId}/lessons/${lessonId}/documents/${docId}/`,
+  );
 }

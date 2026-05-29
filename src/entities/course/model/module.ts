@@ -1,3 +1,10 @@
+export type LessonDocument = {
+  id: number;
+  original_name: string;
+  url: string;
+  created_at: string;
+};
+
 export type CourseLesson = {
   id: number;
   title: string;
@@ -6,7 +13,9 @@ export type CourseLesson = {
   is_preview: boolean;
   content?: string;
   video_url?: string;
+  original_video_name?: string;
   min_score?: number | null;
+  documents?: LessonDocument[];
 };
 
 export type CourseQuestion = {

@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { TeacherCourseCard, type TeacherCourseStatus } from "@/features/courses";
-import { Pagination } from "@/shared/ui/Pagination";
 import {
   getTeacherCourses,
   deleteCourse,
@@ -18,7 +17,6 @@ import {
 } from "@/entities/course";
 import type { CourseListItem, CourseLevel, CourseStatus } from "@/entities/course";
 import type { ApiError } from "@/shared/api/base";
-import { useViewportPageSize } from "@/shared/lib/useViewportPageSize";
 
 const TABS = [
   "All",
@@ -53,8 +51,6 @@ const LEVEL_ICON: Record<CourseLevel, string> = {
   advanced: "/icons/statistics.svg",
 };
 
-// header 76 + tab+button row 56 + page padding 64 + month heading 40 + pagination 56 + gap buffer 16
-const RESERVED_PX = 308;
 const CURRENT_YEAR = new Date().getFullYear();
 
 function getCourseMonthLabel(course: CourseListItem): string {
@@ -69,9 +65,6 @@ export default function TeacherCoursesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState<Tab>("All");
-  const [page, setPage] = useState(1);
-
-  const { pageSize, gridRef, recalc } = useViewportPageSize(RESERVED_PX);
 
   useEffect(() => {
     getTeacherCourses()
@@ -113,23 +106,10 @@ export default function TeacherCoursesPage() {
     })
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
-  const safePage = Math.min(page, totalPages);
-  const pageSlice = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
-  const monthsOnPage = [...new Set(pageSlice.map(getCourseMonthLabel))];
-
-  useEffect(() => {
-    if (pageSlice.length > 0) recalc();
-  }, [pageSlice.length, recalc]);
-
-  function handlePageChange(newPage: number) {
-    setPage(newPage);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
+  const months = [...new Set(filtered.map(getCourseMonthLabel))];
 
   function handleTabChange(tab: Tab) {
     setActiveTab(tab);
-    setPage(1);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -193,59 +173,46 @@ export default function TeacherCoursesPage() {
           <p className="mt-16 text-center text-lg text-(--color-text-secondary)">Loading...</p>
         ) : error ? (
           <p className="mt-16 text-center text-lg text-red-500">{error}</p>
-        ) : monthsOnPage.length === 0 ? (
+        ) : months.length === 0 ? (
           <p className="mt-16 text-center text-lg text-(--color-text-secondary)">
             No courses found.
           </p>
         ) : (
-          <>
-            {monthsOnPage.map((month, mi) => (
-              <section key={month} style={{ marginBottom: "clamp(16px, 2.22vw, 32px)" }}>
-                <h2
-                  className="font-normal text-(--color-text-primary)"
-                  style={{ fontSize: "clamp(16px, 1.67vw, 24px)", marginBottom: "clamp(8px, 1.11vw, 16px)" }}
-                >
-                  {month}
-                </h2>
-                <div
-                  ref={mi === 0 ? gridRef : undefined}
-                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-                  style={{ gap: "clamp(8px, 1.11vw, 16px)" }}
-                >
-                  {pageSlice
-                    .filter((c) => getCourseMonthLabel(c) === month)
-                    .map((course) => (
-                      <TeacherCourseCard
-                        key={course.id}
-                        title={course.title}
-                        level={course.level}
-                        status={BACKEND_TO_UI[course.status] ?? "draft"}
-                        imageSrc={course.image}
-                        iconSrc={LEVEL_ICON[course.level] ?? "/icons/curses.svg"}
-                        rating={
-                          course.status === "archived" || course.status === "published"
-                            ? Number(course.rating_avg)
-                            : undefined
-                        }
-                        slug={course.slug}
-                        enrolledCount={course.students_count}
-                        {...makeHandlers(course)}
-                      />
-                    ))}
-                </div>
-              </section>
-            ))}
-
-            {totalPages > 1 && (
-              <div style={{ display: "flex", justifyContent: "center", marginTop: "clamp(16px, 2.22vw, 32px)" }}>
-                <Pagination
-                  currentPage={safePage}
-                  totalPages={totalPages}
-                  onPageChange={handlePageChange}
-                />
+          months.map((month) => (
+            <section key={month} style={{ marginBottom: "clamp(16px, 2.22vw, 32px)" }}>
+              <h2
+                className="font-normal text-(--color-text-primary)"
+                style={{ fontSize: "clamp(16px, 1.67vw, 24px)", marginBottom: "clamp(8px, 1.11vw, 16px)" }}
+              >
+                {month}
+              </h2>
+              <div
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                style={{ gap: "clamp(8px, 1.11vw, 16px)" }}
+              >
+                {filtered
+                  .filter((c) => getCourseMonthLabel(c) === month)
+                  .map((course) => (
+                    <TeacherCourseCard
+                      key={course.id}
+                      title={course.title}
+                      level={course.level}
+                      status={BACKEND_TO_UI[course.status] ?? "draft"}
+                      imageSrc={course.image}
+                      iconSrc={LEVEL_ICON[course.level] ?? "/icons/curses.svg"}
+                      rating={
+                        course.status === "archived" || course.status === "published"
+                          ? Number(course.rating_avg)
+                          : undefined
+                      }
+                      slug={course.slug}
+                      enrolledCount={course.students_count}
+                      {...makeHandlers(course)}
+                    />
+                  ))}
               </div>
-            )}
-          </>
+            </section>
+          ))
         )}
       </div>
     </main>

@@ -7,6 +7,7 @@ export * from "./lib/formatDuration";
 export * from "./lib/formatPrice";
 export * from "./model/types";
 export * from "./model/category";
+export * from "./model/completion";
 export * from "./model/cohort";
 export * from "./model/enrollment";
 export * from "./model/module";

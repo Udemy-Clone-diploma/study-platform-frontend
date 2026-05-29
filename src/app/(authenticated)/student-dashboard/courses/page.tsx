@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { StudentCourseCard } from "@/features/courses";
+import { StudentCourseCard, CompletedCourseCard, CompletionResultModal } from "@/features/courses";
 import { Pagination } from "@/shared/ui/Pagination";
-import { getEnrolledCourses } from "@/entities/course";
-import type { CourseListItem, CourseLevel } from "@/entities/course";
+import { getEnrolledCourses, getStudentCompletions } from "@/entities/course";
+import type { CourseListItem, CourseLevel, CourseCompletion } from "@/entities/course";
 import type { ApiError } from "@/shared/api/base";
 import { useViewportPageSize } from "@/shared/lib/useViewportPageSize";
 
@@ -17,54 +17,80 @@ const LEVEL_ICON: Record<CourseLevel, string> = {
   advanced: "/icons/statistics.svg",
 };
 
-// header 76 + tab row 48 + page padding 64 + month heading 40 + pagination 56 + gap buffer 16
 const RESERVED_PX = 300;
 const CURRENT_YEAR = new Date().getFullYear();
 
-function getCourseMonthLabel(course: CourseListItem): string {
-  const date = new Date(course.enrolled_at ?? course.created_at);
+function getMonthLabel(iso: string): string {
+  const date = new Date(iso);
   const monthName = date.toLocaleString("en-US", { month: "long" });
   return date.getFullYear() === CURRENT_YEAR ? monthName : `${monthName} ${date.getFullYear()}`;
 }
 
-function getProgressPercent(course: CourseListItem): number {
-  return course.status === "archived" ? 100 : 0;
+// Discriminated union for the merged "All" list
+type AllItem =
+  | { kind: "active"; item: CourseListItem }
+  | { kind: "completed"; item: CourseCompletion };
+
+function itemDate(entry: AllItem): number {
+  return entry.kind === "active"
+    ? new Date(entry.item.enrolled_at ?? entry.item.created_at).getTime()
+    : new Date(entry.item.completed_at).getTime();
+}
+
+function itemMonthLabel(entry: AllItem): string {
+  return entry.kind === "active"
+    ? getMonthLabel(entry.item.enrolled_at ?? entry.item.created_at)
+    : getMonthLabel(entry.item.completed_at);
 }
 
 export default function StudentCoursesPage() {
   const [courses, setCourses] = useState<CourseListItem[]>([]);
+  const [completions, setCompletions] = useState<CourseCompletion[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState<Tab>("All");
   const [page, setPage] = useState(1);
+  const [selectedCompletion, setSelectedCompletion] = useState<CourseCompletion | null>(null);
 
   const { pageSize, gridRef, recalc } = useViewportPageSize(RESERVED_PX);
 
   useEffect(() => {
-    getEnrolledCourses()
-      .then((data: { results: CourseListItem[] }) => setCourses(data.results))
-      .catch((err: Partial<ApiError>) =>
-        setError(err.message ?? "Failed to load courses."),
-      )
+    Promise.all([getEnrolledCourses(), getStudentCompletions()])
+      .then(([enrolled, completed]) => {
+        setCourses(enrolled.results);
+        setCompletions(completed.results);
+      })
+      .catch((err: Partial<ApiError>) => setError(err.message ?? "Failed to load courses."))
       .finally(() => setLoading(false));
   }, []);
 
-  const filtered = courses
-    .filter((course) => {
-      if (activeTab === "Current") return course.status !== "archived";
-      if (activeTab === "Completed") return course.status === "archived";
-      return true;
-    })
-    .sort((a, b) => {
-      const da = new Date(a.enrolled_at ?? a.created_at).getTime();
-      const db = new Date(b.enrolled_at ?? b.created_at).getTime();
-      return db - da;
-    });
+  // ---- build display list per tab ----
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const allItems: AllItem[] = [
+    ...courses.map((item): AllItem => ({ kind: "active", item })),
+    ...completions.map((item): AllItem => ({ kind: "completed", item })),
+  ].sort((a, b) => itemDate(b) - itemDate(a));
+
+  const displayItems: AllItem[] =
+    activeTab === "Current"
+      ? courses
+          .sort((a, b) =>
+            new Date(b.enrolled_at ?? b.created_at).getTime() -
+            new Date(a.enrolled_at ?? a.created_at).getTime(),
+          )
+          .map((item): AllItem => ({ kind: "active", item }))
+      : activeTab === "Completed"
+      ? completions
+          .sort((a, b) => new Date(b.completed_at).getTime() - new Date(a.completed_at).getTime())
+          .map((item): AllItem => ({ kind: "completed", item }))
+      : allItems;
+
+  // ---- pagination ----
+
+  const totalPages = Math.max(1, Math.ceil(displayItems.length / pageSize));
   const safePage = Math.min(page, totalPages);
-  const pageSlice = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
-  const monthsOnPage = [...new Set(pageSlice.map(getCourseMonthLabel))];
+  const pageSlice = displayItems.slice((safePage - 1) * pageSize, safePage * pageSize);
+  const monthsOnPage = [...new Set(pageSlice.map(itemMonthLabel))];
 
   useEffect(() => {
     if (pageSlice.length > 0) recalc();
@@ -80,6 +106,11 @@ export default function StudentCoursesPage() {
     setPage(1);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
+
+  // ---- empty state label ----
+
+  const emptyLabel =
+    activeTab === "Completed" ? "No completed courses yet." : "No courses found.";
 
   return (
     <main
@@ -115,9 +146,7 @@ export default function StudentCoursesPage() {
         ) : error ? (
           <p className="mt-16 text-center text-lg text-red-500">{error}</p>
         ) : monthsOnPage.length === 0 ? (
-          <p className="mt-16 text-center text-lg text-(--color-text-secondary)">
-            No courses found.
-          </p>
+          <p className="mt-16 text-center text-lg text-(--color-text-secondary)">{emptyLabel}</p>
         ) : (
           <>
             {monthsOnPage.map((month, mi) => (
@@ -134,20 +163,32 @@ export default function StudentCoursesPage() {
                   style={{ gap: "clamp(8px, 1.11vw, 16px)" }}
                 >
                   {pageSlice
-                    .filter((c) => getCourseMonthLabel(c) === month)
-                    .map((course) => (
-                      <StudentCourseCard
-                        key={course.id}
-                        title={course.title}
-                        teacherName={course.teacher_name}
-                        progressPercent={getProgressPercent(course)}
-                        imageSrc={course.image}
-                        iconSrc={LEVEL_ICON[course.level] ?? "/icons/curses.svg"}
-                        level={course.level}
-                        slug={course.slug}
-                        isArchived={course.status === "archived"}
-                      />
-                    ))}
+                    .filter((entry) => itemMonthLabel(entry) === month)
+                    .map((entry) =>
+                      entry.kind === "active" ? (
+                        <StudentCourseCard
+                          key={`active-${entry.item.id}`}
+                          title={entry.item.title}
+                          teacherName={entry.item.teacher_name}
+                          progressPercent={0}
+                          imageSrc={entry.item.image}
+                          iconSrc={LEVEL_ICON[entry.item.level] ?? "/icons/curses.svg"}
+                          level={entry.item.level}
+                          slug={entry.item.slug}
+                        />
+                      ) : (
+                        <CompletedCourseCard
+                          key={`completed-${entry.item.id}`}
+                          title={entry.item.title}
+                          teacherName={entry.item.teacher_name}
+                          progressPercent={entry.item.progress_percent}
+                          imageSrc={entry.item.image_url}
+                          iconSrc={LEVEL_ICON[entry.item.level] ?? "/icons/curses.svg"}
+                          level={entry.item.level}
+                          onClick={() => setSelectedCompletion(entry.item)}
+                        />
+                      ),
+                    )}
                 </div>
               </section>
             ))}
@@ -164,6 +205,13 @@ export default function StudentCoursesPage() {
           </>
         )}
       </div>
+
+      {selectedCompletion && (
+        <CompletionResultModal
+          completion={selectedCompletion}
+          onClose={() => setSelectedCompletion(null)}
+        />
+      )}
     </main>
   );
 }

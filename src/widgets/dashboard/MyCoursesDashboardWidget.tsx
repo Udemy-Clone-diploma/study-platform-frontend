@@ -138,12 +138,11 @@ export function MyCoursesDashboardWidget({ role }: Props) {
                 key={course.id}
                 title={course.title}
                 teacherName={course.teacher_name}
-                progressPercent={course.status === "archived" ? 100 : 0}
+                progressPercent={0}
                 imageSrc={course.image}
                 iconSrc={LEVEL_ICON[course.level] ?? "/icons/curses.svg"}
                 level={course.level}
                 slug={course.slug}
-                isArchived={course.status === "archived"}
               />
             )
           )}

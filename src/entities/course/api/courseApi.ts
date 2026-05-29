@@ -6,6 +6,7 @@ import type { CourseCohort } from "../model/cohort";
 import type { LessonDetail } from "../model/module";
 import type { PricingPlan } from "../model/pricing";
 import type { CourseReview } from "../model/review";
+import type { CourseCompletion } from "../model/completion";
 import type {
   CourseDeliveryType,
   CourseDetail,
@@ -213,6 +214,11 @@ export async function getEnrolledCourses(page = 1): Promise<Paginated<CourseList
   const { data } = await api.get<Paginated<CourseListItem>>(`${COURSES}enrolled/`, {
     params: { page, page_size: 100 },
   });
+  return data;
+}
+
+export async function getStudentCompletions(): Promise<Paginated<CourseCompletion>> {
+  const { data } = await api.get<Paginated<CourseCompletion>>(`${COURSES}completions/`);
   return data;
 }
 

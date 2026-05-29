@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import type { CourseLevel } from "@/entities/course";
 
 const LEVEL_THEME = {
@@ -25,39 +24,39 @@ const LEVEL_THEME = {
 type Props = {
   title: string;
   teacherName: string;
-  progressPercent?: number;
+  progressPercent: number;
   imageSrc?: string | null;
   iconSrc: string;
   level?: CourseLevel;
-  slug: string;
+  onClick: () => void;
 };
 
-/** Course card for the student My Courses page (active / in-progress courses). */
-export function StudentCourseCard({
+/** Completed-course card: same visuals as StudentCourseCard but grayscale, shows frozen progress, opens a modal on click. */
+export function CompletedCourseCard({
   title,
   teacherName,
   progressPercent,
   imageSrc,
   iconSrc,
   level = "beginner",
-  slug,
+  onClick,
 }: Props) {
   const theme = LEVEL_THEME[level] ?? LEVEL_THEME.beginner;
-  const clamped =
-    progressPercent !== undefined
-      ? Math.min(Math.max(progressPercent, 0), 100)
-      : undefined;
-
+  const clamped = Math.min(Math.max(progressPercent, 0), 100);
   const thumbSize = "clamp(36px, 4.17vw, 60px)";
 
   return (
-    <Link
-      href={`/courses/${slug}`}
-      className="flex items-center justify-center shadow-(--shadow-my-courses-card) transition-[box-shadow,filter] hover:shadow-[0px_0px_40px_rgba(0,0,0,0.22)] focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-blue)"
+    <button
+      type="button"
+      onClick={onClick}
+      className="grayscale flex w-full items-center justify-center shadow-(--shadow-my-courses-card) transition-[box-shadow,filter] hover:shadow-[0px_0px_40px_rgba(0,0,0,0.22)] focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-blue)"
       style={{
         background: theme.gradient,
         borderRadius: "clamp(12px, 1.39vw, 20px)",
         padding: "clamp(10px, 1.25vw, 19px) clamp(8px, 0.83vw, 12px)",
+        cursor: "pointer",
+        border: "none",
+        textAlign: "left",
       }}
     >
       <div className="flex w-full flex-col" style={{ gap: "clamp(4px, 0.56vw, 8px)", maxWidth: "clamp(200px, 18.4vw, 265px)" }}>
@@ -94,23 +93,21 @@ export function StudentCourseCard({
           </div>
         </div>
 
-        {clamped !== undefined && (
-          <div className="flex items-center" style={{ gap: "clamp(4px, 0.42vw, 6px)" }}>
-            <div className="h-0.5 flex-1 overflow-hidden rounded-full bg-(--color-brand-lavender)">
-              <div
-                className="h-full rounded-full bg-(--color-blue)"
-                style={{ width: `${clamped}%` }}
-              />
-            </div>
-            <span
-              className="shrink-0 font-(family-name:--font-accent) font-semibold uppercase text-(--color-text-primary)"
-              style={{ fontSize: "clamp(10px, 1.11vw, 16px)" }}
-            >
-              {clamped}%
-            </span>
+        <div className="flex items-center" style={{ gap: "clamp(4px, 0.42vw, 6px)" }}>
+          <div className="h-0.5 flex-1 overflow-hidden rounded-full bg-(--color-brand-lavender)">
+            <div
+              className="h-full rounded-full bg-(--color-blue)"
+              style={{ width: `${clamped}%` }}
+            />
           </div>
-        )}
+          <span
+            className="shrink-0 font-(family-name:--font-accent) font-semibold uppercase text-(--color-text-primary)"
+            style={{ fontSize: "clamp(10px, 1.11vw, 16px)" }}
+          >
+            {clamped}%
+          </span>
+        </div>
       </div>
-    </Link>
+    </button>
   );
 }

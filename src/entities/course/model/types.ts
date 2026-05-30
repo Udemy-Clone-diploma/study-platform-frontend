@@ -18,7 +18,7 @@ export type CourseMode = "self_learning" | "with_teacher";
 export type CourseDeliveryType = "self_paced" | "scheduled" | "individual" | "group";
 export type CourseType = "profession" | "qualification" | "knowledge";
 export type CoursePricingType = "free" | "full_payment" | "installment";
-export type CourseStatus = "draft" | "review" | "needs_revision" | "published" | "archived";
+export type CourseStatus = "draft" | "review" | "needs_revision" | "published" | "hidden" | "archived";
 
 export type CourseListItem = {
   id: number;
@@ -49,7 +49,17 @@ export type CourseListItem = {
   students_count: number;
   status: CourseStatus;
   published_at: string | null;
+  created_at: string;
+  /** Date the current student was granted access. Null for non-enrolled contexts (teacher, catalog). */
+  enrolled_at: string | null;
   tags: CourseTag[];
+  /**
+   * Present only on teacher my-courses list. Null when the course has no pending edit.
+   * "draft"         — edits saved but not yet submitted for moderation
+   * "pending"       — submitted for moderation (editing locked)
+   * "needs_revision"— moderator returned for revision
+   */
+  pending_edit_status: "draft" | "pending" | "needs_revision" | null;
 };
 
 export type CourseDetail = Omit<CourseListItem, "teacher_name" | "price" | "currency"> & {

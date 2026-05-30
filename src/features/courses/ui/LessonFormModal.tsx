@@ -1,17 +1,25 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Clock, Play, Upload } from "lucide-react";
+import { Clock, Play, Upload, FileText, X } from "lucide-react";
 import { ModalShell } from "@/shared/ui/ModalShell";
 import { ModalFooter } from "@/shared/ui/ModalFooter";
+import type { LessonDocument } from "@/entities/course";
 
 export type LessonFormValues = {
   title: string;
   content: string;
   video_file: File | null;
   video_url?: string;
+  original_video_name?: string;
   duration_minutes: string;
   min_score: string;
+  /** Existing documents from server */
+  existing_documents?: LessonDocument[];
+  /** New files selected by user (not yet uploaded) */
+  new_documents: File[];
+  /** IDs of existing documents to delete on save */
+  deleted_document_ids: number[];
 };
 
 const EMPTY: LessonFormValues = {
@@ -21,6 +29,9 @@ const EMPTY: LessonFormValues = {
   video_url: undefined,
   duration_minutes: "",
   min_score: "70",
+  existing_documents: [],
+  new_documents: [],
+  deleted_document_ids: [],
 };
 
 type Props = {
@@ -70,6 +81,7 @@ export function LessonFormModal({ mode, initialValues = {}, onClose, onSave }: P
   const [loading, setLoading] = useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const docInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { titleRef.current?.focus(); }, []);
 
@@ -82,7 +94,7 @@ export function LessonFormModal({ mode, initialValues = {}, onClose, onSave }: P
     setValues((prev) => ({ ...prev, video_file: e.target.files?.[0] ?? null }));
   }
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!values.title.trim()) return;
     setLoading(true);
@@ -166,9 +178,11 @@ export function LessonFormModal({ mode, initialValues = {}, onClose, onSave }: P
                   <span style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(16px, 1.67vw, 24px)", color: "var(--color-text-secondary)", textAlign: "center" }}>
                     {values.video_file
                       ? values.video_file.name
-                      : values.video_url
-                        ? "Video uploaded"
-                        : "Upload a video for this lesson"}
+                      : values.original_video_name
+                        ? values.original_video_name
+                        : values.video_url
+                          ? "Video uploaded"
+                          : "Upload a video for this lesson"}
                   </span>
                   {!values.video_file && !values.video_url && (
                     <span style={{ fontFamily: "var(--font-base)", fontWeight: 400, fontSize: "clamp(12px, 1.39vw, 20px)", color: "var(--color-text-secondary)" }}>
@@ -203,6 +217,97 @@ export function LessonFormModal({ mode, initialValues = {}, onClose, onSave }: P
             </div>
             <p style={hintSt}>Optional: Add a video to accompany this lesson content</p>
             <input ref={fileInputRef} type="file" accept="video/*" onChange={handleFileChange} style={{ display: "none" }} />
+          </div>
+
+          {/* Documents */}
+          <div>
+            <label style={labelSt}>Documents</label>
+            <div
+              style={{
+                border: "2px dashed var(--color-draft)",
+                borderRadius: 16,
+                minHeight: "clamp(100px, 8vw, 140px)",
+                display: "flex",
+                flexDirection: "column",
+                gap: "clamp(8px, 0.83vw, 12px)",
+                padding: "clamp(12px, 1.25vw, 18px) clamp(16px, 1.67vw, 24px)",
+              }}
+            >
+              {/* Existing + new queued files */}
+              {(values.existing_documents ?? []).filter(d => !values.deleted_document_ids.includes(d.id)).map((doc) => (
+                <div key={doc.id} className="flex items-center justify-between" style={{ gap: 8 }}>
+                  <div className="flex items-center" style={{ gap: 8, minWidth: 0 }}>
+                    <FileText size={18} style={{ flexShrink: 0, color: "var(--color-text-secondary)" }} />
+                    <span style={{ fontFamily: "var(--font-base)", fontSize: "clamp(13px, 1.04vw, 16px)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {doc.original_name}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setValues(p => ({ ...p, deleted_document_ids: [...p.deleted_document_ids, doc.id] }))}
+                    className="flex shrink-0 items-center justify-center rounded-full transition hover:bg-red-50"
+                    style={{ width: 28, height: 28, border: "none", background: "transparent", cursor: "pointer" }}
+                    aria-label="Remove document"
+                  >
+                    <X size={16} style={{ color: "var(--color-text-secondary)" }} />
+                  </button>
+                </div>
+              ))}
+              {values.new_documents.map((file, i) => (
+                <div key={i} className="flex items-center justify-between" style={{ gap: 8 }}>
+                  <div className="flex items-center" style={{ gap: 8, minWidth: 0 }}>
+                    <FileText size={18} style={{ flexShrink: 0, color: "var(--color-text-secondary)" }} />
+                    <span style={{ fontFamily: "var(--font-base)", fontSize: "clamp(13px, 1.04vw, 16px)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--color-text-secondary)" }}>
+                      {file.name}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setValues(p => ({ ...p, new_documents: p.new_documents.filter((_, j) => j !== i) }))}
+                    className="flex shrink-0 items-center justify-center rounded-full transition hover:bg-red-50"
+                    style={{ width: 28, height: 28, border: "none", background: "transparent", cursor: "pointer" }}
+                    aria-label="Remove file"
+                  >
+                    <X size={16} style={{ color: "var(--color-text-secondary)" }} />
+                  </button>
+                </div>
+              ))}
+              {/* Add button */}
+              <button
+                type="button"
+                onClick={() => docInputRef.current?.click()}
+                className="inline-flex items-center self-start transition hover:opacity-80"
+                style={{
+                  gap: "clamp(6px, 0.69vw, 10px)",
+                  height: "clamp(38px, 3.06vw, 44px)",
+                  background: "var(--color-bg)",
+                  border: "1px solid var(--color-draft)",
+                  borderRadius: 28,
+                  fontFamily: "var(--font-accent)",
+                  fontWeight: 500,
+                  fontSize: "clamp(14px, 1.39vw, 20px)",
+                  letterSpacing: "-0.011em",
+                  color: "var(--color-text-primary)",
+                  cursor: "pointer",
+                  padding: "0 clamp(12px, 1.25vw, 18px)",
+                }}
+              >
+                <Upload size={18} />
+                Add Documents
+              </button>
+              <input
+                ref={docInputRef}
+                type="file"
+                multiple
+                onChange={(e) => {
+                  const files = Array.from(e.target.files ?? []);
+                  setValues(p => ({ ...p, new_documents: [...p.new_documents, ...files] }));
+                  e.target.value = "";
+                }}
+                style={{ display: "none" }}
+              />
+            </div>
+            <p style={hintSt}>PDF, DOCX, XLSX and other files</p>
           </div>
 
           {/* Duration + Min Score */}

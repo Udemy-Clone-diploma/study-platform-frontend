@@ -44,7 +44,7 @@ export async function Header({ borderRadius = "0px 0px 20px 20px" }: HeaderProps
         >
             <div
                 className="mx-auto h-full flex items-center"
-                style={{ width: "min(1420px, 100% - 32px)", gap: "9.58%" }}
+                style={{ width: "min(1420px, 100% - max(32px, 7vw))", marginInline: "auto", gap: "9.58%" }}
             >
                 {/* Left */}
                 <div

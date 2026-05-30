@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { getCategories, getCourseBySlug, updateCourse, uploadCourseIcon } from "@/entities/course";
+import { getCategories, getCourseBySlug, updateCourse, uploadCourseIcon, getPendingEdit, savePendingEditMetadata } from "@/entities/course";
 import type { Category } from "@/entities/course";
 import {
   CourseCreationLayout,
@@ -38,6 +38,8 @@ async function matchIconToImage(imageUrl: string): Promise<string | null> {
 
 const EMPTY_FORM: CourseBasicsFormValues = { title: "", description: "", category_id: "", level: "", price: "" };
 
+const PUBLISHED_STATUSES = new Set(["published", "hidden"]);
+
 export default function EditCourseBasicsPage() {
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
@@ -49,23 +51,48 @@ export default function EditCourseBasicsPage() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [generalError, setGeneralError] = useState("");
   const [form, setForm] = useState<CourseBasicsFormValues>(EMPTY_FORM);
+  /** True when editing a published course — saves go to pending edit, not live course. */
+  const [isPendingEditMode, setIsPendingEditMode] = useState(false);
+  /** Pending edit is locked (submitted for moderation) — show read-only. */
+  const [isLocked, setIsLocked] = useState(false);
 
   useEffect(() => { getCategories().then(setCategories).catch(() => {}); }, []);
 
   useEffect(() => {
     if (!slug) return;
+
     getCourseBySlug(slug)
       .then(async (course) => {
-        setForm({
-          title: course.title,
-          description: course.short_description,
-          category_id: course.category ? String(course.category.id) : "",
-          level: course.level,
-          price: course.price === "0.00" || course.price === "0" ? "" : course.price,
-        });
-        if (course.image) {
-          const matched = await matchIconToImage(course.image);
-          if (matched) setSelectedIcon(matched);
+        const isPublished = PUBLISHED_STATUSES.has(course.status);
+        setIsPendingEditMode(isPublished);
+
+        if (isPublished) {
+          // Load or auto-create the pending edit for this published course
+          const pendingEdit = await getPendingEdit(slug);
+          setIsLocked(pendingEdit.status === "pending");
+          setForm({
+            title: pendingEdit.title,
+            description: pendingEdit.short_description,
+            category_id: pendingEdit.category_id ? String(pendingEdit.category_id) : "",
+            level: pendingEdit.level,
+            price: "",
+          });
+          if (pendingEdit.image) {
+            const matched = await matchIconToImage(pendingEdit.image);
+            if (matched) setSelectedIcon(matched);
+          }
+        } else {
+          setForm({
+            title: course.title,
+            description: course.short_description,
+            category_id: course.category ? String(course.category.id) : "",
+            level: course.level,
+            price: "",
+          });
+          if (course.image) {
+            const matched = await matchIconToImage(course.image);
+            if (matched) setSelectedIcon(matched);
+          }
         }
       })
       .catch(() => {})
@@ -84,14 +111,11 @@ export default function EditCourseBasicsPage() {
   }
 
   function buildPayload(fallback = false): Record<string, unknown> {
-    const priceNum = parseFloat(form.price);
     const payload: Record<string, unknown> = {
       title: fallback ? form.title || "Untitled Course" : form.title,
       short_description: fallback ? form.description || "-" : form.description,
       full_description: fallback ? form.description || "-" : form.description,
       level: fallback ? form.level || "beginner" : form.level,
-      pricing_type: !isNaN(priceNum) && priceNum > 0 ? "full_payment" : "free",
-      price: form.price || "0",
     };
     if (form.category_id) payload.category_id = parseInt(form.category_id, 10);
     return payload;
@@ -104,8 +128,17 @@ export default function EditCourseBasicsPage() {
     setGeneralError("");
     setSubmitting(true);
     try {
-      await updateCourse(slug, buildPayload());
-      await doIconUpload();
+      if (isPendingEditMode) {
+        await savePendingEditMetadata(slug, buildPayload() as Parameters<typeof savePendingEditMetadata>[1]);
+      } else {
+        const priceNum = parseFloat(form.price);
+        await updateCourse(slug, {
+          ...buildPayload(),
+          pricing_type: !isNaN(priceNum) && priceNum > 0 ? "full_payment" : "free",
+          price: form.price || "0",
+        });
+        await doIconUpload();
+      }
       router.push(`/teacher-dashboard/courses/${slug}/content`);
     } catch (err) {
       const apiErr = err as Partial<ApiError>;
@@ -124,11 +157,15 @@ export default function EditCourseBasicsPage() {
     setGeneralError("");
     setSaving(true);
     try {
-      await updateCourse(slug, buildPayload(true));
-      await doIconUpload();
+      if (isPendingEditMode) {
+        await savePendingEditMetadata(slug, buildPayload(true) as Parameters<typeof savePendingEditMetadata>[1]);
+      } else {
+        await updateCourse(slug, buildPayload(true));
+        await doIconUpload();
+      }
       router.push("/teacher-dashboard/courses");
     } catch (err) {
-      setGeneralError((err as Partial<ApiError>).message ?? "Failed to save draft.");
+      setGeneralError((err as Partial<ApiError>).message ?? "Failed to save.");
     } finally {
       setSaving(false);
     }
@@ -138,19 +175,23 @@ export default function EditCourseBasicsPage() {
 
   return (
     <CourseCreationLayout>
-      <CoursePageHeader title={form.title || "Untitled Course"} saving={saving} onSaveDraft={handleSaveDraft} />
+      <CoursePageHeader
+        title={form.title || "Untitled Course"}
+        saving={saving}
+        onSaveDraft={isLocked ? () => router.push("/teacher-dashboard/courses") : handleSaveDraft}
+      />
       <CourseCreationStepper currentStep={0} />
-      <CourseBasicsCard onSubmit={handleSubmit}>
+      <CourseBasicsCard onSubmit={isLocked ? (e) => { e.preventDefault(); router.push(`/teacher-dashboard/courses/${slug}/content`); } : handleSubmit}>
         <CourseBasicsForm
           form={form}
           onChange={handleChange}
           categories={categories}
           selectedIcon={selectedIcon}
-          onIconSelect={setSelectedIcon}
+          onIconSelect={isLocked ? () => {} : setSelectedIcon}
           fieldErrors={fieldErrors}
           generalError={generalError}
-          submitting={submitting}
-          submitLabel="Continue to Course Content"
+          submitting={submitting || isLocked}
+          submitLabel={isLocked ? "View Course Content" : "Continue to Course Content"}
           onCancel={() => router.push("/teacher-dashboard/courses")}
         />
       </CourseBasicsCard>

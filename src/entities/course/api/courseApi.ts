@@ -6,6 +6,7 @@ import type { CourseCohort } from "../model/cohort";
 import type { LessonDetail } from "../model/module";
 import type { PricingPlan } from "../model/pricing";
 import type { CourseReview } from "../model/review";
+import type { CourseCompletion } from "../model/completion";
 import type {
   CourseDeliveryType,
   CourseDetail,
@@ -216,6 +217,11 @@ export async function getEnrolledCourses(page = 1): Promise<Paginated<CourseList
   return data;
 }
 
+export async function getStudentCompletions(): Promise<Paginated<CourseCompletion>> {
+  const { data } = await api.get<Paginated<CourseCompletion>>(`${COURSES}completions/`);
+  return data;
+}
+
 export async function getTeacherCourses(page = 1): Promise<Paginated<CourseListItem>> {
   const { data } = await api.get<Paginated<CourseListItem>>(`${COURSES}my-courses/`, {
     params: { page, page_size: 100 },
@@ -242,6 +248,34 @@ export async function updateCourse(slug: string, data: Record<string, unknown>):
 
 export async function submitCourseForReview(slug: string): Promise<void> {
   await api.patch(`${COURSES}${slug}/`, { status: "review" });
+}
+
+export async function deleteCourse(slug: string): Promise<void> {
+  await api.delete(`${COURSES}${slug}/`);
+}
+
+export async function archiveCourse(slug: string): Promise<void> {
+  await api.patch(`${COURSES}${slug}/`, { status: "archived" });
+}
+
+/** Move course back to draft (from review or needs_revision). */
+export async function withdrawCourseFromReview(slug: string): Promise<void> {
+  await api.patch(`${COURSES}${slug}/`, { status: "draft" });
+}
+
+/** Move archived course back to draft. */
+export async function unarchiveCourse(slug: string): Promise<void> {
+  await api.patch(`${COURSES}${slug}/`, { status: "draft" });
+}
+
+/** Set status to "hidden": removed from catalog, enrolled students keep access. */
+export async function hideCourse(slug: string): Promise<void> {
+  await api.patch(`${COURSES}${slug}/`, { status: "hidden" });
+}
+
+/** Re-publish a hidden course (open for new enrollments). */
+export async function openCourse(slug: string): Promise<void> {
+  await api.patch(`${COURSES}${slug}/`, { status: "published" });
 }
 
 export async function uploadCourseImage(slug: string, imageFile: File): Promise<void> {

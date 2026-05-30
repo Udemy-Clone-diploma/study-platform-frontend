@@ -1,3 +1,4 @@
+export * from "./ui/PasswordChangeModal";
 export * from "./ui/ProfileBgBlobs";
 export * from "./ui/ProfileField";
 export * from "./ui/ProfileMainContent";

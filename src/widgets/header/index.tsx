@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getCategories } from "@/entities/course";
 import { getMe } from "@/entities/user";
 import { CatalogDropdown } from "@/features/courses";
-import { UserDropdown } from "@/features/auth/ui/UserDropdown";
+import { UserDropdown } from "@/features/auth";
 import { getAccessToken } from "@/shared/api/authCookies";
 import { AccentButton } from "@/shared/ui/AccentButton";
 import { SearchBar } from "@/shared/ui/SearchBar";
@@ -44,7 +44,7 @@ export async function Header({ borderRadius = "0px 0px 20px 20px" }: HeaderProps
         >
             <div
                 className="mx-auto h-full flex items-center"
-                style={{ maxWidth: isLoggedIn ? 1840 : 1480, gap: "9.58%", paddingInline: "max(16px, 2.22vw)" }}
+                style={{ width: "min(1420px, 100% - max(32px, 7vw))", marginInline: "auto", gap: "9.58%" }}
             >
                 {/* Left */}
                 <div

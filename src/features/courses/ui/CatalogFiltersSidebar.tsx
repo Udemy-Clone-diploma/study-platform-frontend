@@ -9,9 +9,11 @@ import {
   LANGUAGE_LABELS,
   LEVEL_LABELS,
   MODE_LABELS,
+  PLAN_KIND_LABELS,
 } from "../model/catalogFilters";
 import { CatalogFilterCheckbox } from "./CatalogFilterCheckbox";
 import { CollapsibleFilterSection } from "./CollapsibleFilterSection";
+import { PriceRangeFilter } from "./PriceRangeFilter";
 
 function ToggleOption({
   inset = false,
@@ -95,9 +97,9 @@ export function CatalogFiltersSidebar({
           ))}
         </CollapsibleFilterSection>
 
-        <p className="text-[0.73rem] text-[#7a747d]">In the group</p>
+        <p className="text-[0.73rem] text-(--color-text-secondary)">In the group</p>
 
-        <div className="h-px bg-[#9a9cff]" />
+        <div className="h-px bg-(--color-brand-lavender)" />
 
         <CollapsibleFilterSection title="Course rating">
           {["5", "4", "3"].map((rating) => (
@@ -155,6 +157,21 @@ export function CatalogFiltersSidebar({
           />
         </CollapsibleFilterSection>
 
+        <CollapsibleFilterSection title="Plan type">
+          {(Object.entries(PLAN_KIND_LABELS) as [string, string][]).map(([value, label]) => (
+            <ToggleOption
+              key={value}
+              option={{ label, param: "plan_kind", value }}
+              state={state}
+              inset
+            />
+          ))}
+        </CollapsibleFilterSection>
+
+        <CollapsibleFilterSection title="Price range">
+          <PriceRangeFilter initialMin={state.price_min} initialMax={state.price_max} />
+        </CollapsibleFilterSection>
+
         <CollapsibleFilterSection title="Promotions">
           <CatalogFilterCheckbox
             checked={Boolean(state.is_on_sale)}
@@ -163,11 +180,6 @@ export function CatalogFiltersSidebar({
               filtersOpen: true,
             })}
             label="Sale"
-            inset
-          />
-          <ToggleOption
-            option={{ label: "Combo", param: "pricing_type", value: "installment" }}
-            state={state}
             inset
           />
         </CollapsibleFilterSection>

@@ -12,17 +12,23 @@ export type SortOption = {
 export const SORT_OPTIONS: SortOption[] = [
   { label: "By popularity", value: "-students_count" },
   { label: "By rating", value: "-rating_avg" },
-  { label: "By novelty", value: "-created_at" },
-  { label: "Cheap at first", value: "price" },
-  { label: "Expensive at first", value: "-price" },
+  { label: "By novelty", value: "-published_at" },
+  { label: "Cheap at first", value: "min_price" },
+  { label: "Expensive at first", value: "-min_price" },
 ];
 
-export const DEFAULT_SORT = SORT_OPTIONS[0].value;
+/**
+ * Matches the backend's current default ordering. Keep these in sync — if the
+ * backend swaps to a windowed popularity score (see TASK F in BACKEND_TASKS.md),
+ * flip this to "-students_count".
+ */
+export const DEFAULT_SORT = "-published_at";
 
 type Props = {
   currentSort: string | undefined;
 };
 
+/** Five-option sort dropdown for the catalog. Writes the choice to `?sort=` on the current URL. */
 export function SortDropdown({ currentSort }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -40,7 +46,7 @@ export function SortDropdown({ currentSort }: Props) {
       params.delete("sort");
     }
     params.delete("page");
-    router.push(`?${params.toString()}`);
+    router.push(`?${params.toString()}`, { scroll: false });
     setOpen(false);
   }
 

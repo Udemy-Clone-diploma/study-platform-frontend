@@ -30,10 +30,9 @@ type Props = {
   iconSrc: string;
   level?: CourseLevel;
   slug: string;
-  isArchived?: boolean;
 };
 
-/** Course card for the student My Courses page */
+/** Course card for the student My Courses page (active / in-progress courses). */
 export function StudentCourseCard({
   title,
   teacherName,
@@ -42,7 +41,6 @@ export function StudentCourseCard({
   iconSrc,
   level = "beginner",
   slug,
-  isArchived = false,
 }: Props) {
   const theme = LEVEL_THEME[level] ?? LEVEL_THEME.beginner;
   const clamped =
@@ -55,10 +53,7 @@ export function StudentCourseCard({
   return (
     <Link
       href={`/courses/${slug}`}
-      className={[
-        "flex items-center justify-center shadow-(--shadow-my-courses-card) transition-[box-shadow,filter] hover:shadow-[0px_0px_40px_rgba(0,0,0,0.22)] focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-blue)",
-        isArchived ? "grayscale" : "",
-      ].join(" ")}
+      className="flex items-center justify-center shadow-(--shadow-my-courses-card) transition-[box-shadow,filter] hover:shadow-[0px_0px_40px_rgba(0,0,0,0.22)] focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-blue)"
       style={{
         background: theme.gradient,
         borderRadius: "clamp(12px, 1.39vw, 20px)",
@@ -85,7 +80,7 @@ export function StudentCourseCard({
               {title}
             </h3>
             <span
-              className="inline-block max-w-full truncate font-(family-name:--font-accent) uppercase leading-none"
+              className="self-start inline-block max-w-full truncate font-(family-name:--font-accent) uppercase leading-none"
               style={{
                 background: theme.badgeBg,
                 color: theme.badgeText,
@@ -100,20 +95,22 @@ export function StudentCourseCard({
         </div>
 
         {clamped !== undefined && (
-          <div className="flex items-center" style={{ gap: "clamp(4px, 0.42vw, 6px)" }}>
-            <div className="h-0.5 flex-1 overflow-hidden rounded-full bg-(--color-brand-lavender)">
+          <>
+            <div className="flex justify-end">
+              <span
+                className="font-(family-name:--font-accent) font-semibold uppercase text-(--color-text-primary)"
+                style={{ fontSize: "clamp(10px, 1.11vw, 16px)" }}
+              >
+                {clamped}%
+              </span>
+            </div>
+            <div className="h-0.5 overflow-hidden rounded-full bg-(--color-brand-lavender)">
               <div
                 className="h-full rounded-full bg-(--color-blue)"
                 style={{ width: `${clamped}%` }}
               />
             </div>
-            <span
-              className="shrink-0 font-(family-name:--font-accent) font-semibold uppercase text-(--color-text-primary)"
-              style={{ fontSize: "clamp(10px, 1.11vw, 16px)" }}
-            >
-              {clamped}%
-            </span>
-          </div>
+          </>
         )}
       </div>
     </Link>

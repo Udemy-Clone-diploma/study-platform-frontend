@@ -10,31 +10,44 @@ type WithAuthOptions = {
   allowedRoles: UserRole[];
 };
 
+const HYDRATING = Symbol("withAuth.hydrating");
+type Hydrating = typeof HYDRATING;
+
+/** Cookies don't change without a navigation, so subscribe is a no-op. */
+const subscribe = () => () => {};
+
+/** Server snapshot: signal "hydrating" so SSR + first client render match. */
+const getServerRole = (): Hydrating => HYDRATING;
+
+/** Client snapshot, re-read after hydration to swap in the real role. */
+const getClientRole = (): UserRole | undefined =>
+  getClientCookie(AUTH_COOKIE_NAMES.role) as UserRole | undefined;
+
 export function withAuth<P extends object>(
   Component: React.ComponentType<P>,
   { allowedRoles }: WithAuthOptions,
 ) {
   function ProtectedComponent(props: P) {
     const router = useRouter();
-    const role = useSyncExternalStore(
-      () => () => {},
-      () => getClientCookie(AUTH_COOKIE_NAMES.role) as UserRole | undefined,
-      () => undefined,
+    const role = useSyncExternalStore<UserRole | undefined | Hydrating>(
+      subscribe,
+      getClientRole,
+      getServerRole,
     );
-    const isAuthorized = !!role && allowedRoles.includes(role);
+
+    const isHydrating = role === HYDRATING;
+    const isAuthorized = !isHydrating && !!role && allowedRoles.includes(role);
 
     useEffect(() => {
+      if (isHydrating) return;
       if (!role) {
         router.replace("/login");
-        return;
-      }
-
-      if (!isAuthorized) {
+      } else if (!isAuthorized) {
         router.replace("/403");
       }
-    }, [isAuthorized, role, router]);
+    }, [isHydrating, role, isAuthorized, router]);
 
-    if (!isAuthorized) {
+    if (isHydrating || !isAuthorized) {
       return null;
     }
 

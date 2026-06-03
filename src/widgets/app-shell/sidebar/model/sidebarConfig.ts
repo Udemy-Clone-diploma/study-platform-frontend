@@ -1,5 +1,5 @@
 import type { UserRole } from "@/entities/user";
-import type { SidebarItem } from "@/features/app-shell/model/types";
+import type { SidebarItem } from "@/features/app-shell";
 
 const teacherItems: SidebarItem[] = [
   { id: "dashboard", label: "Dashboard", href: "/teacher-dashboard", icon: "dashboard", iconSrc: "/icons/house.svg", match: "exact" },

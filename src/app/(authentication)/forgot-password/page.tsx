@@ -2,9 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { requestPasswordReset } from "@/features/auth/api/authApi";
-import { AuthField } from "@/features/auth/ui/AuthField";
-import { AuthPanel } from "@/features/auth/ui/AuthPanel";
+import { AuthField, AuthPanel, requestPasswordReset } from "@/features/auth";
 import { AccentButton } from "@/shared/ui/AccentButton";
 
 export default function ForgotPasswordPage() {

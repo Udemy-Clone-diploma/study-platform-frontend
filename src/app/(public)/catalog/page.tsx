@@ -1,7 +1,17 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { SlidersHorizontal } from "lucide-react";
-import { getCategories, getCourses, type Category } from "@/entities/course";
+import {
+  getCategories,
+  getCourses,
+  type Category,
+  type CourseDeliveryType,
+  type CourseLanguage,
+  type CourseLevel,
+  type CourseMode,
+  type CourseType,
+  type PricingPlan,
+} from "@/entities/course";
 import { getWishlistSlugs } from "@/entities/course";
 import {
   buildCatalogHref,
@@ -10,10 +20,9 @@ import {
   CategoryFilter,
   CourseCard,
   CourseSearch,
-  DEFAULT_SORT,
-  SortDropdown,
   parseCatalogState,
   resetCatalogFiltersHref,
+  SortDropdown,
   type CatalogFilterState,
   type CatalogSearchParams,
 } from "@/features/courses";
@@ -33,18 +42,31 @@ function parsePage(params: CatalogSearchParams): number {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
 }
 
-async function loadCourses(state: CatalogFilterState, page: number) {
+/**
+ * URL filter values arrive as user-controlled comma-separated strings. The
+ * backend ignores unknown values, so we trust the cast at this boundary
+ * instead of validating every entry against the union members.
+ */
+function splitFilter<T extends string>(value: string | undefined): Array<T> | undefined {
+  if (!value) return undefined;
+  const parts = value.split(",").filter(Boolean) as Array<T>;
+  return parts.length ? parts : undefined;
+}
+
+async function loadCourses(state: CatalogFilterState, page: number, ordering: string | undefined) {
   try {
     const data = await getCourses({
       category: state.category,
-      course_type: state.course_type,
-      delivery_type: state.delivery_type,
+      course_type: splitFilter<CourseType>(state.course_type),
+      delivery_type: splitFilter<CourseDeliveryType>(state.delivery_type),
       is_on_sale: state.is_on_sale,
-      language: state.language,
-      level: state.level,
-      mode: state.mode,
-      ordering: state.sort ?? DEFAULT_SORT,
-      pricing_type: state.pricing_type,
+      language: splitFilter<CourseLanguage>(state.language),
+      level: splitFilter<CourseLevel>(state.level),
+      mode: splitFilter<CourseMode>(state.mode),
+      ordering,
+      plan_kind: splitFilter<PricingPlan["kind"]>(state.plan_kind),
+      price_min: state.price_min ? Number(state.price_min) : undefined,
+      price_max: state.price_max ? Number(state.price_max) : undefined,
       rating_min: state.rating_min,
       search: state.search,
       with_certificate: state.with_certificate,
@@ -84,9 +106,10 @@ export default async function CatalogPage({
   const params = await searchParams;
   const state = parseCatalogState(params);
   const currentPage = parsePage(params);
+  const ordering = firstParam(params.sort);
 
   const [{ courses, count, error }, categories, wishlistedSlugs] = await Promise.all([
-    loadCourses(state, currentPage),
+    loadCourses(state, currentPage, ordering),
     loadCategories(),
     getWishlistSlugs().catch(() => []),
   ]);
@@ -127,7 +150,7 @@ export default async function CatalogPage({
             </Link>
 
             <Suspense>
-              <SortDropdown currentSort={state.sort} />
+              <SortDropdown currentSort={ordering} />
             </Suspense>
           </div>
 

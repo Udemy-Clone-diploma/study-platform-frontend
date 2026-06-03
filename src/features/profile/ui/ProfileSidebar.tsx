@@ -1,7 +1,6 @@
 import Image from "next/image";
 import { useRef } from "react";
 import { AccentButton } from "@/shared/ui/AccentButton";
-import { INPUT_STYLE } from "./ProfileField";
 import type { UserData } from "@/entities/user";
 
 export const SOCIAL_ICONS = [
@@ -120,16 +119,29 @@ export function ProfileSidebar({ user, editing, avatarPreview, socialLinks, teac
                 </span>
 
                 {editing ? (
-                    <div style={{ display: "flex", flexDirection: "column", gap: "0.625vw", width: "100%" }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.833vw", width: "100%" }}>
                         {SOCIAL_ICONS.map(s => (
-                            <div key={s.key} style={{ display: "flex", alignItems: "center", gap: "0.625vw" }}>
-                                <Image src={s.srcGray} alt={s.label} width={40} height={40}
-                                    style={{ width: "2.08vw", height: "2.08vw", flexShrink: 0 }} />
+                            <div key={s.key} style={{
+                                display: "flex", alignItems: "center", gap: "0.625vw",
+                                background: "var(--color-bg)",
+                                border: "1px solid var(--color-text-primary)",
+                                borderRadius: "2.083vw",
+                                padding: "0.417vw 1.042vw",
+                            }}>
+                                <Image src={s.srcBlack} alt={s.label} width={32} height={32}
+                                    style={{ width: "1.458vw", height: "1.458vw", flexShrink: 0, display: "block" }}
+                                    unoptimized />
                                 <input
                                     type="url" placeholder={s.label}
                                     value={socialLinks[s.key]}
                                     onChange={e => onSocialChange(s.key, e.target.value)}
-                                    style={{ ...INPUT_STYLE, flex: 1, minWidth: 0, width: "auto", fontSize: "0.833vw", padding: "0.26vw 0.52vw" }}
+                                    style={{
+                                        flex: 1, minWidth: 0, border: "none", outline: "none",
+                                        background: "transparent",
+                                        fontFamily: "var(--font-base)", fontWeight: 400,
+                                        fontSize: "0.938vw", color: "var(--color-text-secondary)",
+                                        letterSpacing: "-0.011em",
+                                    }}
                                 />
                             </div>
                         ))}

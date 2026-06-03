@@ -4,6 +4,7 @@ import type {
   CourseLevel,
   CourseMode,
   CourseType,
+  PricingPlan,
 } from "@/entities/course";
 
 export type CatalogSearchParams = {
@@ -19,10 +20,14 @@ export type CatalogFilterState = {
   language?: string;
   level?: string;
   mode?: string;
-  pricing_type?: string;
+  /** Comma-separated PricingPlan kinds (e.g. "group,individual"). */
+  plan_kind?: string;
+  /** Decimal-string lower bound on the cheapest plan price. Empty means unbounded. */
+  price_min?: string;
+  /** Decimal-string upper bound on the cheapest plan price. Empty means unbounded. */
+  price_max?: string;
   rating_min?: string;
   search?: string;
-  sort?: string;
   with_certificate?: boolean;
 };
 
@@ -62,6 +67,11 @@ export const COURSE_TYPE_LABELS: Record<CourseType, string> = {
   knowledge: "Expanding knowledge",
 };
 
+export const PLAN_KIND_LABELS: Record<PricingPlan["kind"], string> = {
+  group: "Group plan",
+  individual: "Individual coaching",
+};
+
 function firstParam(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
 }
@@ -76,10 +86,11 @@ export function parseCatalogState(params: CatalogSearchParams): CatalogFilterSta
     language: firstParam(params.language),
     level: firstParam(params.level),
     mode: firstParam(params.mode),
-    pricing_type: firstParam(params.pricing_type),
+    plan_kind: firstParam(params.plan_kind),
+    price_min: firstParam(params.price_min),
+    price_max: firstParam(params.price_max),
     rating_min: firstParam(params.rating_min),
     search: firstParam(params.search)?.trim(),
-    sort: firstParam(params.sort),
     with_certificate: firstParam(params.with_certificate) === "true" ? true : undefined,
   };
 }
@@ -130,10 +141,11 @@ export function buildCatalogHref(
   if (next.language) params.set("language", next.language);
   if (next.level) params.set("level", next.level);
   if (next.mode) params.set("mode", next.mode);
-  if (next.pricing_type) params.set("pricing_type", next.pricing_type);
+  if (next.plan_kind) params.set("plan_kind", next.plan_kind);
+  if (next.price_min) params.set("price_min", next.price_min);
+  if (next.price_max) params.set("price_max", next.price_max);
   if (next.rating_min) params.set("rating_min", next.rating_min);
   if (next.search) params.set("search", next.search);
-  if (next.sort) params.set("sort", next.sort);
   if (next.with_certificate) params.set("with_certificate", "true");
 
   const query = params.toString();
@@ -149,7 +161,9 @@ export function resetCatalogFiltersHref(state: CatalogFilterState) {
     language: undefined,
     level: undefined,
     mode: undefined,
-    pricing_type: undefined,
+    plan_kind: undefined,
+    price_min: undefined,
+    price_max: undefined,
     rating_min: undefined,
     with_certificate: undefined,
   });

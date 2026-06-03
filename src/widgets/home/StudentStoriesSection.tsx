@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { SectionContainer } from "@/shared/ui/SectionContainer";
-import { StudentStoryCard, type StudentStory } from "@/features/users/ui/StudentStoryCard";
+import { StudentStoryCard, type StudentStory } from "@/features/users";
 
 const MOCK_STORIES: StudentStory[] = [
     {

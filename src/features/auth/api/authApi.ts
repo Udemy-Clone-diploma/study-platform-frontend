@@ -38,21 +38,21 @@ export async function updateMe(data: Partial<UserData>): Promise<UserData> {
   return response.data;
 }
 
-export async function updateTeacherProfile(data: Partial<TeacherProfile>): Promise<UserData> {
+export async function updateTeacherProfile(data: Partial<TeacherProfile>): Promise<TeacherProfile> {
   const response = await api.patch<UserData>("auth/me/profile/teacher/", data);
-  return response.data;
+  return response.data.profile as TeacherProfile;
 }
 
-export async function updateStudentProfile(data: Partial<StudentProfile>): Promise<UserData> {
+export async function updateStudentProfile(data: Partial<StudentProfile>): Promise<StudentProfile> {
   const response = await api.patch<UserData>("auth/me/profile/student/", data);
-  return response.data;
+  return response.data.profile as StudentProfile;
 }
 
 export async function updateModeratorProfile(
   data: Partial<ModeratorProfile>,
-): Promise<UserData> {
+): Promise<ModeratorProfile> {
   const response = await api.patch<UserData>("auth/me/profile/moderator/", data);
-  return response.data;
+  return response.data.profile as ModeratorProfile;
 }
 
 export async function uploadAvatar(file: File): Promise<UserData> {

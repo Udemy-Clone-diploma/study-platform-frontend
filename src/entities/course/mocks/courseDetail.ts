@@ -48,6 +48,8 @@ export const mockCourseDetail: CourseDetail = {
   is_enrolled: false,
   status: "published",
   published_at: "2026-01-10T00:00:00Z",
+  enrolled_at: null,
+  pending_edit_status: null,
   tags: [
     { id: 1, name: "Figma" },
     { id: 2, name: "Design Systems" },
@@ -63,6 +65,7 @@ export const mockCourseDetail: CourseDetail = {
     partnerships_count: 300,
   },
   moderator_id: null,
+  total_duration_minutes: 3840,
   pricing_plans: [
     {
       id: 1,
@@ -121,6 +124,7 @@ export const mockCourseDetail: CourseDetail = {
           is_preview: false,
         },
       ],
+      tests: [],
     },
     {
       id: 2,
@@ -143,6 +147,7 @@ export const mockCourseDetail: CourseDetail = {
           is_preview: false,
         },
       ],
+      tests: [],
     },
     {
       id: 3,
@@ -172,6 +177,7 @@ export const mockCourseDetail: CourseDetail = {
           is_preview: false,
         },
       ],
+      tests: [],
     },
     {
       id: 4,
@@ -194,6 +200,7 @@ export const mockCourseDetail: CourseDetail = {
           is_preview: false,
         },
       ],
+      tests: [],
     },
   ],
   created_at: "2026-01-01T00:00:00Z",

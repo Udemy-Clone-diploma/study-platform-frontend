@@ -11,5 +11,5 @@ export default async function StudentPaymentPage() {
     redirect("/403");
   }
 
-  return <PaymentWorkspace />;
+  return <PaymentWorkspace role="student" />;
 }

@@ -95,7 +95,11 @@ export function CourseDetailView({ course, reviews }: Props) {
               src="/backgrounds/00 2.png"
               className="absolute top-[1%] right-[-7%] -z-10 hidden rotate-[170deg] lg:block"
             />
-            <CoursePricingBlock plans={course.pricing_plans} slug={course.slug} />
+            <CoursePricingBlock
+              courseId={course.id}
+              plans={course.pricing_plans}
+              slug={course.slug}
+            />
           </section>
         </SectionContainer>
       )}

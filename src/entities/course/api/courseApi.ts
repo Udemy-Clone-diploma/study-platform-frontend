@@ -20,6 +20,7 @@ import type {
 
 const COURSES = "courses/";
 const CATEGORIES = "categories/";
+const ENROLLMENTS = "enrollments/";
 
 /**
  * Backend accepts these enum-like filters as comma-separated values
@@ -203,11 +204,11 @@ export type EnrollResult = { status: "enrolled" };
 /**
  * Enroll the authenticated user in a course.
  * Throws a normalized ApiError on failure: status 401 (not authenticated),
- * 402 (payment required for paid courses), 409 (already enrolled).
+ * 400 (invalid course or duplicate enrollment).
  */
-export async function enrollInCourse(slug: string): Promise<EnrollResult> {
-  const { data } = await api.post<EnrollResult>(`${COURSES}${slug}/enroll/`);
-  return data;
+export async function enrollInCourse(courseId: number): Promise<EnrollResult> {
+  await api.post(ENROLLMENTS, { course_id: courseId });
+  return { status: "enrolled" };
 }
 
 export async function getEnrolledCourses(page = 1): Promise<Paginated<CourseListItem>> {

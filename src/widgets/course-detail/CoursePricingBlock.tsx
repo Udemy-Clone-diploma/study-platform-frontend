@@ -3,14 +3,19 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { User, Users } from "lucide-react";
-import { enrollInCourse, type PricingPlan } from "@/entities/course";
+import { addCartItem } from "@/entities/cart";
+import type { PricingPlan } from "@/entities/course";
 import type { ApiError } from "@/shared/api/base";
 import { AUTH_COOKIE_NAMES } from "@/shared/api/config/authCookies";
 import { getClientCookie } from "@/shared/lib/cookies";
 import { GradientButton } from "@/shared/ui/GradientButton";
 import { SectionBadge } from "./SectionBadge";
 
-type Props = { plans: PricingPlan[]; slug: string };
+type Props = { courseId: number; plans: PricingPlan[]; slug: string };
+
+const CART_URL = "/student-dashboard/payment?tab=cart";
+const COURSE_AVAILABLE_URL = `${CART_URL}&notice=course_available`;
+const STUDENT_ONLY_MESSAGE = "Enrollment is available only for students.";
 
 const KIND_LABEL: Record<PricingPlan["kind"], string> = {
   group: "Group Courses",
@@ -36,33 +41,46 @@ function formatPlanPrice(price: string, currency: PricingPlan["currency"]): stri
 }
 
 /** Tuition section: heading badge, intro, two pricing cards (full price + installment plan + Buy now). */
-export function CoursePricingBlock({ plans, slug }: Props) {
+export function CoursePricingBlock({ courseId, plans, slug }: Props) {
   const router = useRouter();
-  const [pending, setPending] = useState(false);
+  const [pendingPlanId, setPendingPlanId] = useState<number | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
-  const handleBuy = async () => {
+  const handleBuy = async (planId: number) => {
     if (!getClientCookie(AUTH_COOKIE_NAMES.access)) {
       router.push(`/login?next=${encodeURIComponent(`/courses/${slug}`)}`);
       return;
     }
 
-    setPending(true);
+    const role = getClientCookie(AUTH_COOKIE_NAMES.role);
+    if (role && role !== "student") {
+      setNotice(STUDENT_ONLY_MESSAGE);
+      return;
+    }
+
+    setPendingPlanId(planId);
     setNotice(null);
+
     try {
-      await enrollInCourse(slug);
-      router.refresh();
+      await addCartItem(courseId, planId);
+      router.push(CART_URL);
     } catch (error) {
       const apiError = error as Partial<ApiError>;
-      if (apiError.status === 402) {
-        setNotice("Online payment is not available yet. Contact us to complete your enrollment.");
-      } else if (apiError.status === 409) {
-        setNotice("You are already enrolled in this course.");
-      } else {
-        setNotice(apiError.message || apiError.detail || "Could not process your request.");
+      const courseError = String(apiError.fields?.course_id ?? "");
+
+      if (courseError.includes("already in cart")) {
+        router.push(CART_URL);
+        return;
       }
+
+      if (courseError.includes("already has access")) {
+        router.push(COURSE_AVAILABLE_URL);
+        return;
+      }
+
+      setNotice(apiError.message || apiError.detail || "Could not process your request.");
     } finally {
-      setPending(false);
+      setPendingPlanId(null);
     }
   };
 
@@ -122,8 +140,8 @@ export function CoursePricingBlock({ plans, slug }: Props) {
                 </div>
               </div>
 
-              <GradientButton onClick={handleBuy} disabled={pending}>
-                {pending ? "Processing..." : "Buy now"}
+              <GradientButton onClick={() => handleBuy(plan.id)} disabled={pendingPlanId !== null}>
+                {pendingPlanId === plan.id ? "Processing..." : "Buy now"}
               </GradientButton>
             </article>
           );

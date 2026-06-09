@@ -14,6 +14,7 @@ import type {
   CourseLevel,
   CourseListItem,
   CourseMode,
+  CourseStatus,
   CourseType,
   Paginated,
 } from "../model/types";
@@ -41,6 +42,7 @@ export type CourseListParams = {
   price_max?: number;
   rating_min?: string;
   search?: string;
+  status?: CourseStatus | CourseStatus[];
   with_certificate?: boolean;
   page?: number;
   page_size?: number;
@@ -66,6 +68,9 @@ export async function getCourses(filters: CourseListParams = {}): Promise<Pagina
     ...(filters.price_max !== undefined ? { price_max: filters.price_max } : {}),
     ...(filters.rating_min ? { rating_min: filters.rating_min } : {}),
     ...(filters.search ? { search: filters.search } : {}),
+    ...(filters.status !== undefined
+      ? { status: Array.isArray(filters.status) ? filters.status.join(",") : filters.status }
+      : {}),
     ...(filters.with_certificate !== undefined ? { with_certificate: filters.with_certificate } : {}),
     ...(filters.page ? { page: filters.page } : {}),
     ...(filters.page_size ? { page_size: filters.page_size } : {}),
@@ -227,6 +232,45 @@ export async function getTeacherCourses(page = 1): Promise<Paginated<CourseListI
     params: { page, page_size: 100 },
   });
   return data;
+}
+
+/** All courses with status=review (awaiting moderation). */
+export async function getModerationCourses(
+  status: CourseStatus | CourseStatus[] = "review",
+  page = 1,
+): Promise<Paginated<CourseListItem>> {
+  return getCourses({ status, page, page_size: 100 });
+}
+
+/** Courses in review status with no moderator assigned yet. */
+export async function getUnassignedModerationCourses(page = 1): Promise<Paginated<CourseListItem>> {
+  const { data } = await api.get<Paginated<CourseListItem>>(`${COURSES}moderation/unassigned/`, {
+    params: { page, page_size: 100 },
+  });
+  return data;
+}
+
+/** Courses assigned to the currently authenticated moderator. */
+export async function getMyModerationCourses(page = 1): Promise<Paginated<CourseListItem>> {
+  const { data } = await api.get<Paginated<CourseListItem>>(`${COURSES}moderation/my/`, {
+    params: { page, page_size: 100 },
+  });
+  return data;
+}
+
+/** Approve a course (moderator only). */
+export async function approveCourse(slug: string): Promise<void> {
+  await api.post(`${COURSES}${slug}/approve/`);
+}
+
+/** Reject a course (moderator only). */
+export async function rejectCourse(slug: string): Promise<void> {
+  await api.post(`${COURSES}${slug}/reject/`);
+}
+
+/** Assign the current moderator to a course. Backend endpoint: courses/:slug/assign-moderator/ */
+export async function assignModeratorSelf(slug: string): Promise<void> {
+  await api.post(`${COURSES}${slug}/assign-moderator/`);
 }
 
 export async function getWishlist(page = 1): Promise<Paginated<CourseListItem>> {

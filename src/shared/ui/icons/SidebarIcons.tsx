@@ -13,7 +13,9 @@ export type SidebarIconName =
   | "schedule"
   | "payment"
   | "certificates"
-  | "wishlist";
+  | "wishlist"
+  | "reviews"
+  | "notifications";
 
 type SidebarIconProps = SVGProps<SVGSVGElement> & {
   name: SidebarIconName;
@@ -136,6 +138,21 @@ export function SidebarIcon({ name, ...props }: SidebarIconProps) {
       return (
         <svg {...common} fill="currentColor" stroke="none">
           <path d="M12 21s-7.5-4.7-9.4-9.1C1.1 8.5 3.2 5 6.8 5c2 0 3.3 1.1 4.2 2.3C11.9 6.1 13.2 5 15.2 5c3.6 0 5.7 3.5 4.2 6.9C19.5 16.3 12 21 12 21Z" />
+        </svg>
+      );
+    case "reviews":
+      return (
+        <svg {...common} viewBox="0 0 29 22" fill="currentColor" stroke="none">
+          <rect x="3" y="1" width="3.82" height="8.23" rx="1" />
+          <rect x="6.82" y="1" width="15.16" height="19.75" rx="1" />
+          <rect x="21.99" y="1" width="3.83" height="8.24" rx="1" />
+        </svg>
+      );
+    case "notifications":
+      return (
+        <svg {...common}>
+          <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+          <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
         </svg>
       );
   }

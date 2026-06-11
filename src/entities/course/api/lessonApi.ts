@@ -1,7 +1,15 @@
 import { api } from "@/shared/api/base";
-import type { CourseLesson, LessonDocument } from "../model/module";
+import type { CourseLesson, LessonDetail, LessonDocument } from "../model/module";
 
 const COURSES = "courses/";
+
+export async function getLessonDetail(
+  courseSlug: string,
+  lessonId: number,
+): Promise<LessonDetail> {
+  const { data } = await api.get<LessonDetail>(`${COURSES}${courseSlug}/lessons/${lessonId}/`);
+  return data;
+}
 
 export type LessonPayload = {
   title: string;

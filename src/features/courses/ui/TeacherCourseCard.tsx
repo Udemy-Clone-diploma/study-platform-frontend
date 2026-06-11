@@ -41,7 +41,8 @@ type ModalKind =
   | "publish"
   | "submit-changes"
   | "discard-changes"
-  | "withdraw-edit";
+  | "withdraw-edit"
+  | "moderation-info";
 
 type ModalConfig = {
   title: string;
@@ -74,6 +75,8 @@ function modalConfig(kind: ModalKind, enrolledCount: number): ModalConfig {
       return { title: "Discard Changes", description: "Are you sure you want to discard all pending changes? The published course will remain unaffected.", confirmLabel: "Discard" };
     case "withdraw-edit":
       return { title: "Withdraw Edit from Moderation", description: "Your changes will be moved back to draft state so you can continue editing. The published course is unaffected.", confirmLabel: "Withdraw" };
+    case "moderation-info":
+      return { title: "Awaiting moderation", description: "This course is currently under review by a moderator. Would you like to withdraw it back to draft?", confirmLabel: "Withdraw" };
   }
 }
 
@@ -152,9 +155,25 @@ export function TeacherCourseCard({
       case "publish":         onPublish?.();        break;
       case "submit-changes":  onSubmitChanges?.();  break;
       case "discard-changes": onDiscardChanges?.(); break;
-      case "withdraw-edit":   onWithdrawEdit?.();   break;
+      case "withdraw-edit":    onWithdrawEdit?.();  break;
+      case "moderation-info":  onWithdraw?.();      break;
     }
     setModal(null);
+  }
+
+  function cardHref(): string {
+    if (status === "draft" || status === "needs_revision") {
+      return `/teacher-dashboard/courses/${slug}/edit`;
+    }
+    if (status === "pending_moderation") return "#";
+    return `/teacher-dashboard/courses/${slug}`;
+  }
+
+  function handleCardClick(e: React.MouseEvent) {
+    if (status === "pending_moderation") {
+      e.preventDefault();
+      setModal("moderation-info");
+    }
   }
 
   const cfg = modal ? modalConfig(modal, enrolledCount) : null;
@@ -165,7 +184,8 @@ export function TeacherCourseCard({
     <>
       <div className="relative">
         <Link
-          href={`/teacher-dashboard/courses/${slug}/edit`}
+          href={cardHref()}
+          onClick={handleCardClick}
           className={[
             "flex items-center shadow-(--shadow-my-courses-card) transition-[box-shadow,filter] hover:shadow-[0px_0px_40px_rgba(0,0,0,0.22)] focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-blue)",
             status === "completed" ? "grayscale" : "",

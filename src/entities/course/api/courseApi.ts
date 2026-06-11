@@ -8,14 +8,18 @@ import type { PricingPlan } from "../model/pricing";
 import type { CourseReview } from "../model/review";
 import type { CourseCompletion } from "../model/completion";
 import type {
+  ApprovedCourseRecord,
   CourseDeliveryType,
   CourseDetail,
   CourseLanguage,
   CourseLevel,
   CourseListItem,
   CourseMode,
+  CourseStatus,
   CourseType,
   Paginated,
+  RejectedCourseItem,
+  RejectedCourseRecord,
 } from "../model/types";
 
 const COURSES = "courses/";
@@ -41,6 +45,7 @@ export type CourseListParams = {
   price_max?: number;
   rating_min?: string;
   search?: string;
+  status?: CourseStatus | CourseStatus[];
   with_certificate?: boolean;
   page?: number;
   page_size?: number;
@@ -66,6 +71,9 @@ export async function getCourses(filters: CourseListParams = {}): Promise<Pagina
     ...(filters.price_max !== undefined ? { price_max: filters.price_max } : {}),
     ...(filters.rating_min ? { rating_min: filters.rating_min } : {}),
     ...(filters.search ? { search: filters.search } : {}),
+    ...(filters.status !== undefined
+      ? { status: Array.isArray(filters.status) ? filters.status.join(",") : filters.status }
+      : {}),
     ...(filters.with_certificate !== undefined ? { with_certificate: filters.with_certificate } : {}),
     ...(filters.page ? { page: filters.page } : {}),
     ...(filters.page_size ? { page_size: filters.page_size } : {}),
@@ -229,6 +237,96 @@ export async function getTeacherCourses(page = 1): Promise<Paginated<CourseListI
   return data;
 }
 
+/** All courses with status=review (awaiting moderation). */
+export async function getModerationCourses(
+  status: CourseStatus | CourseStatus[] = "review",
+  page = 1,
+): Promise<Paginated<CourseListItem>> {
+  return getCourses({ status, page, page_size: 100 });
+}
+
+/** Courses in review status with no moderator assigned yet, oldest-first. */
+export async function getUnassignedModerationCourses(page = 1): Promise<Paginated<CourseListItem>> {
+  const { data } = await api.get<Paginated<CourseListItem>>(`${COURSES}moderation/unassigned/`, {
+    params: { page, page_size: 100 },
+  });
+  return data;
+}
+
+/** Courses assigned to the currently authenticated moderator, oldest-first. */
+export async function getMyModerationCourses(page = 1): Promise<Paginated<CourseListItem>> {
+  const { data } = await api.get<Paginated<CourseListItem>>(`${COURSES}moderation/my/`, {
+    params: { page, page_size: 100 },
+  });
+  return data;
+}
+
+/** Rejected courses moderated by the current moderator (includes moderation_review). */
+export async function getMyRejectedModerationCourses(page = 1): Promise<Paginated<RejectedCourseItem>> {
+  const { data } = await api.get<Paginated<RejectedCourseItem>>(`${COURSES}moderation/rejected/`, {
+    params: { page, page_size: 100 },
+  });
+  return data;
+}
+
+/** Approve a course (moderator only). */
+export async function approveCourse(slug: string): Promise<void> {
+  await api.post(`${COURSES}${slug}/approve/`);
+}
+
+/** Save moderator review progress without changing course status. */
+export async function saveReviewDraft(
+  slug: string,
+  basicsFieldStatuses: Record<string, string> = {},
+  basicsAction = "",
+  basicsComment = "",
+  contentItemStatuses: Record<string, string> = {},
+  contentAction = "",
+  contentComment = "",
+  finalAction = "",
+  finalComment = "",
+): Promise<void> {
+  await api.post(`${COURSES}${slug}/save-review-draft/`, {
+    basics_field_statuses: basicsFieldStatuses,
+    basics_action: basicsAction,
+    basics_comment: basicsComment,
+    content_item_statuses: contentItemStatuses,
+    content_action: contentAction,
+    content_comment: contentComment,
+    final_action: finalAction,
+    final_comment: finalComment,
+  });
+}
+
+/** Reject a course (moderator only). Sends per-step statuses, actions, and comments. */
+export async function rejectCourse(
+  slug: string,
+  basicsFieldStatuses: Record<string, string> = {},
+  basicsAction = "",
+  basicsComment = "",
+  contentItemStatuses: Record<string, string> = {},
+  contentAction = "",
+  contentComment = "",
+  finalAction = "",
+  finalComment = "",
+): Promise<void> {
+  await api.post(`${COURSES}${slug}/reject/`, {
+    basics_field_statuses: basicsFieldStatuses,
+    basics_action: basicsAction,
+    basics_comment: basicsComment,
+    content_item_statuses: contentItemStatuses,
+    content_action: contentAction,
+    content_comment: contentComment,
+    final_action: finalAction,
+    final_comment: finalComment,
+  });
+}
+
+/** Assign the current moderator to a course. Backend endpoint: courses/:slug/assign-moderator/ */
+export async function assignModeratorSelf(slug: string): Promise<void> {
+  await api.post(`${COURSES}${slug}/assign-moderator/`);
+}
+
 export async function getWishlist(page = 1): Promise<Paginated<CourseListItem>> {
   const { data } = await api.get<Paginated<CourseListItem>>(`${COURSES}wishlist/`, {
     params: { page, page_size: 100 },
@@ -261,6 +359,50 @@ export async function archiveCourse(slug: string): Promise<void> {
 /** Move course back to draft (from review or needs_revision). */
 export async function withdrawCourseFromReview(slug: string): Promise<void> {
   await api.patch(`${COURSES}${slug}/`, { status: "draft" });
+}
+
+/** Get teacher's rejected courses (includes moderation_review + moderator_comment). */
+export async function getRejectedCourses(page = 1): Promise<Paginated<RejectedCourseItem>> {
+  const { data } = await api.get<Paginated<RejectedCourseItem>>(`${COURSES}rejected/`, {
+    params: { page, page_size: 100 },
+  });
+  return data;
+}
+
+/** Restore a rejected course to draft so the teacher can edit and resubmit. */
+export async function restoreCourseFromRejected(slug: string): Promise<CourseDetail> {
+  const { data } = await api.post<CourseDetail>(`${COURSES}${slug}/restore-from-rejected/`);
+  return data;
+}
+
+/** Deep-copy a rejected course into a new DRAFT. The original rejected course stays unchanged. */
+export async function copyCourseToDraft(slug: string): Promise<CourseDetail> {
+  const { data } = await api.post<CourseDetail>(`${COURSES}${slug}/copy-to-draft/`);
+  return data;
+}
+
+/** Teacher's rejection history — immutable snapshot records, independent of course status. */
+export async function getTeacherRejectionRecords(page = 1): Promise<Paginated<RejectedCourseRecord>> {
+  const { data } = await api.get<Paginated<RejectedCourseRecord>>(`${COURSES}my-rejection-records/`, {
+    params: { page, page_size: 100 },
+  });
+  return data;
+}
+
+/** Moderator's rejection history snapshot records. */
+export async function getModeratorRejectionRecords(page = 1): Promise<Paginated<RejectedCourseRecord>> {
+  const { data } = await api.get<Paginated<RejectedCourseRecord>>(`${COURSES}moderation/rejection-records/`, {
+    params: { page, page_size: 100 },
+  });
+  return data;
+}
+
+/** Moderator's approval history snapshot records. */
+export async function getModeratorApprovalRecords(page = 1): Promise<Paginated<ApprovedCourseRecord>> {
+  const { data } = await api.get<Paginated<ApprovedCourseRecord>>(`${COURSES}moderation/approval-records/`, {
+    params: { page, page_size: 100 },
+  });
+  return data;
 }
 
 /** Move archived course back to draft. */

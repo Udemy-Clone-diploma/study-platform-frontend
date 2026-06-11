@@ -70,10 +70,41 @@ export async function approvePendingEdit(slug: string): Promise<void> {
   await api.post(`${base(slug)}approve/`);
 }
 
-/** POST .../reject/ — moderator returns for revision with an optional comment. */
-export async function rejectPendingEdit(slug: string, comment = ""): Promise<CoursePendingEdit> {
-  const { data } = await api.post<CoursePendingEdit>(`${base(slug)}reject/`, { comment });
+/** POST .../reject/ — moderator returns for revision with full review data. */
+export async function rejectPendingEdit(
+  slug: string,
+  basicsFieldStatuses: Record<string, string> = {},
+  basicsAction = "",
+  basicsComment = "",
+  contentItemStatuses: Record<string, string> = {},
+  contentAction = "",
+  contentComment = "",
+  finalAction = "",
+  finalComment = "",
+): Promise<CoursePendingEdit> {
+  const { data } = await api.post<CoursePendingEdit>(`${base(slug)}reject/`, {
+    basics_field_statuses: basicsFieldStatuses,
+    basics_action: basicsAction,
+    basics_comment: basicsComment,
+    content_item_statuses: contentItemStatuses,
+    content_action: contentAction,
+    content_comment: contentComment,
+    final_action: finalAction,
+    final_comment: finalComment,
+  });
   return data;
+}
+
+/** PUT image to the pending edit (multipart). Only call when the icon actually changed. */
+export async function uploadPendingEditIcon(slug: string, iconSrc: string, iconName: string): Promise<void> {
+  try {
+    const res = await fetch(iconSrc);
+    if (!res.ok) return;
+    const blob = await res.blob();
+    const formData = new FormData();
+    formData.append("image", new File([blob], `${iconName}-pic.png`, { type: "image/png" }));
+    await api.put<CoursePendingEdit>(base(slug), formData);
+  } catch { /* best-effort */ }
 }
 
 /**

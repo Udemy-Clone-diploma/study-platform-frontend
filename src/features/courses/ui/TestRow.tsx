@@ -7,11 +7,25 @@ export type CourseTest = {
   pass_percent?: number;
 };
 
+type ItemStatus = "approved" | "rejected" | "needs_revision";
+
 type Props = {
   test: CourseTest;
   onEdit?: () => void;
   onDelete?: () => void;
+  /** Read-only moderation status badge from moderator review. */
+  moderationStatus?: ItemStatus;
+  /** True when this item is approved by moderator — edit/delete hidden, row dimmed. */
+  locked?: boolean;
 };
+
+function StatusBadge({ status }: { status: ItemStatus }) {
+  const src = status === "approved" ? "/icons/yes.svg" : status === "rejected" ? "/icons/no.svg" : "/icons/refine.svg";
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={src} alt={status} width={22} height={22} style={{ width: 22, height: 22, flexShrink: 0 }} />
+  );
+}
 
 const metaSt: React.CSSProperties = {
   fontFamily: "var(--font-base)",
@@ -23,7 +37,7 @@ const metaSt: React.CSSProperties = {
 };
 
 /** Bordered card for a single course test — icon + title + metadata + edit/delete actions. */
-export function TestRow({ test, onEdit, onDelete }: Props) {
+export function TestRow({ test, onEdit, onDelete, moderationStatus, locked }: Props) {
   return (
     <div
       className="flex items-center justify-between"
@@ -32,6 +46,7 @@ export function TestRow({ test, onEdit, onDelete }: Props) {
         border: "2px solid var(--color-border-light)",
         borderRadius: 16,
         padding: "clamp(20px, 2.22vw, 32px) clamp(20px, 2.22vw, 32px)",
+        opacity: locked ? 0.55 : 1,
       }}
     >
       <div className="flex min-w-0 items-center" style={{ gap: "clamp(12px, 1.32vw, 19px)" }}>
@@ -62,8 +77,9 @@ export function TestRow({ test, onEdit, onDelete }: Props) {
         )}
       </div>
 
-      {(onEdit || onDelete) && (
-        <div className="flex shrink-0 items-center" style={{ gap: 8 }}>
+      <div className="flex shrink-0 items-center" style={{ gap: 8 }}>
+        {moderationStatus && <StatusBadge status={moderationStatus} />}
+        {(onEdit || onDelete) && (<>
           {onEdit && (
             <button
               type="button"
@@ -88,8 +104,8 @@ export function TestRow({ test, onEdit, onDelete }: Props) {
               <img src="/icons/trash.svg" alt="" width={20} height={20} style={{ width: 20, height: 20 }} />
             </button>
           )}
-        </div>
-      )}
+        </>)}
+      </div>
     </div>
   );
 }

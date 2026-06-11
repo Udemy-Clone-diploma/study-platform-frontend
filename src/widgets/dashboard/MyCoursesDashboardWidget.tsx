@@ -28,6 +28,7 @@ const BACKEND_TO_UI: Record<CourseStatus, TeacherCourseStatus> = {
   draft: "draft",
   review: "pending_moderation",
   needs_revision: "needs_revision",
+  rejected: "needs_revision",
   published: "active",
   hidden: "hidden",
   archived: "completed",

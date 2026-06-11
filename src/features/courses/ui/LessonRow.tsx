@@ -1,14 +1,28 @@
 "use client";
 
+type ItemStatus = "approved" | "rejected" | "needs_revision";
+
 type Props = {
   lesson: { id: number; title: string; video_url?: string };
   index: number;
   onEdit?: () => void;
   onDelete?: () => void;
+  /** Read-only moderation status badge from moderator review. */
+  moderationStatus?: ItemStatus;
+  /** True when this item is approved by moderator — edit/delete hidden, row dimmed. */
+  locked?: boolean;
 };
 
+function StatusBadge({ status }: { status: ItemStatus }) {
+  const src = status === "approved" ? "/icons/yes.svg" : status === "rejected" ? "/icons/no.svg" : "/icons/refine.svg";
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={src} alt={status} width={22} height={22} style={{ width: 22, height: 22, flexShrink: 0 }} />
+  );
+}
+
 /** Bordered card for a single lesson row — number + title + optional edit/delete. */
-export function LessonRow({ lesson, index, onEdit, onDelete }: Props) {
+export function LessonRow({ lesson, index, onEdit, onDelete, moderationStatus, locked }: Props) {
   return (
     <div
       className="flex items-center justify-between"
@@ -17,6 +31,7 @@ export function LessonRow({ lesson, index, onEdit, onDelete }: Props) {
         border: "2px solid var(--color-border-light)",
         borderRadius: 16,
         padding: "clamp(20px, 1.67vw, 24px) clamp(24px, 2.22vw, 32px)",
+        opacity: locked ? 0.55 : 1,
       }}
     >
       <div className="flex min-w-0 items-center" style={{ gap: "clamp(8px, 0.83vw, 16px)" }}>
@@ -46,8 +61,9 @@ export function LessonRow({ lesson, index, onEdit, onDelete }: Props) {
         </span>
       </div>
 
-      {(onEdit || onDelete) && (
-        <div className="flex shrink-0 items-center" style={{ gap: 8 }}>
+      <div className="flex shrink-0 items-center" style={{ gap: 8 }}>
+        {moderationStatus && <StatusBadge status={moderationStatus} />}
+        {(onEdit || onDelete) && (<>
           {onEdit && (
             <button
               type="button"
@@ -72,8 +88,8 @@ export function LessonRow({ lesson, index, onEdit, onDelete }: Props) {
               <img src="/icons/trash.svg" alt="" width={20} height={20} style={{ width: 20, height: 20 }} />
             </button>
           )}
-        </div>
-      )}
+        </>)}
+      </div>
     </div>
   );
 }

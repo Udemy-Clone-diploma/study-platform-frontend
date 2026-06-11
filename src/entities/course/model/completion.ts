@@ -3,10 +3,13 @@ import type { CourseLevel } from "./types";
 export type CourseCompletion = {
   id: number;
   course: number | null;
+  slug?: string | null;
   title: string;
   teacher_name: string;
   level: CourseLevel;
   image_url: string | null;
+  short_description?: string | null;
+  category?: string | null;
   progress_percent: number;
   started_at: string;
   completed_at: string;

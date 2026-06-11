@@ -1,4 +1,3 @@
-import type { Category } from "./category";
 import type { CourseModule } from "./module";
 import type { CourseDeliveryType, CourseLanguage, CourseLevel, CourseMode, CourseType } from "./types";
 
@@ -24,6 +23,8 @@ export type CoursePendingEdit = {
   /** Full modules/lessons/tests snapshot. IDs are null for items added in this draft. */
   modules_snapshot: SnapshotModule[];
   moderator_comment: string;
+  /** Fields that differ from the live course — used by the moderator review page. */
+  changed_fields: string[];
   submitted_at: string | null;
   created_at: string;
   updated_at: string;

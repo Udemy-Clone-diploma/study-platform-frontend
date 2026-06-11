@@ -5,6 +5,8 @@ export * from "./ui/CourseBasicsForm";
 export * from "./ui/CourseCreationLayout";
 export * from "./ui/CourseCreationStepper";
 export * from "./ui/CoursePageHeader";
+export * from "./ui/CourseStatsGrid";
+export * from "./ui/ModeratorNoteBanner";
 export * from "./ui/LessonRow";
 export * from "./ui/LessonFormModal";
 export * from "./ui/TestRow";

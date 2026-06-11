@@ -25,7 +25,7 @@ export function CourseCreationStepper({ currentStep, steps = STEPS }: Props) {
       style={{
         padding: "clamp(20px, 1.82vw, 35px) clamp(24px, 2.6vw, 50px)",
         marginBottom: "clamp(12px, 1.25vw, 24px)",
-        boxShadow: "0px 0px 17px rgba(0, 0, 0, 0.16)",
+        boxShadow: "var(--shadow-dashboard-card)",
       }}
     >
       <div className="flex items-start justify-between">

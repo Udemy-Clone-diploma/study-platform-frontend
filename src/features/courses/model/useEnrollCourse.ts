@@ -10,6 +10,7 @@ import { getClientCookie } from "@/shared/lib/cookies";
 const STUDENT_ONLY_MESSAGE = "Enrollment is available only for students.";
 const PAID_COURSE_MESSAGE = "This course requires payment. See pricing on the course page.";
 const ENROLL_FAILED_MESSAGE = "Could not enroll in this course.";
+const ENROLL_SUCCESS_MESSAGE = "Enrollment complete. You can find this course in My Courses.";
 
 export function useEnrollCourse(courseId: number) {
   const router = useRouter();
@@ -39,7 +40,7 @@ export function useEnrollCourse(courseId: number) {
     try {
       await enrollInCourse(courseId);
       setEnrolled(true);
-      router.push("/student-dashboard/payment?tab=cart&notice=course_available");
+      setMessage(ENROLL_SUCCESS_MESSAGE);
     } catch (err) {
       const apiError = err as Partial<ApiError>;
 
@@ -50,7 +51,7 @@ export function useEnrollCourse(courseId: number) {
 
       if (apiError.status === 400 || apiError.status === 409) {
         setEnrolled(true);
-        router.push("/student-dashboard/payment?tab=cart&notice=course_available");
+        setMessage(ENROLL_SUCCESS_MESSAGE);
         return;
       }
 

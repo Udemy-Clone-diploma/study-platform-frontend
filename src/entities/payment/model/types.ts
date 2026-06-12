@@ -86,6 +86,7 @@ export type Payment = {
   stripe_payment_intent_id: string;
   stripe_session_id: string;
   stripe_customer_id: string;
+  receipt_url?: string | null;
   metadata: Record<string, unknown>;
   items: PaymentItem[];
   is_successful: boolean;
@@ -102,6 +103,25 @@ export type CheckoutSession = {
   payment_id: number;
   order_id: number;
   installment_id: number | null;
+};
+
+export type PaymentIntent = {
+  client_secret: string;
+  payment_intent_id: string;
+  payment_id: number;
+  order_id: number;
+  installment_id: number | null;
+  amount: string;
+  currency: PricingPlan["currency"];
+};
+
+export type PaymentIntentStatus = {
+  payment_id: number;
+  order_id: number | null;
+  installment_id: number | null;
+  payment_status: PaymentStatus;
+  order_status: OrderStatus | null;
+  stripe_payment_intent_status: string;
 };
 
 export type PaymentList = Paginated<Payment>;

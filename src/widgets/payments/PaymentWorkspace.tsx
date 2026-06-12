@@ -1,26 +1,35 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { getCart, type Cart } from "@/entities/cart";
+/* eslint-disable @next/next/no-img-element */
+
+import { useEffect, useMemo, useRef, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Download } from "lucide-react";
+import { getCart, type Cart, type CartItem } from "@/entities/cart";
 import {
-  createInstallmentCheckoutSession,
-  createCheckoutSession,
+  createInstallmentPaymentIntent,
+  createPaymentIntent,
   getOrders,
   getPayments,
   type Order,
-  type PaymentInstallmentStatus,
   type Payment,
+  type PaymentIntent,
   type PaymentStatus,
   type PaymentType,
 } from "@/entities/payment";
 import type { ApiError } from "@/shared/api/base";
+import { StripePaymentDrawer } from "./StripePaymentDrawer";
 
-type TabId = "cart" | "plans" | "history";
+type TabId = "card" | "plans" | "history";
 type WorkspaceRole = "student" | "teacher";
+type CheckoutIntentState = {
+  intent: PaymentIntent;
+  paymentMode: PaymentType;
+  installmentCount: number | null;
+};
 
 const allTabs: Array<{ id: TabId; label: string; roles: WorkspaceRole[] }> = [
-  { id: "cart", label: "Cart", roles: ["student"] },
+  { id: "card", label: "Card", roles: ["student"] },
   { id: "plans", label: "Plans", roles: ["student", "teacher"] },
   { id: "history", label: "Payment history", roles: ["student", "teacher"] },
 ];
@@ -38,14 +47,6 @@ const STATUS_LABEL: Record<PaymentStatus, string> = {
   refunded: "Refunded",
 };
 
-const INSTALLMENT_STATUS_LABEL: Record<PaymentInstallmentStatus, string> = {
-  pending: "Pending",
-  processing: "Processing",
-  paid: "Paid",
-  failed: "Failed",
-  canceled: "Canceled",
-};
-
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat("en-GB").format(new Date(value)).replace(/\//g, ".");
 }
@@ -59,30 +60,36 @@ function formatMoney(amount: string, currency: string | null): string {
   }).format(Number(amount));
 }
 
-function courseLabel(payment: Payment): string {
-  if (payment.items.length === 0) return payment.description || `Payment #${payment.id}`;
-  if (payment.items.length === 1) return payment.items[0].course_title;
-  return payment.items.map((item) => item.course_title).join(", ");
+function formatMoneyValue(amount: number, currency: string | null): string {
+  return formatMoney(amount.toFixed(2), currency);
 }
 
-function cartInstallmentOption(cart: Cart | null) {
-  if (!cart || cart.items.length === 0) return null;
+function sumCartItems(items: CartItem[], field: "subtotal" | "installment_amount"): number {
+  return items.reduce((total, item) => total + Number(item[field] ?? 0), 0);
+}
+
+function installmentOptionForItems(items: CartItem[]) {
+  if (items.length === 0) return null;
 
   const counts = new Set(
-    cart.items.map((item) => item.installment_count).filter((value): value is number => Boolean(value)),
+    items.map((item) => item.installment_count).filter((value): value is number => Boolean(value)),
   );
 
   if (counts.size !== 1) return null;
 
   const count = Array.from(counts)[0];
-  if (count < 2 || cart.items.some((item) => !item.installment_amount)) return null;
+  if (count < 2 || items.some((item) => !item.installment_amount)) return null;
 
-  const firstAmount = cart.items
-    .reduce((total, item) => total + Number(item.installment_amount ?? 0), 0)
-    .toFixed(2);
-  const totalAmount = (Number(firstAmount) * count).toFixed(2);
+  const firstAmount = sumCartItems(items, "installment_amount");
+  const totalAmount = firstAmount * count;
 
   return { count, firstAmount, totalAmount };
+}
+
+function courseLabel(payment: Payment): string {
+  if (payment.items.length === 0) return payment.description || `Payment #${payment.id}`;
+  if (payment.items.length === 1) return payment.items[0].course_title;
+  return payment.items.map((item) => item.course_title).join(", ");
 }
 
 function orderCourseLabel(order: Order): string {
@@ -91,67 +98,360 @@ function orderCourseLabel(order: Order): string {
   return order.items.map((item) => item.course_title).join(", ");
 }
 
-function PaymentsTable({
-  rows,
-  type,
-  emptyLabel,
-}: {
-  rows: Array<Record<string, string>>;
-  type: "cart" | "plans" | "history";
-  emptyLabel: string;
-}) {
-  const columns =
-    type === "plans"
-      ? [
-          { key: "plan", label: "Plan" },
-          { key: "period", label: "Period" },
-          { key: "amount", label: "Amount" },
-        ]
-      : type === "history"
-        ? [
-            { key: "course", label: "Course" },
-            { key: "date", label: "Date" },
-            { key: "amount", label: "Amount" },
-            { key: "status", label: "Status" },
-          ]
-        : [
-            { key: "course", label: "Course" },
-            { key: "date", label: "Date" },
-            { key: "amount", label: "Amount" },
-          ];
+function resolveTab(value: string | null, role: WorkspaceRole): TabId {
+  const normalizedValue = value === "cart" ? "card" : value;
+  const allowedTabs = allTabs.filter((tab) => tab.roles.includes(role)).map((tab) => tab.id);
+  return allowedTabs.includes(normalizedValue as TabId)
+    ? (normalizedValue as TabId)
+    : allowedTabs[0];
+}
 
-  if (rows.length === 0) {
+function parsePositiveInt(value: string | null): number | null {
+  if (!value) return null;
+
+  const parsedValue = Number(value);
+  return Number.isInteger(parsedValue) && parsedValue > 0 ? parsedValue : null;
+}
+
+function PaymentTabs({
+  tabs,
+  activeTab,
+  onChange,
+}: {
+  tabs: Array<{ id: TabId; label: string }>;
+  activeTab: TabId;
+  onChange: (tab: TabId) => void;
+}) {
+  return (
+    <nav className="flex border-b border-[#B7C7FA]" aria-label="Payment sections">
+      {tabs.map((tab) => {
+        const isActive = activeTab === tab.id;
+
+        return (
+          <button
+            key={tab.id}
+            type="button"
+            aria-current={isActive ? "page" : undefined}
+            onClick={() => onChange(tab.id)}
+            className={[
+              "h-8 min-w-[88px] px-3 text-center font-mono text-[12px] leading-none transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#003AFF]",
+              isActive
+                ? "border-b-2 border-[#003AFF] text-[#003AFF]"
+                : "border-b-2 border-transparent text-[#121212] hover:text-[#003AFF]",
+            ].join(" ")}
+          >
+            {tab.label}
+          </button>
+        );
+      })}
+    </nav>
+  );
+}
+
+function PaymentModeToggle({
+  mode,
+  canUseInstallments,
+  onChange,
+}: {
+  mode: PaymentType;
+  canUseInstallments: boolean;
+  onChange: (mode: PaymentType) => void;
+}) {
+  return (
+    <div className="inline-flex h-8 rounded-full border border-[#003AFF] bg-white p-0.5 font-mono text-[10px] uppercase text-[#121212]">
+      <button
+        type="button"
+        onClick={() => onChange("full")}
+        className={[
+          "inline-flex min-w-[118px] items-center justify-center rounded-full px-4 transition-colors",
+          mode === "full" ? "bg-(--color-brand-lavender-soft)" : "",
+        ].join(" ")}
+      >
+        Full payment
+      </button>
+      <button
+        type="button"
+        onClick={() => canUseInstallments && onChange("installments")}
+        disabled={!canUseInstallments}
+        className={[
+          "inline-flex min-w-[128px] items-center justify-center rounded-full px-4 transition-colors disabled:cursor-not-allowed disabled:opacity-40",
+          mode === "installments" ? "bg-(--color-brand-lavender-soft)" : "",
+        ].join(" ")}
+      >
+        Partial payment
+      </button>
+    </div>
+  );
+}
+
+function ReceiptButton({
+  url,
+  label = "Receipt",
+}: {
+  url?: string | null;
+  label?: string;
+}) {
+  if (!url) {
+    // TODO: Enable when backend exposes receipt/invoice URLs for payments.
     return (
-      <div className="mt-6 flex min-h-[160px] items-center justify-center rounded-md border border-dashed border-[#D9D9D9] px-4 text-center font-mono text-[12px] text-[#6A6A6A]">
-        {emptyLabel}
-      </div>
+      <button
+        type="button"
+        disabled
+        className="inline-flex h-7 min-w-[74px] items-center justify-center rounded-full border border-[#D9D9D9] px-3 font-mono text-[11px] text-[#9A9A9A] disabled:cursor-not-allowed"
+      >
+        {label}
+      </button>
     );
   }
 
   return (
-    <div className="mt-6 overflow-hidden">
-      <table className="w-full table-fixed border-collapse font-mono text-[12px] text-[#121212]">
-        <thead>
-          <tr className="border-b border-[#D9D9D9] text-left text-[#6A6A6A]">
-            {columns.map((column) => (
-              <th key={column.key} className="h-8 px-3 font-normal">
-                {column.label}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row, index) => (
-            <tr key={`${type}-${row.id ?? index}`} className="border-b border-[#D9D9D9]">
-              {columns.map((column) => (
-                <td key={column.key} className="h-8 truncate px-3">
-                  {row[column.key]}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <a
+      href={url}
+      target="_blank"
+      rel="noreferrer"
+      className="inline-flex h-7 min-w-[74px] items-center justify-center rounded-full border border-[#003AFF] px-3 font-mono text-[11px] text-[#003AFF] transition-colors hover:bg-[#EEF3FF]"
+    >
+      {label}
+    </a>
+  );
+}
+
+function OrderSummary({
+  selectedItems,
+  currency,
+  checkoutMode,
+  canUseInstallments,
+  checkoutLoading,
+  checkoutError,
+  onModeChange,
+  onPay,
+}: {
+  selectedItems: CartItem[];
+  currency: string | null;
+  checkoutMode: PaymentType;
+  canUseInstallments: boolean;
+  checkoutLoading: boolean;
+  checkoutError: string;
+  onModeChange: (mode: PaymentType) => void;
+  onPay: () => void;
+}) {
+  const installmentOption = installmentOptionForItems(selectedItems);
+  const totalLabel = formatMoneyValue(sumCartItems(selectedItems, "subtotal"), currency);
+  const installmentFirstLabel = installmentOption
+    ? formatMoneyValue(installmentOption.firstAmount, currency)
+    : "";
+  const installmentTotalLabel = installmentOption
+    ? formatMoneyValue(installmentOption.totalAmount, currency)
+    : "";
+  const dueLabel =
+    checkoutMode === "installments" && installmentOption ? installmentFirstLabel : totalLabel;
+  const canPay = selectedItems.length > 0;
+
+  return (
+    <aside className="min-w-0 rounded-md border border-[#E7ECFF] bg-[#FBFCFF] p-4">
+      <div className="mb-4 flex items-start justify-between gap-4">
+        <div>
+          <h2 className="font-mono text-[14px] font-normal text-[#121212]">Order summary</h2>
+          <p className="mt-1 font-mono text-[10px] text-[#6A6A6A]">
+            {selectedItems.length} selected item{selectedItems.length === 1 ? "" : "s"}
+          </p>
+        </div>
+        {/* TODO: Replace disabled state with backend invoice download once invoice generation exists. */}
+        <button
+          type="button"
+          disabled
+          title="Invoice download is not available for unpaid orders yet."
+          className="inline-flex h-8 shrink-0 items-center gap-2 rounded-full bg-[#F1F4FF] px-3 font-mono text-[10px] uppercase text-[#9A9A9A] disabled:cursor-not-allowed"
+        >
+          Download invoice
+          <Download size={12} aria-hidden="true" />
+        </button>
+      </div>
+
+      <div className="mb-4 flex justify-end">
+        <PaymentModeToggle
+          mode={checkoutMode}
+          canUseInstallments={canUseInstallments}
+          onChange={onModeChange}
+        />
+      </div>
+
+      <div className="space-y-2 border-t border-[#E7ECFF] pt-4 font-mono text-[12px] text-[#121212]">
+        <div className="flex items-center justify-between gap-4">
+          <span>Subtotal</span>
+          <span>{totalLabel}</span>
+        </div>
+        {checkoutMode === "installments" && installmentOption ? (
+          <div className="flex items-center justify-between gap-4 text-[#6A6A6A]">
+            <span>{installmentOption.count} payments total</span>
+            <span>{installmentTotalLabel}</span>
+          </div>
+        ) : null}
+        <div className="flex items-center justify-between gap-4 font-semibold">
+          <span>{checkoutMode === "installments" && installmentOption ? "Due now" : "Total"}</span>
+          <span>{dueLabel}</span>
+        </div>
+      </div>
+
+      <p className="mt-4 font-mono text-[9px] leading-3 text-[#121212]">
+        By submitting your order, you confirm that you have read and agree to the terms of use.
+      </p>
+
+      <button
+        type="button"
+        onClick={onPay}
+        disabled={!canPay || checkoutLoading}
+        className="mt-5 inline-flex h-9 w-full items-center justify-center rounded-full bg-black px-5 font-mono text-[12px] text-white transition-colors hover:bg-[#252525] disabled:cursor-not-allowed disabled:bg-[#6A6A6A]"
+      >
+        {checkoutLoading
+          ? "Opening..."
+          : checkoutMode === "installments" && installmentOption
+            ? "Pay first"
+            : "To Pay"}
+      </button>
+
+      {checkoutError ? (
+        <p role="alert" className="mt-3 font-mono text-[12px] text-[#B42318]">
+          {checkoutError}
+        </p>
+      ) : null}
+    </aside>
+  );
+}
+
+function CartPaymentPanel({
+  cart,
+  loading,
+  error,
+  selectedItemIds,
+  checkoutMode,
+  checkoutLoading,
+  checkoutError,
+  onToggleItem,
+  onToggleAll,
+  onModeChange,
+  onPay,
+}: {
+  cart: Cart | null;
+  loading: boolean;
+  error: string;
+  selectedItemIds: number[];
+  checkoutMode: PaymentType;
+  checkoutLoading: boolean;
+  checkoutError: string;
+  onToggleItem: (itemId: number) => void;
+  onToggleAll: () => void;
+  onModeChange: (mode: PaymentType) => void;
+  onPay: () => void;
+}) {
+  if (loading) {
+    return (
+      <div className="mt-6 flex min-h-[260px] items-center justify-center font-mono text-[12px] text-[#6A6A6A]">
+        Loading cart...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="mt-6 flex min-h-[260px] items-center justify-center font-mono text-[12px] text-[#B42318]">
+        {error}
+      </div>
+    );
+  }
+
+  if (!cart || cart.items.length === 0) {
+    return (
+      <div className="mt-6 flex min-h-[260px] items-center justify-center rounded-md border border-dashed border-[#D9D9D9] px-4 text-center font-mono text-[12px] text-[#6A6A6A]">
+        Your cart is empty.
+      </div>
+    );
+  }
+
+  const selectedItems = cart.items.filter((item) => selectedItemIds.includes(item.id));
+  const allSelected = selectedItemIds.length === cart.items.length;
+  const installmentOption = installmentOptionForItems(selectedItems);
+
+  return (
+    <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_390px]">
+      <section className="min-w-0">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="font-mono text-[14px] font-normal text-[#121212]">Items in cart</h2>
+          <label className="inline-flex cursor-pointer items-center gap-2 font-mono text-[12px] text-[#121212]">
+            <input
+              type="checkbox"
+              checked={allSelected}
+              onChange={onToggleAll}
+              className="h-4 w-4 accent-[#003AFF]"
+            />
+            Select all
+          </label>
+        </div>
+
+        <div className="flex flex-col gap-3">
+          {cart.items.map((item) => {
+            const isSelected = selectedItemIds.includes(item.id);
+
+            return (
+              <label
+                key={item.id}
+                className={[
+                  "flex cursor-pointer items-center gap-3 rounded-md border px-3 py-3 transition-colors",
+                  isSelected
+                    ? "border-[#B7C7FA] bg-[#EEF3FF]"
+                    : "border-[#E7ECFF] bg-white hover:border-[#B7C7FA]",
+                ].join(" ")}
+              >
+                <input
+                  type="checkbox"
+                  checked={isSelected}
+                  onChange={() => onToggleItem(item.id)}
+                  className="h-4 w-4 shrink-0 accent-[#003AFF]"
+                />
+                {item.course.image ? (
+                  <img
+                    src={item.course.image}
+                    alt=""
+                    className="h-12 w-12 shrink-0 rounded-md object-cover"
+                  />
+                ) : (
+                  <div className="h-12 w-12 shrink-0 rounded-md bg-[#FDD3D0]" />
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-mono text-[12px] font-semibold text-[#121212]">
+                    {item.course.title}
+                  </p>
+                  <p className="mt-1 font-mono text-[10px] uppercase text-[#6A6A6A]">
+                    {item.pricing_plan_kind ?? "Course"}
+                  </p>
+                </div>
+                <span className="shrink-0 font-mono text-[12px] text-[#121212]">
+                  {formatMoney(item.subtotal, item.currency)}
+                </span>
+              </label>
+            );
+          })}
+        </div>
+
+        <div className="mt-4 flex flex-wrap items-center justify-end gap-3">
+          {!installmentOption && selectedItems.length > 0 ? (
+            <p className="font-mono text-[10px] text-[#6A6A6A]">
+              Partial payment is available only for matching installment plans.
+            </p>
+          ) : null}
+        </div>
+      </section>
+
+      <OrderSummary
+        selectedItems={selectedItems}
+        currency={cart.currency}
+        checkoutMode={checkoutMode}
+        canUseInstallments={Boolean(installmentOption)}
+        checkoutLoading={checkoutLoading}
+        checkoutError={checkoutError}
+        onModeChange={onModeChange}
+        onPay={onPay}
+      />
     </div>
   );
 }
@@ -177,24 +477,24 @@ function InstallmentPlansTable({
   if (rows.length === 0) {
     return (
       <div className="mt-6 flex min-h-[160px] items-center justify-center rounded-md border border-dashed border-[#D9D9D9] px-4 text-center font-mono text-[12px] text-[#6A6A6A]">
-        No payment plans yet.
+        No active installment plans yet.
       </div>
     );
   }
 
   return (
-    <div className="mt-6 overflow-hidden">
-      <table className="w-full table-fixed border-collapse font-mono text-[12px] text-[#121212]">
-        <thead>
-          <tr className="border-b border-[#D9D9D9] text-left text-[#6A6A6A]">
-            <th className="h-8 px-3 font-normal">Plan</th>
-            <th className="h-8 px-3 font-normal">Period</th>
-            <th className="h-8 px-3 font-normal">Amount</th>
-            <th className="h-8 px-3 font-normal">Status</th>
-            <th className="h-8 w-[92px] px-3 font-normal" aria-label="Action" />
-          </tr>
-        </thead>
-        <tbody>
+    <div className="mt-6 overflow-x-auto">
+      {/* TODO: Prefer a dedicated payment-installments endpoint when backend exposes one. */}
+      <div className="min-w-[544px] font-mono text-[12px] text-[#121212]">
+        <div className="grid grid-cols-[minmax(130px,1.35fr)_88px_88px_96px_80px] items-center px-3 pb-4 text-[13px] text-[#6A6A6A]">
+          <span>Course</span>
+          <span>Date</span>
+          <span>Amount</span>
+          <span aria-hidden="true" />
+          <span aria-hidden="true" />
+        </div>
+
+        <div className="flex flex-col gap-2">
           {rows.map(({ order, installment }) => {
             const isPaying = payingInstallmentId === installment.id;
             const canPay =
@@ -204,75 +504,195 @@ function InstallmentPlansTable({
               order.status !== "canceled";
 
             return (
-              <tr
+              <div
                 key={`${order.id}-${installment.id}`}
-                className="border-b border-[#D9D9D9]"
+                className="grid min-h-9 grid-cols-[minmax(130px,1.35fr)_88px_88px_96px_80px] items-center rounded-full bg-[#EEF3FF] px-3 text-[11px]"
               >
-                <td className="h-9 truncate px-3">{orderCourseLabel(order)}</td>
-                <td className="h-9 truncate px-3">
-                  {installment.installment_number}/{order.installments_count} -{" "}
-                  {formatDate(installment.due_date)}
-                </td>
-                <td className="h-9 truncate px-3">
+                <span className="truncate">
+                  {installment.installment_number}/{order.installments_count}{" "}
+                  {orderCourseLabel(order)}
+                </span>
+                <span className="truncate">{formatDate(installment.due_date)}</span>
+                <span className="truncate">
                   {formatMoney(installment.amount, installment.currency)}
-                </td>
-                <td className="h-9 truncate px-3">
-                  {INSTALLMENT_STATUS_LABEL[installment.status]}
-                </td>
-                <td className="h-9 px-3 text-right">
+                </span>
+                <button
+                  type="button"
+                  disabled
+                  title="Invoice download is not available yet."
+                  className="w-fit text-left text-[11px] text-[#121212] underline underline-offset-2 disabled:cursor-not-allowed"
+                >
+                  Invoice
+                </button>
+                <span className="flex justify-end">
                   {canPay ? (
                     <button
                       type="button"
                       onClick={() => onPay(order.id, installment.id)}
                       disabled={isPaying}
-                      className="inline-flex h-7 min-w-[68px] items-center justify-center rounded-full bg-[#003AFF] px-3 text-[11px] font-semibold text-white transition-colors hover:bg-[#002BC0] disabled:cursor-not-allowed disabled:bg-[#B7C7FA]"
+                      className="inline-flex h-6 min-w-[70px] items-center justify-center rounded-full bg-black px-4 text-[10px] font-semibold text-white transition-colors hover:bg-[#252525] disabled:cursor-not-allowed disabled:bg-[#6A6A6A]"
                     >
-                      {isPaying
-                        ? "..."
-                        : installment.status === "processing"
-                          ? "Continue"
-                          : "Pay"}
+                      {isPaying ? "..." : "To Pay"}
                     </button>
                   ) : null}
-                </td>
-              </tr>
+                </span>
+              </div>
             );
           })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PaymentHistoryTable({ payments }: { payments: Payment[] }) {
+  const paidPayments = payments.filter((payment) => payment.status === "succeeded");
+
+  if (paidPayments.length === 0) {
+    return (
+      <div className="mt-6 flex min-h-[160px] items-center justify-center rounded-md border border-dashed border-[#D9D9D9] px-4 text-center font-mono text-[12px] text-[#6A6A6A]">
+        No completed payments yet.
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-6 overflow-x-auto">
+      <table className="w-full min-w-[620px] table-fixed border-collapse font-mono text-[12px] text-[#121212]">
+        <thead>
+          <tr className="border-b border-[#D9D9D9] text-left text-[#6A6A6A]">
+            <th className="h-8 px-3 font-normal">Course</th>
+            <th className="h-8 px-3 font-normal">Date</th>
+            <th className="h-8 px-3 font-normal">Amount</th>
+            <th className="h-8 px-3 font-normal">Status</th>
+            <th className="h-8 w-[104px] px-3 font-normal">Receipt</th>
+          </tr>
+        </thead>
+        <tbody>
+          {paidPayments.map((payment) => (
+            <tr key={payment.id} className="border-b border-[#D9D9D9]">
+              <td className="h-10 truncate px-3">{courseLabel(payment)}</td>
+              <td className="h-10 truncate px-3">
+                {formatDate(payment.processed_at ?? payment.created_at)}
+              </td>
+              <td className="h-10 truncate px-3">
+                {formatMoney(payment.amount, payment.currency)}
+              </td>
+              <td className="h-10 truncate px-3">{STATUS_LABEL[payment.status]}</td>
+              <td className="h-10 px-3">
+                <ReceiptButton url={payment.receipt_url} />
+              </td>
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>
   );
 }
 
-function resolveTab(value: string | null, role: WorkspaceRole): TabId {
-  const allowedTabs = allTabs.filter((tab) => tab.roles.includes(role)).map((tab) => tab.id);
-  return allowedTabs.includes(value as TabId) ? (value as TabId) : allowedTabs[0];
-}
-
 export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole }) {
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState<TabId>(() =>
-    resolveTab(searchParams.get("tab"), role),
-  );
+  const requestedPaymentType =
+    searchParams.get("payment_type") === "installments" ? "installments" : null;
+  const requestedCartItemId = parsePositiveInt(searchParams.get("cart_item_id"));
+  const paymentRequestKey = `${requestedPaymentType ?? "default"}:${requestedCartItemId ?? "all"}`;
+  const appliedPaymentRequestRef = useRef<string | null>(null);
+  const [activeTab, setActiveTab] = useState<TabId>(() => resolveTab(searchParams.get("tab"), role));
   const [cart, setCart] = useState<Cart | null>(null);
   const [cartLoading, setCartLoading] = useState(false);
   const [cartError, setCartError] = useState("");
+  const [selectedCartItemIds, setSelectedCartItemIds] = useState<number[]>([]);
   const [checkoutMode, setCheckoutMode] = useState<PaymentType>("full");
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
+  const [cartCheckoutIntent, setCartCheckoutIntent] = useState<CheckoutIntentState | null>(null);
+  const [isCartPaymentDrawerOpen, setIsCartPaymentDrawerOpen] = useState(false);
   const [orders, setOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [ordersError, setOrdersError] = useState("");
   const [payingInstallmentId, setPayingInstallmentId] = useState<number | null>(null);
+  const [installmentCheckoutIntent, setInstallmentCheckoutIntent] = useState<PaymentIntent | null>(null);
+  const [isInstallmentPaymentDrawerOpen, setIsInstallmentPaymentDrawerOpen] = useState(false);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [paymentsLoading, setPaymentsLoading] = useState(false);
   const [paymentsError, setPaymentsError] = useState("");
   const [toast, setToast] = useState<string | null>(null);
 
-  const tabs = useMemo(
-    () => allTabs.filter((tab) => tab.roles.includes(role)),
-    [role],
+  const tabs = useMemo(() => allTabs.filter((tab) => tab.roles.includes(role)), [role]);
+  const selectedCartItems = useMemo(
+    () => cart?.items.filter((item) => selectedCartItemIds.includes(item.id)) ?? [],
+    [cart, selectedCartItemIds],
   );
+  const selectedInstallmentOption = useMemo(
+    () => installmentOptionForItems(selectedCartItems),
+    [selectedCartItems],
+  );
+  const cartPaymentSummary = useMemo(() => {
+    if (!cartCheckoutIntent) return null;
+
+    const totalCurrency = cart?.currency ?? cartCheckoutIntent.intent.currency;
+    const isInstallmentPayment = cartCheckoutIntent.paymentMode === "installments";
+
+    return {
+      total: formatMoneyValue(sumCartItems(selectedCartItems, "subtotal"), totalCurrency),
+      due: formatMoney(cartCheckoutIntent.intent.amount, cartCheckoutIntent.intent.currency),
+      courses: selectedCartItems.map((item) => ({
+        id: item.id,
+        title: item.course.title,
+        subtitle: item.pricing_plan_kind ?? "Course",
+        amount: formatMoney(
+          isInstallmentPayment ? item.installment_amount ?? item.subtotal : item.subtotal,
+          item.currency,
+        ),
+        image: item.course.image,
+      })),
+    };
+  }, [cart, cartCheckoutIntent, selectedCartItems]);
+  const installmentPaymentSummary = useMemo(() => {
+    if (!installmentCheckoutIntent) return null;
+
+    const order = orders.find((item) =>
+      item.installments.some((installment) => installment.id === installmentCheckoutIntent.installment_id),
+    );
+    const installment = order?.installments.find(
+      (item) => item.id === installmentCheckoutIntent.installment_id,
+    );
+
+    return {
+      total: order
+        ? formatMoney(order.total_amount, order.currency)
+        : formatMoney(installmentCheckoutIntent.amount, installmentCheckoutIntent.currency),
+      due: formatMoney(installmentCheckoutIntent.amount, installmentCheckoutIntent.currency),
+      courses:
+        order?.items.map((item) => ({
+          id: item.id,
+          title: item.course_title,
+          subtitle: installment
+            ? `Installment ${installment.installment_number}/${order.installments_count}`
+            : "Partial payment",
+          amount: installment
+            ? formatMoney(
+                (Number(item.unit_amount) / order.installments_count).toFixed(2),
+                item.currency,
+              )
+            : formatMoney(item.unit_amount, item.currency),
+          image: null,
+        })) ?? [
+          {
+            id: "installment",
+            title: "Installment payment",
+            subtitle: "Partial payment",
+            amount: formatMoney(
+              installmentCheckoutIntent.amount,
+              installmentCheckoutIntent.currency,
+            ),
+            image: null,
+          },
+        ],
+    };
+  }, [installmentCheckoutIntent, orders]);
 
   useEffect(() => {
     setActiveTab(resolveTab(searchParams.get("tab"), role));
@@ -295,7 +715,7 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
   }, [searchParams]);
 
   useEffect(() => {
-    if (role !== "student" || activeTab !== "cart") return;
+    if (role !== "student" || activeTab !== "card") return;
 
     let cancelled = false;
     setCartLoading(true);
@@ -303,7 +723,18 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
 
     getCart()
       .then((data) => {
-        if (!cancelled) setCart(data);
+        if (cancelled) return;
+
+        setCart(data);
+        setSelectedCartItemIds((previousIds) => {
+          const currentIds = data.items.map((item) => item.id);
+          if (requestedCartItemId && currentIds.includes(requestedCartItemId)) {
+            return [requestedCartItemId];
+          }
+
+          const keptIds = previousIds.filter((itemId) => currentIds.includes(itemId));
+          return keptIds.length > 0 ? keptIds : currentIds;
+        });
       })
       .catch(() => {
         if (!cancelled) setCartError("Could not load cart.");
@@ -315,13 +746,47 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
     return () => {
       cancelled = true;
     };
-  }, [activeTab, role]);
+  }, [activeTab, requestedCartItemId, role]);
 
   useEffect(() => {
-    if (checkoutMode === "installments" && !cartInstallmentOption(cart)) {
+    if (checkoutMode === "installments" && !selectedInstallmentOption) {
       setCheckoutMode("full");
+      setCartCheckoutIntent(null);
+      setIsCartPaymentDrawerOpen(false);
     }
-  }, [cart, checkoutMode]);
+  }, [checkoutMode, selectedInstallmentOption]);
+
+  useEffect(() => {
+    if (
+      role !== "student" ||
+      activeTab !== "card" ||
+      requestedPaymentType !== "installments" ||
+      appliedPaymentRequestRef.current === paymentRequestKey
+    ) {
+      return;
+    }
+
+    if (selectedInstallmentOption) {
+      setCheckoutMode("installments");
+      setCheckoutError("");
+      appliedPaymentRequestRef.current = paymentRequestKey;
+      return;
+    }
+
+    if (!cartLoading && selectedCartItems.length > 0) {
+      setCheckoutMode("full");
+      setCheckoutError("Partial payment is not available for the selected course.");
+      appliedPaymentRequestRef.current = paymentRequestKey;
+    }
+  }, [
+    activeTab,
+    cartLoading,
+    paymentRequestKey,
+    requestedPaymentType,
+    role,
+    selectedCartItems.length,
+    selectedInstallmentOption,
+  ]);
 
   useEffect(() => {
     if (activeTab !== "plans") return;
@@ -369,31 +834,78 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
     };
   }, [activeTab]);
 
+  function handleTabChange(tab: TabId) {
+    setActiveTab(tab);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", tab);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }
+
+  function handleToggleItem(itemId: number) {
+    setCartCheckoutIntent(null);
+    setIsCartPaymentDrawerOpen(false);
+    setCheckoutError("");
+    setSelectedCartItemIds((ids) =>
+      ids.includes(itemId) ? ids.filter((id) => id !== itemId) : [...ids, itemId],
+    );
+  }
+
+  function handleToggleAll() {
+    if (!cart) return;
+
+    setCartCheckoutIntent(null);
+    setIsCartPaymentDrawerOpen(false);
+    setCheckoutError("");
+    setSelectedCartItemIds((ids) =>
+      ids.length === cart.items.length ? [] : cart.items.map((item) => item.id),
+    );
+  }
+
+  function handleModeChange(mode: PaymentType) {
+    setCartCheckoutIntent(null);
+    setIsCartPaymentDrawerOpen(false);
+    setCheckoutError("");
+    setCheckoutMode(mode);
+  }
+
   async function handlePay() {
-    if (!cart || cart.items_count === 0 || checkoutLoading) return;
+    if (!cart || selectedCartItems.length === 0 || checkoutLoading) {
+      setCheckoutError("Select at least one course to pay.");
+      return;
+    }
+
+    if (cartCheckoutIntent) {
+      setIsCartPaymentDrawerOpen(true);
+      return;
+    }
 
     setCheckoutLoading(true);
     setCheckoutError("");
+    setIsCartPaymentDrawerOpen(false);
 
     try {
-      const origin = window.location.origin;
-      const installmentOption = cartInstallmentOption(cart);
       const paymentType =
-        checkoutMode === "installments" && installmentOption ? "installments" : "full";
+        checkoutMode === "installments" && selectedInstallmentOption ? "installments" : "full";
       const requestedInstallmentCount =
-        paymentType === "installments" && installmentOption
-          ? installmentOption.count
+        paymentType === "installments" && selectedInstallmentOption
+          ? selectedInstallmentOption.count
           : undefined;
-      const session = await createCheckoutSession({
-        success_url: `${origin}/student-dashboard/payment?tab=history&session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${origin}/student-dashboard/payment?tab=cart&notice=payment_cancelled`,
+      const intent = await createPaymentIntent({
+        selected_cart_item_ids: selectedCartItems.map((item) => item.id),
         payment_type: paymentType,
         installments_count: requestedInstallmentCount,
       });
-      window.location.assign(session.checkout_url);
+
+      setCartCheckoutIntent({
+        intent,
+        paymentMode: paymentType,
+        installmentCount: requestedInstallmentCount ?? null,
+      });
+      setIsCartPaymentDrawerOpen(true);
     } catch (error) {
       const apiError = error as Partial<ApiError>;
-      setCheckoutError(apiError.detail || apiError.message || "Could not start checkout.");
+      setCheckoutError(apiError.detail || apiError.message || "Could not start payment.");
+    } finally {
       setCheckoutLoading(false);
     }
   }
@@ -401,58 +913,32 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
   async function handlePayInstallment(orderId: number, installmentId: number) {
     if (payingInstallmentId) return;
 
+    if (installmentCheckoutIntent?.installment_id === installmentId) {
+      setIsInstallmentPaymentDrawerOpen(true);
+      return;
+    }
+
     setPayingInstallmentId(installmentId);
     setOrdersError("");
+    setInstallmentCheckoutIntent(null);
+    setIsInstallmentPaymentDrawerOpen(false);
 
     try {
-      const origin = window.location.origin;
-      const session = await createInstallmentCheckoutSession(orderId, installmentId, {
-        success_url: `${origin}/student-dashboard/payment?tab=plans&session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${origin}/student-dashboard/payment?tab=plans&notice=payment_cancelled`,
-      });
-      window.location.assign(session.checkout_url);
+      const intent = await createInstallmentPaymentIntent(orderId, installmentId);
+      setInstallmentCheckoutIntent(intent);
+      setIsInstallmentPaymentDrawerOpen(true);
     } catch (error) {
       const apiError = error as Partial<ApiError>;
-      setOrdersError(apiError.detail || apiError.message || "Could not start installment checkout.");
+      setOrdersError(apiError.detail || apiError.message || "Could not start installment payment.");
+    } finally {
       setPayingInstallmentId(null);
     }
   }
 
-  const cartRows = useMemo(
-    () =>
-      cart?.items.map((item) => ({
-        id: String(item.id),
-        course: item.course.title,
-        date: formatDate(item.added_at),
-        amount: formatMoney(item.subtotal, item.currency),
-      })) ?? [],
-    [cart],
-  );
-
-  const historyRows = useMemo(
-    () =>
-      payments.map((payment) => ({
-        id: String(payment.id),
-        course: courseLabel(payment),
-        date: formatDate(payment.processed_at ?? payment.created_at),
-        amount: formatMoney(payment.amount, payment.currency),
-        status: STATUS_LABEL[payment.status],
-      })),
-    [payments],
-  );
-
-  const installmentOption = useMemo(() => cartInstallmentOption(cart), [cart]);
-  const totalLabel = cart ? formatMoney(cart.total_price, cart.currency) : "";
-  const installmentFirstLabel =
-    cart && installmentOption ? formatMoney(installmentOption.firstAmount, cart.currency) : "";
-  const installmentTotalLabel =
-    cart && installmentOption ? formatMoney(installmentOption.totalAmount, cart.currency) : "";
-  const selectedDueLabel =
-    checkoutMode === "installments" && installmentOption ? installmentFirstLabel : totalLabel;
-  const canPay = Boolean(cart && cart.items_count > 0);
+  const isPlansTab = activeTab === "plans";
 
   return (
-    <main className="min-h-[calc(100vh-76px)] bg-[linear-gradient(120deg,#FFFFFF_0%,#FFF7F2_32%,rgba(252,196,195,0.38)_58%,#FFFFFF_100%)] px-10 py-8">
+    <main className="min-h-[calc(100vh-76px)] bg-[linear-gradient(120deg,#FFFFFF_0%,#FFF7F2_32%,rgba(252,196,195,0.38)_58%,#FFFFFF_100%)] px-4 py-8 sm:px-10">
       {toast ? (
         <div
           role="status"
@@ -462,114 +948,54 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
         </div>
       ) : null}
 
-      <section className="mx-auto w-full max-w-[752px]">
+      <StripePaymentDrawer
+        isOpen={isCartPaymentDrawerOpen}
+        intent={cartCheckoutIntent?.intent ?? null}
+        paymentType={cartCheckoutIntent?.paymentMode ?? checkoutMode}
+        summary={cartPaymentSummary}
+        onClose={() => setIsCartPaymentDrawerOpen(false)}
+        onPaymentError={setCheckoutError}
+      />
+
+      <StripePaymentDrawer
+        isOpen={isInstallmentPaymentDrawerOpen}
+        intent={installmentCheckoutIntent}
+        paymentType="installments"
+        summary={installmentPaymentSummary}
+        onClose={() => setIsInstallmentPaymentDrawerOpen(false)}
+        onPaymentError={setOrdersError}
+      />
+
+      <section className={`mx-auto w-full ${isPlansTab ? "max-w-[584px]" : "max-w-[1100px]"}`}>
         <h1 className="mb-5 font-mono text-[16px] font-semibold leading-5 text-[#121212]">
           Tuition payment
         </h1>
 
-        <div className="min-h-[474px] rounded-lg bg-white px-7 py-4 shadow-[0_0_15px_rgba(0,0,0,0.18)]">
-          <nav className="flex border-b border-[#B7C7FA]" aria-label="Payment sections">
-            {tabs.map((tab) => {
-              const isActive = activeTab === tab.id;
+        <div
+          className={
+            isPlansTab
+              ? "min-h-[367px] rounded-[10px] bg-white px-5 pt-2 pb-8 shadow-[0_0_15px_rgba(0,0,0,0.18)]"
+              : "min-h-[593px] rounded-[16px] bg-white px-5 py-4 shadow-[0_0_15px_rgba(0,0,0,0.18)] md:px-[60px] md:pt-[60px] md:pb-[72px]"
+          }
+        >
+          <PaymentTabs tabs={tabs} activeTab={activeTab} onChange={handleTabChange} />
 
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  aria-current={isActive ? "page" : undefined}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={[
-                    "h-8 min-w-[88px] px-3 text-center font-mono text-[12px] leading-none transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#003AFF]",
-                    isActive
-                      ? "border-b-2 border-[#003AFF] text-[#003AFF]"
-                      : "border-b-2 border-transparent text-[#121212] hover:text-[#003AFF]",
-                  ].join(" ")}
-                >
-                  {tab.label}
-                </button>
-              );
-            })}
-          </nav>
-
-          {activeTab === "cart" ? (
-            cartLoading ? (
-              <div className="mt-6 flex min-h-[160px] items-center justify-center font-mono text-[12px] text-[#6A6A6A]">
-                Loading cart...
-              </div>
-            ) : cartError ? (
-              <div className="mt-6 flex min-h-[160px] items-center justify-center font-mono text-[12px] text-[#B42318]">
-                {cartError}
-              </div>
-            ) : (
-              <>
-                <PaymentsTable rows={cartRows} type="cart" emptyLabel="Your cart is empty." />
-                {cart && cart.items_count > 0 ? (
-                  <div className="mt-4 flex flex-col gap-4 font-mono text-[12px] text-[#121212]">
-                    {installmentOption ? (
-                      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                        {[
-                          {
-                            id: "full" as PaymentType,
-                            title: "Pay in full",
-                            amount: totalLabel,
-                          },
-                          {
-                            id: "installments" as PaymentType,
-                            title: `${installmentOption.count} installments`,
-                            amount: `${installmentFirstLabel} now / ${installmentTotalLabel} total`,
-                          },
-                        ].map((option) => {
-                          const isActive = checkoutMode === option.id;
-
-                          return (
-                            <button
-                              key={option.id}
-                              type="button"
-                              onClick={() => setCheckoutMode(option.id)}
-                              className={[
-                                "min-h-14 rounded-md border px-3 py-2 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#003AFF]",
-                                isActive
-                                  ? "border-[#003AFF] bg-[#EEF3FF] text-[#003AFF]"
-                                  : "border-[#D9D9D9] bg-white text-[#121212] hover:border-[#B7C7FA]",
-                              ].join(" ")}
-                            >
-                              <span className="block font-semibold">{option.title}</span>
-                              <span className="block truncate text-[#6A6A6A]">{option.amount}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    ) : null}
-
-                    <div className="flex items-center justify-between gap-4">
-                      <span className="font-semibold">
-                        {checkoutMode === "installments" && installmentOption
-                          ? `Due now: ${selectedDueLabel}`
-                          : `Total: ${totalLabel}`}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={handlePay}
-                        disabled={!canPay || checkoutLoading}
-                        className="inline-flex h-9 min-w-[116px] items-center justify-center rounded-full bg-[#003AFF] px-5 text-[12px] font-semibold text-white transition-colors hover:bg-[#002BC0] disabled:cursor-not-allowed disabled:bg-[#B7C7FA]"
-                      >
-                        {checkoutLoading
-                          ? "Redirecting..."
-                          : checkoutMode === "installments" && installmentOption
-                            ? "Pay first"
-                            : "Pay"}
-                      </button>
-                    </div>
-                  </div>
-                ) : null}
-                {checkoutError ? (
-                  <p role="alert" className="mt-3 font-mono text-[12px] text-[#B42318]">
-                    {checkoutError}
-                  </p>
-                ) : null}
-              </>
-            )
+          {activeTab === "card" ? (
+            <CartPaymentPanel
+              cart={cart}
+              loading={cartLoading}
+              error={cartError}
+              selectedItemIds={selectedCartItemIds}
+              checkoutMode={checkoutMode}
+              checkoutLoading={checkoutLoading}
+              checkoutError={checkoutError}
+              onToggleItem={handleToggleItem}
+              onToggleAll={handleToggleAll}
+              onModeChange={handleModeChange}
+              onPay={handlePay}
+            />
           ) : null}
+
           {activeTab === "plans" ? (
             ordersLoading ? (
               <div className="mt-6 flex min-h-[160px] items-center justify-center font-mono text-[12px] text-[#6A6A6A]">
@@ -580,13 +1006,16 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
                 {ordersError}
               </div>
             ) : (
-              <InstallmentPlansTable
-                orders={orders}
-                payingInstallmentId={payingInstallmentId}
-                onPay={handlePayInstallment}
-              />
+              <>
+                <InstallmentPlansTable
+                  orders={orders}
+                  payingInstallmentId={payingInstallmentId}
+                  onPay={handlePayInstallment}
+                />
+              </>
             )
           ) : null}
+
           {activeTab === "history" ? (
             paymentsLoading ? (
               <div className="mt-6 flex min-h-[160px] items-center justify-center font-mono text-[12px] text-[#6A6A6A]">
@@ -597,11 +1026,7 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
                 {paymentsError}
               </div>
             ) : (
-              <PaymentsTable
-                rows={historyRows}
-                type="history"
-                emptyLabel="No payment history yet."
-              />
+              <PaymentHistoryTable payments={payments} />
             )
           ) : null}
         </div>

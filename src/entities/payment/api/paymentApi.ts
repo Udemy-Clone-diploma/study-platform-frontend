@@ -4,6 +4,8 @@ import type {
   Order,
   OrderList,
   Payment,
+  PaymentIntent,
+  PaymentIntentStatus,
   PaymentList,
   PaymentType,
 } from "../model/types";
@@ -14,6 +16,7 @@ const PAYMENTS_ENDPOINT = "payments/";
 export type CheckoutSessionInput = {
   success_url?: string;
   cancel_url?: string;
+  selected_cart_item_ids?: number[];
   payment_type?: PaymentType;
   installments_count?: number;
 };
@@ -23,6 +26,27 @@ export async function createCheckoutSession(
 ): Promise<CheckoutSession> {
   const { data } = await api.post<CheckoutSession>(
     `${PAYMENTS_ENDPOINT}checkout-session/`,
+    body,
+  );
+  return data;
+}
+
+export async function createPaymentIntent(
+  body: CheckoutSessionInput = {},
+): Promise<PaymentIntent> {
+  const { data } = await api.post<PaymentIntent>(
+    `${PAYMENTS_ENDPOINT}payment-intent/`,
+    body,
+  );
+  return data;
+}
+
+export async function syncPaymentIntentStatus(body: {
+  payment_id: number;
+  payment_intent_id: string;
+}): Promise<PaymentIntentStatus> {
+  const { data } = await api.post<PaymentIntentStatus>(
+    `${PAYMENTS_ENDPOINT}payment-intent/sync/`,
     body,
   );
   return data;
@@ -60,6 +84,16 @@ export async function createInstallmentCheckoutSession(
   const { data } = await api.post<CheckoutSession>(
     `${ORDERS_ENDPOINT}${orderId}/installments/${installmentId}/checkout-session/`,
     body,
+  );
+  return data;
+}
+
+export async function createInstallmentPaymentIntent(
+  orderId: number,
+  installmentId: number,
+): Promise<PaymentIntent> {
+  const { data } = await api.post<PaymentIntent>(
+    `${ORDERS_ENDPOINT}${orderId}/installments/${installmentId}/payment-intent/`,
   );
   return data;
 }

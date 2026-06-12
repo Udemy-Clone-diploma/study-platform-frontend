@@ -16,8 +16,9 @@ type Props = {
   pricingPlans: PricingPlan[];
 };
 
-const CART_URL = "/student-dashboard/payment?tab=cart";
-const COURSE_AVAILABLE_URL = `${CART_URL}&notice=course_available`;
+const CART_URL = "/student-dashboard/payment?tab=card";
+const COURSE_AVAILABLE_NOTICE = "The course is already available in My Courses.";
+const FREE_ENROLLMENT_SUCCESS_NOTICE = "Enrollment complete. You can start this course now.";
 const STUDENT_ONLY_MESSAGE = "Enrollment is available only for students.";
 
 /**
@@ -35,8 +36,8 @@ export function CourseHeroCTA({ courseId, slug, isEnrolled, pricingPlans }: Prop
 
   if (enrolled) {
     return (
-      <AccentButton size="md" style={buttonStyle} disabled>
-        Enrolled
+      <AccentButton size="md" style={buttonStyle} onClick={() => router.push(`/courses/${slug}`)}>
+        Go to course
       </AccentButton>
     );
   }
@@ -65,7 +66,7 @@ export function CourseHeroCTA({ courseId, slug, isEnrolled, pricingPlans }: Prop
 
       await enrollInCourse(courseId);
       setEnrolled(true);
-      router.push(COURSE_AVAILABLE_URL);
+      setNotice(FREE_ENROLLMENT_SUCCESS_NOTICE);
     } catch (error) {
       const apiError = error as Partial<ApiError>;
       const courseError = String(apiError.fields?.course_id ?? "");
@@ -77,7 +78,7 @@ export function CourseHeroCTA({ courseId, slug, isEnrolled, pricingPlans }: Prop
 
       if (courseError.includes("already has access") || apiError.status === 409) {
         setEnrolled(true);
-        router.push(COURSE_AVAILABLE_URL);
+        setNotice(COURSE_AVAILABLE_NOTICE);
         return;
       }
 
@@ -90,7 +91,7 @@ export function CourseHeroCTA({ courseId, slug, isEnrolled, pricingPlans }: Prop
   return (
     <div className="flex flex-col gap-2">
       <AccentButton size="md" style={buttonStyle} onClick={handleClick} disabled={pending}>
-        {pending ? "Processing..." : "Get Started"}
+        {pending ? "Processing..." : defaultPricingPlan ? "Add to cart" : "Enroll for free"}
       </AccentButton>
       {notice && (
         <p role="status" className="max-w-[460px] text-base text-(--color-pink-dark)">

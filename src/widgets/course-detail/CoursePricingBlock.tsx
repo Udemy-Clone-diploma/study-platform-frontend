@@ -13,8 +13,8 @@ import { SectionBadge } from "./SectionBadge";
 
 type Props = { courseId: number; plans: PricingPlan[]; slug: string };
 
-const CART_URL = "/student-dashboard/payment?tab=cart";
-const COURSE_AVAILABLE_URL = `${CART_URL}&notice=course_available`;
+const CART_URL = "/student-dashboard/payment?tab=card";
+const COURSE_AVAILABLE_NOTICE = "The course is already available in My Courses.";
 const STUDENT_ONLY_MESSAGE = "Enrollment is available only for students.";
 
 const KIND_LABEL: Record<PricingPlan["kind"], string> = {
@@ -74,7 +74,7 @@ export function CoursePricingBlock({ courseId, plans, slug }: Props) {
       }
 
       if (courseError.includes("already has access")) {
-        router.push(COURSE_AVAILABLE_URL);
+        setNotice(COURSE_AVAILABLE_NOTICE);
         return;
       }
 

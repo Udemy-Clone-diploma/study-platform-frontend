@@ -2,12 +2,12 @@ export const AUTH_COOKIE_NAMES = {
   access: "access_token",
   refresh: "refresh_token",
   role: "user_role",
+  remember: "remember_me",
 } as const;
 
 export const AUTH_COOKIE_CONFIG = {
   access: {
     name: AUTH_COOKIE_NAMES.access,
-    maxAge: 60 * 15,
   },
   refresh: {
     name: AUTH_COOKIE_NAMES.refresh,
@@ -15,6 +15,10 @@ export const AUTH_COOKIE_CONFIG = {
   },
   role: {
     name: AUTH_COOKIE_NAMES.role,
+    maxAge: 60 * 60 * 24 * 7,
+  },
+  remember: {
+    name: AUTH_COOKIE_NAMES.remember,
     maxAge: 60 * 60 * 24 * 7,
   },
 } as const;

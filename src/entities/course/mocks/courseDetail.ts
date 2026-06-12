@@ -65,6 +65,8 @@ export const mockCourseDetail: CourseDetail = {
     partnerships_count: 300,
   },
   moderator_id: null,
+  moderator_comment: "",
+  moderation_review: null,
   total_duration_minutes: 3840,
   pricing_plans: [
     {

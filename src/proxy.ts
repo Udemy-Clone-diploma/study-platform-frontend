@@ -12,8 +12,13 @@ type RouteRule = {
 const PROTECTED_ROUTES: RouteRule[] = [
   {
     pattern: /^\/admin(\/|$)/,
-    allowedRoles: ["administrator", "moderator"],
+    allowedRoles: ["administrator"],
     loginRedirect: "/admin/login",
+  },
+  {
+    pattern: /^\/moderator-dashboard(\/|$)/,
+    allowedRoles: ["moderator"],
+    loginRedirect: "/login",
   },
   {
     pattern: /^\/teacher-dashboard(\/|$)/,

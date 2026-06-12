@@ -27,22 +27,25 @@ const studentItems: SidebarItem[] = [
   { id: "wishlist", label: "Wishlist", href: "/student-dashboard/wishlist", icon: "wishlist", iconSrc: "/icons/heart fill.svg", match: "startsWith" },
 ];
 
+const moderatorItems: SidebarItem[] = [
+  { id: "dashboard",     label: "Dashboard",    href: "/moderator-dashboard",            icon: "dashboard",     iconSrc: "/icons/house.svg",         match: "exact" },
+  { id: "courses",       label: "My courses",   href: "/moderator-dashboard/courses",    icon: "courses",       iconSrc: "/icons/curses.svg",         match: "startsWith" },
+  { id: "chats",         label: "Chats",        href: "/moderator-dashboard/chats",      icon: "chats",         iconSrc: "/icons/sms.svg",            match: "startsWith" },
+  { id: "reviews",       label: "Reviews",      href: "/moderator-dashboard/reviews",    icon: "reviews",       iconSrc: "/icons/Reviews.svg",        match: "startsWith" },
+  { id: "notifications", label: "Notifications",href: "/moderator-dashboard/notifications", icon: "notifications", iconSrc: "/icons/Notification.svg", match: "startsWith" },
+];
+
 const adminItems: SidebarItem[] = [
-  { id: "dashboard", label: "Dashboard", href: "/admin", icon: "dashboard", match: "exact" },
-  { id: "students", label: "Users", href: "/admin/users", icon: "students", match: "startsWith" },
-  { id: "courses", label: "Courses", href: "/admin/courses", icon: "courses", match: "startsWith" },
-  { id: "statistics", label: "Statistics", href: "/admin/statistics", icon: "statistics", match: "startsWith" },
-  { id: "payment", label: "Payment", href: "/admin/payment", icon: "payment", match: "startsWith" },
+  { id: "dashboard", label: "Dashboard", href: "/admin", icon: "dashboard", iconSrc: "/icons/house.svg", match: "exact" },
+  { id: "students", label: "Users", href: "/admin/users", icon: "students", iconSrc: "/icons/people.svg", match: "startsWith" },
+  { id: "courses", label: "Courses", href: "/admin/courses", icon: "courses", iconSrc: "/icons/curses.svg", match: "startsWith" },
+  { id: "statistics", label: "Statistics", href: "/admin/statistics", icon: "statistics", iconSrc: "/icons/statistics.svg", match: "startsWith" },
+  { id: "payment", label: "Payment", href: "/admin/payment", icon: "payment", iconSrc: "/icons/wallet.svg", match: "startsWith" },
 ];
 
 export function getSidebarItems(role: UserRole): SidebarItem[] {
-  if (role === "teacher") {
-    return teacherItems;
-  }
-
-  if (role === "administrator" || role === "moderator") {
-    return adminItems;
-  }
-
+  if (role === "teacher") return teacherItems;
+  if (role === "moderator") return moderatorItems;
+  if (role === "administrator") return adminItems;
   return studentItems;
 }

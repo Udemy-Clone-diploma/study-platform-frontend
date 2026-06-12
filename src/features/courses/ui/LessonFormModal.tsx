@@ -35,10 +35,10 @@ const EMPTY: LessonFormValues = {
 };
 
 type Props = {
-  mode: "add" | "edit";
+  mode: "add" | "edit" | "view";
   initialValues?: Partial<LessonFormValues>;
   onClose: () => void;
-  onSave: (values: LessonFormValues) => Promise<void>;
+  onSave?: (values: LessonFormValues) => Promise<void>;
 };
 
 const labelSt: React.CSSProperties = {
@@ -75,15 +75,16 @@ const hintSt: React.CSSProperties = {
   marginTop: 8,
 };
 
-/** Modal dialog for creating or editing a course lesson. */
+/** Modal dialog for creating, editing, or viewing a course lesson. */
 export function LessonFormModal({ mode, initialValues = {}, onClose, onSave }: Props) {
+  const readOnly = mode === "view";
   const [values, setValues] = useState<LessonFormValues>({ ...EMPTY, ...initialValues });
   const [loading, setLoading] = useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { titleRef.current?.focus(); }, []);
+  useEffect(() => { if (!readOnly) titleRef.current?.focus(); }, [readOnly]);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
     const { name, value } = e.target;
@@ -96,7 +97,7 @@ export function LessonFormModal({ mode, initialValues = {}, onClose, onSave }: P
 
   async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!values.title.trim()) return;
+    if (!values.title.trim() || !onSave) return;
     setLoading(true);
     try {
       await onSave(values);
@@ -108,7 +109,7 @@ export function LessonFormModal({ mode, initialValues = {}, onClose, onSave }: P
   return (
     <ModalShell
       onClose={onClose}
-      title={mode === "add" ? "Add Lesson" : "Edit Lesson"}
+      title={mode === "add" ? "Add Lesson" : mode === "view" ? values.title || "Lesson" : "Edit Lesson"}
       icon={<Play size={24} style={{ color: "var(--color-text-primary)", flexShrink: 0 }} />}
       width="clamp(480px, 81.39vw, 1200px)"
       padding="clamp(20px, 2.78vw, 40px) clamp(24px, 3.47vw, 50px)"
@@ -116,21 +117,23 @@ export function LessonFormModal({ mode, initialValues = {}, onClose, onSave }: P
       <form onSubmit={handleSubmit}>
         <div style={{ display: "flex", flexDirection: "column", gap: "clamp(16px, 1.39vw, 20px)" }}>
 
-          {/* Lesson Title */}
-          <div>
-            <label htmlFor="lesson-title" style={labelSt}>Lesson Title*</label>
-            <input
-              ref={titleRef}
-              id="lesson-title"
-              name="title"
-              type="text"
-              value={values.title}
-              onChange={handleChange}
-              placeholder="Text"
-              required
-              style={inputSt}
-            />
-          </div>
+          {/* Lesson Title — hidden in view mode (shown in modal header) */}
+          {!readOnly && (
+            <div>
+              <label htmlFor="lesson-title" style={labelSt}>Lesson Title*</label>
+              <input
+                ref={titleRef}
+                id="lesson-title"
+                name="title"
+                type="text"
+                value={values.title}
+                onChange={handleChange}
+                placeholder="Text"
+                required
+                style={inputSt}
+              />
+            </div>
+          )}
 
           {/* Lesson Content */}
           <div>
@@ -139,16 +142,18 @@ export function LessonFormModal({ mode, initialValues = {}, onClose, onSave }: P
               id="lesson-content"
               name="content"
               value={values.content}
-              onChange={handleChange}
+              onChange={readOnly ? undefined : handleChange}
+              readOnly={readOnly}
               placeholder="Write your lesson content here... You can include text, instructions, and explanations."
               style={{
                 ...inputSt,
                 minHeight: "clamp(160px, 22.22vw, 320px)",
-                resize: "vertical",
+                resize: readOnly ? "none" : "vertical",
                 color: values.content ? "var(--color-text-primary)" : "var(--color-text-secondary)",
+                cursor: readOnly ? "default" : undefined,
               }}
             />
-            <p style={hintSt}>This is the main content students will read during the lesson.</p>
+            {!readOnly && <p style={hintSt}>This is the main content students will read during the lesson.</p>}
           </div>
 
           {/* Lesson Video */}
@@ -165,9 +170,9 @@ export function LessonFormModal({ mode, initialValues = {}, onClose, onSave }: P
                 justifyContent: "center",
                 gap: "clamp(12px, 1.39vw, 20px)",
                 padding: "clamp(16px, 1.67vw, 24px)",
-                cursor: "pointer",
+                cursor: readOnly ? "default" : "pointer",
               }}
-              onClick={() => fileInputRef.current?.click()}
+              onClick={readOnly ? undefined : () => fileInputRef.current?.click()}
             >
               <div className="flex flex-col items-center" style={{ gap: "clamp(8px, 1.11vw, 16px)" }}>
                 <Upload
@@ -182,41 +187,43 @@ export function LessonFormModal({ mode, initialValues = {}, onClose, onSave }: P
                         ? values.original_video_name
                         : values.video_url
                           ? "Video uploaded"
-                          : "Upload a video for this lesson"}
+                          : "No video"}
                   </span>
-                  {!values.video_file && !values.video_url && (
+                  {!readOnly && !values.video_file && !values.video_url && (
                     <span style={{ fontFamily: "var(--font-base)", fontWeight: 400, fontSize: "clamp(12px, 1.39vw, 20px)", color: "var(--color-text-secondary)" }}>
                       MP4, MOV, AVI up to 500MB
                     </span>
                   )}
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
-                className="inline-flex items-center justify-center transition hover:opacity-80"
-                style={{
-                  gap: "clamp(6px, 0.69vw, 10px)",
-                  minWidth: "clamp(160px, 13.89vw, 200px)",
-                  height: "clamp(38px, 3.06vw, 44px)",
-                  background: "var(--color-bg)",
-                  border: "1px solid var(--color-draft)",
-                  borderRadius: 28,
-                  fontFamily: "var(--font-accent)",
-                  fontWeight: 500,
-                  fontSize: "clamp(14px, 1.39vw, 20px)",
-                  letterSpacing: "-0.011em",
-                  color: "var(--color-text-primary)",
-                  cursor: "pointer",
-                  flexShrink: 0,
-                }}
-              >
-                <Upload size={20} />
-                {values.video_file || values.video_url ? "Replace File" : "Choose File"}
-              </button>
+              {!readOnly && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
+                  className="inline-flex items-center justify-center transition hover:opacity-80"
+                  style={{
+                    gap: "clamp(6px, 0.69vw, 10px)",
+                    minWidth: "clamp(160px, 13.89vw, 200px)",
+                    height: "clamp(38px, 3.06vw, 44px)",
+                    background: "var(--color-bg)",
+                    border: "1px solid var(--color-draft)",
+                    borderRadius: 28,
+                    fontFamily: "var(--font-accent)",
+                    fontWeight: 500,
+                    fontSize: "clamp(14px, 1.39vw, 20px)",
+                    letterSpacing: "-0.011em",
+                    color: "var(--color-text-primary)",
+                    cursor: "pointer",
+                    flexShrink: 0,
+                  }}
+                >
+                  <Upload size={20} />
+                  {values.video_file || values.video_url ? "Replace File" : "Choose File"}
+                </button>
+              )}
             </div>
-            <p style={hintSt}>Optional: Add a video to accompany this lesson content</p>
-            <input ref={fileInputRef} type="file" accept="video/*" onChange={handleFileChange} style={{ display: "none" }} />
+            {!readOnly && <p style={hintSt}>Optional: Add a video to accompany this lesson content</p>}
+            {!readOnly && <input ref={fileInputRef} type="file" accept="video/*" onChange={handleFileChange} style={{ display: "none" }} />}
           </div>
 
           {/* Documents */}
@@ -233,33 +240,33 @@ export function LessonFormModal({ mode, initialValues = {}, onClose, onSave }: P
                 padding: "clamp(12px, 1.25vw, 18px) clamp(16px, 1.67vw, 24px)",
               }}
             >
-              {/* Existing + new queued files */}
               {(values.existing_documents ?? []).filter(d => !values.deleted_document_ids.includes(d.id)).map((doc) => (
                 <div key={doc.id} className="flex items-center justify-between" style={{ gap: 8 }}>
                   <div className="flex items-center" style={{ gap: 8, minWidth: 0 }}>
                     <FileText size={18} style={{ flexShrink: 0, color: "var(--color-text-secondary)" }} />
-                    <span style={{ fontFamily: "var(--font-base)", fontSize: "clamp(13px, 1.04vw, 16px)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {doc.original_name}
-                    </span>
+                    {readOnly
+                      ? <a href={doc.url} target="_blank" rel="noreferrer" style={{ fontFamily: "var(--font-base)", fontSize: "clamp(13px, 1.04vw, 16px)", color: "var(--color-blue)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{doc.original_name}</a>
+                      : <span style={{ fontFamily: "var(--font-base)", fontSize: "clamp(13px, 1.04vw, 16px)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{doc.original_name}</span>
+                    }
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setValues(p => ({ ...p, deleted_document_ids: [...p.deleted_document_ids, doc.id] }))}
-                    className="flex shrink-0 items-center justify-center rounded-full transition hover:bg-red-50"
-                    style={{ width: 28, height: 28, border: "none", background: "transparent", cursor: "pointer" }}
-                    aria-label="Remove document"
-                  >
-                    <X size={16} style={{ color: "var(--color-text-secondary)" }} />
-                  </button>
+                  {!readOnly && (
+                    <button
+                      type="button"
+                      onClick={() => setValues(p => ({ ...p, deleted_document_ids: [...p.deleted_document_ids, doc.id] }))}
+                      className="flex shrink-0 items-center justify-center rounded-full transition hover:bg-red-50"
+                      style={{ width: 28, height: 28, border: "none", background: "transparent", cursor: "pointer" }}
+                      aria-label="Remove document"
+                    >
+                      <X size={16} style={{ color: "var(--color-text-secondary)" }} />
+                    </button>
+                  )}
                 </div>
               ))}
-              {values.new_documents.map((file, i) => (
+              {!readOnly && values.new_documents.map((file, i) => (
                 <div key={i} className="flex items-center justify-between" style={{ gap: 8 }}>
                   <div className="flex items-center" style={{ gap: 8, minWidth: 0 }}>
                     <FileText size={18} style={{ flexShrink: 0, color: "var(--color-text-secondary)" }} />
-                    <span style={{ fontFamily: "var(--font-base)", fontSize: "clamp(13px, 1.04vw, 16px)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--color-text-secondary)" }}>
-                      {file.name}
-                    </span>
+                    <span style={{ fontFamily: "var(--font-base)", fontSize: "clamp(13px, 1.04vw, 16px)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--color-text-secondary)" }}>{file.name}</span>
                   </div>
                   <button
                     type="button"
@@ -272,42 +279,25 @@ export function LessonFormModal({ mode, initialValues = {}, onClose, onSave }: P
                   </button>
                 </div>
               ))}
-              {/* Add button */}
-              <button
-                type="button"
-                onClick={() => docInputRef.current?.click()}
-                className="inline-flex items-center self-start transition hover:opacity-80"
-                style={{
-                  gap: "clamp(6px, 0.69vw, 10px)",
-                  height: "clamp(38px, 3.06vw, 44px)",
-                  background: "var(--color-bg)",
-                  border: "1px solid var(--color-draft)",
-                  borderRadius: 28,
-                  fontFamily: "var(--font-accent)",
-                  fontWeight: 500,
-                  fontSize: "clamp(14px, 1.39vw, 20px)",
-                  letterSpacing: "-0.011em",
-                  color: "var(--color-text-primary)",
-                  cursor: "pointer",
-                  padding: "0 clamp(12px, 1.25vw, 18px)",
-                }}
-              >
-                <Upload size={18} />
-                Add Documents
-              </button>
-              <input
-                ref={docInputRef}
-                type="file"
-                multiple
-                onChange={(e) => {
-                  const files = Array.from(e.target.files ?? []);
-                  setValues(p => ({ ...p, new_documents: [...p.new_documents, ...files] }));
-                  e.target.value = "";
-                }}
-                style={{ display: "none" }}
-              />
+              {!readOnly && (
+                <button
+                  type="button"
+                  onClick={() => docInputRef.current?.click()}
+                  className="inline-flex items-center self-start transition hover:opacity-80"
+                  style={{ gap: "clamp(6px, 0.69vw, 10px)", height: "clamp(38px, 3.06vw, 44px)", background: "var(--color-bg)", border: "1px solid var(--color-draft)", borderRadius: 28, fontFamily: "var(--font-accent)", fontWeight: 500, fontSize: "clamp(14px, 1.39vw, 20px)", letterSpacing: "-0.011em", color: "var(--color-text-primary)", cursor: "pointer", padding: "0 clamp(12px, 1.25vw, 18px)" }}
+                >
+                  <Upload size={18} />
+                  Add Documents
+                </button>
+              )}
+              {!readOnly && (
+                <input ref={docInputRef} type="file" multiple
+                  onChange={(e) => { const files = Array.from(e.target.files ?? []); setValues(p => ({ ...p, new_documents: [...p.new_documents, ...files] })); e.target.value = ""; }}
+                  style={{ display: "none" }}
+                />
+              )}
             </div>
-            <p style={hintSt}>PDF, DOCX, XLSX and other files</p>
+            {!readOnly && <p style={hintSt}>PDF, DOCX, XLSX and other files</p>}
           </div>
 
           {/* Duration + Min Score */}
@@ -320,12 +310,13 @@ export function LessonFormModal({ mode, initialValues = {}, onClose, onSave }: P
               <input
                 id="lesson-duration"
                 name="duration_minutes"
-                type="number"
+                type={readOnly ? "text" : "number"}
                 min="1"
-                value={values.duration_minutes}
-                onChange={handleChange}
+                value={values.duration_minutes || (readOnly ? "—" : "")}
+                onChange={readOnly ? undefined : handleChange}
+                readOnly={readOnly}
                 placeholder="0"
-                style={{ ...inputSt, padding: "clamp(10px, 0.83vw, 12px) clamp(16px, 1.39vw, 20px)" }}
+                style={{ ...inputSt, padding: "clamp(10px, 0.83vw, 12px) clamp(16px, 1.39vw, 20px)", cursor: readOnly ? "default" : undefined }}
               />
             </div>
             <div>
@@ -333,24 +324,27 @@ export function LessonFormModal({ mode, initialValues = {}, onClose, onSave }: P
               <input
                 id="lesson-min-score"
                 name="min_score"
-                type="number"
+                type={readOnly ? "text" : "number"}
                 min="0"
                 max="100"
-                value={values.min_score}
-                onChange={handleChange}
+                value={values.min_score || (readOnly ? "—" : "")}
+                onChange={readOnly ? undefined : handleChange}
+                readOnly={readOnly}
                 placeholder="3"
-                style={{ ...inputSt, padding: "clamp(10px, 0.83vw, 12px) clamp(16px, 1.39vw, 20px)" }}
+                style={{ ...inputSt, padding: "clamp(10px, 0.83vw, 12px) clamp(16px, 1.39vw, 20px)", cursor: readOnly ? "default" : undefined }}
               />
             </div>
           </div>
         </div>
 
-        <ModalFooter
-          onCancel={onClose}
-          submitLabel="Save Lesson"
-          loading={loading}
-          disabled={!values.title.trim() || loading}
-        />
+        {!readOnly && (
+          <ModalFooter
+            onCancel={onClose}
+            submitLabel="Save Lesson"
+            loading={loading}
+            disabled={!values.title.trim() || loading}
+          />
+        )}
       </form>
     </ModalShell>
   );

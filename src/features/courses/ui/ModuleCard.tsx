@@ -8,6 +8,8 @@ import { LessonRow } from "./LessonRow";
 import { TestRow } from "./TestRow";
 import type { CourseTest } from "@/entities/course";
 
+type ItemStatus = "approved" | "rejected" | "needs_revision";
+
 type Props = {
   module: CourseModule;
   index: number;
@@ -19,6 +21,8 @@ type Props = {
   onAddTest?: () => void;
   onEditTest?: (test: CourseTest) => void;
   onDeleteTest?: (testId: number) => void;
+  /** Read-only moderation statuses keyed by "lesson-{id}" or "test-{id}". */
+  itemStatuses?: Record<string, ItemStatus>;
 };
 
 const metaSt: React.CSSProperties = {
@@ -72,8 +76,13 @@ const outlinedBtnSt: React.CSSProperties = {
   padding: "4px clamp(14px, 1.25vw, 24px)",
 };
 
+/** Returns true when a content item is approved by moderator and must not be edited. */
+function isLocked(key: string, statuses?: Record<string, ItemStatus>) {
+  return statuses?.[key] === "approved";
+}
+
 /** Expandable module card — edit/delete always visible in the header. */
-export function ModuleCard({ module, index, onEdit, onDelete, onAddLesson, onEditLesson, onDeleteLesson, onAddTest, onEditTest, onDeleteTest }: Props) {
+export function ModuleCard({ module, index, onEdit, onDelete, onAddLesson, onEditLesson, onDeleteLesson, onAddTest, onEditTest, onDeleteTest, itemStatuses }: Props) {
   const [open, setOpen] = useState(false);
   const lessonCount = module.lessons.length;
   const testCount = module.tests?.length ?? 0;
@@ -188,15 +197,20 @@ export function ModuleCard({ module, index, onEdit, onDelete, onAddLesson, onEdi
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: "clamp(8px, 0.52vw, 10px)" }}>
-                {module.lessons.map((lesson, i) => (
-                  <LessonRow
-                    key={lesson.id}
-                    lesson={lesson}
-                    index={i}
-                    onEdit={() => onEditLesson(lesson)}
-                    onDelete={() => onDeleteLesson(lesson.id)}
-                  />
-                ))}
+                {module.lessons.map((lesson, i) => {
+                  const locked = isLocked(`lesson-${lesson.id}`, itemStatuses);
+                  return (
+                    <LessonRow
+                      key={lesson.id}
+                      lesson={lesson}
+                      index={i}
+                      onEdit={locked ? undefined : () => onEditLesson(lesson)}
+                      onDelete={locked ? undefined : () => onDeleteLesson(lesson.id)}
+                      moderationStatus={itemStatuses?.[`lesson-${lesson.id}`]}
+                      locked={locked}
+                    />
+                  );
+                })}
               </div>
             )}
           </div>
@@ -253,14 +267,19 @@ export function ModuleCard({ module, index, onEdit, onDelete, onAddLesson, onEdi
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: "clamp(8px, 0.52vw, 10px)" }}>
-                {(module.tests as CourseTest[]).map((test) => (
-                  <TestRow
-                    key={test.id}
-                    test={{ id: test.id, title: test.title, question_count: test.questions?.length, pass_percent: test.passing_score }}
-                    onEdit={onEditTest ? () => onEditTest(test) : undefined}
-                    onDelete={onDeleteTest ? () => onDeleteTest(test.id) : undefined}
-                  />
-                ))}
+                {(module.tests as CourseTest[]).map((test) => {
+                  const locked = isLocked(`test-${test.id}`, itemStatuses);
+                  return (
+                    <TestRow
+                      key={test.id}
+                      test={{ id: test.id, title: test.title, question_count: test.questions?.length, pass_percent: test.passing_score }}
+                      onEdit={locked || !onEditTest ? undefined : () => onEditTest(test)}
+                      onDelete={locked || !onDeleteTest ? undefined : () => onDeleteTest(test.id)}
+                      moderationStatus={itemStatuses?.[`test-${test.id}`]}
+                      locked={locked}
+                    />
+                  );
+                })}
               </div>
             )}
           </div>

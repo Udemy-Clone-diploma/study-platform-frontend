@@ -25,7 +25,7 @@ import {
   uploadLessonDocument,
   deleteLessonDocument,
 } from "@/entities/course";
-import type { CourseDetail, CourseModule, CourseLesson, CourseTest } from "@/entities/course";
+import type { CourseDetail, CourseModule, CourseLesson, CourseTest, ModerationReview } from "@/entities/course";
 import type { SnapshotModule, SnapshotQuestion } from "@/entities/course";
 import {
   CourseCreationLayout,
@@ -35,6 +35,7 @@ import {
   ModuleFormModal,
   LessonFormModal,
   TestFormModal,
+  ModeratorNoteBanner,
 } from "@/features/courses";
 import type { LessonFormValues, TestFormValues, TestQuestion } from "@/features/courses";
 import { AccentButton } from "@/shared/ui/AccentButton";
@@ -141,6 +142,7 @@ export default function CourseContentPage() {
 
   const [course, setCourse] = useState<CourseDetail | null>(null);
   const [moduleList, setModuleList] = useState<CourseModule[]>([]);
+  const [moderationReview, setModerationReview] = useState<ModerationReview | null>(null);
   /** True when working with a pending edit instead of the live course. */
   const [isPendingEditMode, setIsPendingEditMode] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
@@ -163,6 +165,7 @@ export default function CourseContentPage() {
           setModuleList(pe.modules_snapshot.map(snapshotToCourseModule));
         } else {
           setModuleList(Array.isArray(c.modules) ? c.modules : []);
+          if (c.moderation_review) setModerationReview(c.moderation_review);
         }
       })
       .catch(() => {});
@@ -592,10 +595,28 @@ export default function CourseContentPage() {
                     onAddTest={isLocked ? undefined : () => openAddTestModal(mod.id)}
                     onEditTest={isLocked ? undefined : (test) => openEditTestModal(mod.id, test)}
                     onDeleteTest={isLocked ? undefined : (testId) => handleDeleteTest(mod.id, testId)}
+                    itemStatuses={moderationReview?.content_item_statuses}
                   />
                 ))}
               </div>
             )}
+
+            {/* Moderator content feedback */}
+            {moderationReview && (() => {
+              const ACTION_MAP: Record<string, { label: string; color: string }> = {
+                approved:       { label: "Approved",          color: "var(--color-success)" },
+                needs_revision: { label: "Requires Revision", color: "var(--color-warning)" },
+                rejected:       { label: "Rejected",          color: "var(--color-rejected)" },
+              };
+              const actionInfo = moderationReview.content_action ? ACTION_MAP[moderationReview.content_action] : undefined;
+              return (
+                <ModeratorNoteBanner
+                  comment={moderationReview.content_comment || undefined}
+                  actionLabel={actionInfo?.label}
+                  actionColor={actionInfo?.color}
+                />
+              );
+            })()}
 
             <div
               className="flex items-center justify-between"

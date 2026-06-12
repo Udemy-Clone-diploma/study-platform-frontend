@@ -16,6 +16,8 @@ import {
   CourseCreationLayout,
   CourseCreationStepper,
   CoursePageHeader,
+  CourseStatsGrid,
+  ModeratorNoteBanner,
 } from "@/features/courses";
 
 const PUBLISHED_STATUSES = new Set(["published", "hidden"]);
@@ -419,51 +421,7 @@ export default function CourseReviewPage() {
         </div>
 
         {/* Stats row */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 20 }}>
-          {STATS.map(({ icon, count, label }) => (
-            <div
-              key={label}
-              style={{
-                border: "1px solid var(--color-draft)",
-                borderRadius: 16,
-                height: "clamp(100px, 6.875vw, 132px)",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 6,
-              }}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={icon} alt="" style={{ width: "clamp(28px, 2.08vw, 40px)", height: "clamp(28px, 2.08vw, 40px)" }} />
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                <span
-                  style={{
-                    fontFamily: "var(--font-base)",
-                    fontWeight: 700,
-                    fontSize: "clamp(16px, 1.04vw, 20px)",
-                    lineHeight: "25px",
-                    textAlign: "center",
-                  }}
-                >
-                  {count}
-                </span>
-                <span
-                  style={{
-                    fontFamily: "var(--font-base)",
-                    fontWeight: 500,
-                    fontSize: "clamp(12px, 0.78vw, 15px)",
-                    lineHeight: "19px",
-                    color: "var(--color-text-secondary)",
-                    textAlign: "center",
-                  }}
-                >
-                  {label}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
+        <CourseStatsGrid stats={STATS} />
 
         {/* Course Structure */}
         <div
@@ -493,6 +451,9 @@ export default function CourseReviewPage() {
             ))}
           </div>
         </div>
+
+        {/* Moderator final comment */}
+        <ModeratorNoteBanner title="Moderator comment" comment={course?.moderator_comment ?? undefined} />
 
         {/* Bottom: back + submit */}
         <div className="flex items-center justify-between">

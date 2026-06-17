@@ -1,32 +1,22 @@
 import { AccentButton } from "@/shared/ui/AccentButton";
-import type { UserData, UserLanguage } from "@/entities/user";
-import { ProfileField, ProfileLanguageField, formatDate } from "./ProfileField";
 
 type Props = {
-    user: UserData;
     editing: boolean;
     saving: boolean;
     completionPercent: number;
-    firstName: string;
-    lastName: string;
-    language: UserLanguage;
     showSubtitle?: boolean;
-    onFirstNameChange: (v: string) => void;
-    onLastNameChange: (v: string) => void;
-    onLanguageChange: (v: UserLanguage) => void;
+    showSaveButton?: boolean;
     onSave: () => void;
     children?: React.ReactNode;
 };
 
+/** Shell for the profile main area: heading, progress bar, role-specific fields, save button. */
 export function ProfileMainContent({
-    user, editing, saving, completionPercent,
-    firstName, lastName, language,
+    editing, saving, completionPercent,
     showSubtitle = true,
-    onFirstNameChange, onLastNameChange, onLanguageChange,
+    showSaveButton = true,
     onSave, children,
 }: Props) {
-    const fullName = `${user.first_name} ${user.last_name}`.trim();
-
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: "1.5vw" }}>
 
@@ -74,41 +64,11 @@ export function ProfileMainContent({
                 </div>
             </div>
 
-            {/* Fields grid */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25vw 2.08vw" }}>
-                {editing ? (
-                    <>
-                        <ProfileField
-                            label="First name" value={user.first_name}
-                            editing={editing} inputValue={firstName} onInputChange={onFirstNameChange}
-                        />
-                        <ProfileField
-                            label="Last name" value={user.last_name}
-                            editing={editing} inputValue={lastName} onInputChange={onLastNameChange}
-                        />
-                    </>
-                ) : (
-                    <>
-                        <ProfileField label="Surname and first name" value={fullName} />
-                        <ProfileField label="Password" value="••••••••••••••" />
-                    </>
-                )}
-
-                <ProfileField label="Email" value={user.email} />
-
-                <ProfileLanguageField
-                    value={user.language} editing={true}
-                    inputValue={language} onInputChange={onLanguageChange}
-                />
-
-                <ProfileField label="Date of registration" value={formatDate(user.date_joined)} />
-            </div>
-
             {/* Role-specific fields */}
             {children}
 
             {/* Save button */}
-            {editing && (
+            {editing && showSaveButton && (
                 <div>
                     <AccentButton size="md" onClick={onSave} disabled={saving}>
                         {saving ? "Saving..." : "Save"}

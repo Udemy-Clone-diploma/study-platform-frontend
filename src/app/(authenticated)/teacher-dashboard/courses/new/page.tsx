@@ -18,7 +18,7 @@ import type { TeacherProfile } from "@/entities/user";
 import type { ApiError } from "@/shared/api/base";
 import { mapApiFieldErrors } from "@/shared/lib/apiErrors";
 
-const EMPTY_FORM: CourseBasicsFormValues = { title: "", description: "", category_id: "", level: "", price: "" };
+const EMPTY_FORM: CourseBasicsFormValues = { title: "", short_description: "", full_description: "", category_id: "", level: "", price: "" };
 
 export default function NewCoursePage() {
   const router = useRouter();
@@ -54,8 +54,8 @@ export default function NewCoursePage() {
     const payload: Record<string, unknown> = {
       teacher_profile: teacherProfileId,
       title: fallback ? form.title || "Untitled Course" : form.title,
-      short_description: fallback ? form.description || "-" : form.description,
-      full_description: fallback ? form.description || "-" : form.description,
+      short_description: fallback ? form.short_description || "-" : form.short_description,
+      full_description: fallback ? form.full_description || "-" : form.full_description,
       level: fallback ? form.level || "beginner" : form.level,
       language: "english",
       mode: "self_learning",

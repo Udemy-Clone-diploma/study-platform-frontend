@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, ChevronLeft, ChevronRight, Video } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Download } from "lucide-react";
 import {
   byOrder,
   getCourseBySlug,
@@ -16,7 +16,13 @@ import {
   toggleMockLessonComplete,
   unmarkLessonComplete,
 } from "@/entities/course";
-import type { CourseDetail, CourseProgress, LessonDetail } from "@/entities/course";
+import type {
+  CourseDetail,
+  CourseLesson,
+  CourseProgress,
+  LessonDocument,
+  LessonItem,
+} from "@/entities/course";
 import type { ApiError } from "@/shared/api/base";
 import { GradientButton } from "@/shared/ui/GradientButton";
 import { CourseDescription } from "@/widgets/course-detail/CourseDescription";
@@ -31,7 +37,7 @@ type Props = {
   lessonId: number;
   /** Optional pre-fetched payloads (used by the dev-mock route). */
   initialCourse?: CourseDetail;
-  initialLesson?: LessonDetail;
+  initialLesson?: CourseLesson;
   initialProgress?: CourseProgress | null;
   /** Dev-mock course: progress is persisted to localStorage instead of the API. */
   isMock?: boolean;
@@ -53,7 +59,7 @@ export function LessonPlayerView({
 }: Props) {
   const router = useRouter();
   const [course, setCourse] = useState<CourseDetail | null>(initialCourse ?? null);
-  const [lesson, setLesson] = useState<LessonDetail | null>(initialLesson ?? null);
+  const [lesson, setLesson] = useState<CourseLesson | null>(initialLesson ?? null);
   const [progress, setProgress] = useState<CourseProgress | null>(initialProgress);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(!(initialCourse && initialLesson));
@@ -169,12 +175,34 @@ export function LessonPlayerView({
       ? flatLessons[currentIndex + 1]
       : null;
 
-  // Content parts this lesson exposes, derived from the payload.
+  // Lesson content blocks split into the player's two tabs. A lesson may carry
+  // several blocks (text/video/test); all videos group under "Video", all text
+  // under "Reading". Test blocks are not surfaced yet.
+  const videoItems = useMemo<LessonItem[]>(
+    () => byOrder((lesson?.items ?? []).filter((i) => i.item_type === "video" && !!i.video_url)),
+    [lesson],
+  );
+  const textItems = useMemo<LessonItem[]>(
+    () =>
+      byOrder(
+        (lesson?.items ?? []).filter((i) => i.item_type === "text" && !!(i.body_html ?? i.content)),
+      ),
+    [lesson],
+  );
   const parts = useMemo<LessonContentPart[]>(() => {
     const p: LessonContentPart[] = [];
-    if (lesson?.video_url) p.push("video");
-    if (lesson?.body_html) p.push("reading");
+    if (videoItems.length) p.push("video");
+    if (textItems.length) p.push("reading");
     return p;
+  }, [videoItems, textItems]);
+
+  // The tab of the first content block in order; drives the default open tab.
+  const firstContentPart = useMemo<LessonContentPart | null>(() => {
+    for (const item of byOrder(lesson?.items ?? [])) {
+      if (item.item_type === "video" && item.video_url) return "video";
+      if (item.item_type === "text" && (item.body_html ?? item.content)) return "reading";
+    }
+    return null;
   }, [lesson]);
 
   // User's tab choice; reset on lesson change so each lesson opens at its default.
@@ -184,11 +212,7 @@ export function LessonPlayerView({
   }, [lessonId]);
 
   const defaultPart: LessonContentPart | null =
-    parts.length === 0
-      ? null
-      : lesson?.content_type === "text" && parts.includes("reading")
-        ? "reading"
-        : parts[0];
+    parts.length === 0 ? null : (firstContentPart ?? parts[0]);
   const activePart = selectedPart && parts.includes(selectedPart) ? selectedPart : defaultPart;
   const isLastPart = activePart != null && parts[parts.length - 1] === activePart;
   // The part after the active one, if any: drives the "Go to {next}" advance CTA.
@@ -259,7 +283,7 @@ export function LessonPlayerView({
 
           <div className="grid gap-5 lg:grid-cols-[minmax(0,820px)_minmax(320px,400px)] lg:items-stretch">
             <div className="min-w-0">
-              <LessonContent part={activePart} lesson={lesson} />
+              <LessonContent part={activePart} videoItems={videoItems} textItems={textItems} />
             </div>
             <LessonNotesPanel key={lessonId} slug={slug} lessonId={lessonId} />
           </div>
@@ -287,10 +311,8 @@ export function LessonPlayerView({
               )}
             </div>
 
-            {lesson.meeting_url && (
-              <div className="flex flex-col gap-6 border-t border-(--color-text-primary)/10 pt-6">
-                <LessonMeetingCta href={lesson.meeting_url} />
-              </div>
+            {lesson.documents && lesson.documents.length > 0 && (
+              <LessonDocuments documents={lesson.documents} />
             )}
           </div>
         </div>
@@ -326,17 +348,40 @@ function LessonNavLink({ href, direction }: { href?: string; direction: "prev" |
   );
 }
 
-/** Renders the active content part: the video player or the reading body. */
-function LessonContent({ part, lesson }: { part: LessonContentPart | null; lesson: LessonDetail }) {
-  if (part === "video" && lesson.video_url) {
+/** Renders the active content part: the lesson's video block(s) or reading block(s). */
+function LessonContent({
+  part,
+  videoItems,
+  textItems,
+}: {
+  part: LessonContentPart | null;
+  videoItems: LessonItem[];
+  textItems: LessonItem[];
+}) {
+  if (part === "video" && videoItems.length > 0) {
     return (
-      <div className="overflow-hidden rounded-2xl bg-black">
-        <video controls src={lesson.video_url} className="aspect-video w-full" preload="metadata" />
+      <div className="flex flex-col gap-5">
+        {videoItems.map((item) => (
+          <div key={item.id} className="overflow-hidden rounded-2xl bg-black">
+            <video
+              controls
+              src={item.video_url ?? undefined}
+              className="aspect-video w-full"
+              preload="metadata"
+            />
+          </div>
+        ))}
       </div>
     );
   }
-  if (part === "reading" && lesson.body_html) {
-    return <CourseDescription html={lesson.body_html} />;
+  if (part === "reading" && textItems.length > 0) {
+    return (
+      <div className="flex flex-col gap-6">
+        {textItems.map((item) => (
+          <CourseDescription key={item.id} html={item.body_html ?? item.content ?? ""} />
+        ))}
+      </div>
+    );
   }
   return <p className="text-(--color-text-secondary)">No content available for this lesson yet.</p>;
 }
@@ -379,18 +424,29 @@ function CompleteCheckbox({
   );
 }
 
-/** "Join live session" CTA shown when the lesson has an external meeting URL. */
-function LessonMeetingCta({ href }: { href: string }) {
+/** "Materials" download list for a lesson's attached documents. */
+function LessonDocuments({ documents }: { documents: LessonDocument[] }) {
   return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="inline-flex w-fit items-center gap-2 rounded-full px-5 py-3 font-(family-name:--font-accent) text-sm font-medium uppercase text-(--color-text-primary) transition hover:opacity-90"
-      style={{ background: "var(--gradient-brand)" }}
-    >
-      <Video className="h-5 w-5" aria-hidden="true" />
-      Join live session with teacher
-    </a>
+    <div className="flex flex-col gap-3 border-t border-(--color-text-primary)/10 pt-6">
+      <h2 className="font-(family-name:--font-base) text-lg font-semibold text-(--color-text-primary)">
+        Materials
+      </h2>
+      <ul className="flex flex-col gap-2">
+        {documents.map((doc) => (
+          <li key={doc.id}>
+            <a
+              href={doc.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              download
+              className="group inline-flex items-center gap-2 font-(family-name:--font-base) text-base text-(--color-text-primary) transition-colors hover:text-(--color-blue)"
+            >
+              <Download className="h-5 w-5 shrink-0" aria-hidden="true" />
+              <span className="group-hover:underline">{doc.original_name}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

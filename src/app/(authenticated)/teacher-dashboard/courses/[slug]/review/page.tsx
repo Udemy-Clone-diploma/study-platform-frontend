@@ -4,9 +4,23 @@ import React, { useState, useEffect } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { cheapestPlan, getCourseBySlug, submitCourseForReview } from "@/entities/course";
+import {
+  getCourseBySlug,
+  submitCourseForReview,
+  getPendingEdit,
+  submitPendingEdit,
+} from "@/entities/course";
 import type { CourseDetail, CourseModule, CourseLesson, CourseTest } from "@/entities/course";
-import { CourseCreationLayout, CourseCreationStepper, CoursePageHeader } from "@/features/courses";
+import type { SnapshotModule } from "@/entities/course";
+import {
+  CourseCreationLayout,
+  CourseCreationStepper,
+  CoursePageHeader,
+  CourseStatsGrid,
+  ModeratorNoteBanner,
+} from "@/features/courses";
+
+const PUBLISHED_STATUSES = new Set(["published", "hidden"]);
 
 const metaIconSt: CSSProperties = { width: 16, height: 16, flexShrink: 0 };
 const grayTextSt: CSSProperties = {
@@ -51,11 +65,7 @@ function TestItem({ test }: { test: CourseTest }) {
   return (
     <div className="flex items-center" style={{ gap: 8 }}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src="/icons/copy-check-yellow.svg"
-        alt=""
-        style={{ width: 20, height: 20, flexShrink: 0 }}
-      />
+      <img src="/icons/copy-check-yellow.svg" alt="" style={{ width: 20, height: 20, flexShrink: 0 }} />
       <span style={itemTextSt}>{test.title}</span>
       <span style={durationTextSt}>({test.questions?.length ?? 0} questions)</span>
     </div>
@@ -95,19 +105,9 @@ function ModuleReviewCard({ module, index }: { module: CourseModule; index: numb
         gap: 10,
       }}
     >
-      <div
-        style={{ width: "calc(100% - 98px)", display: "flex", flexDirection: "column", gap: 13 }}
-      >
-        {/* Module header */}
+      <div style={{ width: "calc(100% - 98px)", display: "flex", flexDirection: "column", gap: 13 }}>
         <div className="flex items-center justify-between">
-          <span
-            style={{
-              fontFamily: "var(--font-base)",
-              fontWeight: 700,
-              fontSize: 20,
-              lineHeight: "25px",
-            }}
-          >
+          <span style={{ fontFamily: "var(--font-base)", fontWeight: 700, fontSize: 20, lineHeight: "25px" }}>
             Module {index + 1}: {module.title}
           </span>
           <div className="flex items-center" style={{ gap: 8 }}>
@@ -124,25 +124,12 @@ function ModuleReviewCard({ module, index }: { module: CourseModule; index: numb
           </div>
         </div>
 
-        {/* Content */}
         <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
           {lessonCount === 0 && testCount === 0 ? (
             <div className="flex items-center" style={{ gap: 8 }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/icons/exclamationmark-triangle.svg"
-                alt=""
-                style={{ width: 20, height: 20, flexShrink: 0 }}
-              />
-              <span
-                style={{
-                  fontFamily: "var(--font-base)",
-                  fontWeight: 500,
-                  fontSize: 16,
-                  lineHeight: "20px",
-                  color: "var(--color-pink-dark)",
-                }}
-              >
+              <img src="/icons/exclamationmark-triangle.svg" alt="" style={{ width: 20, height: 20, flexShrink: 0 }} />
+              <span style={{ fontFamily: "var(--font-base)", fontWeight: 500, fontSize: 16, lineHeight: "20px", color: "var(--color-pink-dark)" }}>
                 This module is empty
               </span>
             </div>
@@ -151,19 +138,13 @@ function ModuleReviewCard({ module, index }: { module: CourseModule; index: numb
               {lessonCount > 0 && (
                 <div style={{ display: "flex", flexDirection: "column", gap: 13 }}>
                   <span style={sectionLabelSt}>Lessons:</span>
-                  <TwoColGrid
-                    items={module.lessons}
-                    renderItem={(l) => <LessonItem lesson={l} />}
-                  />
+                  <TwoColGrid items={module.lessons} renderItem={(l) => <LessonItem lesson={l} />} />
                 </div>
               )}
               {testCount > 0 && (
                 <div style={{ display: "flex", flexDirection: "column", gap: 13 }}>
                   <span style={sectionLabelSt}>Tests:</span>
-                  <TwoColGrid
-                    items={module.tests as CourseTest[]}
-                    renderItem={(t) => <TestItem test={t} />}
-                  />
+                  <TwoColGrid items={module.tests as CourseTest[]} renderItem={(t) => <TestItem test={t} />} />
                 </div>
               )}
             </>
@@ -174,44 +155,92 @@ function ModuleReviewCard({ module, index }: { module: CourseModule; index: numb
   );
 }
 
+/** Convert a SnapshotModule to a CourseModule for display purposes only. */
+function snapshotToDisplay(s: SnapshotModule): CourseModule {
+  return {
+    id: s.id ?? 0,
+    title: s.title,
+    description: s.description,
+    order: s.order,
+    lessons: s.lessons.map((l) => ({
+      id: l.id ?? 0,
+      title: l.title,
+      duration_minutes: l.duration_minutes,
+      min_score: l.min_score,
+      is_preview: l.is_preview,
+      order: l.order,
+    })),
+    tests: s.tests.map((t) => ({
+      id: t.id ?? 0,
+      title: t.title,
+      description: t.description,
+      passing_score: t.passing_score,
+      order: t.order,
+      questions: t.questions.map((q) => ({
+        id: q.id ?? 0,
+        question_type: q.question_type,
+        text: q.text,
+        options: q.options,
+        correct_index: q.correct_index,
+        correct_bool: q.correct_bool,
+        sample_answer: q.sample_answer,
+        order: q.order,
+      })),
+    })),
+  };
+}
+
 export default function CourseReviewPage() {
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
   const [course, setCourse] = useState<CourseDetail | null>(null);
   const [moduleList, setModuleList] = useState<CourseModule[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [isPendingEditMode, setIsPendingEditMode] = useState(false);
+  /** Title to display — pending edit's title when in pending edit mode. */
+  const [displayTitle, setDisplayTitle] = useState("");
 
   useEffect(() => {
-    if (slug) {
-      getCourseBySlug(slug)
-        .then((c) => {
-          setCourse(c);
+    if (!slug) return;
+    getCourseBySlug(slug)
+      .then(async (c) => {
+        setCourse(c);
+        const isPublished = PUBLISHED_STATUSES.has(c.status);
+        setIsPendingEditMode(isPublished);
+
+        if (isPublished) {
+          const pe = await getPendingEdit(slug);
+          setDisplayTitle(pe.title);
+          setModuleList(pe.modules_snapshot.map(snapshotToDisplay));
+        } else {
+          setDisplayTitle(c.title);
           setModuleList(Array.isArray(c.modules) ? c.modules : []);
-        })
-        .catch(() => {});
-    }
+        }
+      })
+      .catch(() => {});
   }, [slug]);
 
-  async function handleSubmitForReview() {
+  async function handleSubmit() {
     if (!slug || submitting) return;
     setSubmitting(true);
     try {
-      await submitCourseForReview(slug);
+      if (isPendingEditMode) {
+        await submitPendingEdit(slug);
+      } else {
+        await submitCourseForReview(slug);
+      }
       router.push("/teacher-dashboard/courses");
     } finally {
       setSubmitting(false);
     }
   }
 
-  const title = course?.title || "Untitled Course";
-  const hasEmptyModule = moduleList.some(
-    (m) => m.lessons.length === 0 && (m.tests?.length ?? 0) === 0,
-  );
-  const hasLesson =
-    moduleList.length > 0 && moduleList.some((m) => m.lessons.length > 0) && !hasEmptyModule;
+  const title = displayTitle || course?.title || "Untitled Course";
+  const hasEmptyModule = moduleList.some((m) => m.lessons.length === 0 && (m.tests?.length ?? 0) === 0);
+  const hasLesson = moduleList.length > 0 && moduleList.some((m) => m.lessons.length > 0) && !hasEmptyModule;
 
   const totalModules = moduleList.length;
-  const totalLessons = course?.lessons_count ?? 0;
+  const totalLessons = moduleList.reduce((acc, m) => acc + m.lessons.length, 0);
   const totalTests = moduleList.reduce((acc, m) => acc + (m.tests?.length ?? 0), 0);
   const totalMinutes = course?.total_duration_minutes ?? 0;
 
@@ -219,15 +248,19 @@ export default function CourseReviewPage() {
   const levelLabel = course?.level
     ? course.level.charAt(0).toUpperCase() + course.level.slice(1)
     : "";
-  const cheapest = course ? cheapestPlan(course.pricing_plans) : null;
-  const priceLabel = !course ? "" : cheapest ? `€ ${cheapest.price}` : "Free";
 
   const STATS = [
-    { icon: "/icons/book-gradient.svg", count: totalModules, label: "Modules" },
-    { icon: "/icons/play-gradient.svg", count: totalLessons, label: "Lessons" },
-    { icon: "/icons/copy-check-gradient.svg", count: totalTests, label: "Tests" },
-    { icon: "/icons/clock-gradient.svg", count: totalMinutes, label: "Minutes" },
+    { icon: "/icons/book-gradient.svg",       count: totalModules, label: "Modules" },
+    { icon: "/icons/play-gradient.svg",       count: totalLessons, label: "Lessons" },
+    { icon: "/icons/copy-check-gradient.svg", count: totalTests,   label: "Tests"   },
+    { icon: "/icons/clock-gradient.svg",      count: totalMinutes, label: "Minutes" },
   ];
+
+  const pageHeading = isPendingEditMode ? "Review Changes" : "Review & Publish";
+  const pageSubheading = isPendingEditMode
+    ? "Review your changes before submitting for moderation"
+    : "Review your course content and publish when ready";
+  const submitLabel = "Continue to Review & Publish";
 
   return (
     <CourseCreationLayout>
@@ -236,7 +269,7 @@ export default function CourseReviewPage() {
         saving={submitting}
         canPublish={hasLesson && !submitting}
         onSaveDraft={() => router.push("/teacher-dashboard/courses")}
-        onContinue={handleSubmitForReview}
+        onContinue={handleSubmit}
       />
       <CourseCreationStepper currentStep={2} />
 
@@ -261,7 +294,7 @@ export default function CourseReviewPage() {
               color: "var(--color-text-primary)",
             }}
           >
-            Review &amp; Publish
+            {pageHeading}
           </h2>
           <p
             style={{
@@ -273,7 +306,7 @@ export default function CourseReviewPage() {
               color: "var(--color-text-secondary)",
             }}
           >
-            Review your course content and publish when ready
+            {pageSubheading}
           </p>
         </div>
 
@@ -300,7 +333,6 @@ export default function CourseReviewPage() {
             Course Overview
           </span>
           <div className="flex items-start justify-between" style={{ gap: 16 }}>
-            {/* Left: thumbnail + title + description */}
             <div className="flex items-center" style={{ gap: 12, minWidth: 0 }}>
               <div
                 style={{
@@ -315,11 +347,7 @@ export default function CourseReviewPage() {
                 }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/icons/book-gradient.svg"
-                  alt=""
-                  style={{ width: "clamp(36px, 2.6vw, 50px)", height: "clamp(36px, 2.6vw, 50px)" }}
-                />
+                <img src="/icons/book-gradient.svg" alt="" style={{ width: "clamp(36px, 2.6vw, 50px)", height: "clamp(36px, 2.6vw, 50px)" }} />
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 0, minWidth: 0 }}>
                 <span
@@ -352,16 +380,7 @@ export default function CourseReviewPage() {
               </div>
             </div>
 
-            {/* Right: badges + price */}
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "flex-end",
-                gap: 20,
-                flexShrink: 0,
-              }}
-            >
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 20, flexShrink: 0 }}>
               <div className="flex items-center" style={{ gap: 8 }}>
                 {categoryName && (
                   <span
@@ -395,75 +414,14 @@ export default function CourseReviewPage() {
                   </span>
                 )}
               </div>
-              {priceLabel && (
-                <span
-                  style={{
-                    fontFamily: "var(--font-base)",
-                    fontWeight: 600,
-                    fontSize: "clamp(15px, 1.04vw, 20px)",
-                    lineHeight: "25px",
-                    letterSpacing: "-0.3px",
-                  }}
-                >
-                  {priceLabel}
-                </span>
-              )}
             </div>
           </div>
         </div>
 
         {/* Stats row */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 20 }}>
-          {STATS.map(({ icon, count, label }) => (
-            <div
-              key={label}
-              style={{
-                border: "1px solid var(--color-draft)",
-                borderRadius: 16,
-                height: "clamp(100px, 6.875vw, 132px)",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 6,
-              }}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={icon}
-                alt=""
-                style={{ width: "clamp(28px, 2.08vw, 40px)", height: "clamp(28px, 2.08vw, 40px)" }}
-              />
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                <span
-                  style={{
-                    fontFamily: "var(--font-base)",
-                    fontWeight: 700,
-                    fontSize: "clamp(16px, 1.04vw, 20px)",
-                    lineHeight: "25px",
-                    textAlign: "center",
-                  }}
-                >
-                  {count}
-                </span>
-                <span
-                  style={{
-                    fontFamily: "var(--font-base)",
-                    fontWeight: 500,
-                    fontSize: "clamp(12px, 0.78vw, 15px)",
-                    lineHeight: "19px",
-                    color: "var(--color-text-secondary)",
-                    textAlign: "center",
-                  }}
-                >
-                  {label}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
+        <CourseStatsGrid stats={STATS} />
 
-        {/* Course Structure card */}
+        {/* Course Structure */}
         <div
           style={{
             border: "1px solid var(--color-draft)",
@@ -492,8 +450,11 @@ export default function CourseReviewPage() {
           </div>
         </div>
 
-        {/* Back to Edit */}
-        <div>
+        {/* Moderator final comment */}
+        <ModeratorNoteBanner title="Moderator comment" comment={course?.moderator_comment ?? undefined} />
+
+        {/* Bottom: back + submit */}
+        <div className="flex items-center justify-between">
           <button
             type="button"
             onClick={() => router.push(`/teacher-dashboard/courses/${slug}/content`)}
@@ -515,6 +476,28 @@ export default function CourseReviewPage() {
           >
             <ArrowLeft size={20} />
             Back to Edit
+          </button>
+
+          <button
+            type="button"
+            disabled={!hasLesson || submitting}
+            onClick={handleSubmit}
+            className="inline-flex items-center transition hover:opacity-80 disabled:opacity-40"
+            style={{
+              gap: 10,
+              background: hasLesson && !submitting ? "var(--gradient-brand)" : undefined,
+              backgroundColor: hasLesson && !submitting ? undefined : "var(--color-draft)",
+              borderRadius: 28,
+              padding: "clamp(8px, 0.83vw, 12px) clamp(16px, 1.94vw, 28px)",
+              fontFamily: "var(--font-accent)",
+              fontWeight: 500,
+              fontSize: "clamp(14px, 1.39vw, 20px)",
+              cursor: hasLesson && !submitting ? "pointer" : "not-allowed",
+              border: "none",
+              color: "var(--color-text-primary)",
+            }}
+          >
+            {submitting ? "Submitting..." : submitLabel}
           </button>
         </div>
       </div>

@@ -18,7 +18,7 @@ export type CourseMode = "self_learning" | "with_teacher";
 export type CourseDeliveryType = "self_paced" | "scheduled" | "individual" | "group";
 export type CourseType = "profession" | "qualification" | "knowledge";
 export type CoursePricingType = "free" | "full_payment" | "installment";
-export type CourseStatus = "draft" | "review" | "needs_revision" | "published" | "archived";
+export type CourseStatus = "draft" | "review" | "needs_revision" | "rejected" | "published" | "hidden" | "archived";
 
 export type CourseListItem = {
   id: number;
@@ -49,7 +49,79 @@ export type CourseListItem = {
   students_count: number;
   status: CourseStatus;
   published_at: string | null;
+  created_at: string;
+  /** Present on most list endpoints. Updated whenever the course record changes (e.g. status transition). */
+  updated_at?: string;
+  /** Date the current student was granted access. Null for non-enrolled contexts (teacher, catalog). */
+  enrolled_at: string | null;
   tags: CourseTag[];
+  /**
+   * Present only on teacher my-courses list. Null when the course has no pending edit.
+   * "draft"         — edits saved but not yet submitted for moderation
+   * "pending"       — submitted for moderation (editing locked)
+   * "needs_revision"— moderator returned for revision
+   */
+  pending_edit_status: "draft" | "pending" | "needs_revision" | null;
+  /** When the pending edit was submitted for moderation. Present on moderation list endpoints
+   *  for published/hidden courses whose pending edit is in "pending" status. */
+  pending_edit_submitted_at?: string | null;
+};
+
+type ItemStatusValue = "approved" | "rejected" | "needs_revision";
+type StepAction = "approved" | "needs_revision" | "rejected" | "";
+
+export type ModerationReview = {
+  // Step 1 — Basics
+  basics_field_statuses: Record<string, ItemStatusValue>;
+  basics_action: StepAction;
+  basics_comment: string;
+  // Step 2 — Content
+  content_item_statuses: Record<string, ItemStatusValue>;
+  content_action: StepAction;
+  content_comment: string;
+  // Step 3 — Review & Publish
+  final_action: StepAction;
+  final_comment: string;
+  updated_at: string;
+};
+
+/** Immutable snapshot record created when a course is rejected. Independent of course status. */
+export type RejectedCourseRecord = {
+  id: number;
+  course_slug: string;
+  course_title: string;
+  course_image_url: string | null;
+  course_category: string;
+  course_level: string;
+  /** For pending-edit rejections: which fields the teacher changed. Empty for initial rejections. */
+  changed_fields: string[];
+  basics_field_statuses: Record<string, ItemStatusValue>;
+  basics_action: StepAction;
+  basics_comment: string;
+  content_item_statuses: Record<string, ItemStatusValue>;
+  content_action: StepAction;
+  content_comment: string;
+  final_action: StepAction;
+  final_comment: string;
+  rejected_at: string;
+};
+
+/** Immutable snapshot record created when a course is approved. */
+export type ApprovedCourseRecord = {
+  id: number;
+  course_slug: string;
+  course_title: string;
+  course_image_url: string | null;
+  course_category: string;
+  course_level: string;
+  /** For pending-edit approvals: which fields the teacher changed. Empty for initial approvals. */
+  changed_fields: string[];
+  approved_at: string;
+};
+
+export type RejectedCourseItem = CourseListItem & {
+  moderator_comment: string;
+  moderation_review: ModerationReview | null;
 };
 
 export type CourseDetail = Omit<CourseListItem, "teacher_name" | "price" | "currency"> & {
@@ -58,6 +130,7 @@ export type CourseDetail = Omit<CourseListItem, "teacher_name" | "price" | "curr
   full_description: string;
   teacher: Teacher;
   moderator_id: number | null;
+  moderator_comment: string;
   total_duration_minutes: number;
   /** True when the current authenticated user is enrolled. False for anonymous users. */
   is_enrolled: boolean;
@@ -74,4 +147,6 @@ export type CourseDetail = Omit<CourseListItem, "teacher_name" | "price" | "curr
   modules: CourseModule[];
   created_at: string;
   updated_at: string;
+  /** Present when the course is in needs_revision status. Null otherwise. */
+  moderation_review: ModerationReview | null;
 };

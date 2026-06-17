@@ -18,7 +18,7 @@ export function CourseFeedback({ reviews, reviewsHref }: Props) {
     <section className="w-full" style={{ background: "var(--gradient-feedback)" }}>
       <div
         className="flex flex-col gap-7 py-12 sm:py-16 lg:py-[100px]"
-        style={{ width: "min(1420px, 100% - 32px)", marginInline: "auto" }}
+        style={{ width: "min(1420px, 100% - max(32px, 7vw))", marginInline: "auto" }}
       >
         <div className="flex flex-wrap items-start justify-between gap-4 sm:gap-7">
           <SectionBadge>Feedback</SectionBadge>

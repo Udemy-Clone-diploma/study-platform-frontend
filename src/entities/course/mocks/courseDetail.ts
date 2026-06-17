@@ -1,4 +1,4 @@
-import type { LessonDetail } from "../model/module";
+import type { CourseLesson, LessonDocument, LessonItem } from "../model/module";
 import type { CourseProgress } from "../model/progress";
 import type { CourseReview } from "../model/review";
 import type { CourseDetail } from "../model/types";
@@ -52,6 +52,8 @@ export const mockCourseDetail: CourseDetail = {
   group_chat_url: "https://t.me/ux-ui-design-mastery",
   status: "published",
   published_at: "2026-01-10T00:00:00Z",
+  enrolled_at: null,
+  pending_edit_status: null,
   tags: [
     { id: 1, name: "Figma" },
     { id: 2, name: "Design Systems" },
@@ -67,6 +69,8 @@ export const mockCourseDetail: CourseDetail = {
     partnerships_count: 300,
   },
   moderator_id: null,
+  moderator_comment: "",
+  moderation_review: null,
   pricing_plans: [
     {
       id: 1,
@@ -265,42 +269,54 @@ const SAMPLE_BODY_HTML = `
   <p>Use the worksheet to record your observations as you work through the exercise.</p>
 `;
 
-const SAMPLE_ATTACHMENTS = [
+const SAMPLE_DOCUMENTS: LessonDocument[] = [
   {
     id: 1,
-    name: "Lesson worksheet.pdf",
+    original_name: "Lesson worksheet.pdf",
     url: "https://example.com/worksheet.pdf",
-    size_bytes: 482_300,
-    mime_type: "application/pdf",
+    created_at: "2026-01-10T00:00:00Z",
   },
   {
     id: 2,
-    name: "Slides.pdf",
+    original_name: "Slides.pdf",
     url: "https://example.com/slides.pdf",
-    size_bytes: 1_240_512,
-    mime_type: "application/pdf",
+    created_at: "2026-01-10T00:00:00Z",
   },
 ];
 
 /** Dev-mode lesson detail map keyed by lesson id (matches `mockCourseDetail.modules[].lessons[].id`). */
-export const mockLessonDetails: Record<number, LessonDetail> = {};
+export const mockLessonDetails: Record<number, CourseLesson> = {};
 for (const mod of mockCourseDetail.modules) {
   for (const lesson of mod.lessons) {
-    // Most lessons ship a video plus a reading (two content tabs); lesson 8 is
-    // video-only to exercise the player's single-content-part path.
-    const hasReading = lesson.id !== 8;
+    // Most lessons ship a video block plus a reading block (two content tabs);
+    // lesson 8 is video-only to exercise the single-content-part path.
+    const items: LessonItem[] = [
+      {
+        id: lesson.id * 10 + 1,
+        item_type: "video",
+        order: 1,
+        video_url:
+          "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+        original_video_name: "BigBuckBunny.mp4",
+        duration_minutes: lesson.duration_minutes,
+      },
+    ];
+    if (lesson.id !== 8) {
+      items.push({
+        id: lesson.id * 10 + 2,
+        item_type: "text",
+        order: 2,
+        body_html: SAMPLE_BODY_HTML,
+      });
+    }
     mockLessonDetails[lesson.id] = {
       id: lesson.id,
       title: lesson.title,
       order: lesson.order,
       duration_minutes: lesson.duration_minutes,
       is_preview: lesson.is_preview,
-      content_type: "video",
-      video_url:
-        "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-      body_html: hasReading ? SAMPLE_BODY_HTML : null,
-      attachments: SAMPLE_ATTACHMENTS,
-      meeting_url: lesson.is_preview ? null : "https://meet.google.com/abc-defg-hij",
+      documents: SAMPLE_DOCUMENTS,
+      items,
     };
   }
 }

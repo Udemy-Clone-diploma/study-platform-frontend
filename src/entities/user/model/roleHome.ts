@@ -3,7 +3,7 @@ import type { UserRole } from "./types";
 /** Default landing path for each role. Used by the proxy, the login redirect, and the user dropdown. */
 export const ROLE_HOME: Record<UserRole, string> = {
   administrator: "/admin",
-  moderator: "/admin",
+  moderator: "/moderator-dashboard",
   teacher: "/teacher-dashboard",
   student: "/student-dashboard",
 };

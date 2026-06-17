@@ -2,14 +2,18 @@
 
 import { useEffect, useState } from "react";
 import { CourseCard } from "@/features/courses";
+import { Pagination } from "@/shared/ui/Pagination";
 import { getWishlist } from "@/entities/course";
 import type { CourseListItem } from "@/entities/course";
 import type { ApiError } from "@/shared/api/base";
+
+const PAGE_SIZE = 6;
 
 export default function WishlistPage() {
   const [courses, setCourses] = useState<CourseListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     getWishlist()
@@ -18,31 +22,60 @@ export default function WishlistPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  const totalPages = Math.max(1, Math.ceil(courses.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const pageSlice = courses.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+
+  function handlePageChange(newPage: number) {
+    setPage(newPage);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   return (
     <main
-      className="bg-wishlist min-h-[calc(100vh-76px)]"
-      style={{ paddingInline: "clamp(16px, 2.78vw, 40px)", paddingBlock: "clamp(16px, 2.22vw, 32px)" }}
+      className="bg-wishlist"
+      style={{
+        minHeight: "calc(100vh - 76px)",
+        display: "flex",
+        flexDirection: "column",
+        paddingInlineStart: "clamp(40px, 6.25vw, 90px)",
+        paddingInlineEnd: "clamp(16px, 2.78vw, 40px)",
+        paddingTop: "clamp(16px, 2.22vw, 32px)",
+        paddingBottom: "clamp(16px, 2.22vw, 32px)",
+      }}
     >
       <h1
         className="font-normal text-(--color-text-primary)"
-        style={{ fontSize: "clamp(20px, 2.22vw, 32px)", marginBottom: "clamp(16px, 1.67vw, 32px)" }}
+        style={{ fontSize: "clamp(20px, 2.22vw, 32px)", marginBottom: "clamp(16px, 1.67vw, 32px)", flexShrink: 0 }}
       >
         Wishlist
       </h1>
 
-      {loading ? (
-        <p className="mt-16 text-center text-lg text-(--color-text-secondary)">Loading...</p>
-      ) : error ? (
-        <p className="mt-16 text-center text-lg text-red-500">{error}</p>
-      ) : courses.length === 0 ? (
-        <p className="mt-16 text-center text-lg text-(--color-text-secondary)">
-          No courses in your wishlist yet.
-        </p>
-      ) : (
-        <div className="flex flex-wrap" style={{ gap: "clamp(12px, 1.25vw, 24px)" }}>
-          {courses.map((course) => (
-            <CourseCard key={course.id} course={course} isWishlisted />
-          ))}
+      <div style={{ flex: 1 }}>
+        {loading ? (
+          <p className="text-center text-lg text-(--color-text-secondary)">Loading...</p>
+        ) : error ? (
+          <p className="text-center text-lg text-red-500">{error}</p>
+        ) : courses.length === 0 ? (
+          <p className="text-center text-lg text-(--color-text-secondary)">
+            No courses in your wishlist yet.
+          </p>
+        ) : (
+          <div className="flex flex-wrap" style={{ gap: "clamp(12px, 1.25vw, 24px)" }}>
+            {pageSlice.map((course) => (
+              <CourseCard key={course.id} course={course} isWishlisted />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {!loading && !error && courses.length > 0 && totalPages > 1 && (
+        <div style={{ display: "flex", justifyContent: "center", paddingTop: "clamp(16px, 2.22vw, 32px)", flexShrink: 0 }}>
+          <Pagination
+            currentPage={safePage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
         </div>
       )}
     </main>

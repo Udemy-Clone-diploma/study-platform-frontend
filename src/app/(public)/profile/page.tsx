@@ -10,6 +10,7 @@ import {
   ProfileSidebar,
   StudentFields,
   TeacherFields,
+  PasswordChangeModal,
   type SocialLinks,
 } from "@/features/profile";
 
@@ -49,16 +50,17 @@ function ProfilePage() {
     const [socialLinks, setSocialLinks] = useState<SocialLinks>({ instagram: "", linkedin: "", facebook: "", behance: "" });
     const [avatarFile, setAvatarFile]   = useState<File | null>(null);
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+    const [showPasswordModal, setShowPasswordModal] = useState(false);
 
     // Teacher-specific edit state
-    const [specialization, setSpecialization] = useState("");
-    const [experience, setExperience]         = useState("");
-    const [bio, setBio]                       = useState("");
+    const [specialization, setSpecialization]             = useState("");
+    const [experience, setExperience]                     = useState("");
+    const [bio, setBio]                                   = useState("");
+    const [instructionLanguage, setInstructionLanguage]   = useState<UserLanguage>("en");
 
     // Student-specific edit state
-    const [dateOfBirth, setDateOfBirth]       = useState("");
-    const [learningGoals, setLearningGoals]   = useState("");
-    const [educationLevel, setEducationLevel] = useState("");
+    const [dateOfBirth, setDateOfBirth]     = useState("");
+    const [learningGoals, setLearningGoals] = useState("");
 
     useEffect(() => {
         getMe()
@@ -68,6 +70,16 @@ function ProfilePage() {
                 setLastName(data.last_name);
                 setLanguage(data.language);
                 setSocialLinks(socialFromUser(data));
+                if (data.role === "teacher") {
+                    const tp = data.profile as TeacherProfile;
+                    setSpecialization(tp?.specialization ?? "");
+                    setExperience(tp?.experience ?? "");
+                    setBio(tp?.bio ?? "");
+                } else if (data.role === "student") {
+                    const sp = data.profile as StudentProfile;
+                    setDateOfBirth(sp?.date_of_birth ?? "");
+                    setLearningGoals(sp?.learning_goals ?? "");
+                }
             })
             .finally(() => setLoading(false));
     }, []);
@@ -89,7 +101,6 @@ function ProfilePage() {
             const sp = user.profile as StudentProfile;
             setDateOfBirth(sp?.date_of_birth ?? "");
             setLearningGoals(sp?.learning_goals ?? "");
-            setEducationLevel(sp?.education_level ?? "");
         }
         setEditing(true);
     }
@@ -109,7 +120,6 @@ function ProfilePage() {
                 const sp = user.profile as StudentProfile;
                 setDateOfBirth(sp?.date_of_birth ?? "");
                 setLearningGoals(sp?.learning_goals ?? "");
-                setEducationLevel(sp?.education_level ?? "");
             }
         }
         setAvatarFile(null);
@@ -151,9 +161,8 @@ function ProfilePage() {
                 updated = { ...updated, profile };
             } else if (user?.role === "student") {
                 const profile = await updateStudentProfile({
-                    date_of_birth:   dateOfBirth || null,
-                    learning_goals:  learningGoals,
-                    education_level: educationLevel,
+                    date_of_birth:  dateOfBirth || null,
+                    learning_goals: learningGoals,
                 });
                 updated = { ...updated, profile };
             }
@@ -191,12 +200,16 @@ function ProfilePage() {
     const completionExtras = teacherProfile
         ? [!!teacherProfile.specialization, !!teacherProfile.experience, !!teacherProfile.bio]
         : studentProfile
-        ? [!!studentProfile.date_of_birth, !!studentProfile.learning_goals, !!studentProfile.education_level]
+        ? [!!studentProfile.date_of_birth, !!studentProfile.learning_goals]
         : [];
 
     return (
         <div style={{ position: "relative" }}>
             <ProfileBgBlobs />
+
+            {showPasswordModal && (
+                <PasswordChangeModal onClose={() => setShowPasswordModal(false)} />
+            )}
 
             <div style={{ position: "relative", zIndex: 1, display: "flex" }}>
                 <div style={{ width: "4.17vw", flexShrink: 0 }} />
@@ -219,38 +232,63 @@ function ProfilePage() {
 
                 <div style={{ flex: 1, padding: "4.17vw 9.375vw 6.25vw 2.08vw" }}>
                     <ProfileMainContent
-                        user={user} editing={editing} saving={saving}
+                        editing={editing} saving={saving}
                         completionPercent={calcCompletion(user, socialLinks, completionExtras, !isMinimal)}
                         showSubtitle={!isMinimal}
-                        firstName={firstName} lastName={lastName} language={language}
-                        onFirstNameChange={setFirstName}
-                        onLastNameChange={setLastName}
-                        onLanguageChange={handleLanguageChange}
+                        showSaveButton={!studentProfile}
                         onSave={handleSave}
                     >
-                        {teacherProfile && (
+                        {teacherProfile !== null && (
                             <TeacherFields
                                 editing={editing}
+                                email={user.email}
+                                dateJoined={user.date_joined}
+                                firstName={firstName}
+                                lastName={lastName}
+                                language={language}
+                                instructionLanguage={instructionLanguage}
                                 profile={teacherProfile}
                                 specialization={specialization}
                                 experience={experience}
                                 bio={bio}
+                                onFirstNameChange={setFirstName}
+                                onLastNameChange={setLastName}
+                                onLanguageChange={handleLanguageChange}
+                                onInstructionLanguageChange={setInstructionLanguage}
                                 onSpecializationChange={setSpecialization}
                                 onExperienceChange={setExperience}
                                 onBioChange={setBio}
+                                onChangePassword={() => setShowPasswordModal(true)}
                             />
                         )}
-                        {studentProfile && (
+                        {studentProfile !== null && (
                             <StudentFields
                                 editing={editing}
+                                email={user.email}
+                                dateJoined={user.date_joined}
+                                firstName={firstName}
+                                lastName={lastName}
+                                language={language}
                                 profile={studentProfile}
                                 dateOfBirth={dateOfBirth}
                                 learningGoals={learningGoals}
-                                educationLevel={educationLevel}
+                                onFirstNameChange={setFirstName}
+                                onLastNameChange={setLastName}
+                                onLanguageChange={handleLanguageChange}
                                 onDateOfBirthChange={setDateOfBirth}
                                 onLearningGoalsChange={setLearningGoals}
-                                onEducationLevelChange={setEducationLevel}
+                                onChangePassword={() => setShowPasswordModal(true)}
+                                onSave={handleSave}
+                                saving={saving}
                             />
+                        )}
+                        {isMinimal && (
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25vw 2.08vw" }}>
+                                <div style={{ display: "flex", flexDirection: "column", gap: "0.208vw" }}>
+                                    <span style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "1.25vw", color: "var(--color-text-secondary)", letterSpacing: "-0.011em" }}>Email</span>
+                                    <span style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "1.25vw", color: "var(--color-text-primary)", letterSpacing: "-0.011em" }}>{user.email}</span>
+                                </div>
+                            </div>
                         )}
                     </ProfileMainContent>
                 </div>

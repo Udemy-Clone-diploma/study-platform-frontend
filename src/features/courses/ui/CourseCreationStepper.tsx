@@ -1,7 +1,7 @@
 const STEPS = [
   { name: "Basics", sub: "Course information" },
   { name: "Course Content", sub: "Modules, lessons & tests" },
-  { name: "Review & Publish", sub: "Launch course" },
+  { name: "Review & Submit", sub: "Review changes" },
 ];
 
 const ACTIVE_COLORS: { bg: string; text: string }[] = [
@@ -15,21 +15,21 @@ const DONE_COLORS = {
   text: "var(--color-pink-dark)",
 };
 
-type Props = { currentStep: 0 | 1 | 2 };
+type Props = { currentStep: 0 | 1 | 2; steps?: { name: string; sub: string }[] };
 
-/** 3-step progress indicator shared by all course-creation pages. */
-export function CourseCreationStepper({ currentStep }: Props) {
+/** 3-step progress indicator shared by all course-creation and course-edit pages. */
+export function CourseCreationStepper({ currentStep, steps = STEPS }: Props) {
   return (
     <div
       className="rounded-2xl bg-white"
       style={{
         padding: "clamp(20px, 1.82vw, 35px) clamp(24px, 2.6vw, 50px)",
         marginBottom: "clamp(12px, 1.25vw, 24px)",
-        boxShadow: "0px 0px 17px rgba(0, 0, 0, 0.16)",
+        boxShadow: "var(--shadow-dashboard-card)",
       }}
     >
       <div className="flex items-start justify-between">
-        {STEPS.map((step, i) => {
+        {steps.map((step, i) => {
           const isDone   = i < currentStep;
           const isActive = i === currentStep;
           const colors   = isActive ? ACTIVE_COLORS[i] : isDone ? DONE_COLORS : null;

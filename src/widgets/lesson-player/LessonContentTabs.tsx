@@ -5,7 +5,7 @@ import { BookOpen, Video } from "lucide-react";
  * A content part of a lesson, surfaced as a tab in the player's top panel.
  * Extensible: add `"test"` here and to `PART_META` to light up a quiz tab once
  * the grading backend exists. The player derives the visible parts from the
- * lesson payload (video_url / body_html), so no other call site changes.
+ * lesson's content blocks (video / text items), so no other call site changes.
  */
 export type LessonContentPart = "video" | "reading";
 
@@ -32,7 +32,11 @@ type Props = {
 /** Segmented control switching between a lesson's content parts (Figma 3113:14283). */
 export function LessonContentTabs({ parts, active, onSelect }: Props) {
   return (
-    <div role="tablist" aria-label="Lesson content" className="flex w-full max-w-[1044px] items-stretch">
+    <div
+      role="tablist"
+      aria-label="Lesson content"
+      className="flex w-full max-w-[1044px] items-stretch"
+    >
       {parts.map((part, i) => {
         const { label, Icon } = PART_META[part];
         const isActive = part === active;

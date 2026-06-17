@@ -1,13 +1,8 @@
-export type CourseLesson = {
+export type LessonDocument = {
   id: number;
-  title: string;
-  order: number;
-  duration_minutes: number | null;
-  is_preview: boolean;
-  content?: string;
-  /** Present only on the list shape (teacher edit). Detail shape uses `LessonDetail.video_url` which is `string | null`. */
-  video_url?: string;
-  min_score?: number | null;
+  original_name: string;
+  url: string;
+  created_at: string;
 };
 
 export type CourseQuestion = {
@@ -30,36 +25,29 @@ export type CourseTest = {
   questions: CourseQuestion[];
 };
 
-export type LessonContentType = "video" | "text";
+export type LessonItemType = "text" | "video" | "test";
 
-/**
- * Downloadable file attached to a lesson (slides, exercise, reference PDF, etc.).
- * Returned in `LessonDetail.attachments`.
- */
-export type LessonAttachment = {
+export type LessonItem = {
   id: number;
-  name: string;
-  url: string;
-  size_bytes: number;
-  mime_type: string;
+  item_type: LessonItemType;
+  order: number;
+  content?: string;
+  body_html?: string | null;
+  video_url?: string | null;
+  original_video_name?: string;
+  duration_minutes?: number | null;
+  test?: CourseTest | null;
 };
 
-/**
- * Full lesson payload returned by `GET /courses/<slug>/lessons/<id>/`.
- * The short shape used inside `CourseModule.lessons[]` is `CourseLesson`.
- * `video_url` is overridden via `Omit` to be `string | null` per backend
- * convention (the list shape uses `string | undefined`).
- */
-export type LessonDetail = Omit<CourseLesson, "video_url"> & {
-  content_type: LessonContentType;
-  video_url: string | null;
-  body_html: string | null;
-  attachments: LessonAttachment[];
-  /**
-   * Live session URL for synchronous courses (Zoom, Google Meet, etc.).
-   * Null for self-paced lessons. Backend returns it only to enrolled students.
-   */
-  meeting_url: string | null;
+export type CourseLesson = {
+  id: number;
+  title: string;
+  order: number;
+  duration_minutes: number | null;
+  is_preview: boolean;
+  min_score?: number | null;
+  documents?: LessonDocument[];
+  items?: LessonItem[];
 };
 
 export type CourseModule = {

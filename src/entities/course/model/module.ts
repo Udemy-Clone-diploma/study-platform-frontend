@@ -5,19 +5,6 @@ export type LessonDocument = {
   created_at: string;
 };
 
-export type CourseLesson = {
-  id: number;
-  title: string;
-  order: number;
-  duration_minutes: number | null;
-  is_preview: boolean;
-  content?: string;
-  video_url?: string;
-  original_video_name?: string;
-  min_score?: number | null;
-  documents?: LessonDocument[];
-};
-
 export type CourseQuestion = {
   id: number;
   question_type: string;
@@ -38,16 +25,29 @@ export type CourseTest = {
   questions: CourseQuestion[];
 };
 
-export type LessonContentType = "video" | "text";
+export type LessonItemType = "text" | "video" | "test";
 
-/**
- * Full lesson payload returned by `GET /courses/<slug>/lessons/<id>/`.
- * The short shape used inside `CourseModule.lessons[]` is `CourseLesson`.
- */
-export type LessonDetail = CourseLesson & {
-  content_type: LessonContentType;
-  video_url: string | null;
-  body_html: string | null;
+export type LessonItem = {
+  id: number;
+  item_type: LessonItemType;
+  order: number;
+  content?: string;
+  body_html?: string | null;
+  video_url?: string | null;
+  original_video_name?: string;
+  duration_minutes?: number | null;
+  test?: CourseTest | null;
+};
+
+export type CourseLesson = {
+  id: number;
+  title: string;
+  order: number;
+  duration_minutes: number | null;
+  is_preview: boolean;
+  min_score?: number | null;
+  documents?: LessonDocument[];
+  items?: LessonItem[];
 };
 
 export type CourseModule = {

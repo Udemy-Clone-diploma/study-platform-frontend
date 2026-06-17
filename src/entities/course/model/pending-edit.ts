@@ -40,14 +40,12 @@ export type SnapshotModule = Omit<CourseModule, "id" | "lessons" | "tests"> & {
 export type SnapshotLesson = {
   id: number | null;
   title: string;
-  content: string;
-  video_url: string | null;
-  body_html: string;
   duration_minutes: number | null;
   min_score: number | null;
   is_preview: boolean;
-  content_type: string;
   order: number;
+  /** Content blocks at the time the snapshot was saved. Used to detect item changes during moderation. */
+  items_snapshot?: Array<{ id: number; item_type: string; content: string; video_url: string | null }>;
 };
 
 export type SnapshotTest = {

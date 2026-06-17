@@ -165,8 +165,6 @@ function snapshotToDisplay(s: SnapshotModule): CourseModule {
     lessons: s.lessons.map((l) => ({
       id: l.id ?? 0,
       title: l.title,
-      content: l.content,
-      video_url: l.video_url ?? undefined,
       duration_minutes: l.duration_minutes,
       min_score: l.min_score,
       is_preview: l.is_preview,

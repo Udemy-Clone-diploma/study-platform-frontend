@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
@@ -14,21 +14,17 @@ import {
   approvePendingEdit, rejectPendingEdit, getPendingEdit,
 } from "@/entities/course";
 import type { CoursePendingEdit, SnapshotModule } from "@/entities/course";
-import type { CourseDetail, CourseModule, CourseLesson, CourseTest } from "@/entities/course";
-import { CourseCreationLayout, CourseCreationStepper, LessonFormModal, TestFormModal, CourseStatsGrid } from "@/features/courses";
+import type { CourseDetail, CourseModule, CourseLesson } from "@/entities/course";
+import { CourseCreationLayout, CourseCreationStepper, LessonFormModal, CourseStatsGrid } from "@/features/courses";
 import { SectionCard } from "@/shared/ui/SectionCard";
 import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import type { ApiError } from "@/shared/api/base";
-
-// ── Stepper ───────────────────────────────────────────────────────────────────
 
 const STEPS = [
   { name: "Basics",           sub: "Course information"       },
   { name: "Course Content",   sub: "Modules, lessons & tests"  },
   { name: "Review & Publish", sub: "Launch course"             },
 ];
-
-// ── Overall action ────────────────────────────────────────────────────────────
 
 type ModeratorAction = "approved" | "needs_revision" | "rejected" | null;
 
@@ -69,8 +65,6 @@ const SUBMIT_LABEL: Record<NonNullable<ModeratorAction>, string> = {
   rejected:       "Reject course",
 };
 
-// ── Per-item status ───────────────────────────────────────────────────────────
-
 type ItemStatus = "approved" | "rejected" | "needs_revision" | null;
 type ItemStatuses = Record<string, ItemStatus>;
 
@@ -81,8 +75,6 @@ const CONTENT_ACTIONS: { key: NonNullable<ItemStatus>; label: string; color: str
   { key: "rejected",       label: "Rejected",          color: "var(--color-rejected)" },
   { key: "needs_revision", label: "Requires Revision", color: "var(--color-warning)" },
 ];
-
-// ── Shared styles (matching teacher's pages exactly) ──────────────────────────
 
 const bodyFont = "var(--font-base)";
 const monoFont = "var(--font-accent)";
@@ -127,8 +119,6 @@ const sectionTitleSt: CSSProperties = {
   color: "var(--color-text-primary)",
 };
 
-// ── Item status indicator (cycles on click) ───────────────────────────────────
-
 function ItemStatusBadge({ status, onClick, locked = false }: { status: ItemStatus; onClick: () => void; locked?: boolean }) {
   return (
     <button
@@ -156,8 +146,6 @@ function ItemStatusBadge({ status, onClick, locked = false }: { status: ItemStat
     </button>
   );
 }
-
-// ── Moderator lesson row ──────────────────────────────────────────────────────
 
 function ModeratorLessonRow({ lesson, index, status, onToggle, onView, locked = false }: {
   lesson: CourseLesson;
@@ -192,61 +180,21 @@ function ModeratorLessonRow({ lesson, index, status, onToggle, onView, locked = 
   );
 }
 
-// ── Moderator test row ────────────────────────────────────────────────────────
-
-function ModeratorTestRow({ test, status, onToggle, onView, locked = false }: {
-  test: CourseTest;
-  status: ItemStatus;
-  onToggle: () => void;
-  onView: () => void;
-  locked?: boolean;
-}) {
-  const metaRowSt: CSSProperties = { fontFamily: bodyFont, fontWeight: 600, fontSize: "clamp(14px, 1.39vw, 20px)", lineHeight: "25px", color: "var(--color-text-secondary)", whiteSpace: "nowrap" };
-  return (
-    <div
-      className="flex items-center justify-between"
-      style={{ background: "var(--color-bg)", border: "2px solid var(--color-border-light)", borderRadius: 16, padding: "clamp(20px, 2.22vw, 32px)", opacity: locked ? 0.6 : 1 }}
-    >
-      <div className="flex min-w-0 items-center" style={{ gap: "clamp(12px, 1.32vw, 19px)" }}>
-        <div className="flex items-center" style={{ gap: 8, flexShrink: 0 }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/icons/copy-check.svg" alt="" width={24} height={24} style={{ width: 24, height: 24 }} />
-          <span style={{ fontFamily: bodyFont, fontWeight: 600, fontSize: "clamp(14px, 1.39vw, 20px)", lineHeight: "25px", color: "var(--color-text-primary)", whiteSpace: "nowrap" }}>{test.title}</span>
-        </div>
-        {test.questions != null && <span style={metaRowSt}>{test.questions.length} questions</span>}
-        {test.passing_score != null && <span style={metaRowSt}>Pass: {test.passing_score}%</span>}
-      </div>
-      <div className="flex items-center" style={{ gap: 8, flexShrink: 0 }}>
-        <button type="button" onClick={onView} title="View test"
-          style={{ background: "transparent", border: "none", cursor: "pointer", display: "flex", alignItems: "center", padding: 4, borderRadius: 8, color: "var(--color-text-secondary)" }}
-          className="transition hover:text-(--color-text-primary)">
-          <Eye size={18} />
-        </button>
-        <ItemStatusBadge status={status} onClick={onToggle} locked={locked} />
-      </div>
-    </div>
-  );
-}
-
-// ── Moderator module card (identical structure to teacher's ModuleCard) ────────
-
-function ModeratorModuleCard({ module, index, itemStatuses, onItemToggle, lockedKeys = new Set(), readOnly = false }: {
+function ModeratorModuleCard({ module, index, itemStatuses, onItemToggle, lockedKeys = new Set(), readOnly = false, courseSlug }: {
   module: CourseModule;
   index: number;
   itemStatuses: ItemStatuses;
   onItemToggle: (key: string) => void;
   lockedKeys?: Set<string>;
   readOnly?: boolean;
+  courseSlug?: string;
 }) {
-  const [open, setOpen]           = useState(true);
+  const [open, setOpen] = useState(true);
   const [viewLesson, setViewLesson] = useState<CourseLesson | null>(null);
-  const [viewTest, setViewTest]     = useState<CourseTest | null>(null);
   const lessonCount = module.lessons.length;
-  const testCount   = module.tests?.length ?? 0;
 
   return (
     <div style={{ background: "var(--color-bg)", border: "1px solid var(--color-border-light)", borderRadius: 16, padding: "clamp(14px, 1.04vw, 20px) clamp(16px, 1.25vw, 24px)" }}>
-      {/* Header — same as teacher's ModuleCard */}
       <div className="flex items-center justify-between" style={{ gap: 8 }}>
         <div className="flex min-w-0 items-center" style={{ gap: 8 }}>
           <span style={{ ...metaSt, color: "var(--color-text-secondary)", flexShrink: 0 }}>Module {index + 1}</span>
@@ -256,11 +204,6 @@ function ModeratorModuleCard({ module, index, itemStatuses, onItemToggle, locked
             <img src="/icons/book.svg" alt="" width={16} height={16} style={{ width: 16, height: 16, flexShrink: 0 }} />
             <span style={{ ...metaSt, color: "var(--color-text-secondary)" }}>{lessonCount} lessons</span>
           </span>
-          <span className="flex shrink-0 items-center" style={{ gap: 4 }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/icons/test.svg" alt="" width={16} height={16} style={{ width: 16, height: 16, flexShrink: 0 }} />
-            <span style={{ ...metaSt, color: "var(--color-text-secondary)" }}>{testCount} tests</span>
-          </span>
         </div>
         <button type="button" onClick={() => setOpen((v) => !v)}
           className="flex shrink-0 items-center justify-center rounded-full transition hover:bg-gray-100"
@@ -269,80 +212,37 @@ function ModeratorModuleCard({ module, index, itemStatuses, onItemToggle, locked
         </button>
       </div>
 
-      {/* Expanded content */}
+      {/* Lessons only: tests live inside lesson content blocks */}
       {open && (
-        <div style={{ marginTop: "clamp(16px, 1.25vw, 24px)", display: "flex", flexDirection: "column", gap: 40 }}>
-          {/* Lessons */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-            <div className="flex items-center" style={{ gap: 8 }}>
-              <Play size={20} style={{ color: "var(--color-text-primary)", flexShrink: 0 }} />
-              <span style={sectionTitleSt}>Lessons</span>
-            </div>
-            {lessonCount === 0 ? (
-              <p style={{ fontFamily: bodyFont, color: "var(--color-text-secondary)", fontSize: 15 }}>No lessons.</p>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: "clamp(8px, 0.52vw, 10px)" }}>
-                {module.lessons.map((lesson, i) => {
-                  const key = `lesson-${lesson.id}`;
-                  return readOnly
-                    ? (
-                      <div key={lesson.id} className="flex items-center justify-between"
-                        style={{ background: "var(--color-bg)", border: "2px solid var(--color-border-light)", borderRadius: 16, padding: "clamp(20px, 1.67vw, 24px) clamp(24px, 2.22vw, 32px)" }}>
-                        <span style={{ fontFamily: bodyFont, fontWeight: 600, fontSize: "clamp(16px, 1.39vw, 20px)", color: "var(--color-text-primary)" }}>{i + 1}. {lesson.title}</span>
-                      </div>
-                    )
-                    : (
-                      <ModeratorLessonRow key={lesson.id} lesson={lesson} index={i}
-                        status={itemStatuses[key] ?? null}
-                        onToggle={() => onItemToggle(key)}
-                        onView={() => setViewLesson(lesson)}
-                        locked={lockedKeys.has(key)}
-                      />
-                    );
-                })}
-              </div>
-            )}
+        <div style={{ marginTop: "clamp(16px, 1.25vw, 24px)", display: "flex", flexDirection: "column", gap: 20 }}>
+          <div className="flex items-center" style={{ gap: 8 }}>
+            <Play size={20} style={{ color: "var(--color-text-primary)", flexShrink: 0 }} />
+            <span style={sectionTitleSt}>Lessons</span>
           </div>
-
-          {/* Divider */}
-          <div style={{ borderTop: "2px solid var(--color-border-light)", margin: "-20px 0" }} />
-
-          {/* Tests */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-            <div className="flex items-center" style={{ gap: 8 }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/icons/copy-check.svg" alt="" width={24} height={24} style={{ width: 24, height: 24, flexShrink: 0 }} />
-              <span style={sectionTitleSt}>Tests</span>
+          {lessonCount === 0 ? (
+            <p style={{ fontFamily: bodyFont, color: "var(--color-text-secondary)", fontSize: 15 }}>No lessons.</p>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "clamp(8px, 0.52vw, 10px)" }}>
+              {module.lessons.map((lesson, i) => {
+                const key = `lesson-${lesson.id}`;
+                return readOnly
+                  ? (
+                    <div key={lesson.id} className="flex items-center justify-between"
+                      style={{ background: "var(--color-bg)", border: "2px solid var(--color-border-light)", borderRadius: 16, padding: "clamp(20px, 1.67vw, 24px) clamp(24px, 2.22vw, 32px)" }}>
+                      <span style={{ fontFamily: bodyFont, fontWeight: 600, fontSize: "clamp(16px, 1.39vw, 20px)", color: "var(--color-text-primary)" }}>{i + 1}. {lesson.title}</span>
+                    </div>
+                  )
+                  : (
+                    <ModeratorLessonRow key={lesson.id} lesson={lesson} index={i}
+                      status={itemStatuses[key] ?? null}
+                      onToggle={() => onItemToggle(key)}
+                      onView={() => setViewLesson(lesson)}
+                      locked={lockedKeys.has(key)}
+                    />
+                  );
+              })}
             </div>
-            {testCount === 0 ? (
-              <p style={{ fontFamily: bodyFont, color: "var(--color-text-secondary)", fontSize: 15 }}>No tests.</p>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: "clamp(8px, 0.52vw, 10px)" }}>
-                {(module.tests as CourseTest[]).map((test) => {
-                  const key = `test-${test.id}`;
-                  return readOnly
-                    ? (
-                      <div key={test.id} className="flex items-center"
-                        style={{ background: "var(--color-bg)", border: "2px solid var(--color-border-light)", borderRadius: 16, padding: "clamp(20px, 2.22vw, 32px)", gap: 12 }}>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src="/icons/copy-check.svg" alt="" width={20} height={20} />
-                        <span style={{ fontFamily: bodyFont, fontWeight: 600, fontSize: "clamp(14px, 1.39vw, 20px)", color: "var(--color-text-primary)" }}>{test.title}</span>
-                        {test.questions && <span style={{ fontFamily: bodyFont, fontWeight: 600, fontSize: "clamp(14px, 1.39vw, 20px)", color: "var(--color-text-secondary)" }}>{test.questions.length} questions</span>}
-                        {test.passing_score != null && <span style={{ fontFamily: bodyFont, fontWeight: 600, fontSize: "clamp(14px, 1.39vw, 20px)", color: "var(--color-text-secondary)" }}>Pass: {test.passing_score}%</span>}
-                      </div>
-                    )
-                    : (
-                      <ModeratorTestRow key={test.id} test={test}
-                        status={itemStatuses[key] ?? null}
-                        onToggle={() => onItemToggle(key)}
-                        onView={() => setViewTest(test)}
-                        locked={lockedKeys.has(key)}
-                      />
-                    );
-                })}
-              </div>
-            )}
-          </div>
+          )}
         </div>
       )}
 
@@ -352,44 +252,21 @@ function ModeratorModuleCard({ module, index, itemStatuses, onItemToggle, locked
           onClose={() => setViewLesson(null)}
           initialValues={{
             title: viewLesson.title,
-            content: viewLesson.content ?? "",
-            video_url: viewLesson.video_url,
-            original_video_name: viewLesson.original_video_name,
             duration_minutes: viewLesson.duration_minutes?.toString() ?? "",
             min_score: viewLesson.min_score?.toString() ?? "",
             existing_documents: viewLesson.documents ?? [],
             new_documents: [],
             deleted_document_ids: [],
+            items: viewLesson.items ?? [],
           }}
-        />
-      )}
-
-      {viewTest && (
-        <TestFormModal
-          mode="view"
-          onClose={() => setViewTest(null)}
-          initialValues={{
-            title: viewTest.title,
-            passing_score: viewTest.passing_score?.toString() ?? "70",
-            description: viewTest.description ?? "",
-            questions: (viewTest.questions ?? []).map((q) => ({
-              _key: String(q.id),
-              id: q.id,
-              type: q.question_type,
-              text: q.text,
-              options: (q.options?.length >= 4 ? q.options.slice(0, 4) : [...(q.options ?? []), "", "", "", ""].slice(0, 4)) as [string, string, string, string],
-              correct_index: q.correct_index ?? 0,
-              correct_bool: q.correct_bool ?? true,
-              sample_answer: q.sample_answer ?? "",
-            })),
-          }}
+          courseSlug={courseSlug}
+          moduleId={module.id}
+          lessonId={viewLesson.id}
         />
       )}
     </div>
   );
 }
-
-// ── Note + action panel (steps 0 & 1) ────────────────────────────────────────
 
 function NoteActionBlock({ note, onNoteChange, itemAction, onItemActionChange, onSave, title = "Section action" }: {
   note: string;
@@ -417,7 +294,6 @@ function NoteActionBlock({ note, onNoteChange, itemAction, onItemActionChange, o
   return (
     <div style={{ display: "flex", justifyContent: "center" }}>
       <div style={{ display: "flex", gap: 16, alignItems: "flex-start", width: "100%", maxWidth: 880 }}>
-        {/* Note area */}
         <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 16, border: "1px solid var(--color-pink-dark)", borderRadius: 20, padding: "28px 34px" }}>
           {isEditing ? (
             <textarea
@@ -455,19 +331,19 @@ function NoteActionBlock({ note, onNoteChange, itemAction, onItemActionChange, o
             const isActive = itemAction === key;
             return (
               <button key={key} type="button" onClick={() => onItemActionChange(isActive ? null : key)}
-                style={{ display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: "2px 12px", width: "100%", height: 23, background: "white", border: `1px solid ${color}`, borderRadius: 20, opacity: isActive ? 1 : 0.28, cursor: "pointer", fontFamily: monoFont, fontWeight: 500, fontSize: 15, lineHeight: "19px", transition: "opacity 0.2s" }}>
+                style={{ display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: "2px 12px", width: "100%", height: 23, background: "white", border: `1px solid ${isActive ? color : "var(--color-draft)"}`, borderRadius: 20, cursor: "pointer", fontFamily: monoFont, fontWeight: 500, fontSize: 15, lineHeight: "19px", color: isActive ? color : "var(--color-text-secondary)", transition: "border-color 0.2s, color 0.2s" }}>
                 <span>{label}</span>
                 {key === "approved" && (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src="/icons/yes.svg" alt="" width={16} height={16} style={{ width: 16, height: 16 }} />
+                  <img src="/icons/yes.svg" alt="" width={16} height={16} style={{ width: 16, height: 16, opacity: isActive ? 1 : 0.35 }} />
                 )}
                 {key === "rejected" && (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src="/icons/no.svg" alt="" width={16} height={16} style={{ width: 16, height: 16 }} />
+                  <img src="/icons/no.svg" alt="" width={16} height={16} style={{ width: 16, height: 16, opacity: isActive ? 1 : 0.35 }} />
                 )}
                 {key === "needs_revision" && (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src="/icons/refine.svg" alt="" width={14} height={14} style={{ width: 14, height: 14 }} />
+                  <img src="/icons/refine.svg" alt="" width={14} height={14} style={{ width: 14, height: 14, opacity: isActive ? 1 : 0.35 }} />
                 )}
               </button>
             );
@@ -477,8 +353,6 @@ function NoteActionBlock({ note, onNoteChange, itemAction, onItemActionChange, o
     </div>
   );
 }
-
-// ── Shared step props ─────────────────────────────────────────────────────────
 
 type StepProps = {
   course: CourseDetail | null;
@@ -493,12 +367,9 @@ type StepProps = {
   step: 0 | 1 | 2;
   itemStatuses: ItemStatuses;
   hasAnyFlagged: boolean;
-  /** True when every item and both step-actions are "approved" — reject/revision is blocked. */
   allApproved: boolean;
   contentNote: string;
-  /** Action for the basics step (step 0). */
   basicsAction: ItemStatus;
-  /** Action for the content step (step 1). */
   contentAction: ItemStatus;
   onActionChange: (a: ModeratorAction) => void;
   onCommentChange: (v: string) => void;
@@ -511,9 +382,8 @@ type StepProps = {
   onBack: () => void;
   onSubmit: () => void;
   router: AppRouterInstance;
+  courseSlug: string;
 };
-
-// ── Bottom nav buttons ────────────────────────────────────────────────────────
 
 function NavButtons({ step, action, hasAnyFlagged, canContinue = true, submitting, error, onNext, onBack, onSubmit, router }: Pick<StepProps, "step" | "action" | "hasAnyFlagged" | "submitting" | "error" | "onNext" | "onBack" | "onSubmit" | "router"> & { canContinue?: boolean }) {
   const isLast = step === 2;
@@ -561,8 +431,6 @@ function NavButtons({ step, action, hasAnyFlagged, canContinue = true, submittin
   );
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
 function FieldRow({ fieldKey, label, children, itemStatuses, onItemStatusToggle, locked = false }: {
   fieldKey: string;
   label: string;
@@ -584,7 +452,6 @@ function FieldRow({ fieldKey, label, children, itemStatuses, onItemStatusToggle,
   );
 }
 
-// ── Step 0: Basics ────────────────────────────────────────────────────────────
 
 const BASICS_FIELD_KEYS = ["field-title", "field-short-description", "field-full-description", "field-icon", "field-category", "field-level", "field-price"];
 
@@ -665,7 +532,7 @@ function BasicsStep(props: StepProps) {
             </FieldRow>
           </div>
 
-          {/* Price — always locked for pending edits (pricing not tracked in pending edit) */}
+          {/* Price: always locked for pending edits (pricing not tracked in pending edit) */}
           <FieldRow fieldKey="field-price" label="Price (EUR)" itemStatuses={itemStatuses} onItemStatusToggle={onItemStatusToggle} locked={lockedKeys.has("field-price")}>
             <span style={{ position: "absolute", left: "clamp(12px, 0.83vw, 16px)", top: "50%", transform: "translateY(-50%)", fontSize: "clamp(14px, 1.04vw, 20px)", fontFamily: bodyFont, color: "var(--color-text-secondary)", pointerEvents: "none", zIndex: 1 }} aria-hidden="true">€</span>
             <div style={{ ...valueWithBadgeSt, paddingLeft: "clamp(28px, 2.08vw, 36px)" }}>{priceValue || "Free"}</div>
@@ -682,18 +549,13 @@ function BasicsStep(props: StepProps) {
   );
 }
 
-// ── Step 1: Content ───────────────────────────────────────────────────────────
-
 function ContentStep(props: StepProps) {
   const { moduleList, lockedKeys, action, submitting, error, step, hasAnyFlagged, itemStatuses, contentNote,
           contentAction, onActionChange, onItemStatusToggle, onContentNoteChange, onContentActionChange,
-          onNext, onBack, onSubmit, router } = props;
+          onNext, onBack, onSubmit, router, courseSlug } = props;
   void onActionChange;
 
-  const allItemKeys = moduleList.flatMap((m) => [
-    ...m.lessons.map((l) => `lesson-${l.id}`),
-    ...((m.tests ?? []) as CourseTest[]).map((t) => `test-${t.id}`),
-  ]);
+  const allItemKeys = moduleList.flatMap((m) => m.lessons.map((l) => `lesson-${l.id}`));
   const canContinue =
     (allItemKeys.length === 0 || allItemKeys.every((k) => (itemStatuses[k] ?? null) !== null)) &&
     contentAction !== null;
@@ -711,7 +573,7 @@ function ContentStep(props: StepProps) {
         {moduleList.length === 0
           ? <p style={{ fontFamily: bodyFont, color: "var(--color-text-secondary)", fontSize: 15 }}>No modules found.</p>
           : moduleList.map((mod, i) => (
-              <ModeratorModuleCard key={mod.id} module={mod} index={i} itemStatuses={itemStatuses} onItemToggle={onItemStatusToggle} lockedKeys={lockedKeys} />
+              <ModeratorModuleCard key={mod.id} module={mod} index={i} itemStatuses={itemStatuses} onItemToggle={onItemStatusToggle} lockedKeys={lockedKeys} courseSlug={courseSlug} />
             ))}
       </div>
 
@@ -721,8 +583,6 @@ function ContentStep(props: StepProps) {
     </div>
   );
 }
-
-// ── Step 2: Review & Publish ──────────────────────────────────────────────────
 
 function ReviewStep(props: StepProps) {
   const { course, moduleList, action, finalComment, submitting, error, step, hasAnyFlagged, allApproved, onActionChange, onFinalCommentChange, onNext, onBack, onSubmit, router } = props;
@@ -734,7 +594,7 @@ function ReviewStep(props: StepProps) {
 
   const totalModules = moduleList.length;
   const totalLessons = moduleList.reduce((a, m) => a + m.lessons.length, 0);
-  const totalTests   = moduleList.reduce((a, m) => a + (m.tests?.length ?? 0), 0);
+  const totalTests   = moduleList.reduce((a, m) => a + m.lessons.reduce((la, l) => la + (l.items ?? []).filter((i) => i.item_type === "test").length, 0), 0);
   const totalMin     = course?.total_duration_minutes ?? 0;
 
   const STATS = [
@@ -793,11 +653,9 @@ function ReviewStep(props: StepProps) {
         </div>
       </SectionCard>
 
-      {/* Moderator comment + overall action — step 3 layout */}
       <div style={{ display: "flex", justifyContent: "center" }}>
         <div style={{ display: "flex", gap: 20, width: "100%", maxWidth: 880, alignItems: "flex-start" }}>
 
-          {/* Comment */}
           <div style={{ flex: 1, border: "1px solid var(--color-pink-dark)", borderRadius: 20, padding: "28px 34px", display: "flex", flexDirection: "column", gap: 12 }}>
             <span style={{ fontFamily: bodyFont, fontWeight: 700, fontSize: 16, lineHeight: "20px" }}>Moderator comment</span>
             <textarea value={finalComment} onChange={(e) => onFinalCommentChange(e.target.value)}
@@ -805,7 +663,6 @@ function ReviewStep(props: StepProps) {
               style={{ minHeight: 260, resize: "none", border: "none", outline: "none", fontFamily: bodyFont, fontWeight: 400, fontSize: 16, lineHeight: "20px", color: finalComment ? "var(--color-text-primary)" : "var(--color-draft)" }} />
           </div>
 
-          {/* Action selection */}
           <div style={{ width: 274, flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "flex-start", padding: "28px 34px", gap: 12, border: "1px solid var(--color-pink-dark)", borderRadius: 20 }}>
             <span style={{ fontFamily: bodyFont, fontWeight: 700, fontSize: 16, lineHeight: "20px", width: "100%", textAlign: "center" }}>Moderator action</span>
             <span style={{ fontFamily: bodyFont, fontWeight: 500, fontSize: 15, lineHeight: "19px", color: "var(--color-text-secondary)", width: "100%", textAlign: "center" }}>Select a status:</span>
@@ -823,9 +680,9 @@ function ReviewStep(props: StepProps) {
                 <button key={key} type="button"
                   onClick={() => !isBlocked && onActionChange(isActive ? null : key)}
                   title={title}
-                  style={{ display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: "2px 12px", width: "100%", height: 23, background: "white", border: `1px solid ${color}`, borderRadius: 20, cursor: isBlocked ? "not-allowed" : "pointer", opacity: isBlocked ? 0.2 : isActive ? 1 : 0.28, fontFamily: monoFont, fontWeight: 500, fontSize: 15, lineHeight: "19px", transition: "opacity 0.2s" }}>
+                  style={{ display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: "2px 12px", width: "100%", height: 23, background: "white", border: `1px solid ${isBlocked ? "var(--color-border-light)" : isActive ? color : "var(--color-draft)"}`, borderRadius: 20, cursor: isBlocked ? "not-allowed" : "pointer", opacity: isBlocked ? 0.4 : 1, fontFamily: monoFont, fontWeight: 500, fontSize: 15, lineHeight: "19px", color: isBlocked ? "var(--color-text-secondary)" : isActive ? color : "var(--color-text-secondary)", transition: "border-color 0.2s, color 0.2s" }}>
                   <span>{label}</span>
-                  <span style={{ flexShrink: 0, display: "flex", alignItems: "center" }}>{icon}</span>
+                  <span style={{ flexShrink: 0, display: "flex", alignItems: "center", opacity: isActive && !isBlocked ? 1 : 0.35 }}>{icon}</span>
                 </button>
               );
             })}
@@ -849,12 +706,10 @@ function ReviewStep(props: StepProps) {
   );
 }
 
-// ── Pending-edit diff helpers ─────────────────────────────────────────────────
-
 const ALL_BASICS_KEYS = new Set(["field-title", "field-short-description", "field-full-description", "field-icon", "field-category", "field-level", "field-price"]);
 
 /** Compare pending edit values directly to the live course to detect real changes.
- *  Treats empty-string pending edit values as "same as live course" — they come from
+ *  Treats empty-string pending edit values as "same as live course" - they come from
  *  the backend auto-creating the pending edit without copying the course fields. */
 function computeLockedFieldKeys(pe: CoursePendingEdit, course: CourseDetail): Set<string> {
   const changed = new Set<string>();
@@ -876,8 +731,33 @@ function computeLockedContentKeys(course: CourseDetail | null, snapshot: Snapsho
     for (const sl of mod.lessons) {
       if (sl.id === null) continue;
       const live = liveLessons.get(sl.id);
-      if (live && sl.title === live.title && sl.duration_minutes === live.duration_minutes && sl.is_preview === live.is_preview)
-        locked.add(`lesson-${sl.id}`);
+      if (!live) continue;
+      const metaUnchanged =
+        sl.title === live.title &&
+        sl.duration_minutes === live.duration_minutes &&
+        sl.is_preview === live.is_preview;
+      const liveItems = live.items ?? [];
+      let itemsUnchanged: boolean;
+      if (sl.items_snapshot !== undefined) {
+        // Full comparison against baseline captured at pending-edit creation time.
+        if (sl.items_snapshot.length !== liveItems.length) {
+          itemsUnchanged = false;
+        } else {
+          const liveById = new Map(liveItems.map((i) => [i.id, i]));
+          itemsUnchanged = sl.items_snapshot.every((si) => {
+            const li = liveById.get(si.id);
+            return li !== undefined &&
+              (si.content ?? "") === (li.content ?? "") &&
+              // Same rationale as above: null snapshot video_url = file video, not a real change.
+              (si.video_url == null || si.video_url === (li.video_url ?? null));
+          });
+        }
+      } else {
+        // No baseline (old snapshot): safe to auto-lock only when the lesson
+        // has no content blocks at all; if blocks exist we can't tell what changed.
+        itemsUnchanged = liveItems.length === 0;
+      }
+      if (metaUnchanged && itemsUnchanged) locked.add(`lesson-${sl.id}`);
     }
     for (const st of mod.tests) {
       if (st.id === null) continue;
@@ -889,20 +769,28 @@ function computeLockedContentKeys(course: CourseDetail | null, snapshot: Snapsho
   return locked;
 }
 
-function buildDisplayModules(snapshot: SnapshotModule[]): CourseModule[] {
+function buildDisplayModules(snapshot: SnapshotModule[], course?: CourseDetail | null): CourseModule[] {
+  const liveLessonsById = new Map<number, CourseLesson>(
+    (course?.modules ?? []).flatMap((m) => m.lessons).map((l) => [l.id, l]),
+  );
   return snapshot.map((mod, mi) => ({
     id: mod.id ?? -(mi + 1),
     title: mod.title,
     description: mod.description ?? null,
     order: mod.order,
-    lessons: mod.lessons.map((l, li) => ({
-      id: l.id ?? -(li + 1) - (mi + 1) * 1000,
-      title: l.title,
-      order: l.order,
-      duration_minutes: l.duration_minutes ?? null,
-      is_preview: l.is_preview,
-      min_score: l.min_score ?? null,
-    })),
+    lessons: mod.lessons.map((l, li) => {
+      const actual = l.id != null && l.id > 0 ? liveLessonsById.get(l.id) : undefined;
+      return {
+        id: l.id ?? -(li + 1) - (mi + 1) * 1000,
+        title: l.title,
+        order: l.order,
+        duration_minutes: l.duration_minutes ?? null,
+        is_preview: l.is_preview,
+        min_score: l.min_score ?? null,
+        items: actual?.items ?? [],
+        documents: actual?.documents ?? [],
+      };
+    }),
     tests: mod.tests.map((t, ti) => ({
       id: t.id ?? -(ti + 1) - (mi + 1) * 1000,
       title: t.title,
@@ -922,8 +810,6 @@ function buildDisplayModules(snapshot: SnapshotModule[]): CourseModule[] {
     })),
   })) as unknown as CourseModule[];
 }
-
-// ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function ModeratorReviewPage() {
   const { slug }  = useParams<{ slug: string }>();
@@ -967,9 +853,12 @@ export default function ModeratorReviewPage() {
         const autoStatuses: ItemStatuses = {};
         for (const k of allLocked) autoStatuses[k] = "approved";
 
-        // Merge with previous moderation review if any
+        // Merge with previous moderation review if any, but skip stale data
+        // from a previous moderation cycle (predates this pending edit entirely).
         const mr = c.moderation_review;
-        if (mr) {
+        const isStale = mr != null &&
+          new Date(mr.updated_at) < new Date(pe.created_at);
+        if (mr && !isStale) {
           setComment(mr.basics_comment ?? "");
           setBasicsAction((mr.basics_action || null) as ItemStatus);
           setContentNote(mr.content_comment ?? "");
@@ -987,7 +876,7 @@ export default function ModeratorReviewPage() {
         return;
       }
 
-      // Regular (initial) review — restore from ModerationReview if present
+      // Regular (initial) review: restore from ModerationReview if present
       const mr = c.moderation_review;
       if (!mr) return;
       setComment(mr.basics_comment ?? "");
@@ -1003,9 +892,12 @@ export default function ModeratorReviewPage() {
     }).catch(() => {});
   }, [slug]);
 
-  const moduleList = pendingEdit
-    ? buildDisplayModules(pendingEdit.modules_snapshot ?? [])
-    : Array.isArray(course?.modules) ? course.modules : [];
+  const moduleList = useMemo(
+    () => pendingEdit
+      ? buildDisplayModules(pendingEdit.modules_snapshot ?? [], course)
+      : Array.isArray(course?.modules) ? course.modules : [],
+    [pendingEdit, course],
+  );
   const title      = course?.title ?? "Untitled Course";
 
   // Auto-set section actions when item statuses change.
@@ -1018,10 +910,7 @@ export default function ModeratorReviewPage() {
   }, [itemStatuses]);
 
   useEffect(() => {
-    const allContentKeys = moduleList.flatMap((m) => [
-      ...m.lessons.map((l) => `lesson-${l.id}`),
-      ...((m.tests ?? []) as CourseTest[]).map((t) => `test-${t.id}`),
-    ]);
+    const allContentKeys = moduleList.flatMap((m) => m.lessons.map((l) => `lesson-${l.id}`));
     const contentStatuses = allContentKeys.map((k) => itemStatuses[k] ?? null);
     const computed = computeSectionAction(contentStatuses);
     if (computed !== null) setContentAction(computed);
@@ -1174,6 +1063,7 @@ export default function ModeratorReviewPage() {
     onBack:    () => setStep((s) => Math.max(s - 1, 0) as 0 | 1 | 2),
     onSubmit:  handleSubmit,
     router,
+    courseSlug: slug ?? "",
   };
 
   return (

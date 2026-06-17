@@ -1,6 +1,7 @@
 export * from "./api/courseApi";
 export * from "./api/moduleApi";
 export * from "./api/lessonApi";
+export * from "./api/lessonItemApi";
 export * from "./api/pendingEditApi";
 export * from "./api/testApi";
 export * from "./api/questionApi";

@@ -48,6 +48,13 @@ export type CourseLesson = {
   min_score?: number | null;
   documents?: LessonDocument[];
   items?: LessonItem[];
+  /**
+   * Live-class link on the lesson detail, exposed only to viewers with
+   * enrollment access (backend gates it behind `has_enrollment_access`).
+   * Absent on the list shape and for preview/non-enrolled viewers; null for
+   * self-paced lessons.
+   */
+  meeting_url?: string | null;
 };
 
 export type CourseModule = {

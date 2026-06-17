@@ -316,6 +316,7 @@ for (const mod of mockCourseDetail.modules) {
       duration_minutes: lesson.duration_minutes,
       is_preview: lesson.is_preview,
       documents: SAMPLE_DOCUMENTS,
+      meeting_url: lesson.is_preview ? null : "https://meet.google.com/abc-defg-hij",
       items,
     };
   }

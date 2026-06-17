@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, ChevronLeft, ChevronRight, Download } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Download, Video } from "lucide-react";
 import {
   byOrder,
   getCourseBySlug,
@@ -311,6 +311,12 @@ export function LessonPlayerView({
               )}
             </div>
 
+            {lesson.meeting_url && (
+              <div className="flex flex-col gap-6 border-t border-(--color-text-primary)/10 pt-6">
+                <LessonMeetingCta href={lesson.meeting_url} />
+              </div>
+            )}
+
             {lesson.documents && lesson.documents.length > 0 && (
               <LessonDocuments documents={lesson.documents} />
             )}
@@ -421,6 +427,22 @@ function CompleteCheckbox({
         {label}
       </span>
     </button>
+  );
+}
+
+/** "Join live session" CTA shown when the lesson exposes a live-class link. */
+function LessonMeetingCta({ href }: { href: string }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex w-fit items-center gap-2 rounded-full px-5 py-3 font-(family-name:--font-accent) text-sm font-medium uppercase text-(--color-text-primary) transition hover:opacity-90"
+      style={{ background: "var(--gradient-brand)" }}
+    >
+      <Video className="h-5 w-5" aria-hidden="true" />
+      Join live session with teacher
+    </a>
   );
 }
 

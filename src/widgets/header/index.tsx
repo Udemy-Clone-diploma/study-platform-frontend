@@ -44,7 +44,7 @@ export async function Header({ borderRadius = "0px 0px 20px 20px" }: HeaderProps
         >
             <div
                 className="mx-auto h-full flex items-center"
-                style={{ width: "min(1420px, 100% - 32px)", gap: "9.58%" }}
+                style={{ maxWidth: isLoggedIn ? 1840 : 1480, gap: "9.58%", paddingInline: "max(16px, 2.22vw)" }}
             >
                 {/* Left */}
                 <div

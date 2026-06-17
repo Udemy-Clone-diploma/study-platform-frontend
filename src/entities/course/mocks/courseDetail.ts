@@ -1,3 +1,5 @@
+import type { LessonDetail } from "../model/module";
+import type { CourseProgress } from "../model/progress";
 import type { CourseReview } from "../model/review";
 import type { CourseDetail } from "../model/types";
 
@@ -39,13 +41,15 @@ export const mockCourseDetail: CourseDetail = {
   delivery_type: "scheduled",
   course_type: "profession",
   duration_hours: 64,
+  total_duration_minutes: 64 * 60,
   lessons_count: 10,
   with_certificate: true,
   is_on_sale: false,
   rating_avg: "4.9",
   rating_count: 1850,
   students_count: 1850,
-  is_enrolled: false,
+  is_enrolled: true,
+  group_chat_url: "https://t.me/ux-ui-design-mastery",
   status: "published",
   published_at: "2026-01-10T00:00:00Z",
   tags: [
@@ -121,6 +125,7 @@ export const mockCourseDetail: CourseDetail = {
           is_preview: false,
         },
       ],
+      tests: [],
     },
     {
       id: 2,
@@ -143,6 +148,7 @@ export const mockCourseDetail: CourseDetail = {
           is_preview: false,
         },
       ],
+      tests: [],
     },
     {
       id: 3,
@@ -172,6 +178,7 @@ export const mockCourseDetail: CourseDetail = {
           is_preview: false,
         },
       ],
+      tests: [],
     },
     {
       id: 4,
@@ -194,6 +201,7 @@ export const mockCourseDetail: CourseDetail = {
           is_preview: false,
         },
       ],
+      tests: [],
     },
   ],
   created_at: "2026-01-01T00:00:00Z",
@@ -230,3 +238,69 @@ export const mockCourseReviews: CourseReview[] = [
     created_at: "2026-01-22T10:00:00Z",
   },
 ];
+
+/**
+ * Dev-mode progress snapshot for `MOCK_COURSE_DETAIL_SLUG`. The first 3 lessons
+ * are "completed"; the last opened lesson is #4 (Information Architecture).
+ */
+export const mockCourseProgress: CourseProgress = {
+  enrollment_id: 9999,
+  lessons_completed_count: 3,
+  lessons_count: 10,
+  completed_lesson_ids: [1, 2, 3],
+  last_lesson_id: 4,
+  last_opened_at: "2026-05-29T12:30:00Z",
+};
+
+const SAMPLE_BODY_HTML = `
+  <p>This lesson walks through the foundations of the topic. Read through the material,
+  watch the embedded video for a worked example, and download the worksheet at the bottom
+  to practise on your own before the next live session.</p>
+  <h3>What you will learn</h3>
+  <ul>
+    <li>Frame the problem from a user's perspective.</li>
+    <li>Run a 30-minute interview that yields specific, actionable insights.</li>
+    <li>Translate raw notes into an empathy map your team can rally around.</li>
+  </ul>
+  <p>Use the worksheet to record your observations as you work through the exercise.</p>
+`;
+
+const SAMPLE_ATTACHMENTS = [
+  {
+    id: 1,
+    name: "Lesson worksheet.pdf",
+    url: "https://example.com/worksheet.pdf",
+    size_bytes: 482_300,
+    mime_type: "application/pdf",
+  },
+  {
+    id: 2,
+    name: "Slides.pdf",
+    url: "https://example.com/slides.pdf",
+    size_bytes: 1_240_512,
+    mime_type: "application/pdf",
+  },
+];
+
+/** Dev-mode lesson detail map keyed by lesson id (matches `mockCourseDetail.modules[].lessons[].id`). */
+export const mockLessonDetails: Record<number, LessonDetail> = {};
+for (const mod of mockCourseDetail.modules) {
+  for (const lesson of mod.lessons) {
+    // Most lessons ship a video plus a reading (two content tabs); lesson 8 is
+    // video-only to exercise the player's single-content-part path.
+    const hasReading = lesson.id !== 8;
+    mockLessonDetails[lesson.id] = {
+      id: lesson.id,
+      title: lesson.title,
+      order: lesson.order,
+      duration_minutes: lesson.duration_minutes,
+      is_preview: lesson.is_preview,
+      content_type: "video",
+      video_url:
+        "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+      body_html: hasReading ? SAMPLE_BODY_HTML : null,
+      attachments: SAMPLE_ATTACHMENTS,
+      meeting_url: lesson.is_preview ? null : "https://meet.google.com/abc-defg-hij",
+    };
+  }
+}

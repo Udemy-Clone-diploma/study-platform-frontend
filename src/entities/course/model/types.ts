@@ -61,6 +61,12 @@ export type CourseDetail = Omit<CourseListItem, "teacher_name" | "price" | "curr
   total_duration_minutes: number;
   /** True when the current authenticated user is enrolled. False for anonymous users. */
   is_enrolled: boolean;
+  /**
+   * Course-wide group chat URL (Telegram, Discord, Slack, etc.). Surfaced as the
+   * "Group chat" CTA inside the lesson player. Null when the course doesn't run
+   * a community channel. Backend must return null for non-enrolled users.
+   */
+  group_chat_url: string | null;
   /** Empty array when the course is free. */
   pricing_plans: PricingPlan[];
   /** Empty array when no cohorts are scheduled. */

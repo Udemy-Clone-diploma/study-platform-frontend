@@ -73,8 +73,16 @@ export async function getCourses(filters: CourseListParams = {}): Promise<Pagina
   return data;
 }
 
-export async function getCourseBySlug(slug: string): Promise<CourseDetail> {
-  const { data } = await api.get<CourseDetail>(`${COURSES}${slug}/`);
+/**
+ * Public course detail. Pass `accessToken` from a Server Action when the call
+ * runs on the server (e.g. an authenticated route) so the backend can return
+ * the enrolled-user view (`is_enrolled: true`). On the client the request
+ * interceptor reads the token from `document.cookie` automatically.
+ */
+export async function getCourseBySlug(slug: string, accessToken?: string): Promise<CourseDetail> {
+  const { data } = await api.get<CourseDetail>(`${COURSES}${slug}/`, {
+    headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+  });
   return data;
 }
 

@@ -2,7 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { getCategories, getCourseBySlug, updateCourse, uploadCourseIcon } from "@/entities/course";
+import {
+  cheapestPlan,
+  getCategories,
+  getCourseBySlug,
+  updateCourse,
+  uploadCourseIcon,
+} from "@/entities/course";
 import type { Category } from "@/entities/course";
 import {
   CourseCreationLayout,
@@ -36,7 +42,13 @@ async function matchIconToImage(imageUrl: string): Promise<string | null> {
   }
 }
 
-const EMPTY_FORM: CourseBasicsFormValues = { title: "", description: "", category_id: "", level: "", price: "" };
+const EMPTY_FORM: CourseBasicsFormValues = {
+  title: "",
+  description: "",
+  category_id: "",
+  level: "",
+  price: "",
+};
 
 export default function EditCourseBasicsPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -50,18 +62,23 @@ export default function EditCourseBasicsPage() {
   const [generalError, setGeneralError] = useState("");
   const [form, setForm] = useState<CourseBasicsFormValues>(EMPTY_FORM);
 
-  useEffect(() => { getCategories().then(setCategories).catch(() => {}); }, []);
+  useEffect(() => {
+    getCategories()
+      .then(setCategories)
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!slug) return;
     getCourseBySlug(slug)
       .then(async (course) => {
+        const planPrice = cheapestPlan(course.pricing_plans)?.price ?? "";
         setForm({
           title: course.title,
           description: course.short_description,
           category_id: course.category ? String(course.category.id) : "",
           level: course.level,
-          price: course.price === "0.00" || course.price === "0" ? "" : course.price,
+          price: planPrice === "0.00" || planPrice === "0" ? "" : planPrice,
         });
         if (course.image) {
           const matched = await matchIconToImage(course.image);
@@ -72,7 +89,9 @@ export default function EditCourseBasicsPage() {
       .finally(() => setLoading(false));
   }, [slug]);
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
+  function handleChange(
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+  ) {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
     setFieldErrors((prev) => ({ ...prev, [name]: "" }));
@@ -138,7 +157,11 @@ export default function EditCourseBasicsPage() {
 
   return (
     <CourseCreationLayout>
-      <CoursePageHeader title={form.title || "Untitled Course"} saving={saving} onSaveDraft={handleSaveDraft} />
+      <CoursePageHeader
+        title={form.title || "Untitled Course"}
+        saving={saving}
+        onSaveDraft={handleSaveDraft}
+      />
       <CourseCreationStepper currentStep={0} />
       <CourseBasicsCard onSubmit={handleSubmit}>
         <CourseBasicsForm

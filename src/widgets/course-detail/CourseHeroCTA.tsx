@@ -13,7 +13,8 @@ type Props = { slug: string; isEnrolled: boolean };
 /**
  * Hero CTA, fixed at the Figma button size (200x52). Logged-out users go to
  * /login; logged-in users call the enrollment endpoint. Paid courses return
- * 402 until the payment flow ships.
+ * 402 until the payment flow ships. Already-enrolled users get a
+ * "Continue learning" link into the lesson player.
  */
 export function CourseHeroCTA({ slug, isEnrolled }: Props) {
   const router = useRouter();
@@ -25,8 +26,8 @@ export function CourseHeroCTA({ slug, isEnrolled }: Props) {
 
   if (enrolled) {
     return (
-      <AccentButton size="md" style={buttonStyle} disabled>
-        Enrolled
+      <AccentButton size="md" style={buttonStyle} href={`/learn/${slug}`}>
+        Continue learning
       </AccentButton>
     );
   }

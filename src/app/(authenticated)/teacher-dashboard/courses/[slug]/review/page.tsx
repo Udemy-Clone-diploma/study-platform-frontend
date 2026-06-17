@@ -4,13 +4,9 @@ import React, { useState, useEffect } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { getCourseBySlug, submitCourseForReview } from "@/entities/course";
+import { cheapestPlan, getCourseBySlug, submitCourseForReview } from "@/entities/course";
 import type { CourseDetail, CourseModule, CourseLesson, CourseTest } from "@/entities/course";
-import {
-  CourseCreationLayout,
-  CourseCreationStepper,
-  CoursePageHeader,
-} from "@/features/courses";
+import { CourseCreationLayout, CourseCreationStepper, CoursePageHeader } from "@/features/courses";
 
 const metaIconSt: CSSProperties = { width: 16, height: 16, flexShrink: 0 };
 const grayTextSt: CSSProperties = {
@@ -55,7 +51,11 @@ function TestItem({ test }: { test: CourseTest }) {
   return (
     <div className="flex items-center" style={{ gap: 8 }}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/icons/copy-check-yellow.svg" alt="" style={{ width: 20, height: 20, flexShrink: 0 }} />
+      <img
+        src="/icons/copy-check-yellow.svg"
+        alt=""
+        style={{ width: 20, height: 20, flexShrink: 0 }}
+      />
       <span style={itemTextSt}>{test.title}</span>
       <span style={durationTextSt}>({test.questions?.length ?? 0} questions)</span>
     </div>
@@ -95,10 +95,19 @@ function ModuleReviewCard({ module, index }: { module: CourseModule; index: numb
         gap: 10,
       }}
     >
-      <div style={{ width: "calc(100% - 98px)", display: "flex", flexDirection: "column", gap: 13 }}>
+      <div
+        style={{ width: "calc(100% - 98px)", display: "flex", flexDirection: "column", gap: 13 }}
+      >
         {/* Module header */}
         <div className="flex items-center justify-between">
-          <span style={{ fontFamily: "var(--font-base)", fontWeight: 700, fontSize: 20, lineHeight: "25px" }}>
+          <span
+            style={{
+              fontFamily: "var(--font-base)",
+              fontWeight: 700,
+              fontSize: 20,
+              lineHeight: "25px",
+            }}
+          >
             Module {index + 1}: {module.title}
           </span>
           <div className="flex items-center" style={{ gap: 8 }}>
@@ -120,8 +129,20 @@ function ModuleReviewCard({ module, index }: { module: CourseModule; index: numb
           {lessonCount === 0 && testCount === 0 ? (
             <div className="flex items-center" style={{ gap: 8 }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/icons/exclamationmark-triangle.svg" alt="" style={{ width: 20, height: 20, flexShrink: 0 }} />
-              <span style={{ fontFamily: "var(--font-base)", fontWeight: 500, fontSize: 16, lineHeight: "20px", color: "var(--color-pink-dark)" }}>
+              <img
+                src="/icons/exclamationmark-triangle.svg"
+                alt=""
+                style={{ width: 20, height: 20, flexShrink: 0 }}
+              />
+              <span
+                style={{
+                  fontFamily: "var(--font-base)",
+                  fontWeight: 500,
+                  fontSize: 16,
+                  lineHeight: "20px",
+                  color: "var(--color-pink-dark)",
+                }}
+              >
                 This module is empty
               </span>
             </div>
@@ -130,13 +151,19 @@ function ModuleReviewCard({ module, index }: { module: CourseModule; index: numb
               {lessonCount > 0 && (
                 <div style={{ display: "flex", flexDirection: "column", gap: 13 }}>
                   <span style={sectionLabelSt}>Lessons:</span>
-                  <TwoColGrid items={module.lessons} renderItem={(l) => <LessonItem lesson={l} />} />
+                  <TwoColGrid
+                    items={module.lessons}
+                    renderItem={(l) => <LessonItem lesson={l} />}
+                  />
                 </div>
               )}
               {testCount > 0 && (
                 <div style={{ display: "flex", flexDirection: "column", gap: 13 }}>
                   <span style={sectionLabelSt}>Tests:</span>
-                  <TwoColGrid items={module.tests as CourseTest[]} renderItem={(t) => <TestItem test={t} />} />
+                  <TwoColGrid
+                    items={module.tests as CourseTest[]}
+                    renderItem={(t) => <TestItem test={t} />}
+                  />
                 </div>
               )}
             </>
@@ -177,8 +204,11 @@ export default function CourseReviewPage() {
   }
 
   const title = course?.title || "Untitled Course";
-  const hasEmptyModule = moduleList.some((m) => m.lessons.length === 0 && (m.tests?.length ?? 0) === 0);
-  const hasLesson = moduleList.length > 0 && moduleList.some((m) => m.lessons.length > 0) && !hasEmptyModule;
+  const hasEmptyModule = moduleList.some(
+    (m) => m.lessons.length === 0 && (m.tests?.length ?? 0) === 0,
+  );
+  const hasLesson =
+    moduleList.length > 0 && moduleList.some((m) => m.lessons.length > 0) && !hasEmptyModule;
 
   const totalModules = moduleList.length;
   const totalLessons = course?.lessons_count ?? 0;
@@ -189,12 +219,8 @@ export default function CourseReviewPage() {
   const levelLabel = course?.level
     ? course.level.charAt(0).toUpperCase() + course.level.slice(1)
     : "";
-  const priceLabel =
-    course?.pricing_type === "free"
-      ? "Free"
-      : course?.price
-      ? `€ ${course.price}`
-      : "";
+  const cheapest = course ? cheapestPlan(course.pricing_plans) : null;
+  const priceLabel = !course ? "" : cheapest ? `€ ${cheapest.price}` : "Free";
 
   const STATS = [
     { icon: "/icons/book-gradient.svg", count: totalModules, label: "Modules" },
@@ -289,7 +315,11 @@ export default function CourseReviewPage() {
                 }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/icons/book-gradient.svg" alt="" style={{ width: "clamp(36px, 2.6vw, 50px)", height: "clamp(36px, 2.6vw, 50px)" }} />
+                <img
+                  src="/icons/book-gradient.svg"
+                  alt=""
+                  style={{ width: "clamp(36px, 2.6vw, 50px)", height: "clamp(36px, 2.6vw, 50px)" }}
+                />
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 0, minWidth: 0 }}>
                 <span
@@ -323,7 +353,15 @@ export default function CourseReviewPage() {
             </div>
 
             {/* Right: badges + price */}
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 20, flexShrink: 0 }}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-end",
+                gap: 20,
+                flexShrink: 0,
+              }}
+            >
               <div className="flex items-center" style={{ gap: 8 }}>
                 {categoryName && (
                   <span
@@ -391,7 +429,11 @@ export default function CourseReviewPage() {
               }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={icon} alt="" style={{ width: "clamp(28px, 2.08vw, 40px)", height: "clamp(28px, 2.08vw, 40px)" }} />
+              <img
+                src={icon}
+                alt=""
+                style={{ width: "clamp(28px, 2.08vw, 40px)", height: "clamp(28px, 2.08vw, 40px)" }}
+              />
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
                 <span
                   style={{

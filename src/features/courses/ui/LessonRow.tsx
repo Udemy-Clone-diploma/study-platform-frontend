@@ -3,7 +3,7 @@
 type ItemStatus = "approved" | "rejected" | "needs_revision";
 
 type Props = {
-  lesson: { id: number; title: string; video_url?: string };
+  lesson: { id: number; title: string };
   index: number;
   onEdit?: () => void;
   onDelete?: () => void;

@@ -5,8 +5,6 @@ import { ModalShell } from "@/shared/ui/ModalShell";
 import { getCourseBySlug } from "@/entities/course";
 import type { RejectedCourseRecord, CourseDetail } from "@/entities/course";
 
-// ── constants ──────────────────────────────────────────────────────────────────
-
 type StatusValue = "approved" | "needs_revision" | "rejected";
 
 const STATUS_ICON: Record<StatusValue, string> = {
@@ -35,8 +33,6 @@ const FIELD_LABEL: Record<string, string> = {
   "field-price":             "Price",
 };
 
-// ── helpers ────────────────────────────────────────────────────────────────────
-
 const bf = "var(--font-base)";
 const af = "var(--font-accent)";
 
@@ -63,9 +59,6 @@ function getFieldValue(key: string, detail: CourseDetail | null, record: Rejecte
   }
 }
 
-// ── sub-components ─────────────────────────────────────────────────────────────
-
-/** Comment box: project-style border, readonly, auto height, no button. */
 function CommentBox({ text }: { text: string }) {
   if (!text) return null;
   return (
@@ -120,8 +113,6 @@ function Section({ title, action, comment, children }: {
   );
 }
 
-// ── component ──────────────────────────────────────────────────────────────────
-
 type Props = {
   record: RejectedCourseRecord;
   onClose: () => void;
@@ -146,7 +137,6 @@ export function RejectionDetailModal({ record, onClose, onMoveToDraft }: Props) 
     <ModalShell onClose={onClose} title={record.course_title} width="clamp(480px, 60vw, 860px)">
       <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
 
-        {/* ── Status header ─────────────────────────────────────── */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, paddingBottom: 4 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/icons/no.svg" alt="rejected" style={{ width: 40, height: 40 }} />
@@ -160,7 +150,6 @@ export function RejectionDetailModal({ record, onClose, onMoveToDraft }: Props) 
           </span>
         </div>
 
-        {/* ── Meta ──────────────────────────────────────────────── */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
           <span style={{ fontFamily: bf, fontSize: 13, color: "var(--color-text-secondary)" }}>
             Created: {detail ? fmt(detail.created_at) : "—"}&nbsp;·&nbsp;Rejected: {fmt(record.rejected_at)}
@@ -175,7 +164,6 @@ export function RejectionDetailModal({ record, onClose, onMoveToDraft }: Props) 
           )}
         </div>
 
-        {/* ── Basics ────────────────────────────────────────────── */}
         {Object.keys(basicsStatuses).length > 0 && (
           <Section title="Basics" action={record.basics_action} comment={record.basics_comment}>
             <div style={{ display: "flex", flexDirection: "column" }}>
@@ -233,7 +221,6 @@ export function RejectionDetailModal({ record, onClose, onMoveToDraft }: Props) 
           </Section>
         )}
 
-        {/* ── Content ───────────────────────────────────────────── */}
         {modules.length > 0 && (
           <Section title="Content" action={record.content_action} comment={record.content_comment}>
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -262,25 +249,6 @@ export function RejectionDetailModal({ record, onClose, onMoveToDraft }: Props) 
                         </div>
                       );
                     })}
-                    {(mod.tests ?? []).map((t) => {
-                      const s = (contentStatuses[`test-${t.id}`] ?? "") as StatusValue | "";
-                      return (
-                        <div key={t.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-                          <span style={{ fontFamily: bf, fontSize: 13, color: "var(--color-text-secondary)" }}>
-                            ✓ {t.title}
-                          </span>
-                          {s && STATUS_VAR[s] && (
-                            <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img src={STATUS_ICON[s]} alt={s} width={12} height={12} style={{ width: 12, height: 12 }} />
-                              <span style={{ fontFamily: bf, fontSize: 11, fontWeight: 600, color: STATUS_VAR[s], whiteSpace: "nowrap" }}>
-                                {STATUS_LABEL[s]}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
                   </div>
                 </div>
               ))}
@@ -288,7 +256,6 @@ export function RejectionDetailModal({ record, onClose, onMoveToDraft }: Props) 
           </Section>
         )}
 
-        {/* ── Final comment ─────────────────────────────────────── */}
         {record.final_comment && (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <span style={{ fontFamily: bf, fontWeight: 700, fontSize: 14, color: "var(--color-text-primary)" }}>
@@ -298,7 +265,6 @@ export function RejectionDetailModal({ record, onClose, onMoveToDraft }: Props) 
           </div>
         )}
 
-        {/* ── Move to Draft ──────────────────────────────────────── */}
         {onMoveToDraft && (
           <div style={{ borderTop: "1px solid var(--color-border-light)", paddingTop: 16, display: "flex", justifyContent: "flex-end" }}>
             <button

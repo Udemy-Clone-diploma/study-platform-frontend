@@ -1,4 +1,4 @@
-import type { CourseLesson, LessonDocument, LessonItem } from "../model/module";
+import type { CourseLesson, CourseTest, LessonDocument, LessonItem } from "../model/module";
 import type { CourseProgress } from "../model/progress";
 import type { CourseReview } from "../model/review";
 import type { CourseDetail } from "../model/types";
@@ -269,6 +269,22 @@ const SAMPLE_BODY_HTML = `
   <p>Use the worksheet to record your observations as you work through the exercise.</p>
 `;
 
+const SAMPLE_BODY_HTML_2 = `
+  <p>This is a second reading block. A lesson is an ordered list of content
+  blocks, so it can stack several readings and videos; the player gathers all
+  readings into this tab and all videos into the Video tab.</p>
+  <ul>
+    <li>Synthesize raw interview notes into recurring themes.</li>
+    <li>Prioritize problems by impact and frequency.</li>
+    <li>Turn the findings into a single, sharp problem statement.</li>
+  </ul>
+`;
+
+const SAMPLE_VIDEO_INTRO =
+  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+const SAMPLE_VIDEO_DEMO =
+  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4";
+
 const SAMPLE_DOCUMENTS: LessonDocument[] = [
   {
     id: 1,
@@ -284,40 +300,107 @@ const SAMPLE_DOCUMENTS: LessonDocument[] = [
   },
 ];
 
+/** Sample quiz block; lesson items of type "test" carry one of these. */
+const SAMPLE_TEST: CourseTest = {
+  id: 900,
+  title: "Module checkpoint",
+  description: "A short quiz to confirm the key ideas before moving on.",
+  passing_score: 80,
+  order: 1,
+  questions: [
+    {
+      id: 9001,
+      question_type: "single_choice",
+      text: "What is the goal of an empathy map?",
+      options: [
+        "Pick brand colors",
+        "Capture what a user says, thinks, does, and feels",
+        "Write production code",
+      ],
+      correct_index: 1,
+      correct_bool: null,
+      sample_answer: "",
+      order: 1,
+    },
+    {
+      id: 9002,
+      question_type: "true_false",
+      text: "User interviews should lead with yes/no questions.",
+      options: [],
+      correct_index: null,
+      correct_bool: false,
+      sample_answer: "",
+      order: 2,
+    },
+  ],
+};
+
+/**
+ * Dev-mode content blocks for a lesson. A lesson is an ordered list of typed
+ * items (text / video / test); the player groups every video item under the
+ * Video tab and every text item under Reading. Test items are not surfaced in
+ * the player yet. A few lessons get distinct shapes so the block model is easy
+ * to see:
+ *   2  -> video, reading, video, reading (a rich multi-block lesson)
+ *   3  -> video, reading, and a test block
+ *   4  -> reading only
+ *   8  -> video only
+ *   otherwise -> one video + one reading
+ */
+function buildLessonItems(lessonId: number): LessonItem[] {
+  const video = (order: number, url: string, name: string): LessonItem => ({
+    id: lessonId * 100 + order,
+    item_type: "video",
+    order,
+    video_url: url,
+    original_video_name: name,
+  });
+  const reading = (order: number, html: string): LessonItem => ({
+    id: lessonId * 100 + order,
+    item_type: "text",
+    order,
+    body_html: html,
+  });
+
+  switch (lessonId) {
+    case 2:
+      return [
+        video(1, SAMPLE_VIDEO_INTRO, "Interview walkthrough.mp4"),
+        reading(2, SAMPLE_BODY_HTML),
+        video(3, SAMPLE_VIDEO_DEMO, "Empathy map demo.mp4"),
+        reading(4, SAMPLE_BODY_HTML_2),
+      ];
+    case 3:
+      return [
+        video(1, SAMPLE_VIDEO_INTRO, "Journey mapping.mp4"),
+        reading(2, SAMPLE_BODY_HTML),
+        { id: 303, item_type: "test", order: 3, test: SAMPLE_TEST },
+      ];
+    case 4:
+      return [reading(1, SAMPLE_BODY_HTML_2)];
+    case 8:
+      return [video(1, SAMPLE_VIDEO_INTRO, "Dark mode tokens.mp4")];
+    default:
+      return [video(1, SAMPLE_VIDEO_INTRO, "Lesson video.mp4"), reading(2, SAMPLE_BODY_HTML)];
+  }
+}
+
+/** Lessons that ship downloadable materials (others render no Materials list). */
+const LESSONS_WITH_DOCUMENTS = new Set([1, 2, 3]);
+
 /** Dev-mode lesson detail map keyed by lesson id (matches `mockCourseDetail.modules[].lessons[].id`). */
 export const mockLessonDetails: Record<number, CourseLesson> = {};
 for (const mod of mockCourseDetail.modules) {
   for (const lesson of mod.lessons) {
-    // Most lessons ship a video block plus a reading block (two content tabs);
-    // lesson 8 is video-only to exercise the single-content-part path.
-    const items: LessonItem[] = [
-      {
-        id: lesson.id * 10 + 1,
-        item_type: "video",
-        order: 1,
-        video_url:
-          "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-        original_video_name: "BigBuckBunny.mp4",
-        duration_minutes: lesson.duration_minutes,
-      },
-    ];
-    if (lesson.id !== 8) {
-      items.push({
-        id: lesson.id * 10 + 2,
-        item_type: "text",
-        order: 2,
-        body_html: SAMPLE_BODY_HTML,
-      });
-    }
     mockLessonDetails[lesson.id] = {
       id: lesson.id,
       title: lesson.title,
       order: lesson.order,
       duration_minutes: lesson.duration_minutes,
       is_preview: lesson.is_preview,
-      documents: SAMPLE_DOCUMENTS,
+      documents: LESSONS_WITH_DOCUMENTS.has(lesson.id) ? SAMPLE_DOCUMENTS : [],
       meeting_url: lesson.is_preview ? null : "https://meet.google.com/abc-defg-hij",
-      items,
+      items: buildLessonItems(lesson.id),
     };
   }
 }

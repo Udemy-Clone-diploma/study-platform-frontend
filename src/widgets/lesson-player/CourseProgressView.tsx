@@ -18,6 +18,19 @@ type Props = {
 /** Required passing grade. Hardcoded until the backend exposes it (see BACKEND_CHANGES.md). */
 const PASSING_SCORE = 80;
 
+/** Nearest scrollable ancestor (the app-shell content scroller), falling back to the document. */
+function getScrollParent(node: HTMLElement | null): HTMLElement {
+  let el = node?.parentElement ?? null;
+  while (el) {
+    const overflowY = getComputedStyle(el).overflowY;
+    if (overflowY === "auto" || overflowY === "scroll") return el;
+    el = el.parentElement;
+  }
+  return document.scrollingElement instanceof HTMLElement
+    ? document.scrollingElement
+    : document.documentElement;
+}
+
 /**
  * Progress tab of the lesson player. Hero shows the completion donut, score bar
  * and certificate/ratings cards; a down arrow scrolls to the per-module list.
@@ -28,13 +41,14 @@ export function CourseProgressView({ course, initialProgress = null, isMock = fa
   const detailRef = useRef<HTMLDivElement>(null);
 
   // Scope vertical scroll-snap to this view: the hero fills the screen and a
-  // scroll past it lands on the lesson-completion section. Restored on unmount.
+  // scroll past it lands on the lesson-completion section. The app shell scrolls
+  // an inner element (not the document), so snap on the nearest scroll parent.
   useEffect(() => {
-    const html = document.documentElement;
-    const previous = html.style.scrollSnapType;
-    html.style.scrollSnapType = "y proximity";
+    const scroller = getScrollParent(detailRef.current);
+    const previous = scroller.style.scrollSnapType;
+    scroller.style.scrollSnapType = "y proximity";
     return () => {
-      html.style.scrollSnapType = previous;
+      scroller.style.scrollSnapType = previous;
     };
   }, []);
 
@@ -53,7 +67,7 @@ export function CourseProgressView({ course, initialProgress = null, isMock = fa
 
       <div className="relative z-10 flex w-full flex-col gap-10 px-5 py-6 lg:gap-14 lg:px-12 lg:py-12 xl:px-[90px]">
         {/* Hero fills the first screen; scrolling past it snaps to lesson completion. */}
-        <div className="flex min-h-[calc(100dvh-124px)] flex-col gap-10 lg:gap-14">
+        <div className="flex min-h-[calc(100dvh-76px)] flex-col gap-10 lg:gap-14">
           <LearnTabs slug={course.slug} active="progress" />
 
           <div className="grid max-w-[1660px] gap-10 xl:grid-cols-[minmax(0,1fr)_minmax(0,630px)] xl:gap-[50px]">

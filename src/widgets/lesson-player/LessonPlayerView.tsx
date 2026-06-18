@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, ChevronLeft, ChevronRight, Download, Video } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Download, ListChecks, Video } from "lucide-react";
 import {
   byOrder,
   getCourseBySlug,
@@ -20,6 +20,7 @@ import type {
   CourseDetail,
   CourseLesson,
   CourseProgress,
+  CourseTest,
   LessonDocument,
   LessonItem,
 } from "@/entities/course";
@@ -29,7 +30,7 @@ import { CourseDescription } from "@/widgets/course-detail/CourseDescription";
 import { LearnPageDecor } from "./LearnPageDecor";
 import { LearnTabs } from "./LearnTabs";
 import { LessonBreadcrumb } from "./LessonBreadcrumb";
-import { LessonContentTabs, PART_LABELS, type LessonContentPart } from "./LessonContentTabs";
+import { buildLessonTabs, LessonContentTabs, type LessonTab } from "./LessonContentTabs";
 import { LessonNotesPanel } from "./LessonNotesPanel";
 
 type Props = {
@@ -175,50 +176,21 @@ export function LessonPlayerView({
       ? flatLessons[currentIndex + 1]
       : null;
 
-  // Lesson content blocks split into the player's two tabs. A lesson may carry
-  // several blocks (text/video/test); all videos group under "Video", all text
-  // under "Reading". Test blocks are not surfaced yet.
-  const videoItems = useMemo<LessonItem[]>(
-    () => byOrder((lesson?.items ?? []).filter((i) => i.item_type === "video" && !!i.video_url)),
-    [lesson],
-  );
-  const textItems = useMemo<LessonItem[]>(
-    () =>
-      byOrder(
-        (lesson?.items ?? []).filter((i) => i.item_type === "text" && !!(i.body_html ?? i.content)),
-      ),
-    [lesson],
-  );
-  const parts = useMemo<LessonContentPart[]>(() => {
-    const p: LessonContentPart[] = [];
-    if (videoItems.length) p.push("video");
-    if (textItems.length) p.push("reading");
-    return p;
-  }, [videoItems, textItems]);
+  // One tab per renderable content block (video / reading / test), in order.
+  const tabs = useMemo(() => buildLessonTabs(lesson?.items ?? []), [lesson]);
 
-  // The tab of the first content block in order; drives the default open tab.
-  const firstContentPart = useMemo<LessonContentPart | null>(() => {
-    for (const item of byOrder(lesson?.items ?? [])) {
-      if (item.item_type === "video" && item.video_url) return "video";
-      if (item.item_type === "text" && (item.body_html ?? item.content)) return "reading";
-    }
-    return null;
-  }, [lesson]);
-
-  // User's tab choice; reset on lesson change so each lesson opens at its default.
-  const [selectedPart, setSelectedPart] = useState<LessonContentPart | null>(null);
+  // User's tab choice; reset on lesson change so each lesson opens at its first block.
+  const [selectedTabId, setSelectedTabId] = useState<number | null>(null);
   useEffect(() => {
-    setSelectedPart(null);
+    setSelectedTabId(null);
   }, [lessonId]);
 
-  const defaultPart: LessonContentPart | null =
-    parts.length === 0 ? null : (firstContentPart ?? parts[0]);
-  const activePart = selectedPart && parts.includes(selectedPart) ? selectedPart : defaultPart;
-  const isLastPart = activePart != null && parts[parts.length - 1] === activePart;
-  // The part after the active one, if any: drives the "Go to {next}" advance CTA.
-  const activeIndex = activePart ? parts.indexOf(activePart) : -1;
-  const nextPart =
-    activeIndex >= 0 && activeIndex < parts.length - 1 ? parts[activeIndex + 1] : null;
+  const activeTab: LessonTab | null = tabs.find((t) => t.id === selectedTabId) ?? tabs[0] ?? null;
+  const activeIndex = activeTab ? tabs.findIndex((t) => t.id === activeTab.id) : -1;
+  const isLastTab = activeIndex >= 0 && activeIndex === tabs.length - 1;
+  // The block after the active one, if any: drives the "Go to {next}" advance CTA.
+  const nextTab = activeIndex >= 0 && activeIndex < tabs.length - 1 ? tabs[activeIndex + 1] : null;
+  const activeItem = lesson?.items?.find((i) => i.id === activeTab?.id) ?? null;
 
   if (loading) {
     return (
@@ -268,9 +240,9 @@ export function LessonPlayerView({
           />
         </div>
 
-        {activePart && (
+        {activeTab && (
           <div className="flex justify-center">
-            <LessonContentTabs parts={parts} active={activePart} onSelect={setSelectedPart} />
+            <LessonContentTabs tabs={tabs} activeId={activeTab.id} onSelect={setSelectedTabId} />
           </div>
         )}
 
@@ -283,7 +255,7 @@ export function LessonPlayerView({
 
           <div className="grid gap-5 lg:grid-cols-[minmax(0,820px)_minmax(320px,400px)] lg:items-stretch">
             <div className="min-w-0">
-              <LessonContent part={activePart} videoItems={videoItems} textItems={textItems} />
+              <LessonContent item={activeItem} />
             </div>
             <LessonNotesPanel key={lessonId} slug={slug} lessonId={lessonId} />
           </div>
@@ -292,9 +264,9 @@ export function LessonPlayerView({
             <div className="flex flex-wrap items-center justify-between gap-4">
               {/* Completion is a single lesson-level state, so the checkbox lives only
                   on the last content tab; earlier tabs advance to the next one instead. */}
-              {nextPart ? (
-                <GradientButton onClick={() => setSelectedPart(nextPart)}>
-                  Go to {PART_LABELS[nextPart]}
+              {nextTab ? (
+                <GradientButton onClick={() => setSelectedTabId(nextTab.id)}>
+                  Go to {nextTab.label}
                 </GradientButton>
               ) : (
                 <CompleteCheckbox
@@ -304,7 +276,7 @@ export function LessonPlayerView({
                   onToggle={handleToggleComplete}
                 />
               )}
-              {nextLesson && isLastPart && (
+              {nextLesson && isLastTab && (
                 <GradientButton href={`/learn/${slug}/${nextLesson.id}`}>
                   Next lesson
                 </GradientButton>
@@ -354,42 +326,47 @@ function LessonNavLink({ href, direction }: { href?: string; direction: "prev" |
   );
 }
 
-/** Renders the active content part: the lesson's video block(s) or reading block(s). */
-function LessonContent({
-  part,
-  videoItems,
-  textItems,
-}: {
-  part: LessonContentPart | null;
-  videoItems: LessonItem[];
-  textItems: LessonItem[];
-}) {
-  if (part === "video" && videoItems.length > 0) {
+/** Renders the active content block: a video, a reading body, or a test summary. */
+function LessonContent({ item }: { item: LessonItem | null }) {
+  if (item?.item_type === "video" && item.video_url) {
     return (
-      <div className="flex flex-col gap-5">
-        {videoItems.map((item) => (
-          <div key={item.id} className="overflow-hidden rounded-2xl bg-black">
-            <video
-              controls
-              src={item.video_url ?? undefined}
-              className="aspect-video w-full"
-              preload="metadata"
-            />
-          </div>
-        ))}
+      <div className="overflow-hidden rounded-2xl bg-black">
+        <video controls src={item.video_url} className="aspect-video w-full" preload="metadata" />
       </div>
     );
   }
-  if (part === "reading" && textItems.length > 0) {
-    return (
-      <div className="flex flex-col gap-6">
-        {textItems.map((item) => (
-          <CourseDescription key={item.id} html={item.body_html ?? item.content ?? ""} />
-        ))}
-      </div>
-    );
+  if (item?.item_type === "text" && (item.body_html ?? item.content)) {
+    return <CourseDescription html={item.body_html ?? item.content ?? ""} />;
+  }
+  if (item?.item_type === "test" && item.test) {
+    return <TestBlock test={item.test} />;
   }
   return <p className="text-(--color-text-secondary)">No content available for this lesson yet.</p>;
+}
+
+/** Summary card for a test block; the interactive quiz player does not exist yet. */
+function TestBlock({ test }: { test: CourseTest }) {
+  return (
+    <div className="flex flex-col gap-3 rounded-2xl border border-(--color-border-light) bg-white p-6">
+      <div className="flex items-center gap-2">
+        <ListChecks className="h-6 w-6 shrink-0 text-(--color-blue)" aria-hidden="true" />
+        <h2 className="font-(family-name:--font-base) text-2xl font-medium text-(--color-text-primary)">
+          {test.title}
+        </h2>
+      </div>
+      {test.description && (
+        <p className="font-(family-name:--font-base) text-base text-(--color-text-secondary)">
+          {test.description}
+        </p>
+      )}
+      <p className="font-(family-name:--font-base) text-base text-(--color-text-primary)">
+        {test.questions.length} questions · passing score {test.passing_score}%
+      </p>
+      <p className="font-(family-name:--font-base) text-sm text-(--color-text-muted)">
+        The quiz player is coming soon.
+      </p>
+    </div>
+  );
 }
 
 /** Custom checkbox that toggles lesson completion. */

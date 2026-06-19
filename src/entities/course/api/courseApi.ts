@@ -83,8 +83,10 @@ export async function getCourses(filters: CourseListParams = {}): Promise<Pagina
   return data;
 }
 
-export async function getCourseBySlug(slug: string): Promise<CourseDetail> {
-  const { data } = await api.get<CourseDetail>(`${COURSES}${slug}/`);
+export async function getCourseBySlug(slug: string, accessToken?: string): Promise<CourseDetail> {
+  const { data } = await api.get<CourseDetail>(`${COURSES}${slug}/`, {
+    headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+  });
   return data;
 }
 
@@ -219,9 +221,13 @@ export async function enrollInCourse(courseId: number): Promise<EnrollResult> {
   return { status: "enrolled" };
 }
 
-export async function getEnrolledCourses(page = 1): Promise<Paginated<CourseListItem>> {
+export async function getEnrolledCourses(
+  page = 1,
+  accessToken?: string,
+): Promise<Paginated<CourseListItem>> {
   const { data } = await api.get<Paginated<CourseListItem>>(`${COURSES}enrolled/`, {
     params: { page, page_size: 100 },
+    headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
   });
   return data;
 }

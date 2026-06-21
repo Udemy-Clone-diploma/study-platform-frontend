@@ -4,7 +4,13 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { getEnrolledCourses } from "@/entities/course";
-import { getOrder, syncPaymentIntentStatus, type Order } from "@/entities/payment";
+import {
+  downloadPaymentReceipt,
+  getPayment,
+  getOrder,
+  syncPaymentIntentStatus,
+  type Order,
+} from "@/entities/payment";
 
 type ResultMode = "success" | "failed";
 type ConfirmationState = "missing" | "checking" | "pending" | "confirmed" | "failed";
@@ -27,13 +33,17 @@ export function PaymentResultPage({ mode }: { mode: ResultMode }) {
   const paymentId = Number(searchParams.get("payment_id"));
   const paymentIntentId = searchParams.get("payment_intent") ?? "";
   const hasValidOrderId = Number.isInteger(orderId) && orderId > 0;
-  const hasValidPaymentRef =
-    Number.isInteger(paymentId) && paymentId > 0 && paymentIntentId.length > 0;
+  const hasValidPaymentId = Number.isInteger(paymentId) && paymentId > 0;
+  const hasValidPaymentRef = hasValidPaymentId && paymentIntentId.length > 0;
   const [confirmationState, setConfirmationState] = useState<ConfirmationState>("checking");
+  const [receiptLoading, setReceiptLoading] = useState(false);
+  const [receiptError, setReceiptError] = useState("");
+  const [receiptAvailable, setReceiptAvailable] = useState(false);
   const state: ConfirmationState =
     mode === "failed" ? "failed" : hasValidOrderId ? confirmationState : "missing";
 
   useEffect(() => {
+    setReceiptAvailable(false);
     if (mode !== "success") return;
     if (!hasValidOrderId) return;
 
@@ -82,6 +92,11 @@ export function PaymentResultPage({ mode }: { mode: ResultMode }) {
 
           const enrolledCourseIds = new Set(enrolled?.results.map((course) => course.id) ?? []);
           if (hasEnrollmentForOrder(order, enrolledCourseIds)) {
+            if (hasValidPaymentId) {
+              const payment = await getPayment(paymentId).catch(() => null);
+              if (cancelled) return;
+              setReceiptAvailable(payment?.status === "succeeded");
+            }
             setConfirmationState("confirmed");
             return;
           }
@@ -103,7 +118,15 @@ export function PaymentResultPage({ mode }: { mode: ResultMode }) {
       cancelled = true;
       if (timeoutId) window.clearTimeout(timeoutId);
     };
-  }, [mode, orderId, hasValidOrderId, hasValidPaymentRef, paymentId, paymentIntentId]);
+  }, [
+    mode,
+    orderId,
+    hasValidOrderId,
+    hasValidPaymentId,
+    hasValidPaymentRef,
+    paymentId,
+    paymentIntentId,
+  ]);
 
   const isFailed = mode === "failed" || state === "failed";
   const title = isFailed ? "Payment was not completed." : "Payment is being confirmed.";
@@ -113,12 +136,33 @@ export function PaymentResultPage({ mode }: { mode: ResultMode }) {
       ? "Payment confirmed. Your course access is active."
       : "Your course access will be activated shortly.";
 
+  async function handleReceiptDownload() {
+    if (receiptLoading || !hasValidPaymentId) return;
+
+    setReceiptLoading(true);
+    setReceiptError("");
+
+    try {
+      const receipt = await downloadPaymentReceipt(paymentId);
+      const url = window.URL.createObjectURL(receipt);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `receipt-${orderId}-${paymentId}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => window.URL.revokeObjectURL(url), 0);
+    } catch {
+      setReceiptError("Could not download receipt.");
+    } finally {
+      setReceiptLoading(false);
+    }
+  }
+
   return (
     <main className="min-h-[calc(100vh-76px)] bg-[linear-gradient(120deg,#FFFFFF_0%,#FFF7F2_32%,rgba(252,196,195,0.38)_58%,#FFFFFF_100%)] px-4 py-8 sm:px-10">
       <section className="mx-auto flex min-h-[460px] w-full max-w-[720px] flex-col justify-center rounded-[16px] bg-white px-6 py-10 shadow-[0_0_15px_rgba(0,0,0,0.18)] md:px-[60px]">
-        <p className="mb-3 font-mono text-[11px] uppercase text-[#6A6A6A]">
-          Tuition payment
-        </p>
+        <p className="mb-3 font-mono text-[11px] uppercase text-[#6A6A6A]">Tuition payment</p>
         <h1 className="font-mono text-[22px] font-semibold text-[#121212]">{title}</h1>
         <p className="mt-4 max-w-[560px] font-mono text-[13px] leading-5 text-[#121212]">
           {description}
@@ -145,6 +189,16 @@ export function PaymentResultPage({ mode }: { mode: ResultMode }) {
               Go to My Courses
             </Link>
           ) : null}
+          {state === "confirmed" && receiptAvailable ? (
+            <button
+              type="button"
+              onClick={handleReceiptDownload}
+              disabled={receiptLoading}
+              className="inline-flex h-9 min-w-[150px] items-center justify-center rounded-full border border-[#003AFF] px-5 font-mono text-[12px] text-[#003AFF] transition-colors hover:bg-[#EEF3FF] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {receiptLoading ? "Downloading..." : "Download receipt"}
+            </button>
+          ) : null}
           <Link
             href="/student-dashboard/payment?tab=card"
             className="inline-flex h-9 min-w-[140px] items-center justify-center rounded-full border border-[#003AFF] px-5 font-mono text-[12px] text-[#003AFF] transition-colors hover:bg-[#EEF3FF]"
@@ -158,6 +212,12 @@ export function PaymentResultPage({ mode }: { mode: ResultMode }) {
             Payment history
           </Link>
         </div>
+
+        {receiptError ? (
+          <p role="alert" className="mt-3 font-mono text-[11px] text-[#B42318]">
+            {receiptError}
+          </p>
+        ) : null}
       </section>
     </main>
   );

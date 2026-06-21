@@ -4,17 +4,16 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Download } from "lucide-react";
 import { getCart, type Cart, type CartItem } from "@/entities/cart";
 import {
   createInstallmentPaymentIntent,
   createPaymentIntent,
+  downloadPaymentReceipt,
   getOrders,
   getPayments,
   type Order,
   type Payment,
   type PaymentIntent,
-  type PaymentStatus,
   type PaymentType,
 } from "@/entities/payment";
 import type { ApiError } from "@/shared/api/base";
@@ -35,17 +34,15 @@ const allTabs: Array<{ id: TabId; label: string; roles: WorkspaceRole[] }> = [
 ];
 
 const COURSE_AVAILABLE_NOTICE = "The course is already available in My Courses.";
-const PAYMENT_PROCESSING_NOTICE = "Payment is being processed. Access will appear after confirmation.";
+const PAYMENT_PROCESSING_NOTICE =
+  "Payment is being processed. Access will appear after confirmation.";
 const PAYMENT_CANCELED_NOTICE = "Payment was canceled. Your cart is unchanged.";
-
-const STATUS_LABEL: Record<PaymentStatus, string> = {
-  pending: "Pending",
-  processing: "Processing",
-  succeeded: "Paid",
-  failed: "Failed",
-  canceled: "Canceled",
-  refunded: "Refunded",
-};
+const RECEIPT_ICON_SRC = "/icons/download.svg";
+const CART_CARD_GRADIENT = {
+  beginner: "var(--gradient-card-yellow)",
+  intermediate: "var(--gradient-card-blue)",
+  advanced: "var(--gradient-card-pink)",
+} as const;
 
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat("en-GB").format(new Date(value)).replace(/\//g, ".");
@@ -123,7 +120,7 @@ function PaymentTabs({
   onChange: (tab: TabId) => void;
 }) {
   return (
-    <nav className="flex border-b border-[#B7C7FA]" aria-label="Payment sections">
+    <nav className="flex border-b border-[#A7BAFA]" aria-label="Payment sections">
       {tabs.map((tab) => {
         const isActive = activeTab === tab.id;
 
@@ -134,10 +131,10 @@ function PaymentTabs({
             aria-current={isActive ? "page" : undefined}
             onClick={() => onChange(tab.id)}
             className={[
-              "h-8 min-w-[88px] px-3 text-center font-mono text-[12px] leading-none transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#003AFF]",
+              "h-10 min-w-[88px] px-3 text-center font-(family-name:--font-base) text-[20px] leading-5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#003AFF]",
               isActive
-                ? "border-b-2 border-[#003AFF] text-[#003AFF]"
-                : "border-b-2 border-transparent text-[#121212] hover:text-[#003AFF]",
+                ? "border-b-2 border-[#003AFF] font-semibold text-[#003AFF]"
+                : "border-b-2 border-transparent font-normal text-[#121212] hover:text-[#003AFF]",
             ].join(" ")}
           >
             {tab.label}
@@ -148,152 +145,103 @@ function PaymentTabs({
   );
 }
 
-function PaymentModeToggle({
-  mode,
-  canUseInstallments,
-  onChange,
-}: {
-  mode: PaymentType;
-  canUseInstallments: boolean;
-  onChange: (mode: PaymentType) => void;
-}) {
-  return (
-    <div className="inline-flex h-8 rounded-full border border-[#003AFF] bg-white p-0.5 font-mono text-[10px] uppercase text-[#121212]">
-      <button
-        type="button"
-        onClick={() => onChange("full")}
-        className={[
-          "inline-flex min-w-[118px] items-center justify-center rounded-full px-4 transition-colors",
-          mode === "full" ? "bg-(--color-brand-lavender-soft)" : "",
-        ].join(" ")}
-      >
-        Full payment
-      </button>
-      <button
-        type="button"
-        onClick={() => canUseInstallments && onChange("installments")}
-        disabled={!canUseInstallments}
-        className={[
-          "inline-flex min-w-[128px] items-center justify-center rounded-full px-4 transition-colors disabled:cursor-not-allowed disabled:opacity-40",
-          mode === "installments" ? "bg-(--color-brand-lavender-soft)" : "",
-        ].join(" ")}
-      >
-        Partial payment
-      </button>
-    </div>
-  );
-}
-
 function ReceiptButton({
-  url,
+  paymentId,
+  orderId,
   label = "Receipt",
 }: {
-  url?: string | null;
+  paymentId: number;
+  orderId: number | null;
   label?: string;
 }) {
-  if (!url) {
-    // TODO: Enable when backend exposes receipt/invoice URLs for payments.
-    return (
-      <button
-        type="button"
-        disabled
-        className="inline-flex h-7 min-w-[74px] items-center justify-center rounded-full border border-[#D9D9D9] px-3 font-mono text-[11px] text-[#9A9A9A] disabled:cursor-not-allowed"
-      >
-        {label}
-      </button>
-    );
+  const buttonClassName =
+    "inline-flex h-7 items-center justify-center gap-1 rounded-full border border-black px-2 font-mono text-[15px] leading-[15px] font-medium text-black";
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  async function handleDownload() {
+    if (loading) return;
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const receipt = await downloadPaymentReceipt(paymentId);
+      const url = window.URL.createObjectURL(receipt);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `receipt-${orderId ?? paymentId}-${paymentId}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => window.URL.revokeObjectURL(url), 0);
+    } catch {
+      setError("Could not download receipt.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
-    <a
-      href={url}
-      target="_blank"
-      rel="noreferrer"
-      className="inline-flex h-7 min-w-[74px] items-center justify-center rounded-full border border-[#003AFF] px-3 font-mono text-[11px] text-[#003AFF] transition-colors hover:bg-[#EEF3FF]"
-    >
-      {label}
-    </a>
+    <div className="flex flex-col items-end gap-1">
+      <button
+        type="button"
+        onClick={handleDownload}
+        disabled={loading}
+        className={`${buttonClassName} transition-colors hover:bg-[#F2F2F2] disabled:cursor-not-allowed disabled:opacity-60`}
+      >
+        {loading ? "..." : label}
+        {!loading && RECEIPT_ICON_SRC ? (
+          <img src={RECEIPT_ICON_SRC} alt="" aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />
+        ) : null}
+      </button>
+      {error ? <span className="text-[10px] leading-3 text-[#B42318]">{error}</span> : null}
+    </div>
   );
 }
 
 function OrderSummary({
   selectedItems,
   currency,
-  checkoutMode,
-  canUseInstallments,
   checkoutLoading,
   checkoutError,
-  onModeChange,
   onPay,
 }: {
   selectedItems: CartItem[];
   currency: string | null;
-  checkoutMode: PaymentType;
-  canUseInstallments: boolean;
   checkoutLoading: boolean;
   checkoutError: string;
-  onModeChange: (mode: PaymentType) => void;
   onPay: () => void;
 }) {
-  const installmentOption = installmentOptionForItems(selectedItems);
   const totalLabel = formatMoneyValue(sumCartItems(selectedItems, "subtotal"), currency);
-  const installmentFirstLabel = installmentOption
-    ? formatMoneyValue(installmentOption.firstAmount, currency)
-    : "";
-  const installmentTotalLabel = installmentOption
-    ? formatMoneyValue(installmentOption.totalAmount, currency)
-    : "";
-  const dueLabel =
-    checkoutMode === "installments" && installmentOption ? installmentFirstLabel : totalLabel;
   const canPay = selectedItems.length > 0;
 
   return (
-    <aside className="min-w-0 rounded-md border border-[#E7ECFF] bg-[#FBFCFF] p-4">
-      <div className="mb-4 flex items-start justify-between gap-4">
-        <div>
-          <h2 className="font-mono text-[14px] font-normal text-[#121212]">Order summary</h2>
-          <p className="mt-1 font-mono text-[10px] text-[#6A6A6A]">
-            {selectedItems.length} selected item{selectedItems.length === 1 ? "" : "s"}
-          </p>
-        </div>
-        {/* TODO: Replace disabled state with backend invoice download once invoice generation exists. */}
-        <button
-          type="button"
-          disabled
-          title="Invoice download is not available for unpaid orders yet."
-          className="inline-flex h-8 shrink-0 items-center gap-2 rounded-full bg-[#F1F4FF] px-3 font-mono text-[10px] uppercase text-[#9A9A9A] disabled:cursor-not-allowed"
-        >
-          Download invoice
-          <Download size={12} aria-hidden="true" />
-        </button>
-      </div>
+    <aside className="min-w-0 font-(family-name:--font-base) text-[#121212]">
+      <h2 className="text-[22px] leading-7 font-semibold">Order summary</h2>
 
-      <div className="mb-4 flex justify-end">
-        <PaymentModeToggle
-          mode={checkoutMode}
-          canUseInstallments={canUseInstallments}
-          onChange={onModeChange}
-        />
-      </div>
-
-      <div className="space-y-2 border-t border-[#E7ECFF] pt-4 font-mono text-[12px] text-[#121212]">
-        <div className="flex items-center justify-between gap-4">
-          <span>Subtotal</span>
-          <span>{totalLabel}</span>
-        </div>
-        {checkoutMode === "installments" && installmentOption ? (
-          <div className="flex items-center justify-between gap-4 text-[#6A6A6A]">
-            <span>{installmentOption.count} payments total</span>
-            <span>{installmentTotalLabel}</span>
+      <div className="mt-5">
+        {selectedItems.map((item) => (
+          <div
+            key={item.id}
+            className="flex items-start justify-between gap-4 border-b border-[#D4D4D4] py-2"
+          >
+            <span className="line-clamp-2 text-[14px] leading-[18px] text-[#6A6A6A]">
+              {item.course.title}
+            </span>
+            <span className="shrink-0 text-[14px] leading-[18px]">
+              {formatMoney(item.subtotal, item.currency)}
+            </span>
           </div>
-        ) : null}
-        <div className="flex items-center justify-between gap-4 font-semibold">
-          <span>{checkoutMode === "installments" && installmentOption ? "Due now" : "Total"}</span>
-          <span>{dueLabel}</span>
-        </div>
+        ))}
       </div>
 
-      <p className="mt-4 font-mono text-[9px] leading-3 text-[#121212]">
+      <div className="mt-3 flex items-center justify-between border-t-2 border-[#003AFF] pt-2 text-[18px] leading-6 font-semibold">
+        <span>Total</span>
+        <span>{totalLabel}</span>
+      </div>
+
+      <p className="mt-2 text-[14px] leading-[17px]">
         By submitting your order, you confirm that you have read and agree to the terms of use.
       </p>
 
@@ -301,17 +249,13 @@ function OrderSummary({
         type="button"
         onClick={onPay}
         disabled={!canPay || checkoutLoading}
-        className="mt-5 inline-flex h-9 w-full items-center justify-center rounded-full bg-black px-5 font-mono text-[12px] text-white transition-colors hover:bg-[#252525] disabled:cursor-not-allowed disabled:bg-[#6A6A6A]"
+        className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-full bg-black px-5 text-[22px] leading-6 text-white transition-colors hover:bg-[#252525] disabled:cursor-not-allowed disabled:bg-[#6A6A6A]"
       >
-        {checkoutLoading
-          ? "Opening..."
-          : checkoutMode === "installments" && installmentOption
-            ? "Pay first"
-            : "To Pay"}
+        {checkoutLoading ? "Opening..." : "To Pay"}
       </button>
 
       {checkoutError ? (
-        <p role="alert" className="mt-3 font-mono text-[12px] text-[#B42318]">
+        <p role="alert" className="mt-3 text-[12px] text-[#B42318]">
           {checkoutError}
         </p>
       ) : null}
@@ -324,24 +268,18 @@ function CartPaymentPanel({
   loading,
   error,
   selectedItemIds,
-  checkoutMode,
   checkoutLoading,
   checkoutError,
   onToggleItem,
-  onToggleAll,
-  onModeChange,
   onPay,
 }: {
   cart: Cart | null;
   loading: boolean;
   error: string;
   selectedItemIds: number[];
-  checkoutMode: PaymentType;
   checkoutLoading: boolean;
   checkoutError: string;
   onToggleItem: (itemId: number) => void;
-  onToggleAll: () => void;
-  onModeChange: (mode: PaymentType) => void;
   onPay: () => void;
 }) {
   if (loading) {
@@ -369,87 +307,70 @@ function CartPaymentPanel({
   }
 
   const selectedItems = cart.items.filter((item) => selectedItemIds.includes(item.id));
-  const allSelected = selectedItemIds.length === cart.items.length;
-  const installmentOption = installmentOptionForItems(selectedItems);
 
   return (
-    <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_390px]">
+    <div className="mx-6 mt-10 grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_315px]">
       <section className="min-w-0">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <h2 className="font-mono text-[14px] font-normal text-[#121212]">Items in cart</h2>
-          <label className="inline-flex cursor-pointer items-center gap-2 font-mono text-[12px] text-[#121212]">
-            <input
-              type="checkbox"
-              checked={allSelected}
-              onChange={onToggleAll}
-              className="h-4 w-4 accent-[#003AFF]"
-            />
-            Select all
-          </label>
-        </div>
+        <h2 className="font-(family-name:--font-base) text-[20px] leading-6 font-normal text-[#5E5E5E]">
+          Items in cart
+        </h2>
 
-        <div className="flex flex-col gap-3">
+        <div className="mt-7 flex flex-col gap-6">
           {cart.items.map((item) => {
             const isSelected = selectedItemIds.includes(item.id);
+            const gradient = CART_CARD_GRADIENT[item.course.level] ?? CART_CARD_GRADIENT.beginner;
 
             return (
               <label
                 key={item.id}
-                className={[
-                  "flex cursor-pointer items-center gap-3 rounded-md border px-3 py-3 transition-colors",
-                  isSelected
-                    ? "border-[#B7C7FA] bg-[#EEF3FF]"
-                    : "border-[#E7ECFF] bg-white hover:border-[#B7C7FA]",
-                ].join(" ")}
+                className="flex w-full max-w-[480px] cursor-pointer items-center gap-7"
               >
                 <input
                   type="checkbox"
                   checked={isSelected}
                   onChange={() => onToggleItem(item.id)}
-                  className="h-4 w-4 shrink-0 accent-[#003AFF]"
+                  className="peer sr-only"
                 />
-                {item.course.image ? (
-                  <img
-                    src={item.course.image}
-                    alt=""
-                    className="h-12 w-12 shrink-0 rounded-md object-cover"
-                  />
-                ) : (
-                  <div className="h-12 w-12 shrink-0 rounded-md bg-[#FDD3D0]" />
-                )}
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-mono text-[12px] font-semibold text-[#121212]">
+                <span
+                  aria-hidden="true"
+                  className={[
+                    "flex h-6 w-6 shrink-0 items-center justify-center rounded-[3px] border border-[#003AFF] text-[18px] leading-none text-[#003AFF]",
+                    isSelected ? "bg-[#D6E0FF]" : "bg-white",
+                  ].join(" ")}
+                >
+                  {isSelected ? "✓" : null}
+                </span>
+                <div
+                  className="flex min-h-[58px] min-w-0 flex-1 items-center gap-3 rounded-[14px] border border-[#E7E7E7] px-5 py-2 shadow-[0_0_8px_rgba(0,0,0,0.1)]"
+                  style={{ background: gradient }}
+                >
+                  {item.course.image ? (
+                    <img
+                      src={item.course.image}
+                      alt=""
+                      className="h-10 w-10 shrink-0 object-contain"
+                    />
+                  ) : (
+                    <div className="h-10 w-10 shrink-0 rounded-full bg-[#FDD3D0]" />
+                  )}
+                  <p className="line-clamp-2 min-w-0 flex-1 font-(family-name:--font-base) text-[14px] leading-4 font-semibold uppercase text-[#121212]">
                     {item.course.title}
                   </p>
-                  <p className="mt-1 font-mono text-[10px] uppercase text-[#6A6A6A]">
-                    {item.pricing_plan_kind ?? "Course"}
-                  </p>
+                  <span className="shrink-0 font-(family-name:--font-base) text-[20px] leading-6 text-[#121212]">
+                    {formatMoney(item.subtotal, item.currency)}
+                  </span>
                 </div>
-                <span className="shrink-0 font-mono text-[12px] text-[#121212]">
-                  {formatMoney(item.subtotal, item.currency)}
-                </span>
               </label>
             );
           })}
-        </div>
-
-        <div className="mt-4 flex flex-wrap items-center justify-end gap-3">
-          {!installmentOption && selectedItems.length > 0 ? (
-            <p className="font-mono text-[10px] text-[#6A6A6A]">
-              Partial payment is available only for matching installment plans.
-            </p>
-          ) : null}
         </div>
       </section>
 
       <OrderSummary
         selectedItems={selectedItems}
         currency={cart.currency}
-        checkoutMode={checkoutMode}
-        canUseInstallments={Boolean(installmentOption)}
         checkoutLoading={checkoutLoading}
         checkoutError={checkoutError}
-        onModeChange={onModeChange}
         onPay={onPay}
       />
     </div>
@@ -557,30 +478,34 @@ function PaymentHistoryTable({ payments }: { payments: Payment[] }) {
   }
 
   return (
-    <div className="mt-6 overflow-x-auto">
-      <table className="w-full min-w-[620px] table-fixed border-collapse font-mono text-[12px] text-[#121212]">
+    <div className="mt-10 overflow-x-auto">
+      <table className="w-full min-w-[620px] table-fixed border-collapse font-(family-name:--font-base) text-[16px] leading-4 text-[#121212]">
+        <colgroup>
+          <col className="w-1/4" />
+          <col className="w-[16%]" />
+          <col className="w-[18%]" />
+          <col />
+        </colgroup>
         <thead>
-          <tr className="border-b border-[#D9D9D9] text-left text-[#6A6A6A]">
-            <th className="h-8 px-3 font-normal">Course</th>
-            <th className="h-8 px-3 font-normal">Date</th>
-            <th className="h-8 px-3 font-normal">Amount</th>
-            <th className="h-8 px-3 font-normal">Status</th>
-            <th className="h-8 w-[104px] px-3 font-normal">Receipt</th>
+          <tr className="border-b border-[#D4D4D4] text-left text-[#6A6A6A]">
+            <th className="h-10 px-4 font-normal text-[20px] leading-5">Course</th>
+            <th className="h-10 px-4 font-normal text-[20px] leading-5">Date</th>
+            <th className="h-10 px-4 font-normal text-[20px] leading-5">Amount</th>
+            <th aria-label="Receipt" className="h-10 px-4" />
           </tr>
         </thead>
         <tbody>
           {paidPayments.map((payment) => (
-            <tr key={payment.id} className="border-b border-[#D9D9D9]">
-              <td className="h-10 truncate px-3">{courseLabel(payment)}</td>
-              <td className="h-10 truncate px-3">
+            <tr key={payment.id} className="border-b border-[#D4D4D4]">
+              <td className="truncate px-4 py-2 align-middle">{courseLabel(payment)}</td>
+              <td className="truncate px-4 py-2 align-middle">
                 {formatDate(payment.processed_at ?? payment.created_at)}
               </td>
-              <td className="h-10 truncate px-3">
+              <td className="truncate px-4 py-2 align-middle">
                 {formatMoney(payment.amount, payment.currency)}
               </td>
-              <td className="h-10 truncate px-3">{STATUS_LABEL[payment.status]}</td>
-              <td className="h-10 px-3">
-                <ReceiptButton url={payment.receipt_url} />
+              <td className="h-8 px-4 text-right">
+                <ReceiptButton paymentId={payment.id} orderId={payment.order_id} />
               </td>
             </tr>
           ))}
@@ -599,7 +524,9 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
   const requestedCartItemId = parsePositiveInt(searchParams.get("cart_item_id"));
   const paymentRequestKey = `${requestedPaymentType ?? "default"}:${requestedCartItemId ?? "all"}`;
   const appliedPaymentRequestRef = useRef<string | null>(null);
-  const [activeTab, setActiveTab] = useState<TabId>(() => resolveTab(searchParams.get("tab"), role));
+  const [activeTab, setActiveTab] = useState<TabId>(() =>
+    resolveTab(searchParams.get("tab"), role),
+  );
   const [cart, setCart] = useState<Cart | null>(null);
   const [cartLoading, setCartLoading] = useState(false);
   const [cartError, setCartError] = useState("");
@@ -613,7 +540,9 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [ordersError, setOrdersError] = useState("");
   const [payingInstallmentId, setPayingInstallmentId] = useState<number | null>(null);
-  const [installmentCheckoutIntent, setInstallmentCheckoutIntent] = useState<PaymentIntent | null>(null);
+  const [installmentCheckoutIntent, setInstallmentCheckoutIntent] = useState<PaymentIntent | null>(
+    null,
+  );
   const [isInstallmentPaymentDrawerOpen, setIsInstallmentPaymentDrawerOpen] = useState(false);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [paymentsLoading, setPaymentsLoading] = useState(false);
@@ -643,7 +572,7 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
         title: item.course.title,
         subtitle: item.pricing_plan_kind ?? "Course",
         amount: formatMoney(
-          isInstallmentPayment ? item.installment_amount ?? item.subtotal : item.subtotal,
+          isInstallmentPayment ? (item.installment_amount ?? item.subtotal) : item.subtotal,
           item.currency,
         ),
         image: item.course.image,
@@ -654,7 +583,9 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
     if (!installmentCheckoutIntent) return null;
 
     const order = orders.find((item) =>
-      item.installments.some((installment) => installment.id === installmentCheckoutIntent.installment_id),
+      item.installments.some(
+        (installment) => installment.id === installmentCheckoutIntent.installment_id,
+      ),
     );
     const installment = order?.installments.find(
       (item) => item.id === installmentCheckoutIntent.installment_id,
@@ -665,32 +596,28 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
         ? formatMoney(order.total_amount, order.currency)
         : formatMoney(installmentCheckoutIntent.amount, installmentCheckoutIntent.currency),
       due: formatMoney(installmentCheckoutIntent.amount, installmentCheckoutIntent.currency),
-      courses:
-        order?.items.map((item) => ({
-          id: item.id,
-          title: item.course_title,
-          subtitle: installment
-            ? `Installment ${installment.installment_number}/${order.installments_count}`
-            : "Partial payment",
-          amount: installment
-            ? formatMoney(
-                (Number(item.unit_amount) / order.installments_count).toFixed(2),
-                item.currency,
-              )
-            : formatMoney(item.unit_amount, item.currency),
+      courses: order?.items.map((item) => ({
+        id: item.id,
+        title: item.course_title,
+        subtitle: installment
+          ? `Installment ${installment.installment_number}/${order.installments_count}`
+          : "Partial payment",
+        amount: installment
+          ? formatMoney(
+              (Number(item.unit_amount) / order.installments_count).toFixed(2),
+              item.currency,
+            )
+          : formatMoney(item.unit_amount, item.currency),
+        image: null,
+      })) ?? [
+        {
+          id: "installment",
+          title: "Installment payment",
+          subtitle: "Partial payment",
+          amount: formatMoney(installmentCheckoutIntent.amount, installmentCheckoutIntent.currency),
           image: null,
-        })) ?? [
-          {
-            id: "installment",
-            title: "Installment payment",
-            subtitle: "Partial payment",
-            amount: formatMoney(
-              installmentCheckoutIntent.amount,
-              installmentCheckoutIntent.currency,
-            ),
-            image: null,
-          },
-        ],
+        },
+      ],
     };
   }, [installmentCheckoutIntent, orders]);
 
@@ -850,24 +777,6 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
     );
   }
 
-  function handleToggleAll() {
-    if (!cart) return;
-
-    setCartCheckoutIntent(null);
-    setIsCartPaymentDrawerOpen(false);
-    setCheckoutError("");
-    setSelectedCartItemIds((ids) =>
-      ids.length === cart.items.length ? [] : cart.items.map((item) => item.id),
-    );
-  }
-
-  function handleModeChange(mode: PaymentType) {
-    setCartCheckoutIntent(null);
-    setIsCartPaymentDrawerOpen(false);
-    setCheckoutError("");
-    setCheckoutMode(mode);
-  }
-
   async function handlePay() {
     if (!cart || selectedCartItems.length === 0 || checkoutLoading) {
       setCheckoutError("Select at least one course to pay.");
@@ -936,9 +845,10 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
   }
 
   const isPlansTab = activeTab === "plans";
+  const isHistoryTab = activeTab === "history";
 
   return (
-    <main className="min-h-[calc(100vh-76px)] bg-[linear-gradient(120deg,#FFFFFF_0%,#FFF7F2_32%,rgba(252,196,195,0.38)_58%,#FFFFFF_100%)] px-4 py-8 sm:px-10">
+    <main className="relative isolate -m-[clamp(14px,1.5vw,28px)] min-h-[calc(100vh-76px)] overflow-hidden bg-white px-4 py-8 before:pointer-events-none before:absolute before:left-[112.69px] before:top-[-257px] before:z-0 before:h-[1001.87px] before:w-[1367.86px] before:rotate-[-33.8deg] before:rounded-[50%] before:bg-[#FCC4C3] before:opacity-50 before:blur-[300px] before:content-[''] sm:px-10">
       {toast ? (
         <div
           role="status"
@@ -966,16 +876,18 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
         onPaymentError={setOrdersError}
       />
 
-      <section className={`mx-auto w-full ${isPlansTab ? "max-w-[584px]" : "max-w-[1100px]"}`}>
-        <h1 className="mb-5 font-mono text-[16px] font-semibold leading-5 text-[#121212]">
+      <section className="relative z-10 mx-auto w-full max-w-[890px]">
+        <h1 className="mb-6 font-(family-name:--font-base) text-[26px] font-semibold leading-[31px] text-[#121212]">
           Tuition payment
         </h1>
 
         <div
           className={
             isPlansTab
-              ? "min-h-[367px] rounded-[10px] bg-white px-5 pt-2 pb-8 shadow-[0_0_15px_rgba(0,0,0,0.18)]"
-              : "min-h-[593px] rounded-[16px] bg-white px-5 py-4 shadow-[0_0_15px_rgba(0,0,0,0.18)] md:px-[60px] md:pt-[60px] md:pb-[72px]"
+              ? "h-[560px] overflow-y-auto rounded-[10px] bg-white px-5 pt-2 pb-8 shadow-[0_0_15px_rgba(0,0,0,0.18)]"
+              : isHistoryTab
+                ? "h-[560px] overflow-y-auto rounded-[16px] bg-white px-5 pt-4 pb-8 shadow-[0_0_15px_rgba(0,0,0,0.18)] md:px-8"
+                : "h-[560px] overflow-y-auto rounded-[16px] bg-white px-5 py-4 shadow-[0_0_15px_rgba(0,0,0,0.18)] md:px-8 md:pt-4 md:pb-8"
           }
         >
           <PaymentTabs tabs={tabs} activeTab={activeTab} onChange={handleTabChange} />
@@ -986,12 +898,9 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
               loading={cartLoading}
               error={cartError}
               selectedItemIds={selectedCartItemIds}
-              checkoutMode={checkoutMode}
               checkoutLoading={checkoutLoading}
               checkoutError={checkoutError}
               onToggleItem={handleToggleItem}
-              onToggleAll={handleToggleAll}
-              onModeChange={handleModeChange}
               onPay={handlePay}
             />
           ) : null}

@@ -1,10 +1,11 @@
-import type { PricingPlan } from "@/entities/course";
+import type { CourseLevel, PricingPlan } from "@/entities/course";
 
 export type CartCourse = {
   id: number;
   title: string;
   slug: string;
   image: string | null;
+  level: CourseLevel;
   price: string;
   currency: PricingPlan["currency"] | null;
 };

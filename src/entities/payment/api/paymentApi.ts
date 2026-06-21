@@ -24,20 +24,12 @@ export type CheckoutSessionInput = {
 export async function createCheckoutSession(
   body: CheckoutSessionInput = {},
 ): Promise<CheckoutSession> {
-  const { data } = await api.post<CheckoutSession>(
-    `${PAYMENTS_ENDPOINT}checkout-session/`,
-    body,
-  );
+  const { data } = await api.post<CheckoutSession>(`${PAYMENTS_ENDPOINT}checkout-session/`, body);
   return data;
 }
 
-export async function createPaymentIntent(
-  body: CheckoutSessionInput = {},
-): Promise<PaymentIntent> {
-  const { data } = await api.post<PaymentIntent>(
-    `${PAYMENTS_ENDPOINT}payment-intent/`,
-    body,
-  );
+export async function createPaymentIntent(body: CheckoutSessionInput = {}): Promise<PaymentIntent> {
+  const { data } = await api.post<PaymentIntent>(`${PAYMENTS_ENDPOINT}payment-intent/`, body);
   return data;
 }
 
@@ -64,6 +56,13 @@ export async function getPayment(id: number): Promise<Payment> {
   return data;
 }
 
+export async function downloadPaymentReceipt(paymentId: number): Promise<Blob> {
+  const { data } = await api.get<Blob>(`${PAYMENTS_ENDPOINT}${paymentId}/receipt/`, {
+    responseType: "blob",
+  });
+  return data;
+}
+
 export async function getOrders(page = 1): Promise<OrderList> {
   const { data } = await api.get<OrderList>(ORDERS_ENDPOINT, {
     params: { page, page_size: 100 },
@@ -73,6 +72,13 @@ export async function getOrders(page = 1): Promise<OrderList> {
 
 export async function getOrder(id: number): Promise<Order> {
   const { data } = await api.get<Order>(`${ORDERS_ENDPOINT}${id}/`);
+  return data;
+}
+
+export async function downloadOrderInvoice(orderId: number): Promise<Blob> {
+  const { data } = await api.get<Blob>(`${ORDERS_ENDPOINT}${orderId}/invoice/`, {
+    responseType: "blob",
+  });
   return data;
 }
 

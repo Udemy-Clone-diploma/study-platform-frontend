@@ -1,14 +1,53 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
-import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
+import Image from "next/image";
+import {
+  CardCvcElement,
+  CardExpiryElement,
+  CardNumberElement,
+  Elements,
+  useElements,
+  useStripe,
+} from "@stripe/react-stripe-js";
 import { loadStripe, type StripeElementsOptions } from "@stripe/stripe-js";
-import { ArrowLeft, Download } from "lucide-react";
-import type { PaymentIntent, PaymentType } from "@/entities/payment";
+import { ArrowLeft } from "lucide-react";
+import { downloadOrderInvoice, type PaymentIntent, type PaymentType } from "@/entities/payment";
 import { PaymentCourseCard } from "./PaymentCourseCard";
 
 const stripePublishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "";
 const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : null;
+
+type CardFieldName = "number" | "expiry" | "cvc";
+
+const CARD_FIELD_ERROR_MESSAGE: Record<CardFieldName, string> = {
+  number: "*error",
+  expiry: "*error",
+  cvc: "*error",
+};
+
+const CARD_ELEMENT_STYLE = {
+  style: {
+    base: {
+      color: "#121212",
+      fontFamily: "Arial, ui-sans-serif, system-ui, sans-serif",
+      fontSize: "16px",
+      lineHeight: "20px",
+      "::placeholder": {
+        color: "#A3A3A3",
+      },
+    },
+    invalid: {
+      color: "#D62E2E",
+    },
+  },
+};
+
+const CARD_NUMBER_ELEMENT_OPTIONS = {
+  ...CARD_ELEMENT_STYLE,
+  showIcon: true,
+  iconStyle: "solid" as const,
+};
 
 type StripePaymentFormProps = {
   intent: PaymentIntent;
@@ -60,25 +99,111 @@ function StripePaymentElementForm({
   const elements = useElements();
   const [error, setError] = useState("");
   const [processing, setProcessing] = useState(false);
+  const [invoiceLoading, setInvoiceLoading] = useState(false);
+  const [invoiceError, setInvoiceError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<CardFieldName, string>>({
+    number: "",
+    expiry: "",
+    cvc: "",
+  });
+  const [fieldComplete, setFieldComplete] = useState<Record<CardFieldName, boolean>>({
+    number: false,
+    expiry: false,
+    cvc: false,
+  });
+
+  function handleCardFieldChange(
+    field: CardFieldName,
+    event: { complete: boolean; error?: { message?: string } },
+  ) {
+    setFieldComplete((current) => ({ ...current, [field]: event.complete }));
+    setFieldErrors((current) => ({
+      ...current,
+      [field]: event.error ? CARD_FIELD_ERROR_MESSAGE[field] : "",
+    }));
+  }
+
+  async function handleInvoiceDownload() {
+    if (invoiceLoading) return;
+
+    setInvoiceLoading(true);
+    setInvoiceError("");
+
+    try {
+      const invoice = await downloadOrderInvoice(intent.order_id);
+      const url = window.URL.createObjectURL(invoice);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `invoice-${intent.order_id}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => window.URL.revokeObjectURL(url), 0);
+    } catch {
+      setInvoiceError("Could not download invoice.");
+    } finally {
+      setInvoiceLoading(false);
+    }
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!stripe || !elements || processing) return;
+
+    const cardNumber = elements.getElement(CardNumberElement);
+    if (!cardNumber) {
+      const message = "Card fields are unavailable. Please try again.";
+      setError(message);
+      onPaymentError?.(message);
+      return;
+    }
+
+    const incompleteFields = (Object.keys(fieldComplete) as CardFieldName[]).filter(
+      (field) => !fieldComplete[field],
+    );
+    if (incompleteFields.length > 0) {
+      setFieldErrors((current) => {
+        const next = { ...current };
+        incompleteFields.forEach((field) => {
+          next[field] = CARD_FIELD_ERROR_MESSAGE[field];
+        });
+        return next;
+      });
+      return;
+    }
 
     setProcessing(true);
     setError("");
     onPaymentStarted?.();
 
     const returnUrl = successUrl(intent);
-    const result = await stripe.confirmPayment({
-      elements,
-      confirmParams: { return_url: returnUrl },
+    const result = await stripe.confirmCardPayment(intent.client_secret, {
+      payment_method: { card: cardNumber },
+      return_url: returnUrl,
     });
 
     if (result.error) {
       const message = result.error.message || "Payment was not completed.";
-      setError(message);
-      onPaymentError?.(message);
+      const cardFieldByErrorCode: Partial<Record<string, CardFieldName>> = {
+        incomplete_number: "number",
+        invalid_number: "number",
+        incomplete_expiry: "expiry",
+        invalid_expiry: "expiry",
+        expired_card: "expiry",
+        incomplete_cvc: "cvc",
+        invalid_cvc: "cvc",
+        incorrect_cvc: "cvc",
+      };
+      const field = result.error.code ? cardFieldByErrorCode[result.error.code] : undefined;
+      if (field) {
+        setFieldErrors((current) => ({
+          ...current,
+          [field]: CARD_FIELD_ERROR_MESSAGE[field],
+        }));
+      } else {
+        setError(message);
+        onPaymentError?.(message);
+      }
       setProcessing(false);
       return;
     }
@@ -94,38 +219,46 @@ function StripePaymentElementForm({
             type="button"
             onClick={onCancel}
             disabled={processing}
-            className="inline-flex h-8 items-center gap-2 text-[18px] leading-none text-[#121212] transition-colors hover:text-[#003AFF] disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex h-[25px] items-center gap-2 font-(family-name:--font-base) text-[20px] leading-5 font-semibold text-[#121212] transition-colors hover:text-[#003AFF] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            <ArrowLeft size={16} aria-hidden="true" />
+            <ArrowLeft size={20} aria-hidden="true" />
             Go back
           </button>
         ) : null}
       </div>
 
       <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <button
-          type="button"
-          disabled
-          title="Invoice download is not available for unpaid orders yet."
-          className="inline-flex h-8 w-full max-w-[496px] items-center gap-2 rounded-full bg-[#F1F4FF] px-4 font-mono text-[12px] uppercase text-[#121212] disabled:cursor-not-allowed"
-        >
-          Download invoice
-          <Download size={12} aria-hidden="true" />
-        </button>
+        <div>
+          <button
+            type="button"
+            onClick={handleInvoiceDownload}
+            disabled={invoiceLoading}
+            title="Download invoice for this order."
+            className="inline-flex h-10 w-fit items-center gap-2.5 rounded-[20px] bg-[#D6E0FF] px-5 font-(family-name:--font-accent) text-[16px] leading-5 font-medium uppercase text-[#121212] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {invoiceLoading ? "Downloading..." : "Download invoice"}
+            <Image src="/icons/download.svg" alt="" aria-hidden="true" width={20} height={20} />
+          </button>
+          {invoiceError ? (
+            <p role="alert" className="mt-1 text-[12px] leading-4 text-[#B42318]">
+              {invoiceError}
+            </p>
+          ) : null}
+        </div>
 
-        <div className="inline-flex h-9 w-fit rounded-full border border-[#003AFF] bg-white p-0.5 font-mono text-[12px] uppercase text-[#121212]">
+        <div className="inline-flex h-10 w-[340px] gap-2.5 overflow-hidden rounded-[20px] border border-[#003AFF] bg-white font-(family-name:--font-accent) text-[16px] leading-5 font-medium uppercase text-[#121212]">
           <span
             className={[
-              "inline-flex min-w-[132px] items-center justify-center rounded-full px-4",
-              paymentType === "full" ? "bg-(--color-brand-lavender-soft)" : "",
+              "inline-flex h-full shrink-0 items-center justify-center rounded-[20px] px-5",
+              paymentType === "full" ? "bg-[#D6E0FF]" : "",
             ].join(" ")}
           >
             Full payment
           </span>
           <span
             className={[
-              "inline-flex min-w-[150px] items-center justify-center rounded-full px-4",
-              paymentType === "installments" ? "bg-(--color-brand-lavender-soft)" : "",
+              "inline-flex h-full min-w-0 flex-1 items-center justify-center rounded-[20px] px-2",
+              paymentType === "installments" ? "bg-[#D6E0FF]" : "",
             ].join(" ")}
           >
             Partial payment
@@ -135,9 +268,7 @@ function StripePaymentElementForm({
 
       <div className="grid flex-1 grid-cols-1 gap-8 md:grid-cols-[365px_490px] md:gap-[94px]">
         <section className="flex min-w-0 flex-col">
-          <h3 className="mb-4 text-[20px] leading-6 font-normal text-[#121212]">
-            Order summary
-          </h3>
+          <h3 className="mb-4 text-[20px] leading-6 font-normal text-[#121212]">Order summary</h3>
 
           <div className="mb-4 flex max-h-[180px] w-full max-w-[365px] flex-col gap-2 overflow-y-auto pr-1">
             {summary.courses.map((course) => (
@@ -157,9 +288,7 @@ function StripePaymentElementForm({
           </div>
 
           {paymentType === "installments" ? (
-            <p className="mb-4 text-[11px] text-[#6A6A6A]">
-              Full order total: {summary.total}
-            </p>
+            <p className="mb-4 text-[11px] text-[#6A6A6A]">Full order total: {summary.total}</p>
           ) : null}
 
           <p className="mb-5 max-w-[365px] text-[11px] leading-[14px] text-[#121212]">
@@ -182,27 +311,88 @@ function StripePaymentElementForm({
         </section>
 
         <section className="min-w-0 justify-self-start md:w-full md:max-w-[490px]">
-          <h3 className="mb-5 text-[20px] leading-6 font-normal text-[#121212]">
-            Payment method
-          </h3>
+          <h3 className="mb-5 text-[20px] leading-6 font-normal text-[#121212]">Payment method</h3>
 
           <div className="w-full max-w-[490px]">
-            <PaymentElement
-              options={{
-                layout: "tabs",
-                fields: {
-                  billingDetails: {
-                    address: "if_required",
-                  },
-                },
-                terms: {
-                  card: "never",
-                },
-                wallets: {
-                  link: "never",
-                },
-              }}
-            />
+            <div>
+              <label
+                className="mb-1 block text-[14px] leading-5 text-[#6A6A6A]"
+                htmlFor="card-number"
+              >
+                Card number
+              </label>
+              <div
+                className={`flex h-10 items-center rounded-md border px-3 transition-colors ${
+                  fieldErrors.number ? "border-[#D62E2E]" : "border-[#DCE5FF]"
+                }`}
+              >
+                <CardNumberElement
+                  id="card-number"
+                  className="w-full"
+                  options={CARD_NUMBER_ELEMENT_OPTIONS}
+                  onChange={(event) => handleCardFieldChange("number", event)}
+                />
+              </div>
+              {fieldErrors.number ? (
+                <p role="alert" className="mt-1 text-[12px] leading-4 text-[#D62E2E]">
+                  {fieldErrors.number}
+                </p>
+              ) : null}
+            </div>
+
+            <div className="mt-4 grid grid-cols-2 gap-4">
+              <div>
+                <label
+                  className="mb-1 block font-(family-name:--font-base) text-[16px] leading-5 font-semibold text-[#5E5E5E]"
+                  htmlFor="card-expiry"
+                >
+                  Expiry
+                </label>
+                <div
+                  className={`flex h-10 items-center rounded-md border px-3 transition-colors ${
+                    fieldErrors.expiry ? "border-[#D62E2E]" : "border-[#DCE5FF]"
+                  }`}
+                >
+                  <CardExpiryElement
+                    id="card-expiry"
+                    className="w-full"
+                    options={CARD_ELEMENT_STYLE}
+                    onChange={(event) => handleCardFieldChange("expiry", event)}
+                  />
+                </div>
+                {fieldErrors.expiry ? (
+                  <p role="alert" className="mt-1 text-[12px] leading-4 text-[#D62E2E]">
+                    {fieldErrors.expiry}
+                  </p>
+                ) : null}
+              </div>
+
+              <div>
+                <label
+                  className="mb-1 block text-[14px] leading-5 text-[#6A6A6A]"
+                  htmlFor="card-cvc"
+                >
+                  CVC
+                </label>
+                <div
+                  className={`flex h-10 items-center rounded-md border px-3 transition-colors ${
+                    fieldErrors.cvc ? "border-[#D62E2E]" : "border-[#DCE5FF]"
+                  }`}
+                >
+                  <CardCvcElement
+                    id="card-cvc"
+                    className="w-full"
+                    options={CARD_ELEMENT_STYLE}
+                    onChange={(event) => handleCardFieldChange("cvc", event)}
+                  />
+                </div>
+                {fieldErrors.cvc ? (
+                  <p role="alert" className="mt-1 text-[12px] leading-4 text-[#D62E2E]">
+                    {fieldErrors.cvc}
+                  </p>
+                ) : null}
+              </div>
+            </div>
           </div>
         </section>
       </div>

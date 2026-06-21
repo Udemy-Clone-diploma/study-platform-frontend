@@ -3,7 +3,7 @@ import { API_BASE_URL } from "@/shared/api/config/baseUrl";
 import { getAccessToken } from "@/shared/api/authCookies";
 import type { Category } from "../model/category";
 import type { CourseCohort } from "../model/cohort";
-import type { LessonDetail } from "../model/module";
+import type { CourseLesson } from "../model/module";
 import type { PricingPlan } from "../model/pricing";
 import type { CourseReview } from "../model/review";
 import type { CourseCompletion } from "../model/completion";
@@ -106,8 +106,8 @@ export async function getPopularCourses(): Promise<CourseListItem[]> {
  * Backend returns 403 if the user is not allowed and 404 if the lesson is
  * missing or in a different course's slug.
  */
-export async function getLesson(slug: string, lessonId: number): Promise<LessonDetail> {
-  const { data } = await api.get<LessonDetail>(
+export async function getLesson(slug: string, lessonId: number): Promise<CourseLesson> {
+  const { data } = await api.get<CourseLesson>(
     `${COURSES}${slug}/lessons/${lessonId}/`,
   );
   return data;

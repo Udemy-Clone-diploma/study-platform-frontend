@@ -5,8 +5,6 @@ import { ModalShell } from "@/shared/ui/ModalShell";
 import { getCourseBySlug } from "@/entities/course";
 import type { ApprovedCourseRecord, CourseDetail } from "@/entities/course";
 
-// ── helpers ────────────────────────────────────────────────────────────────────
-
 const bf = "var(--font-base)";
 const af = "var(--font-accent)";
 
@@ -14,9 +12,6 @@ function fmt(iso: string) {
   return new Date(iso).toLocaleDateString("en-GB");
 }
 
-// ── sub-components ─────────────────────────────────────────────────────────────
-
-/** Green-bordered comment box: project font/color tokens, auto height, readonly. */
 function CommentBox({ text }: { text: string }) {
   if (!text) return null;
   return (
@@ -83,8 +78,6 @@ function FieldRow({ label, value, multiline }: { label: string; value: string; m
   );
 }
 
-// ── component ──────────────────────────────────────────────────────────────────
-
 type Props = {
   record: ApprovedCourseRecord;
   onClose: () => void;
@@ -107,7 +100,6 @@ export function CourseInfoModal({ record, onClose }: Props) {
     <ModalShell onClose={onClose} title={record.course_title} width="clamp(480px, 60vw, 860px)">
       <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
 
-        {/* ── Status header ─────────────────────────────────────── */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, paddingBottom: 4 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/icons/yes.svg" alt="approved" style={{ width: 40, height: 40 }} />
@@ -121,7 +113,6 @@ export function CourseInfoModal({ record, onClose }: Props) {
           </span>
         </div>
 
-        {/* ── Meta ──────────────────────────────────────────────── */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
           <span style={{ fontFamily: bf, fontSize: 13, color: "var(--color-text-secondary)" }}>
             Created: {detail ? fmt(detail.created_at) : "—"}&nbsp;·&nbsp;Approved: {fmt(record.approved_at)}
@@ -136,7 +127,6 @@ export function CourseInfoModal({ record, onClose }: Props) {
           )}
         </div>
 
-        {/* ── Basics ────────────────────────────────────────────── */}
         <Section title="Basics">
           <div style={{ display: "flex", flexDirection: "column" }}>
             <FieldRow label="Title"             value={detail?.title           ?? record.course_title} />
@@ -160,7 +150,6 @@ export function CourseInfoModal({ record, onClose }: Props) {
           </div>
         </Section>
 
-        {/* ── Content ───────────────────────────────────────────── */}
         {modules.length > 0 && (
           <Section title="Content">
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -173,11 +162,6 @@ export function CourseInfoModal({ record, onClose }: Props) {
                     {mod.lessons.map((l) => (
                       <span key={l.id} style={{ fontFamily: bf, fontSize: 13, color: "var(--color-text-secondary)" }}>
                         ▸ {l.title}
-                      </span>
-                    ))}
-                    {(mod.tests ?? []).map((t) => (
-                      <span key={t.id} style={{ fontFamily: bf, fontSize: 13, color: "var(--color-text-secondary)" }}>
-                        ✓ {t.title}
                       </span>
                     ))}
                   </div>

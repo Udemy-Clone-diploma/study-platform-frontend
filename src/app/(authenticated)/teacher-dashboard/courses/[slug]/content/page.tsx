@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { Plus, ArrowUpRight } from "lucide-react";
@@ -12,20 +12,16 @@ import {
   createLesson,
   updateLesson,
   deleteLesson,
-  createTest,
-  updateTest,
-  deleteTest,
-  createQuestion,
-  updateQuestion,
-  deleteQuestion,
+  updateCourse,
   getPendingEdit,
   savePendingEditModules,
+  savePendingEditMetadata,
   discardPendingEdit,
   nextTempId,
   uploadLessonDocument,
   deleteLessonDocument,
 } from "@/entities/course";
-import type { CourseDetail, CourseModule, CourseLesson, CourseTest, ModerationReview } from "@/entities/course";
+import type { CourseDetail, CourseModule, CourseLesson, ModerationReview } from "@/entities/course";
 import type { SnapshotModule, SnapshotQuestion } from "@/entities/course";
 import {
   CourseCreationLayout,
@@ -34,16 +30,17 @@ import {
   ModuleCard,
   ModuleFormModal,
   LessonFormModal,
-  TestFormModal,
   ModeratorNoteBanner,
 } from "@/features/courses";
-import type { LessonFormValues, TestFormValues, TestQuestion } from "@/features/courses";
+import type { LessonFormValues } from "@/features/courses";
 import { AccentButton } from "@/shared/ui/AccentButton";
 import { GradientButton } from "@/shared/ui/GradientButton";
 import { SectionCard } from "@/shared/ui/SectionCard";
 import { WhiteButton } from "@/shared/ui/WhiteButton";
 
 const PUBLISHED_STATUSES = new Set(["published", "hidden"]);
+
+type ItemsBaseline = Array<{ id: number; item_type: string; content: string; video_url: string | null }> | undefined;
 
 type ModalState =
   | { open: false }
@@ -55,13 +52,6 @@ type LessonModalState =
   | { open: true; mode: "add"; moduleId: number }
   | { open: true; mode: "edit"; moduleId: number; lesson: CourseLesson };
 
-type TestModalState =
-  | { open: false }
-  | { open: true; mode: "add"; moduleId: number }
-  | { open: true; mode: "edit"; moduleId: number; testId: number; initialValues: Partial<TestFormValues> & { questions: TestQuestion[] } };
-
-// ── helpers to convert SnapshotModule ↔ CourseModule ─────────────────────
-
 function snapshotToCourseModule(s: SnapshotModule): CourseModule {
   return {
     id: s.id ?? 0,
@@ -71,8 +61,6 @@ function snapshotToCourseModule(s: SnapshotModule): CourseModule {
     lessons: s.lessons.map((l) => ({
       id: l.id ?? 0,
       title: l.title,
-      content: l.content,
-      video_url: l.video_url ?? undefined,
       duration_minutes: l.duration_minutes,
       min_score: l.min_score,
       is_preview: l.is_preview,
@@ -107,13 +95,9 @@ function courseModuleToSnapshot(m: CourseModule): SnapshotModule {
     lessons: m.lessons.map((l) => ({
       id: l.id > 0 ? l.id : null,
       title: l.title,
-      content: l.content ?? "",
-      video_url: l.video_url ?? null,
-      body_html: "",
       duration_minutes: l.duration_minutes ?? null,
       min_score: l.min_score ?? null,
       is_preview: l.is_preview,
-      content_type: "text",
       order: l.order,
     })),
     tests: m.tests.map((t) => ({
@@ -149,7 +133,10 @@ export default function CourseContentPage() {
 
   const [modal, setModal] = useState<ModalState>({ open: false });
   const [lessonModal, setLessonModal] = useState<LessonModalState>({ open: false });
-  const [testModal, setTestModal] = useState<TestModalState>({ open: false });
+
+  // Baseline items_snapshot per lesson ID from when the pending edit was created.
+  // Never mutated after initial load — used to detect item changes during moderation.
+  const originalItemsRef = useRef<Map<number, ItemsBaseline>>(new Map());
 
   useEffect(() => {
     if (!slug) return;
@@ -162,7 +149,30 @@ export default function CourseContentPage() {
         if (isPublished) {
           const pe = await getPendingEdit(slug);
           setIsLocked(pe.status === "pending");
-          setModuleList(pe.modules_snapshot.map(snapshotToCourseModule));
+          if (c.moderation_review) setModerationReview(c.moderation_review);
+          // Capture the original items_snapshot baseline once at load time.
+          originalItemsRef.current = new Map(
+            pe.modules_snapshot.flatMap((m) =>
+              m.lessons
+                .filter((l) => l.id !== null)
+                .map((l) => [l.id as number, l.items_snapshot]),
+            ),
+          );
+          const actualLessonsById = new Map<number, CourseLesson>(
+            (Array.isArray(c.modules) ? c.modules : []).flatMap((m) => m.lessons).map((l) => [l.id, l]),
+          );
+          setModuleList(
+            pe.modules_snapshot.map((s) => {
+              const mod = snapshotToCourseModule(s);
+              return {
+                ...mod,
+                lessons: mod.lessons.map((l) => {
+                  const actual = l.id > 0 ? actualLessonsById.get(l.id) : undefined;
+                  return actual ? { ...l, items: actual.items ?? [] } : l;
+                }),
+              };
+            }),
+          );
         } else {
           setModuleList(Array.isArray(c.modules) ? c.modules : []);
           if (c.moderation_review) setModerationReview(c.moderation_review);
@@ -171,21 +181,46 @@ export default function CourseContentPage() {
       .catch(() => {});
   }, [slug]);
 
-  /** Persist the current moduleList as the pending edit snapshot. */
+  /** Persist the current moduleList as the pending edit snapshot.
+   *  Restores the original items_snapshot baseline for each existing lesson
+   *  so the moderator can always compare against the pre-edit state. */
   const flushSnapshot = useCallback(
     async (modules: CourseModule[]) => {
       if (!slug) return;
-      const snapshot = modules.map(courseModuleToSnapshot);
+      const snapshot = modules.map((m) => {
+        const base = courseModuleToSnapshot(m);
+        return {
+          ...base,
+          lessons: base.lessons.map((sl) => ({
+            ...sl,
+            items_snapshot: sl.id != null && sl.id > 0
+              ? originalItemsRef.current.get(sl.id)
+              : undefined,
+          })),
+        };
+      });
       await savePendingEditModules(slug, snapshot);
     },
     [slug],
   );
 
+  async function syncCourseDuration(modules: CourseModule[]) {
+    if (!slug) return;
+    const totalMin = modules.flatMap((m) => m.lessons).reduce((s, l) => s + (l.duration_minutes ?? 0), 0);
+    if (totalMin <= 0) return;
+    const hours = Math.max(1, Math.ceil(totalMin / 60));
+    try {
+      if (isPendingEditMode) {
+        await savePendingEditMetadata(slug, { duration_hours: hours });
+      } else {
+        await updateCourse(slug, { duration_hours: hours });
+      }
+    } catch { /* best-effort */ }
+  }
+
   const title = course?.title || "Untitled Course";
   const hasModules = moduleList.length > 0;
   const hasLesson = moduleList.some((m) => m.lessons.length > 0);
-
-  // ── Module handlers ───────────────────────────────────────────────────
 
   function openAddModal() { setModal({ open: true, mode: "add" }); }
   function openEditModal(mod: CourseModule) { setModal({ open: true, mode: "edit", moduleId: mod.id, initialTitle: mod.title }); }
@@ -224,9 +259,12 @@ export default function CourseContentPage() {
       const updated = moduleList.filter((m) => m.id !== moduleId);
       setModuleList(updated);
       await flushSnapshot(updated);
+      void syncCourseDuration(updated);
     } else {
       await deleteModule(slug, moduleId);
-      setModuleList((prev) => prev.filter((m) => m.id !== moduleId));
+      const updatedModules = moduleList.filter((m) => m.id !== moduleId);
+      setModuleList(updatedModules);
+      void syncCourseDuration(updatedModules);
     }
   }
 
@@ -268,8 +306,6 @@ export default function CourseContentPage() {
     const scoreNum = values.min_score ? parseInt(values.min_score, 10) : null;
     const payload = {
       title: values.title.trim(),
-      ...(values.content.trim() ? { content: values.content.trim() } : {}),
-      ...(values.video_file ? { video: values.video_file } : {}),
       ...(durNum !== null && !isNaN(durNum) ? { duration_minutes: durNum } : {}),
       ...(scoreNum !== null && !isNaN(scoreNum) ? { min_score: scoreNum } : {}),
     };
@@ -280,8 +316,6 @@ export default function CourseContentPage() {
         const newLesson: CourseLesson = {
           id: nextTempId(),
           title: payload.title,
-          content: values.content.trim(),
-          video_url: undefined,
           duration_minutes: durNum,
           min_score: scoreNum,
           is_preview: false,
@@ -297,7 +331,7 @@ export default function CourseContentPage() {
                 ...m,
                 lessons: m.lessons.map((l) =>
                   l.id === lessonId
-                    ? { ...l, title: payload.title, content: values.content.trim(), duration_minutes: durNum, min_score: scoreNum }
+                    ? { ...l, title: payload.title, duration_minutes: durNum, min_score: scoreNum }
                     : l,
                 ),
               }
@@ -307,23 +341,29 @@ export default function CourseContentPage() {
       } else return;
       setModuleList(updated);
       await flushSnapshot(updated);
+      void syncCourseDuration(updated);
     } else {
       if (mode === "add") {
         const newLesson = await createLesson(slug, moduleId, payload);
-        setModuleList((prev) =>
-          prev.map((m) => m.id === moduleId ? { ...m, lessons: [...m.lessons, newLesson] } : m),
+        const updatedModules = moduleList.map((m) =>
+          m.id === moduleId ? { ...m, lessons: [...m.lessons, newLesson] } : m,
         );
+        setModuleList(updatedModules);
         await _syncDocuments(moduleId, newLesson.id, values);
+        void syncCourseDuration(updatedModules);
+        // Switch to edit mode so the user can immediately add content blocks
+        setLessonModal({ open: true, mode: "edit", moduleId, lesson: { ...newLesson, items: [] } });
+        return;
       } else if (lessonId !== null) {
         const updated = await updateLesson(slug, moduleId, lessonId, payload);
-        setModuleList((prev) =>
-          prev.map((m) =>
-            m.id === moduleId
-              ? { ...m, lessons: m.lessons.map((l) => (l.id === updated.id ? updated : l)) }
-              : m,
-          ),
+        const updatedModules = moduleList.map((m) =>
+          m.id === moduleId
+            ? { ...m, lessons: m.lessons.map((l) => (l.id === updated.id ? updated : l)) }
+            : m,
         );
+        setModuleList(updatedModules);
         await _syncDocuments(moduleId, lessonId, values);
+        void syncCourseDuration(updatedModules);
       }
     }
     closeLessonModal();
@@ -337,144 +377,14 @@ export default function CourseContentPage() {
       );
       setModuleList(updated);
       await flushSnapshot(updated);
+      void syncCourseDuration(updated);
     } else {
       await deleteLesson(slug, moduleId, lessonId);
-      setModuleList((prev) =>
-        prev.map((m) =>
-          m.id === moduleId ? { ...m, lessons: m.lessons.filter((l) => l.id !== lessonId) } : m,
-        ),
+      const updatedModules = moduleList.map((m) =>
+        m.id === moduleId ? { ...m, lessons: m.lessons.filter((l) => l.id !== lessonId) } : m,
       );
-    }
-  }
-
-  // ── Test handlers ─────────────────────────────────────────────────────
-
-  function openAddTestModal(moduleId: number) { setTestModal({ open: true, mode: "add", moduleId }); }
-  function closeTestModal() { setTestModal({ open: false }); }
-
-  function openEditTestModal(moduleId: number, test: CourseTest) {
-    const questions: TestQuestion[] = test.questions.map((q) => ({
-      _key: String(q.id),
-      id: q.id,
-      type: q.question_type,
-      text: q.text,
-      options: (q.options.length === 4 ? q.options : [...q.options, "", "", "", ""].slice(0, 4)) as [string, string, string, string],
-      correct_index: q.correct_index ?? 0,
-      correct_bool: q.correct_bool ?? true,
-      sample_answer: q.sample_answer ?? "",
-    }));
-    setTestModal({ open: true, mode: "edit", moduleId, testId: test.id, initialValues: { title: test.title, description: test.description, passing_score: String(test.passing_score), questions } });
-  }
-
-  function buildQuestionPayload(q: TestQuestion) {
-    return {
-      question_type: q.type,
-      text: q.text,
-      options: q.type === "multiple_choice" ? q.options : undefined,
-      correct_index: q.type === "multiple_choice" ? q.correct_index : undefined,
-      correct_bool: q.type === "true_false" ? q.correct_bool : undefined,
-      sample_answer: q.type === "short_answer" ? q.sample_answer : undefined,
-    };
-  }
-
-  async function handleSaveTest(values: TestFormValues) {
-    if (!slug || !testModal.open) return;
-    const { moduleId } = testModal;
-
-    if (isPendingEditMode) {
-      const testId = testModal.mode === "edit" ? testModal.testId : nextTempId();
-      const newTest: CourseTest = {
-        id: testId,
-        title: values.title.trim(),
-        description: values.description.trim(),
-        passing_score: values.passing_score ? parseInt(values.passing_score, 10) : 70,
-        order: testModal.mode === "add"
-          ? (moduleList.find((m) => m.id === moduleId)?.tests?.length ?? 0) + 1
-          : (moduleList.find((m) => m.id === moduleId)?.tests?.find((t) => t.id === testId)?.order ?? 1),
-        questions: values.questions.map((q, i) => ({
-          id: q.id ?? nextTempId(),
-          question_type: q.type,
-          text: q.text,
-          options: q.options,
-          correct_index: q.correct_index,
-          correct_bool: q.correct_bool,
-          sample_answer: q.sample_answer ?? "",
-          order: i + 1,
-        })),
-      };
-      let updated: CourseModule[];
-      if (testModal.mode === "add") {
-        updated = moduleList.map((m) =>
-          m.id === moduleId ? { ...m, tests: [...(m.tests ?? []), newTest] } : m,
-        );
-      } else {
-        updated = moduleList.map((m) =>
-          m.id === moduleId
-            ? { ...m, tests: (m.tests ?? []).map((t) => (t.id === testModal.testId ? newTest : t)) }
-            : m,
-        );
-      }
-      setModuleList(updated);
-      await flushSnapshot(updated);
-    } else {
-      if (testModal.mode === "add") {
-        const test = await createTest(slug, moduleId, {
-          title: values.title.trim(),
-          description: values.description.trim() || undefined,
-          passing_score: values.passing_score ? parseInt(values.passing_score, 10) : undefined,
-        });
-        const savedQuestions = await Promise.all(
-          values.questions.map((q) => createQuestion(slug, moduleId, test.id, buildQuestionPayload(q))),
-        );
-        setModuleList((prev) =>
-          prev.map((m) => m.id === moduleId ? { ...m, tests: [...(m.tests ?? []), { ...test, questions: savedQuestions }] } : m),
-        );
-      } else {
-        const { testId } = testModal;
-        const updatedTest = await updateTest(slug, moduleId, testId, {
-          title: values.title.trim(),
-          description: values.description.trim() || undefined,
-          passing_score: values.passing_score ? parseInt(values.passing_score, 10) : undefined,
-        });
-        const originalIds = new Set(testModal.initialValues.questions.map((q) => q.id).filter(Boolean) as number[]);
-        const keptIds = new Set(values.questions.map((q) => q.id).filter(Boolean) as number[]);
-        for (const id of originalIds) {
-          if (!keptIds.has(id)) await deleteQuestion(slug, moduleId, testId, id);
-        }
-        const savedQuestions = await Promise.all(
-          values.questions.map((q) =>
-            q.id
-              ? updateQuestion(slug, moduleId, testId, q.id, buildQuestionPayload(q))
-              : createQuestion(slug, moduleId, testId, buildQuestionPayload(q)),
-          ),
-        );
-        setModuleList((prev) =>
-          prev.map((m) =>
-            m.id === moduleId
-              ? { ...m, tests: (m.tests ?? []).map((t) => t.id === testId ? { ...updatedTest, questions: savedQuestions } : t) }
-              : m,
-          ),
-        );
-      }
-    }
-    closeTestModal();
-  }
-
-  async function handleDeleteTest(moduleId: number, testId: number) {
-    if (!slug) return;
-    if (isPendingEditMode) {
-      const updated = moduleList.map((m) =>
-        m.id === moduleId ? { ...m, tests: (m.tests ?? []).filter((t) => t.id !== testId) } : m,
-      );
-      setModuleList(updated);
-      await flushSnapshot(updated);
-    } else {
-      await deleteTest(slug, moduleId, testId);
-      setModuleList((prev) =>
-        prev.map((m) =>
-          m.id === moduleId ? { ...m, tests: (m.tests ?? []).filter((t) => t.id !== testId) } : m,
-        ),
-      );
+      setModuleList(updatedModules);
+      void syncCourseDuration(updatedModules);
     }
   }
 
@@ -592,9 +502,6 @@ export default function CourseContentPage() {
                     onAddLesson={isLocked ? () => {} : () => openAddLessonModal(mod.id)}
                     onEditLesson={isLocked ? () => {} : (lesson) => openEditLessonModal(mod.id, lesson)}
                     onDeleteLesson={isLocked ? () => {} : (lessonId) => handleDeleteLesson(mod.id, lessonId)}
-                    onAddTest={isLocked ? undefined : () => openAddTestModal(mod.id)}
-                    onEditTest={isLocked ? undefined : (test) => openEditTestModal(mod.id, test)}
-                    onDeleteTest={isLocked ? undefined : (testId) => handleDeleteTest(mod.id, testId)}
                     itemStatuses={moderationReview?.content_item_statuses}
                   />
                 ))}
@@ -674,31 +581,34 @@ export default function CourseContentPage() {
         />
       )}
 
-      {testModal.open && (
-        <TestFormModal
-          mode={testModal.mode}
-          initialValues={testModal.mode === "edit" ? testModal.initialValues : undefined}
-          onClose={closeTestModal}
-          onSave={handleSaveTest}
-        />
-      )}
-
       {lessonModal.open && (
         <LessonFormModal
+          key={lessonModal.mode === "edit" ? lessonModal.lesson.id : "add"}
           mode={lessonModal.mode}
           initialValues={lessonModal.mode === "edit" ? {
             title: lessonModal.lesson.title,
-            content: lessonModal.lesson.content ?? "",
-            video_url: lessonModal.lesson.video_url ?? undefined,
-            original_video_name: lessonModal.lesson.original_video_name,
             duration_minutes: lessonModal.lesson.duration_minutes != null ? String(lessonModal.lesson.duration_minutes) : "",
             min_score: lessonModal.lesson.min_score != null ? String(lessonModal.lesson.min_score) : "",
             existing_documents: lessonModal.lesson.documents ?? [],
             new_documents: [],
             deleted_document_ids: [],
+            items: lessonModal.lesson.items ?? [],
           } : undefined}
+          courseSlug={lessonModal.mode === "edit" ? slug : undefined}
+          moduleId={lessonModal.mode === "edit" ? lessonModal.moduleId : undefined}
+          lessonId={lessonModal.mode === "edit" ? lessonModal.lesson.id : undefined}
           onClose={closeLessonModal}
           onSave={handleSaveLesson}
+          onItemsChange={lessonModal.mode === "edit" ? (items) => {
+            const { moduleId, lesson } = lessonModal;
+            setModuleList((prev) =>
+              prev.map((m) =>
+                m.id === moduleId
+                  ? { ...m, lessons: m.lessons.map((l) => l.id === lesson.id ? { ...l, items } : l) }
+                  : m,
+              ),
+            );
+          } : undefined}
         />
       )}
     </CourseCreationLayout>

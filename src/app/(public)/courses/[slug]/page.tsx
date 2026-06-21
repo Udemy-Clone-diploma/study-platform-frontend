@@ -1,8 +1,30 @@
 import { notFound } from "next/navigation";
-import { getCourseBySlug, getCourseReviews } from "@/entities/course";
+import { getCourseBySlug, getCourseReviews, getEnrolledCourses } from "@/entities/course";
+import { getAccessToken } from "@/shared/api/authCookies";
 import { CourseDetailView } from "@/widgets/course-detail";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
+
+async function isCurrentUserEnrolledInCourse(
+  slug: string,
+  accessToken: string,
+): Promise<boolean> {
+  let page = 1;
+
+  while (true) {
+    const enrolled = await getEnrolledCourses(page, accessToken);
+
+    if (enrolled.results.some((course) => course.slug === slug)) {
+      return true;
+    }
+
+    if (!enrolled.next) {
+      return false;
+    }
+
+    page += 1;
+  }
+}
 
 export default async function CourseDetailPage({
   params,
@@ -20,12 +42,19 @@ export default async function CourseDetailPage({
     }
   }
 
-  const course = await getCourseBySlug(slug).catch(() => null);
+  const accessToken = await getAccessToken();
+  const course = await getCourseBySlug(slug, accessToken).catch(() => null);
   if (!course) notFound();
 
   const reviews = await getCourseReviews(slug)
     .then((page) => page.results)
     .catch(() => []);
 
-  return <CourseDetailView course={course} reviews={reviews} />;
+  const isEnrolled =
+    Boolean(course.is_enrolled) ||
+    (accessToken
+      ? await isCurrentUserEnrolledInCourse(slug, accessToken).catch(() => false)
+      : false);
+
+  return <CourseDetailView course={{ ...course, is_enrolled: isEnrolled }} reviews={reviews} />;
 }

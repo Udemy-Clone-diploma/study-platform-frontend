@@ -6,7 +6,7 @@
   --font-accent: var(--font-source-code-pro), monospace;
 }
 
-@theme { 
+@theme {
   /* ── Brand palette ── */
   --color-brand-lavender: #a7bafa;
   --color-brand-lavender-soft: #d6e0ff;

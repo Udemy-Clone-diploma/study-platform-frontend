@@ -7,6 +7,7 @@ export function CatalogHero() {
         </span>{" "}
         with world-class courses designed for your next career move.
       </h1>
+      
     </section>
   );
 }

@@ -93,7 +93,12 @@ export function CourseHero({ course }: Props) {
           </div>
         </div>
 
-        <CourseHeroCTA slug={course.slug} isEnrolled={course.is_enrolled} />
+        <CourseHeroCTA
+          courseId={course.id}
+          slug={course.slug}
+          isEnrolled={course.is_enrolled}
+          pricingPlans={course.pricing_plans}
+        />
       </div>
 
       <div className="relative mx-auto w-full max-w-[600px] lg:mx-0">

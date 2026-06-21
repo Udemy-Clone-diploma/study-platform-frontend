@@ -1,7 +1,6 @@
 import Image from "next/image";
 import { useRef } from "react";
 import { AccentButton } from "@/shared/ui/AccentButton";
-import { INPUT_STYLE } from "./ProfileField";
 import type { UserData } from "@/entities/user";
 
 export const SOCIAL_ICONS = [

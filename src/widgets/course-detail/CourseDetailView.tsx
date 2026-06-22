@@ -12,7 +12,7 @@ type Props = { course: CourseDetail; reviews: CourseReview[] };
 
 /** Top-level composition for the /courses/[slug] page. */
 export function CourseDetailView({ course, reviews }: Props) {
-  const hasPricingPlans = course.pricing_plans.length > 0;
+  const hasPricingPlans = course.delivery_formats.some(f => f.pricing);
   const cohort = course.cohorts[0] ?? null;
 
   return (
@@ -97,7 +97,7 @@ export function CourseDetailView({ course, reviews }: Props) {
             />
             <CoursePricingBlock
               courseId={course.id}
-              plans={course.pricing_plans}
+              formats={course.delivery_formats}
               slug={course.slug}
             />
           </section>

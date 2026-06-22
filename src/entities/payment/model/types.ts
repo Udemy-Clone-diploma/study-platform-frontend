@@ -1,4 +1,4 @@
-import type { Paginated, PricingPlan } from "@/entities/course";
+import type { DeliveryFormatType, Paginated, PricingPlan } from "@/entities/course";
 
 export type PaymentStatus =
   | "pending"
@@ -31,7 +31,7 @@ export type PaymentItem = {
   pricing_plan_id: number | null;
   course_title: string;
   course_slug: string;
-  pricing_plan_kind: PricingPlan["kind"] | "";
+  pricing_plan_kind: DeliveryFormatType | "";
   unit_amount: string;
   currency: PricingPlan["currency"];
   created_at: string;

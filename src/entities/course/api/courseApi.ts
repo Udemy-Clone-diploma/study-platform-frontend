@@ -4,6 +4,7 @@ import { getAccessToken } from "@/shared/api/authCookies";
 import type { Category } from "../model/category";
 import type { CourseCohort } from "../model/cohort";
 import type { CourseLesson } from "../model/module";
+import type { DeliveryFormatType } from "../model/delivery-format";
 import type { PricingPlan } from "../model/pricing";
 import type { CourseReview } from "../model/review";
 import type { CourseCompletion } from "../model/completion";
@@ -41,7 +42,7 @@ export type CourseListParams = {
   level?: Array<CourseLevel>;
   mode?: Array<CourseMode>;
   ordering?: string;
-  plan_kind?: Array<PricingPlan["kind"]>;
+  format_type?: Array<DeliveryFormatType>;
   price_min?: number;
   price_max?: number;
   rating_min?: string;
@@ -67,7 +68,7 @@ export async function getCourses(filters: CourseListParams = {}): Promise<Pagina
     ...(filters.level?.length ? { level: filters.level.join(",") } : {}),
     ...(filters.mode?.length ? { mode: filters.mode.join(",") } : {}),
     ...(filters.ordering ? { ordering: filters.ordering } : {}),
-    ...(filters.plan_kind?.length ? { plan_kind: filters.plan_kind.join(",") } : {}),
+    ...(filters.format_type?.length ? { format_type: filters.format_type.join(",") } : {}),
     ...(filters.price_min !== undefined ? { price_min: filters.price_min } : {}),
     ...(filters.price_max !== undefined ? { price_max: filters.price_max } : {}),
     ...(filters.rating_min ? { rating_min: filters.rating_min } : {}),

@@ -7,12 +7,6 @@ type Props = {
   lessons_count: number;
 };
 
-const DELIVERY_LABEL: Record<CourseCohort["delivery_mode"], string> = {
-  group: "Group",
-  individual: "Individually",
-  both: "Individually",
-};
-
 /** Right-rail schedule card. Glass panel with a vertical icon list and a start-date footer. */
 export function CourseScheduleCard({ cohort, modules_count, lessons_count }: Props) {
   const startDate = cohort.start_date
@@ -26,12 +20,9 @@ export function CourseScheduleCard({ cohort, modules_count, lessons_count }: Pro
       ? `${cohort.hours_per_week_min} hours per week`
       : `${cohort.hours_per_week_min}-${cohort.hours_per_week_max} hours per week`;
 
-  const formatLabel =
-    cohort.delivery_mode === "both"
-      ? `Group of ${cohort.group_size ?? 0} people | Individually`
-      : cohort.group_size
-        ? `Group of ${cohort.group_size} people`
-        : DELIVERY_LABEL[cohort.delivery_mode];
+  const formatLabel = cohort.group_size
+    ? `Group of ${cohort.group_size} people`
+    : "Group";
 
   return (
     <aside className="flex flex-col gap-8 rounded-xl bg-(--color-white-50) px-4 py-6 shadow-(--shadow-usp-glass) backdrop-blur-md sm:gap-10 sm:py-8">

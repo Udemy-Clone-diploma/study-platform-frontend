@@ -1,4 +1,5 @@
 export * from "./api/courseApi";
+export * from "./api/deliveryFormatApi";
 export * from "./api/moduleApi";
 export * from "./api/lessonApi";
 export * from "./api/lessonItemApi";
@@ -11,6 +12,7 @@ export * from "./model/types";
 export * from "./model/category";
 export * from "./model/completion";
 export * from "./model/cohort";
+export * from "./model/delivery-format";
 export * from "./model/enrollment";
 export * from "./model/module";
 export * from "./model/pending-edit";

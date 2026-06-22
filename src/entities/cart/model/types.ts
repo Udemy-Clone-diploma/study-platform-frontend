@@ -1,4 +1,4 @@
-import type { CourseLevel, PricingPlan } from "@/entities/course";
+import type { CourseLevel, DeliveryFormatType, PricingPlan } from "@/entities/course";
 
 export type CartCourse = {
   id: number;
@@ -15,7 +15,7 @@ export type CartItem = {
   course_id: number;
   course: CartCourse;
   pricing_plan_id: number | null;
-  pricing_plan_kind: PricingPlan["kind"] | null;
+  pricing_plan_kind: DeliveryFormatType | null;
   installment_count: number | null;
   installment_amount: string | null;
   currency: PricingPlan["currency"] | null;

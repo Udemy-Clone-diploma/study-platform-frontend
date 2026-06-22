@@ -3,6 +3,7 @@ export * from "./model/catalogFilters";
 export * from "./model/moderatorReview";
 export * from "./ui/CourseManagementInfoTab";
 export * from "./ui/CourseManagementContentTab";
+export * from "./ui/CourseManagementPricingTab";
 export * from "./ui/ModeratorItemStatusBadge";
 export * from "./ui/ModerationNavButtons";
 export * from "./ui/NoteActionBlock";

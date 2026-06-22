@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { addCartItem } from "@/entities/cart";
-import { enrollInCourse, type PricingPlan } from "@/entities/course";
 import type { ApiError } from "@/shared/api/base";
 import { AUTH_COOKIE_NAMES } from "@/shared/api/config/authCookies";
 import { getClientCookie } from "@/shared/lib/cookies";
@@ -13,7 +12,8 @@ type Props = {
   courseId: number;
   slug: string;
   isEnrolled: boolean;
-  pricingPlans: PricingPlan[];
+  /** ID of the first available PricingPlan, or null for free courses. */
+  defaultPricingPlanId: number | null;
 };
 
 const CART_URL = "/student-dashboard/payment?tab=card";
@@ -25,14 +25,13 @@ const STUDENT_ONLY_MESSAGE = "Enrollment is available only for students.";
  * Hero CTA. Free courses create an enrollment; paid courses add the default
  * pricing plan to the student's cart.
  */
-export function CourseHeroCTA({ courseId, slug, isEnrolled, pricingPlans }: Props) {
+export function CourseHeroCTA({ courseId, slug, isEnrolled, defaultPricingPlanId }: Props) {
   const router = useRouter();
   const [enrolled, setEnrolled] = useState(isEnrolled);
   const [pending, setPending] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
 
   const buttonStyle = { width: 200, minWidth: 200, height: 52 } as const;
-  const defaultPricingPlan = pricingPlans[0] ?? null;
 
   if (enrolled) {
     return (
@@ -58,12 +57,13 @@ export function CourseHeroCTA({ courseId, slug, isEnrolled, pricingPlans }: Prop
     setNotice(null);
 
     try {
-      if (defaultPricingPlan) {
-        await addCartItem(courseId, defaultPricingPlan.id);
+      if (defaultPricingPlanId !== null) {
+        await addCartItem(courseId, defaultPricingPlanId);
         router.push(CART_URL);
         return;
       }
 
+      const { enrollInCourse } = await import("@/entities/course");
       await enrollInCourse(courseId);
       setEnrolled(true);
       setNotice(FREE_ENROLLMENT_SUCCESS_NOTICE);
@@ -91,7 +91,7 @@ export function CourseHeroCTA({ courseId, slug, isEnrolled, pricingPlans }: Prop
   return (
     <div className="flex flex-col gap-2">
       <AccentButton size="md" style={buttonStyle} onClick={handleClick} disabled={pending}>
-        {pending ? "Processing..." : defaultPricingPlan ? "Add to cart" : "Enroll for free"}
+        {pending ? "Processing..." : defaultPricingPlanId !== null ? "Add to cart" : "Enroll for free"}
       </AccentButton>
       {notice && (
         <p role="status" className="max-w-[460px] text-base text-(--color-pink-dark)">

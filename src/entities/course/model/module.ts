@@ -37,6 +37,8 @@ export type LessonItem = {
   original_video_name?: string;
   duration_minutes?: number | null;
   test?: CourseTest | null;
+  created_at?: string;
+  updated_at?: string;
 };
 
 export type CourseLesson = {

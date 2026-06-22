@@ -54,7 +54,9 @@ type StripePaymentFormProps = {
   paymentType: PaymentType;
   summary: PaymentFormSummary;
   submitLabel?: string;
+  canPayInInstallments?: boolean;
   onCancel?: () => void;
+  onPaymentTypeChange?: (paymentType: PaymentType) => void;
   onPaymentStarted?: () => void;
   onPaymentError?: (message: string) => void;
   onPaymentSuccessRedirect?: () => void;
@@ -90,7 +92,9 @@ function StripePaymentElementForm({
   paymentType,
   summary,
   submitLabel = "To Pay",
+  canPayInInstallments = false,
   onCancel,
+  onPaymentTypeChange,
   onPaymentStarted,
   onPaymentError,
   onPaymentSuccessRedirect,
@@ -250,23 +254,40 @@ function StripePaymentElementForm({
           ) : null}
         </div>
 
-        <div className="inline-flex h-10 w-[340px] gap-2.5 overflow-hidden rounded-[20px] border border-[#003AFF] bg-white font-(family-name:--font-accent) text-[16px] leading-5 font-medium uppercase text-[#121212]">
-          <span
+        <div
+          role="group"
+          aria-label="Payment type"
+          className="inline-flex h-10 w-[340px] gap-2.5 overflow-hidden rounded-[20px] border border-[#003AFF] bg-white font-(family-name:--font-accent) text-[16px] leading-5 font-medium uppercase text-[#121212]"
+        >
+          <button
+            type="button"
+            aria-pressed={paymentType === "full"}
+            disabled={!onPaymentTypeChange || processing || paymentType === "full"}
+            onClick={() => onPaymentTypeChange?.("full")}
             className={[
-              "inline-flex h-full shrink-0 items-center justify-center rounded-[20px] px-5",
+              "inline-flex h-full shrink-0 items-center justify-center rounded-[20px] px-5 transition-colors disabled:cursor-not-allowed disabled:opacity-60",
               paymentType === "full" ? "bg-[#D6E0FF]" : "",
             ].join(" ")}
           >
             Full payment
-          </span>
-          <span
+          </button>
+          <button
+            type="button"
+            aria-pressed={paymentType === "installments"}
+            disabled={
+              !onPaymentTypeChange ||
+              !canPayInInstallments ||
+              processing ||
+              paymentType === "installments"
+            }
+            onClick={() => onPaymentTypeChange?.("installments")}
             className={[
-              "inline-flex h-full min-w-0 flex-1 items-center justify-center rounded-[20px] px-2",
+              "inline-flex h-full min-w-0 flex-1 items-center justify-center rounded-[20px] px-2 transition-colors disabled:cursor-not-allowed disabled:opacity-60",
               paymentType === "installments" ? "bg-[#D6E0FF]" : "",
             ].join(" ")}
           >
             Partial payment
-          </span>
+          </button>
         </div>
       </div>
 

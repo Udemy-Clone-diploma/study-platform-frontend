@@ -777,24 +777,24 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
     );
   }
 
-  async function handlePay() {
+  async function startCartCheckout(paymentType: PaymentType) {
     if (!cart || selectedCartItems.length === 0 || checkoutLoading) {
       setCheckoutError("Select at least one course to pay.");
       return;
     }
 
-    if (cartCheckoutIntent) {
-      setIsCartPaymentDrawerOpen(true);
+    if (paymentType === "installments" && !selectedInstallmentOption) {
+      setCheckoutError("Partial payment is not available for the selected course.");
       return;
     }
 
     setCheckoutLoading(true);
     setCheckoutError("");
+    setCheckoutMode(paymentType);
+    setCartCheckoutIntent(null);
     setIsCartPaymentDrawerOpen(false);
 
     try {
-      const paymentType =
-        checkoutMode === "installments" && selectedInstallmentOption ? "installments" : "full";
       const requestedInstallmentCount =
         paymentType === "installments" && selectedInstallmentOption
           ? selectedInstallmentOption.count
@@ -817,6 +817,20 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
     } finally {
       setCheckoutLoading(false);
     }
+  }
+
+  async function handlePay() {
+    if (cartCheckoutIntent?.paymentMode === checkoutMode) {
+      setIsCartPaymentDrawerOpen(true);
+      return;
+    }
+
+    await startCartCheckout(checkoutMode);
+  }
+
+  async function handleCartPaymentTypeChange(paymentType: PaymentType) {
+    if (cartCheckoutIntent?.paymentMode === paymentType) return;
+    await startCartCheckout(paymentType);
   }
 
   async function handlePayInstallment(orderId: number, installmentId: number) {
@@ -863,7 +877,9 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
         intent={cartCheckoutIntent?.intent ?? null}
         paymentType={cartCheckoutIntent?.paymentMode ?? checkoutMode}
         summary={cartPaymentSummary}
+        canPayInInstallments={Boolean(selectedInstallmentOption)}
         onClose={() => setIsCartPaymentDrawerOpen(false)}
+        onPaymentTypeChange={handleCartPaymentTypeChange}
         onPaymentError={setCheckoutError}
       />
 

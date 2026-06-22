@@ -8,7 +8,7 @@ import { loginUser } from "@/features/auth/api/authApi";
 import { validateLoginForm } from "@/features/auth/model/validation";
 import { useAuthForm } from "@/features/auth/model/useAuthForm";
 import { LoginFormData } from "@/features/auth/model/types/loginTypes";
-import { setAuthCookies, setRoleCookie } from "@/shared/api/authCookies";
+import { setAuthCookies, setRememberMeCookie, setRoleCookie } from "@/shared/api/authCookies";
 import { AuthField } from "@/features/auth/ui/AuthField";
 import { AuthShell } from "@/features/auth/ui/AuthShell";
 import { AccentButton } from "@/shared/ui/AccentButton";
@@ -38,8 +38,9 @@ export function LoginForm() {
 
         const user = await getMe(loginResponse.access);
 
-        await setAuthCookies(loginResponse.access, loginResponse.refresh);
-        await setRoleCookie(user.role);
+        await setAuthCookies(loginResponse.access, loginResponse.refresh, rememberMe);
+        await setRoleCookie(user.role, rememberMe);
+        await setRememberMeCookie(rememberMe);
 
         router.push(getRoleHome(user.role));
       },

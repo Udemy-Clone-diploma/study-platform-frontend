@@ -15,6 +15,7 @@ export interface LoginResponse {
 
 export interface TokenRefreshResponse {
   access: string;
+  refresh?: string;
 }
 
 export type LoginFormErrors = Partial<Record<keyof LoginFormData, string>>;

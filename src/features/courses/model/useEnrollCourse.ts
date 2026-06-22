@@ -8,11 +8,11 @@ import { AUTH_COOKIE_NAMES } from "@/shared/api/config/authCookies";
 import { getClientCookie } from "@/shared/lib/cookies";
 
 const STUDENT_ONLY_MESSAGE = "Enrollment is available only for students.";
-const ALREADY_ENROLLED_MESSAGE = "You are already enrolled in this course.";
 const PAID_COURSE_MESSAGE = "This course requires payment. See pricing on the course page.";
 const ENROLL_FAILED_MESSAGE = "Could not enroll in this course.";
+const ENROLL_SUCCESS_MESSAGE = "Enrollment complete. You can find this course in My Courses.";
 
-export function useEnrollCourse(slug: string) {
+export function useEnrollCourse(courseId: number) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [enrolled, setEnrolled] = useState(false);
@@ -38,9 +38,9 @@ export function useEnrollCourse(slug: string) {
     setMessage("");
 
     try {
-      await enrollInCourse(slug);
+      await enrollInCourse(courseId);
       setEnrolled(true);
-      router.push("/student-dashboard/courses");
+      setMessage(ENROLL_SUCCESS_MESSAGE);
     } catch (err) {
       const apiError = err as Partial<ApiError>;
 
@@ -49,9 +49,9 @@ export function useEnrollCourse(slug: string) {
         return;
       }
 
-      if (apiError.status === 409) {
+      if (apiError.status === 400 || apiError.status === 409) {
         setEnrolled(true);
-        setMessage(ALREADY_ENROLLED_MESSAGE);
+        setMessage(ENROLL_SUCCESS_MESSAGE);
         return;
       }
 

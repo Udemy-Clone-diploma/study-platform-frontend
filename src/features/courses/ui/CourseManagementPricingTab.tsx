@@ -1,17 +1,21 @@
 "use client";
 
-import { useState } from "react";
-import { Plus, Pencil, Trash2, X, Check } from "lucide-react";
-import type { CourseDetail } from "@/entities/course";
+import { useEffect, useRef, useState } from "react";
+import { ChevronDown, Plus, Pencil, Trash2, X, Check, Lock, LockOpen } from "lucide-react";
+import type { CourseCohort, CourseDetail } from "@/entities/course";
 import type {
   CourseDeliveryFormat,
   CourseDeliveryFormatPayload,
   DeliveryFormatType,
 } from "@/entities/course";
+import type { CohortInput } from "@/entities/course";
 import {
+  createCohort,
   createDeliveryFormat,
-  updateDeliveryFormat,
+  deleteCohort,
   deleteDeliveryFormat,
+  updateCohort,
+  updateDeliveryFormat,
 } from "@/entities/course";
 
 // ── constants ──────────────────────────────────────────────────────────────
@@ -31,7 +35,122 @@ const FORMAT_DESCRIPTIONS: Record<DeliveryFormatType, string> = {
 };
 
 const ALL_FORMATS: DeliveryFormatType[] = ["self_paced", "scheduled", "individual", "group"];
-const CURRENCY_OPTIONS = ["USD", "EUR", "UAH"] as const;
+const CURRENCY_OPTIONS: Array<{ value: "USD" | "EUR" | "UAH"; label: string }> = [
+  { value: "USD", label: "USD" },
+  { value: "EUR", label: "EUR" },
+  { value: "UAH", label: "UAH" },
+];
+
+// ── Shared field styles (matching CourseManagementInfoTab) ─────────────────
+
+const FIELD_LABEL: React.CSSProperties = {
+  fontFamily: "var(--font-base)",
+  fontWeight: 600,
+  fontSize: "clamp(12px, 0.83vw, 14px)",
+  color: "var(--color-text-secondary)",
+  letterSpacing: "-0.011em",
+  lineHeight: 1.5,
+  marginBottom: 4,
+  display: "block",
+};
+
+const PILL_INPUT: React.CSSProperties = {
+  fontFamily: "var(--font-base)",
+  fontWeight: 400,
+  fontSize: "clamp(13px, 1.04vw, 16px)",
+  color: "var(--color-text-primary)",
+  letterSpacing: "-0.011em",
+  lineHeight: 1.5,
+  background: "var(--color-bg)",
+  border: "1px solid var(--color-text-primary)",
+  borderRadius: 999,
+  padding: "clamp(6px, 0.52vw, 10px) clamp(12px, 1.04vw, 20px)",
+  outline: "none",
+  width: "100%",
+  boxSizing: "border-box" as const,
+};
+
+const PILL_INPUT_READONLY: React.CSSProperties = {
+  ...PILL_INPUT,
+  color: "var(--color-text-secondary)",
+  borderColor: "var(--color-border-light)",
+  cursor: "default",
+};
+
+// ── CurrencySelect ─────────────────────────────────────────────────────────
+
+function CurrencySelect({
+  value,
+  onChange,
+}: {
+  value: "USD" | "EUR" | "UAH";
+  onChange: (v: "USD" | "EUR" | "UAH") => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function onOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onOutside);
+    return () => document.removeEventListener("mousedown", onOutside);
+  }, []);
+
+  return (
+    <div ref={ref} style={{ position: "relative", width: 110 }}>
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        style={{ ...PILL_INPUT, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}
+      >
+        <span>{value}</span>
+        <ChevronDown size={13} style={{ flexShrink: 0, transform: open ? "rotate(180deg)" : "none", transition: "transform 0.15s" }} />
+      </button>
+      {open && (
+        <div style={{ position: "absolute", top: "calc(100% + 6px)", left: 0, right: 0, zIndex: 100, background: "#fff", borderRadius: 14, padding: "8px 0", boxShadow: "var(--shadow-card)", border: "1px solid var(--color-border-light)" }}>
+          {CURRENCY_OPTIONS.map(opt => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => { onChange(opt.value); setOpen(false); }}
+              style={{ display: "block", width: "100%", background: "none", border: "none", padding: "6px 16px", cursor: "pointer", textAlign: "left", fontFamily: "var(--font-base)", fontSize: "clamp(13px, 1.04vw, 15px)", color: opt.value === value ? "var(--color-blue)" : "var(--color-text-primary)", fontWeight: opt.value === value ? 600 : 400 }}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── InstallmentToggle ──────────────────────────────────────────────────────
+
+function InstallmentToggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
+  const pill = (active: boolean): React.CSSProperties => ({
+    padding: "clamp(5px, 0.42vw, 8px) clamp(16px, 1.25vw, 22px)",
+    borderRadius: 999,
+    border: `1px solid ${active ? "var(--color-text-primary)" : "var(--color-border-light)"}`,
+    background: active ? "var(--color-text-primary)" : "transparent",
+    color: active ? "#fff" : "var(--color-text-secondary)",
+    cursor: "pointer",
+    fontFamily: "var(--font-base)",
+    fontSize: "clamp(12px, 0.83vw, 14px)",
+    fontWeight: 500,
+    letterSpacing: "-0.011em",
+    transition: "all 0.15s",
+  });
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+      <span style={FIELD_LABEL}>Installments</span>
+      <div style={{ display: "flex", gap: 8 }}>
+        <button type="button" style={pill(!value)} onClick={() => onChange(false)}>Off</button>
+        <button type="button" style={pill(value)}  onClick={() => onChange(true)}>On</button>
+      </div>
+    </div>
+  );
+}
 
 // ── PricingFields ──────────────────────────────────────────────────────────
 
@@ -47,78 +166,288 @@ type PricingFieldsProps = {
 function PricingFields({
   price, currency, installments, installmentCount, installmentAmount, onChange,
 }: PricingFieldsProps) {
-  const INPUT: React.CSSProperties = {
-    width: "100%",
-    background: "var(--color-input-bg)",
-    border: "1.5px solid var(--color-border-light)",
-    borderRadius: 10,
-    padding: "clamp(8px, 0.63vw, 10px) clamp(10px, 0.83vw, 14px)",
-    fontFamily: "var(--font-base)",
-    fontSize: "clamp(13px, 0.83vw, 15px)",
-    color: "var(--color-text-primary)",
-    outline: "none",
-    boxSizing: "border-box" as const,
-  };
-  const LABEL: React.CSSProperties = {
-    display: "block",
-    fontFamily: "var(--font-base)",
-    fontSize: "clamp(11px, 0.72vw, 13px)",
-    color: "var(--color-text-secondary)",
-    marginBottom: 4,
-  };
-
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      <div style={{ display: "flex", gap: 10 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <div style={{ display: "flex", gap: 12, alignItems: "flex-end" }}>
         <div style={{ flex: 1 }}>
-          <label style={LABEL}>Price</label>
+          <label style={FIELD_LABEL}>Price</label>
           <input
             type="number" min="0" step="0.01"
             value={price}
             onChange={e => onChange("price", e.target.value)}
             placeholder="0.00"
-            style={INPUT}
+            style={PILL_INPUT}
           />
         </div>
-        <div style={{ width: 100 }}>
-          <label style={LABEL}>Currency</label>
-          <select value={currency} onChange={e => onChange("currency", e.target.value)} style={{ ...INPUT, width: 100 }}>
-            {CURRENCY_OPTIONS.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
+        <div style={{ paddingBottom: 0 }}>
+          <label style={FIELD_LABEL}>Currency</label>
+          <CurrencySelect value={currency} onChange={v => onChange("currency", v)} />
         </div>
       </div>
 
-      <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", userSelect: "none" as const }}>
-        <input type="checkbox" checked={installments} onChange={e => onChange("installments", e.target.checked)} />
-        <span style={{ fontFamily: "var(--font-base)", fontSize: "clamp(12px, 0.78vw, 14px)", color: "var(--color-text-secondary)" }}>
-          Allow installment payments
-        </span>
-      </label>
+      <InstallmentToggle value={installments} onChange={v => onChange("installments", v)} />
 
       {installments && (
-        <div style={{ display: "flex", gap: 10 }}>
+        <div style={{ display: "flex", gap: 12 }}>
           <div style={{ flex: 1 }}>
-            <label style={LABEL}>Installment count</label>
+            <label style={FIELD_LABEL}>Installment count</label>
             <input
               type="number" min="2"
               value={installmentCount}
               onChange={e => onChange("installmentCount", e.target.value)}
               placeholder="e.g. 4"
-              style={INPUT}
+              style={PILL_INPUT}
             />
           </div>
           <div style={{ flex: 1 }}>
-            <label style={LABEL}>Amount per installment</label>
+            <label style={FIELD_LABEL}>Amount per installment</label>
             <input
               type="number"
               value={installmentAmount}
               readOnly
               placeholder="—"
-              style={{ ...INPUT, background: "var(--color-bg)", color: "var(--color-text-secondary)", cursor: "default" }}
+              style={PILL_INPUT_READONLY}
             />
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ── CohortRow ──────────────────────────────────────────────────────────────
+
+function CohortRow({ cohort, slug, onDeleted, onUpdated }: {
+  cohort: CourseCohort;
+  slug: string;
+  onDeleted: (id: number) => void;
+  onUpdated: (c: CourseCohort) => void;
+}) {
+  const [editing, setEditing]   = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [saving, setSaving]     = useState(false);
+  const [toggling, setToggling] = useState(false);
+  const [error, setError]       = useState<string | null>(null);
+
+  const [name, setName]               = useState(cohort.name ?? "");
+  const [startDate, setStartDate]     = useState(cohort.start_date ?? "");
+  const [deadline, setDeadline]       = useState(cohort.enrollment_deadline ?? "");
+  const [durationMonths, setDuration] = useState(String(cohort.duration_months || ""));
+  const [hoursPerWeek, setHoursPerWeek] = useState(String(cohort.hours_per_week || ""));
+  const [groupSize, setGroupSize]     = useState(String(cohort.group_size ?? ""));
+
+  function openEdit() {
+    setName(cohort.name ?? "");
+    setStartDate(cohort.start_date ?? "");
+    setDeadline(cohort.enrollment_deadline ?? "");
+    setDuration(String(cohort.duration_months || ""));
+    setHoursPerWeek(String(cohort.hours_per_week || ""));
+    setGroupSize(String(cohort.group_size ?? ""));
+    setError(null);
+    setEditing(true);
+  }
+
+  async function handleSave() {
+    setSaving(true);
+    setError(null);
+    try {
+      const updated = await updateCohort(slug, cohort.id, {
+        name:            name.trim() || null,
+        start_date:         startDate || null,
+        enrollment_deadline: deadline || null,
+        duration_months:    Number(durationMonths) || 0,
+        hours_per_week: Number(hoursPerWeek) || 0,
+        group_size:     groupSize ? Number(groupSize) : null,
+      });
+      onUpdated(updated);
+      setEditing(false);
+    } catch (e: unknown) {
+      setError((e as { message?: string })?.message ?? "Failed to save.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleToggleOpen() {
+    setToggling(true);
+    try {
+      const updated = await updateCohort(slug, cohort.id, { is_enrollment_open: !cohort.is_enrollment_open });
+      onUpdated(updated);
+    } finally {
+      setToggling(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!confirm("Remove this cohort?")) return;
+    setDeleting(true);
+    try {
+      await deleteCohort(slug, cohort.id);
+      onDeleted(cohort.id);
+    } catch {
+      alert("Failed to delete cohort.");
+      setDeleting(false);
+    }
+  }
+
+  const inputSm: React.CSSProperties = { ...PILL_INPUT, fontSize: "clamp(11px, 0.72vw, 13px)", padding: "5px 12px" };
+  const labelSm: React.CSSProperties = { ...FIELD_LABEL, fontSize: "clamp(10px, 0.63vw, 12px)" };
+
+  if (editing) {
+    return (
+      <div style={{ padding: "10px 12px", borderRadius: 10, background: "var(--color-bg)", border: "1px solid var(--color-text-primary)", display: "flex", flexDirection: "column", gap: 8 }}>
+        <div>
+          <label style={labelSm}>Group name</label>
+          <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Group A" style={{ ...inputSm, width: "100%", boxSizing: "border-box" }} />
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+          <div><label style={labelSm}>Start date</label><input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={inputSm} /></div>
+          <div><label style={labelSm}>Deadline</label><input type="date" value={deadline} onChange={e => setDeadline(e.target.value)} style={inputSm} /></div>
+          <div><label style={labelSm}>Duration (months)</label><input type="number" min={0} value={durationMonths} onChange={e => setDuration(e.target.value)} placeholder="0" style={inputSm} /></div>
+          <div><label style={labelSm}>h/week</label><input type="number" min={0} value={hoursPerWeek} onChange={e => setHoursPerWeek(e.target.value)} placeholder="0" style={inputSm} /></div>
+          <div><label style={labelSm}>Max group size</label><input type="number" min={1} value={groupSize} onChange={e => setGroupSize(e.target.value)} placeholder="—" style={inputSm} /></div>
+        </div>
+        {error && <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.72vw, 13px)", color: "var(--color-rejected)", margin: 0 }}>{error}</p>}
+        <div style={{ display: "flex", gap: 8 }}>
+          <button
+            type="button" onClick={handleSave} disabled={saving}
+            style={{ fontFamily: "var(--font-base)", fontWeight: 700, fontSize: "clamp(11px, 0.72vw, 13px)", background: "var(--color-text-primary)", color: "#fff", border: "none", borderRadius: 999, padding: "5px 14px", cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.6 : 1 }}
+          >
+            {saving ? "Saving…" : "Save"}
+          </button>
+          <button
+            type="button" onClick={() => setEditing(false)}
+            style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(11px, 0.72vw, 13px)", color: "var(--color-text-secondary)", background: "none", border: "1px solid var(--color-border-light)", borderRadius: 999, padding: "5px 14px", cursor: "pointer" }}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const isFull = !!(cohort.group_size && cohort.members_count >= cohort.group_size);
+  const isOpen = cohort.is_enrollment_open;
+
+  const parts: string[] = [];
+  if (cohort.name) parts.push(cohort.name);
+  if (cohort.start_date) parts.push(`Starts ${cohort.start_date}`);
+  if (cohort.enrollment_deadline) parts.push(`Deadline ${cohort.enrollment_deadline}`);
+  if (cohort.duration_months) parts.push(`${cohort.duration_months} mo`);
+  if (cohort.hours_per_week) parts.push(`${cohort.hours_per_week} h/wk`);
+  if (cohort.group_size) parts.push(`${cohort.members_count}/${cohort.group_size}`);
+
+  const statusColor = isFull ? "var(--color-text-muted)" : isOpen ? "var(--color-success)" : "var(--color-rejected)";
+  const statusLabel = isFull ? "Full" : isOpen ? "Open" : "Closed";
+
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 10px", borderRadius: 8, background: "var(--color-bg)", border: "1px solid var(--color-border-light)" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <span style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.72vw, 13px)", color: "var(--color-text-secondary)" }}>
+          {parts.length ? parts.join(" · ") : "No schedule set"}
+        </span>
+        <span style={{ fontFamily: "var(--font-base)", fontSize: "clamp(10px, 0.63vw, 11px)", fontWeight: 600, color: statusColor }}>
+          {statusLabel}
+        </span>
+      </div>
+      <div style={{ display: "flex", gap: 4 }}>
+        <button
+          type="button" onClick={handleToggleOpen} disabled={toggling || isFull}
+          title={isFull ? "Group is full" : isOpen ? "Close enrollment" : "Open enrollment"}
+          style={{ background: "none", border: "none", cursor: toggling || isFull ? "not-allowed" : "pointer", color: isOpen && !isFull ? "var(--color-success)" : "var(--color-text-muted)", display: "flex", alignItems: "center", padding: 4, opacity: toggling ? 0.5 : 1 }}
+        >
+          {isOpen && !isFull ? <LockOpen size={12} /> : <Lock size={12} />}
+        </button>
+        <button
+          type="button" onClick={openEdit}
+          style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-text-secondary)", display: "flex", alignItems: "center", padding: 4 }}
+          title="Edit cohort"
+        >
+          <Pencil size={12} />
+        </button>
+        <button
+          type="button" onClick={handleDelete} disabled={deleting}
+          style={{ background: "none", border: "none", cursor: deleting ? "not-allowed" : "pointer", color: "var(--color-rejected)", display: "flex", alignItems: "center", padding: 4, opacity: deleting ? 0.5 : 1 }}
+          title="Delete cohort"
+        >
+          <Trash2 size={12} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── AddCohortForm ──────────────────────────────────────────────────────────
+
+function AddCohortForm({ slug, formatId, onCreated, onClose }: {
+  slug: string;
+  formatId: number;
+  onCreated: (c: CourseCohort) => void;
+  onClose: () => void;
+}) {
+  const [name, setName]                 = useState("");
+  const [startDate, setStartDate]       = useState("");
+  const [deadline, setDeadline]         = useState("");
+  const [durationMonths, setDuration]   = useState("");
+  const [hoursPerWeek, setHoursPerWeek] = useState("");
+  const [groupSize, setGroupSize]       = useState("");
+  const [saving, setSaving]             = useState(false);
+  const [error, setError]               = useState<string | null>(null);
+
+  async function handleCreate() {
+    setSaving(true);
+    setError(null);
+    try {
+      const payload: CohortInput = {
+        delivery_format:    formatId,
+        name:               name.trim() || null,
+        duration_months:    Number(durationMonths) || 0,
+        hours_per_week:     Number(hoursPerWeek) || 0,
+        group_size:         groupSize ? Number(groupSize) : null,
+        start_date:         startDate || null,
+        enrollment_deadline: deadline || null,
+        is_enrollment_open: true,
+      };
+      const cohort = await createCohort(slug, payload);
+      onCreated(cohort);
+    } catch (e: unknown) {
+      setError((e as { message?: string })?.message ?? "Failed to create cohort.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const inputSm: React.CSSProperties = { ...PILL_INPUT, fontSize: "clamp(11px, 0.72vw, 13px)", padding: "5px 12px" };
+  const labelSm: React.CSSProperties = { ...FIELD_LABEL, fontSize: "clamp(10px, 0.63vw, 12px)" };
+
+  return (
+    <div style={{ padding: "12px", borderRadius: 10, background: "#f9f9fb", border: "1px dashed var(--color-border-light)", display: "flex", flexDirection: "column", gap: 10 }}>
+      <div style={{ marginBottom: 6 }}>
+        <label style={labelSm}>Group name</label>
+        <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Group A" style={{ ...inputSm, width: "100%", boxSizing: "border-box" }} />
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+        <div><label style={labelSm}>Start date</label><input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={inputSm} /></div>
+        <div><label style={labelSm}>Deadline</label><input type="date" value={deadline} onChange={e => setDeadline(e.target.value)} style={inputSm} /></div>
+        <div><label style={labelSm}>Duration (months)</label><input type="number" min={0} value={durationMonths} onChange={e => setDuration(e.target.value)} placeholder="0" style={inputSm} /></div>
+        <div><label style={labelSm}>h/week</label><input type="number" min={0} value={hoursPerWeek} onChange={e => setHoursPerWeek(e.target.value)} placeholder="0" style={inputSm} /></div>
+        <div><label style={labelSm}>Max group size</label><input type="number" min={1} value={groupSize} onChange={e => setGroupSize(e.target.value)} placeholder="—" style={inputSm} /></div>
+      </div>
+      {error && <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.72vw, 13px)", color: "var(--color-rejected)", margin: 0 }}>{error}</p>}
+      <div style={{ display: "flex", gap: 8 }}>
+        <button
+          type="button" onClick={handleCreate} disabled={saving}
+          style={{ fontFamily: "var(--font-base)", fontWeight: 700, fontSize: "clamp(11px, 0.72vw, 13px)", background: "var(--color-text-primary)", color: "#fff", border: "none", borderRadius: 999, padding: "6px 16px", cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.6 : 1 }}
+        >
+          {saving ? "Creating…" : "Create"}
+        </button>
+        <button
+          type="button" onClick={onClose}
+          style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(11px, 0.72vw, 13px)", color: "var(--color-text-secondary)", background: "none", border: "1px solid var(--color-border-light)", borderRadius: 999, padding: "6px 16px", cursor: "pointer" }}
+        >
+          Cancel
+        </button>
+      </div>
     </div>
   );
 }
@@ -128,14 +457,19 @@ function PricingFields({
 type FormatCardProps = {
   fmt: CourseDeliveryFormat;
   slug: string;
+  cohorts: CourseCohort[];
   onUpdated: (fmt: CourseDeliveryFormat) => void;
   onDeleted: (id: number) => void;
+  onCohortCreated: (c: CourseCohort) => void;
+  onCohortUpdated: (c: CourseCohort) => void;
+  onCohortDeleted: (id: number) => void;
 };
 
-function FormatCard({ fmt, slug, onUpdated, onDeleted }: FormatCardProps) {
-  const [editing, setEditing] = useState(false);
-  const [saving, setSaving]   = useState(false);
-  const [error, setError]     = useState<string | null>(null);
+function FormatCard({ fmt, slug, cohorts, onUpdated, onDeleted, onCohortCreated, onCohortUpdated, onCohortDeleted }: FormatCardProps) {
+  const [editing, setEditing]         = useState(false);
+  const [saving, setSaving]           = useState(false);
+  const [error, setError]             = useState<string | null>(null);
+  const [addingCohort, setAddingCohort] = useState(false);
 
   const [price, setPrice]                         = useState(fmt.pricing?.price ?? "");
   const [currency, setCurrency]                   = useState<"USD"|"EUR"|"UAH">(fmt.pricing?.currency ?? "USD");
@@ -235,6 +569,41 @@ function FormatCard({ fmt, slug, onUpdated, onDeleted }: FormatCardProps) {
             <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.72vw, 13px)", color: "var(--color-rejected)", marginTop: 8, marginBottom: 0 }}>
               {error}
             </p>
+          )}
+        </>
+      )}
+
+      {fmt.format_type === "group" && (
+        <>
+          <div style={{ height: 1, background: "var(--color-border-light)", margin: "12px 0 10px" }} />
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+            <span style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(11px, 0.72vw, 13px)", color: "var(--color-text-secondary)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+              Cohorts ({cohorts.length})
+            </span>
+            {!addingCohort && (
+              <button
+                type="button"
+                onClick={() => setAddingCohort(true)}
+                style={{ display: "inline-flex", alignItems: "center", gap: 4, fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(11px, 0.72vw, 13px)", color: "var(--color-blue)", background: "none", border: "none", cursor: "pointer", padding: 0 }}
+              >
+                <Plus size={12} /> Add cohort
+              </button>
+            )}
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {cohorts.map(c => (
+              <CohortRow key={c.id} cohort={c} slug={slug} onDeleted={onCohortDeleted} onUpdated={onCohortUpdated} />
+            ))}
+          </div>
+          {addingCohort && (
+            <div style={{ marginTop: cohorts.length ? 8 : 0 }}>
+              <AddCohortForm
+                slug={slug}
+                formatId={fmt.id}
+                onCreated={c => { onCohortCreated(c); setAddingCohort(false); }}
+                onClose={() => setAddingCohort(false)}
+              />
+            </div>
           )}
         </>
       )}
@@ -429,12 +798,20 @@ function IconBtn({ children, onClick, title, danger, accent, disabled }: {
 export function CourseManagementPricingTab({
   course,
   slug,
+  onCohortsChanged,
 }: {
   course: CourseDetail;
   slug: string;
+  onCohortsChanged?: (cohorts: CourseCohort[]) => void;
 }) {
   const [formats, setFormats] = useState<CourseDeliveryFormat[]>(course.delivery_formats);
+  const [cohorts, setCohorts] = useState<CourseCohort[]>(course.cohorts);
   const [adding, setAdding]   = useState(false);
+
+  function updateCohorts(next: CourseCohort[]) {
+    setCohorts(next);
+    onCohortsChanged?.(next);
+  }
 
   function handleUpdated(updated: CourseDeliveryFormat) {
     setFormats(prev => prev.map(f => (f.id === updated.id ? updated : f)));
@@ -445,6 +822,15 @@ export function CourseManagementPricingTab({
   function handleCreated(fmt: CourseDeliveryFormat) {
     setFormats(prev => [...prev, fmt]);
     setAdding(false);
+  }
+  function handleCohortCreated(c: CourseCohort) {
+    updateCohorts([...cohorts, c]);
+  }
+  function handleCohortUpdated(c: CourseCohort) {
+    updateCohorts(cohorts.map(x => (x.id === c.id ? c : x)));
+  }
+  function handleCohortDeleted(id: number) {
+    updateCohorts(cohorts.filter(c => c.id !== id));
   }
 
   const existingTypes = formats.map(f => f.format_type);
@@ -483,9 +869,19 @@ export function CourseManagementPricingTab({
         </div>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         {formats.map(fmt => (
-          <FormatCard key={fmt.id} fmt={fmt} slug={slug} onUpdated={handleUpdated} onDeleted={handleDeleted} />
+          <FormatCard
+            key={fmt.id}
+            fmt={fmt}
+            slug={slug}
+            cohorts={cohorts.filter(c => c.delivery_format === fmt.id)}
+            onUpdated={handleUpdated}
+            onDeleted={handleDeleted}
+            onCohortCreated={handleCohortCreated}
+            onCohortUpdated={handleCohortUpdated}
+            onCohortDeleted={handleCohortDeleted}
+          />
         ))}
         {adding && (
           <div style={{ gridColumn: "1 / -1" }}>

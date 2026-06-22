@@ -2,26 +2,34 @@ import { Calendar, Layers, Users } from "lucide-react";
 import type { CourseCohort } from "@/entities/course";
 
 type Props = {
-  cohort: CourseCohort;
+  cohorts: CourseCohort[];
   modules_count: number;
   lessons_count: number;
 };
 
 /** Right-rail schedule card. Glass panel with a vertical icon list and a start-date footer. */
-export function CourseScheduleCard({ cohort, modules_count, lessons_count }: Props) {
-  const startDate = cohort.start_date
+export function CourseScheduleCard({ cohorts, modules_count, lessons_count }: Props) {
+  const first = cohorts[0];
+
+  const startDate = first?.start_date
     ? new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric" }).format(
-        new Date(cohort.start_date),
+        new Date(first.start_date),
       )
     : null;
 
+  // Compute h/week range across all cohorts
+  const hours = cohorts.map(c => c.hours_per_week).filter(h => h > 0);
+  const minH = hours.length ? Math.min(...hours) : 0;
+  const maxH = hours.length ? Math.max(...hours) : 0;
   const hoursLabel =
-    cohort.hours_per_week_min === cohort.hours_per_week_max
-      ? `${cohort.hours_per_week_min} hours per week`
-      : `${cohort.hours_per_week_min}-${cohort.hours_per_week_max} hours per week`;
+    hours.length === 0
+      ? null
+      : minH === maxH
+        ? `${minH} hours per week`
+        : `${minH}–${maxH} hours per week`;
 
-  const formatLabel = cohort.group_size
-    ? `Group of ${cohort.group_size} people`
+  const formatLabel = first?.group_size
+    ? `Group of ${first.group_size} people`
     : "Group";
 
   return (
@@ -29,9 +37,12 @@ export function CourseScheduleCard({ cohort, modules_count, lessons_count }: Pro
       <h3 className="text-xl font-semibold text-(--color-text-primary) sm:text-2xl">Schedule</h3>
 
       <ul className="flex flex-col gap-3">
-        <ScheduleRow icon={<Calendar />}>
-          {cohort.duration_months} {cohort.duration_months === 1 ? "Month" : "Months"} | {hoursLabel}
-        </ScheduleRow>
+        {first && (
+          <ScheduleRow icon={<Calendar />}>
+            {first.duration_months} {first.duration_months === 1 ? "Month" : "Months"}
+            {hoursLabel ? ` | ${hoursLabel}` : ""}
+          </ScheduleRow>
+        )}
         <ScheduleRow icon={<Layers />}>
           {modules_count} {modules_count === 1 ? "module" : "modules"} | {lessons_count}{" "}
           {lessons_count === 1 ? "lesson" : "lessons"}

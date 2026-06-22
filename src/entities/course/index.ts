@@ -12,6 +12,7 @@ export * from "./model/types";
 export * from "./model/category";
 export * from "./model/completion";
 export * from "./model/cohort";
+export * from "./model/cohortGroup";
 export * from "./model/delivery-format";
 export * from "./model/enrollment";
 export * from "./model/module";

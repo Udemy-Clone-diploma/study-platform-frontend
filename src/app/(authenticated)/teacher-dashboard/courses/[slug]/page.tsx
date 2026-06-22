@@ -6,7 +6,7 @@ import Image from "next/image";
 import { BookOpen, ChevronDown, Clock, Play, SquareCheck, Star, Users } from "lucide-react";
 import { getCourseBySlug } from "@/entities/course";
 import type { CourseDetail, CourseStatus } from "@/entities/course";
-import { CourseManagementInfoTab, CourseManagementContentTab, CourseManagementPricingTab } from "@/features/courses";
+import { CourseManagementInfoTab, CourseManagementContentTab, CourseManagementPricingTab, CourseManagementCohortsTab } from "@/features/courses";
 import { AccentButton } from "@/shared/ui/AccentButton";
 import { WhiteButton } from "@/shared/ui/WhiteButton";
 
@@ -43,7 +43,7 @@ type Tab = "info" | "content" | "pricing" | "cohorts" | "schedule";
 const TABS: { id: Tab; label: string }[] = [
   { id: "info",     label: "Info" },
   { id: "content",  label: "Content" },
-  { id: "pricing",  label: "Pricing" },
+  { id: "pricing",  label: "Format & Price" },
   { id: "cohorts",  label: "Cohorts" },
   { id: "schedule", label: "Schedule" },
 ];
@@ -282,10 +282,22 @@ export default function CourseManagementPage() {
       )}
 
       {tab === "pricing" && (
-        <CourseManagementPricingTab course={course} slug={slug} />
+        <CourseManagementPricingTab
+          course={course}
+          slug={slug}
+          onCohortsChanged={cohorts => handleCourseUpdated({ cohorts })}
+        />
       )}
 
-      {tab !== "info" && tab !== "content" && tab !== "pricing" && (
+      {tab === "cohorts" && (
+        <CourseManagementCohortsTab
+          course={course}
+          slug={slug}
+          onCohortsChanged={cohorts => handleCourseUpdated({ cohorts })}
+        />
+      )}
+
+      {tab === "schedule" && (
         <div className="flex items-center justify-center" style={{ minHeight: "clamp(160px, 14vw, 220px)", fontFamily: "var(--font-base)", fontSize: "clamp(13px, 0.83vw, 15px)", color: "var(--color-text-muted)" }}>
           Coming soon
         </div>

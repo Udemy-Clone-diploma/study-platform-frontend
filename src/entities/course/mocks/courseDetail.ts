@@ -110,12 +110,15 @@ export const mockCourseDetail: CourseDetail = {
     {
       id: 1,
       delivery_format: 1,
+      name: "Group A",
       duration_months: 4,
-      hours_per_week_min: 2,
-      hours_per_week_max: 4,
+      hours_per_week: 3,
       group_size: 12,
       start_date: "2026-01-15",
       enrollment_deadline: "2026-01-08",
+      is_enrollment_open: true,
+      members_count: 0,
+      members: [],
     },
   ],
   modules: [

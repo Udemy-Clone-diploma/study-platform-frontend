@@ -13,7 +13,6 @@ type Props = { course: CourseDetail; reviews: CourseReview[] };
 /** Top-level composition for the /courses/[slug] page. */
 export function CourseDetailView({ course, reviews }: Props) {
   const hasPricingPlans = course.delivery_formats.some(f => f.pricing);
-  const cohort = course.cohorts[0] ?? null;
 
   return (
     <div className="relative isolate overflow-x-clip bg-(--color-bg)">
@@ -47,7 +46,7 @@ export function CourseDetailView({ course, reviews }: Props) {
             <div className="lg:col-start-1">
               <CourseCurriculum course={course} hideHeading />
             </div>
-            {cohort && (
+            {course.cohorts.length > 0 && (
               <div className="relative self-start lg:col-start-2">
                 {/* Branded ellipses behind the schedule card. Resize with w-/h-, move with top-/left-/bottom-. */}
                 <DecorBlob
@@ -59,7 +58,7 @@ export function CourseDetailView({ course, reviews }: Props) {
                   gradient="var(--gradient-ellipse)"
                 />
                 <CourseScheduleCard
-                  cohort={cohort}
+                  cohorts={course.cohorts}
                   modules_count={course.modules.length}
                   lessons_count={course.lessons_count}
                 />
@@ -99,6 +98,7 @@ export function CourseDetailView({ course, reviews }: Props) {
               courseId={course.id}
               formats={course.delivery_formats}
               slug={course.slug}
+              cohorts={course.cohorts}
             />
           </section>
         </SectionContainer>

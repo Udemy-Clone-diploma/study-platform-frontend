@@ -3,6 +3,7 @@ import { API_BASE_URL } from "@/shared/api/config/baseUrl";
 import { getAccessToken } from "@/shared/api/authCookies";
 import type { Category } from "../model/category";
 import type { CourseCohort } from "../model/cohort";
+import type { CohortMember, EnrolledStudent } from "../model/cohortGroup";
 import type { CourseLesson } from "../model/module";
 import type { DeliveryFormatType } from "../model/delivery-format";
 import type { PricingPlan } from "../model/pricing";
@@ -161,12 +162,14 @@ export async function deletePricingPlan(slug: string, id: number): Promise<void>
   await api.delete(`${COURSES}${slug}/pricing-plans/${id}/`);
 }
 
-export type CohortInput = Omit<CourseCohort, "id">;
+export type CohortInput = Omit<CourseCohort, "id" | "members_count" | "members">;
 
-/**
- * Create a cohort on a course. Course-owner or admin only.
- * `hours_per_week_max` must be >= `hours_per_week_min`.
- */
+export async function getCohorts(slug: string): Promise<CourseCohort[]> {
+  const { data } = await api.get<CourseCohort[]>(`${COURSES}${slug}/cohorts/`);
+  return data;
+}
+
+/** Create a cohort on a course. Course-owner or admin only. */
 export async function createCohort(slug: string, body: CohortInput): Promise<CourseCohort> {
   const { data } = await api.post<CourseCohort>(`${COURSES}${slug}/cohorts/`, body);
   return data;
@@ -186,6 +189,31 @@ export async function updateCohort(
 
 export async function deleteCohort(slug: string, id: number): Promise<void> {
   await api.delete(`${COURSES}${slug}/cohorts/${id}/`);
+}
+
+export async function addCohortMember(
+  slug: string,
+  cohortId: number,
+  enrollmentId: number,
+): Promise<CohortMember> {
+  const { data } = await api.post<CohortMember>(
+    `${COURSES}${slug}/cohorts/${cohortId}/members/`,
+    { enrollment_id: enrollmentId },
+  );
+  return data;
+}
+
+export async function removeCohortMember(
+  slug: string,
+  cohortId: number,
+  memberId: number,
+): Promise<void> {
+  await api.delete(`${COURSES}${slug}/cohorts/${cohortId}/members/${memberId}/`);
+}
+
+export async function getCourseEnrolledStudents(slug: string): Promise<EnrolledStudent[]> {
+  const { data } = await api.get<EnrolledStudent[]>(`${COURSES}${slug}/enrolled-students/`);
+  return data;
 }
 
 export type ReviewSubmission = {

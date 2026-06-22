@@ -9,7 +9,9 @@ type StripePaymentDrawerProps = {
   intent: PaymentIntent | null;
   paymentType: PaymentType;
   summary: PaymentFormSummary | null;
+  canPayInInstallments?: boolean;
   onClose: () => void;
+  onPaymentTypeChange?: (paymentType: PaymentType) => void;
   onPaymentStarted?: () => void;
   onPaymentError?: (message: string) => void;
   onPaymentSuccessRedirect?: () => void;
@@ -29,7 +31,9 @@ export function StripePaymentDrawer({
   intent,
   paymentType,
   summary,
+  canPayInInstallments,
   onClose,
+  onPaymentTypeChange,
   onPaymentStarted,
   onPaymentError,
   onPaymentSuccessRedirect,
@@ -51,6 +55,7 @@ export function StripePaymentDrawer({
         <StripePaymentForm
           intent={intent}
           paymentType={paymentType}
+          canPayInInstallments={canPayInInstallments}
           summary={
             summary ?? {
               total: formatMoney(intent.amount, intent.currency),
@@ -66,6 +71,7 @@ export function StripePaymentDrawer({
             }
           }
           onCancel={onClose}
+          onPaymentTypeChange={onPaymentTypeChange}
           onPaymentStarted={onPaymentStarted}
           onPaymentError={onPaymentError}
           onPaymentSuccessRedirect={onPaymentSuccessRedirect}

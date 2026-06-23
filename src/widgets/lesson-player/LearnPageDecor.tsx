@@ -11,8 +11,9 @@ export function LearnPageDecor({ showPlanet = true }: { showPlanet?: boolean }) 
   );
 }
 
-/** Full-bleed page glow, centered on the viewport (offsets the 80px sidebar). */
+/** Full-bleed page glow (offsets the 80px sidebar); bottom 240px fade to transparent so long lessons blend into white. */
 function DecorBackground() {
+  const fade = "linear-gradient(to bottom, #000 calc(100% - 240px), transparent)";
   return (
     <div
       aria-hidden="true"
@@ -26,6 +27,7 @@ function DecorBackground() {
         height={1572}
         priority={false}
         className="absolute left-1/2 top-0 h-auto min-w-full max-w-none -translate-x-1/2"
+        style={{ maskImage: fade, WebkitMaskImage: fade }}
       />
     </div>
   );

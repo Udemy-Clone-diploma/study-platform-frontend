@@ -58,7 +58,7 @@ export function LearnCurriculumModule({
         }`}
       >
         <div className="overflow-hidden">
-          <ul className="flex w-full max-w-[849px] flex-col gap-1 pb-5 pl-[91px] sm:pb-6">
+          <ul className="flex w-full flex-col gap-1 pb-5 pl-[91px] sm:pb-6">
             {byOrder(courseModule.lessons).map((lesson) => {
               const isDone = completed.has(lesson.id);
               return (
@@ -73,7 +73,7 @@ export function LearnCurriculumModule({
                       fill="currentColor"
                       opacity={isDone ? 1 : 0.85}
                     />
-                    <span className="min-w-0 flex-1">
+                    <span className="min-w-0">
                       Lesson {lesson.order}: {lesson.title}.
                     </span>
                   </Link>

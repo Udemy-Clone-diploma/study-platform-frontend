@@ -211,7 +211,7 @@ export function LessonPlayerView({
   }
 
   return (
-    <section className="relative isolate min-h-full overflow-hidden bg-white">
+    <section className="relative isolate min-h-[calc(100vh-76px)] overflow-hidden bg-white">
       <LearnPageDecor showPlanet={false} />
 
       <div className="relative z-10 flex w-full flex-col gap-6 px-5 py-6 lg:gap-8 lg:px-12 lg:py-10 xl:px-[90px]">

@@ -67,10 +67,10 @@ export function CourseProgressView({ course, initialProgress = null, isMock = fa
 
       <div className="relative z-10 flex w-full flex-col gap-10 px-5 py-6 lg:gap-14 lg:px-12 lg:py-12 xl:px-[90px]">
         {/* Hero fills the first screen; scrolling past it snaps to lesson completion. */}
-        <div className="flex min-h-[calc(100dvh-76px)] flex-col gap-10 lg:gap-14">
+        <div className="flex min-h-[calc(100dvh-76px-3rem)] flex-col gap-10 lg:min-h-[calc(100dvh-76px-6rem)] lg:gap-14">
           <LearnTabs slug={course.slug} active="progress" />
 
-          <div className="grid max-w-[1660px] gap-10 xl:grid-cols-[minmax(0,1fr)_minmax(0,630px)] xl:gap-[50px]">
+          <div className="grid gap-10 xl:grid-cols-[minmax(0,1fr)_minmax(0,630px)] xl:gap-[50px] min-[1920px]:grid-cols-[minmax(0,980px)_minmax(0,1fr)]">
             <div className="flex max-w-[980px] flex-col gap-10">
               <div className="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
                 <div className="flex max-w-[680px] flex-col gap-4">
@@ -226,47 +226,55 @@ function ProgressDonut({ percent }: { percent: number }) {
   );
 }
 
-/** 980px score bar with a yellow current-score marker and a black passing-score marker. */
+/** 980px score bar: yellow current-score marker, black passing-score marker, and a passing-threshold tick inside the bar. */
 function ScoreBar({ percent, passing }: { percent: number; passing: number }) {
   return (
     <div className="relative w-full max-w-[980px] py-16">
       <div className="relative w-full">
+        {/* Current-score marker above the bar: label on top, pill pointing down at the bar. */}
         <div
           className="absolute bottom-full mb-2 flex -translate-x-1/2 flex-col items-center"
           style={{ left: `${percent}%` }}
         >
-          <span className="relative rounded-md bg-(--color-brand-yellow) px-3 py-1 font-(family-name:--font-accent) text-2xl text-(--color-text-primary)">
+          <span className="whitespace-nowrap font-(family-name:--font-base) text-base text-(--color-text-primary)">
+            Your current score
+          </span>
+          <span className="relative mt-2 rounded-md bg-(--color-brand-yellow) px-3 py-1 font-(family-name:--font-accent) text-2xl text-(--color-text-primary)">
             {percent}%
             <span
               aria-hidden="true"
               className="absolute left-1/2 top-full h-2 w-2 -translate-x-1/2 -translate-y-1/2 rotate-45 bg-(--color-brand-yellow)"
             />
           </span>
-          <span className="mt-2 whitespace-nowrap font-(family-name:--font-base) text-base text-(--color-text-primary)">
-            Your current score
-          </span>
         </div>
 
-        <div className="h-1.5 w-full rounded-full bg-(--color-brand-lavender-soft)">
+        <div className="relative h-1.5 w-full rounded-full bg-(--color-brand-lavender-soft)">
           <div
             className="h-full rounded-full bg-(--color-blue) transition-[width]"
             style={{ width: `${percent}%` }}
           />
+          {/* Passing-score threshold tick. */}
+          <span
+            aria-hidden="true"
+            className="absolute top-1/2 h-3 w-0.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-(--color-text-primary)"
+            style={{ left: `${passing}%` }}
+          />
         </div>
 
+        {/* Passing-score marker below the bar: pill pointing up at the bar, label underneath. */}
         <div
           className="absolute top-full mt-2 flex -translate-x-1/2 flex-col items-center"
           style={{ left: `${passing}%` }}
         >
-          <span className="whitespace-nowrap font-(family-name:--font-base) text-base text-(--color-text-primary)">
-            Passing score
-          </span>
-          <span className="relative mt-1 rounded-md bg-(--color-text-primary) px-3 py-1 font-(family-name:--font-accent) text-2xl text-white">
+          <span className="relative rounded-md bg-(--color-text-primary) px-3 py-1 font-(family-name:--font-accent) text-2xl text-white">
             <span
               aria-hidden="true"
               className="absolute bottom-full left-1/2 h-2 w-2 -translate-x-1/2 translate-y-1/2 rotate-45 bg-(--color-text-primary)"
             />
             {passing}%
+          </span>
+          <span className="mt-2 whitespace-nowrap font-(family-name:--font-base) text-base text-(--color-text-primary)">
+            Passing score
           </span>
         </div>
       </div>

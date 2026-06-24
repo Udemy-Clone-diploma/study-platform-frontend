@@ -5,6 +5,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { getCart, type Cart, type CartItem } from "@/entities/cart";
+import { enrollInFreeCourse } from "@/entities/course";
 import {
   createInstallmentPaymentIntent,
   createPaymentIntent,
@@ -783,11 +784,6 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
       return;
     }
 
-    if (paymentType === "installments" && !selectedInstallmentOption) {
-      setCheckoutError("Partial payment is not available for the selected course.");
-      return;
-    }
-
     setCheckoutLoading(true);
     setCheckoutError("");
     setCheckoutMode(paymentType);
@@ -795,12 +791,36 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
     setIsCartPaymentDrawerOpen(false);
 
     try {
+      const freeCartItems = selectedCartItems.filter((item) => Number(item.unit_price) === 0);
+      const paidCartItems = selectedCartItems.filter((item) => Number(item.unit_price) > 0);
+
+      if (freeCartItems.length > 0) {
+        await Promise.all(
+          freeCartItems.map((item) => enrollInFreeCourse(item.course.slug)),
+        );
+        const refreshedCart = await getCart();
+        setCart(refreshedCart);
+        setSelectedCartItemIds(paidCartItems.map((item) => item.id));
+
+        if (paidCartItems.length === 0) {
+          setCartCheckoutIntent(null);
+          setToast("Free course access has been granted.");
+          return;
+        }
+      }
+
+      const paidInstallmentOption = installmentOptionForItems(paidCartItems);
+      if (paymentType === "installments" && !paidInstallmentOption) {
+        setCheckoutError("Partial payment is not available for the selected course.");
+        return;
+      }
+
       const requestedInstallmentCount =
-        paymentType === "installments" && selectedInstallmentOption
-          ? selectedInstallmentOption.count
+        paymentType === "installments" && paidInstallmentOption
+          ? paidInstallmentOption.count
           : undefined;
       const intent = await createPaymentIntent({
-        selected_cart_item_ids: selectedCartItems.map((item) => item.id),
+        selected_cart_item_ids: paidCartItems.map((item) => item.id),
         payment_type: paymentType,
         installments_count: requestedInstallmentCount,
       });

@@ -9,7 +9,7 @@ import {
   LANGUAGE_LABELS,
   LEVEL_LABELS,
   MODE_LABELS,
-  PLAN_KIND_LABELS,
+  FORMAT_TYPE_LABELS,
 } from "../model/catalogFilters";
 import { CatalogFilterCheckbox } from "./CatalogFilterCheckbox";
 import { CollapsibleFilterSection } from "./CollapsibleFilterSection";
@@ -157,11 +157,11 @@ export function CatalogFiltersSidebar({
           />
         </CollapsibleFilterSection>
 
-        <CollapsibleFilterSection title="Plan type">
-          {(Object.entries(PLAN_KIND_LABELS) as [string, string][]).map(([value, label]) => (
+        <CollapsibleFilterSection title="Format type">
+          {(Object.entries(FORMAT_TYPE_LABELS) as [string, string][]).map(([value, label]) => (
             <ToggleOption
               key={value}
-              option={{ label, param: "plan_kind", value }}
+              option={{ label, param: "format_type", value }}
               state={state}
               inset
             />

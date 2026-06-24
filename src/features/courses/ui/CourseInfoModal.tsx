@@ -92,7 +92,7 @@ export function CourseInfoModal({ record, onClose }: Props) {
   }, [record.course_slug]);
 
   const modules = detail?.modules ?? [];
-  const price   = detail?.pricing_plans?.[0] ? `€${detail.pricing_plans[0].price}` : "Free";
+  const price   = detail?.delivery_formats?.find(f => f.pricing)?.pricing?.price ? `€${detail!.delivery_formats.find(f => f.pricing)!.pricing!.price}` : "Free";
   const level   = (detail?.level ?? record.course_level ?? "").replace(/^\w/, (c) => c.toUpperCase());
   const imgSrc  = detail?.image ?? record.course_image_url ?? null;
 

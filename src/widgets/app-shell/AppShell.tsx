@@ -5,11 +5,13 @@ import type { SidebarItem } from "@/features/app-shell";
 type AppShellProps = {
   children: React.ReactNode;
   sidebarItems: SidebarItem[];
+  fullBleed?: boolean;
 };
 
 export function AppShell({
   children,
   sidebarItems,
+  fullBleed,
 }: AppShellProps) {
   return (
     <div className="flex h-screen min-w-[1024px] flex-col overflow-hidden bg-white">
@@ -21,7 +23,7 @@ export function AppShell({
         <AppSidebar items={sidebarItems} />
 
         <div className="flex min-w-0 flex-1 flex-col overflow-y-auto">
-          <main className="flex-1 px-[clamp(14px,1.5vw,28px)] py-[clamp(14px,1.5vw,28px)]">
+          <main className={fullBleed ? "min-h-full" : "flex-1 px-[clamp(14px,1.5vw,28px)] py-[clamp(14px,1.5vw,28px)]"}>
             {children}
           </main>
         </div>

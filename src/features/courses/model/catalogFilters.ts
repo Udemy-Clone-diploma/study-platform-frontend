@@ -4,7 +4,7 @@ import type {
   CourseLevel,
   CourseMode,
   CourseType,
-  PricingPlan,
+  DeliveryFormatType,
 } from "@/entities/course";
 
 export type CatalogSearchParams = {
@@ -20,8 +20,8 @@ export type CatalogFilterState = {
   language?: string;
   level?: string;
   mode?: string;
-  /** Comma-separated PricingPlan kinds (e.g. "group,individual"). */
-  plan_kind?: string;
+  /** Comma-separated delivery format types (e.g. "group,individual"). */
+  format_type?: string;
   /** Decimal-string lower bound on the cheapest plan price. Empty means unbounded. */
   price_min?: string;
   /** Decimal-string upper bound on the cheapest plan price. Empty means unbounded. */
@@ -67,9 +67,11 @@ export const COURSE_TYPE_LABELS: Record<CourseType, string> = {
   knowledge: "Expanding knowledge",
 };
 
-export const PLAN_KIND_LABELS: Record<PricingPlan["kind"], string> = {
-  group: "Group plan",
+export const FORMAT_TYPE_LABELS: Record<DeliveryFormatType, string> = {
+  self_paced: "Self-paced",
+  scheduled: "Scheduled",
   individual: "Individual coaching",
+  group: "Group plan",
 };
 
 function firstParam(value: string | string[] | undefined) {
@@ -86,7 +88,7 @@ export function parseCatalogState(params: CatalogSearchParams): CatalogFilterSta
     language: firstParam(params.language),
     level: firstParam(params.level),
     mode: firstParam(params.mode),
-    plan_kind: firstParam(params.plan_kind),
+    format_type: firstParam(params.format_type),
     price_min: firstParam(params.price_min),
     price_max: firstParam(params.price_max),
     rating_min: firstParam(params.rating_min),
@@ -141,7 +143,7 @@ export function buildCatalogHref(
   if (next.language) params.set("language", next.language);
   if (next.level) params.set("level", next.level);
   if (next.mode) params.set("mode", next.mode);
-  if (next.plan_kind) params.set("plan_kind", next.plan_kind);
+  if (next.format_type) params.set("format_type", next.format_type);
   if (next.price_min) params.set("price_min", next.price_min);
   if (next.price_max) params.set("price_max", next.price_max);
   if (next.rating_min) params.set("rating_min", next.rating_min);
@@ -161,7 +163,7 @@ export function resetCatalogFiltersHref(state: CatalogFilterState) {
     language: undefined,
     level: undefined,
     mode: undefined,
-    plan_kind: undefined,
+    format_type: undefined,
     price_min: undefined,
     price_max: undefined,
     rating_min: undefined,

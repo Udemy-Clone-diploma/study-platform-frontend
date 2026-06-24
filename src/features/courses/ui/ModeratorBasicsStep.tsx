@@ -46,7 +46,7 @@ export function ModeratorBasicsStep(props: StepProps) {
     : (course?.category?.name ?? "—");
   const displayLevel    = (!lockedKeys.has("field-level") && pe?.level) ?? course?.level ?? "";
 
-  const priceValue   = course?.pricing_plans?.length ? `${course.pricing_plans[0].price}` : "";
+  const priceValue   = course?.delivery_formats?.find(f => f.pricing)?.pricing?.price ?? "";
   const levelLabel   = displayLevel ? displayLevel.charAt(0).toUpperCase() + displayLevel.slice(1) : "—";
 
   const canContinue =

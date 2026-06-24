@@ -13,7 +13,7 @@ type Props = {
   courseId: number;
   slug: string;
   isEnrolled: boolean;
-  pricingPlans: PricingPlan[];
+  defaultPricingPlan: PricingPlan | null;
 };
 
 const CART_URL = "/student-dashboard/payment?tab=card";
@@ -22,18 +22,17 @@ const FREE_ENROLLMENT_SUCCESS_NOTICE = "Enrollment complete. You can start this 
 const STUDENT_ONLY_MESSAGE = "Enrollment is available only for students.";
 
 /**
- * Hero CTA. A course with a zero-price plan grants access immediately; paid
- * courses add the default pricing plan to the student's cart.
+ * Hero CTA. A zero-price plan grants access immediately; a paid plan is added
+ * to the cart for the regular Stripe checkout flow.
  */
-export function CourseHeroCTA({ courseId, slug, isEnrolled, pricingPlans }: Props) {
+export function CourseHeroCTA({ courseId, slug, isEnrolled, defaultPricingPlan }: Props) {
   const router = useRouter();
   const [enrolled, setEnrolled] = useState(isEnrolled);
   const [pending, setPending] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
 
   const buttonStyle = { width: 200, minWidth: 200, height: 52 } as const;
-  const defaultPricingPlan = pricingPlans[0] ?? null;
-  const freePricingPlan = pricingPlans.find((plan) => Number(plan.price) === 0) ?? null;
+  const isFreeCourse = defaultPricingPlan !== null && Number(defaultPricingPlan.price) === 0;
 
   if (enrolled) {
     return (
@@ -59,7 +58,7 @@ export function CourseHeroCTA({ courseId, slug, isEnrolled, pricingPlans }: Prop
     setNotice(null);
 
     try {
-      if (freePricingPlan) {
+      if (isFreeCourse) {
         await enrollInFreeCourse(slug);
         setEnrolled(true);
         setNotice(FREE_ENROLLMENT_SUCCESS_NOTICE);
@@ -82,7 +81,7 @@ export function CourseHeroCTA({ courseId, slug, isEnrolled, pricingPlans }: Prop
         return;
       }
 
-      if (courseError.includes("already has access") || apiError.status === 409) {
+      if (courseError.includes("already has access")) {
         setEnrolled(true);
         setNotice(COURSE_AVAILABLE_NOTICE);
         return;
@@ -97,7 +96,7 @@ export function CourseHeroCTA({ courseId, slug, isEnrolled, pricingPlans }: Prop
   return (
     <div className="flex flex-col gap-2">
       <AccentButton size="md" style={buttonStyle} onClick={handleClick} disabled={pending}>
-        {pending ? "Processing..." : freePricingPlan ? "Enroll for free" : "Add to cart"}
+        {pending ? "Processing..." : isFreeCourse ? "Enroll for free" : "Add to cart"}
       </AccentButton>
       {notice && (
         <p role="status" className="max-w-[460px] text-base text-(--color-pink-dark)">

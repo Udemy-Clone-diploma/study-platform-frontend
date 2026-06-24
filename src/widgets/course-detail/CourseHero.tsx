@@ -97,7 +97,7 @@ export function CourseHero({ course }: Props) {
           courseId={course.id}
           slug={course.slug}
           isEnrolled={course.is_enrolled}
-          pricingPlans={course.pricing_plans}
+          defaultPricingPlan={course.delivery_formats.find((format) => format.pricing)?.pricing ?? null}
         />
       </div>
 

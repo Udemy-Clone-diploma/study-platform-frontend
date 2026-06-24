@@ -1,5 +1,6 @@
 import type { Category } from "./category";
 import type { CourseCohort } from "./cohort";
+import type { CourseDeliveryFormat } from "./delivery-format";
 import type { CourseModule } from "./module";
 import type { PricingPlan } from "./pricing";
 import type { CourseTag } from "./tag";
@@ -134,8 +135,8 @@ export type CourseDetail = Omit<CourseListItem, "teacher_name" | "price" | "curr
   total_duration_minutes: number;
   /** True when the current authenticated user is enrolled. False for anonymous users. */
   is_enrolled: boolean;
-  /** Empty array when the course is free. */
-  pricing_plans: PricingPlan[];
+  /** Delivery format configs, each optionally with a nested pricing plan. */
+  delivery_formats: CourseDeliveryFormat[];
   /** Empty array when no cohorts are scheduled. */
   cohorts: CourseCohort[];
   modules: CourseModule[];

@@ -70,7 +70,7 @@ export function CompletionResultModal({ completion, onClose }: Props) {
   const category = detail?.category?.name ?? completion.category ?? null;
   const shortDesc = detail?.short_description ?? completion.short_description ?? null;
   const fullDesc  = detail?.full_description ?? null;
-  const price     = detail?.pricing_plans?.[0] ? `€${detail.pricing_plans[0].price}` : "Free";
+  const price     = (() => { const p = detail?.delivery_formats?.find(f => f.pricing)?.pricing; return p ? `€${p.price}` : "Free"; })();
   const modules   = detail?.modules ?? [];
   const totalLessons = modules.reduce((s, m) => s + m.lessons.length, 0);
   const totalTests   = modules.reduce((s, m) => s + (m.tests?.length ?? 0), 0);

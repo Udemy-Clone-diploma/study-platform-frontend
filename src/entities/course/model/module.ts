@@ -37,6 +37,8 @@ export type LessonItem = {
   original_video_name?: string;
   duration_minutes?: number | null;
   test?: CourseTest | null;
+  created_at?: string;
+  updated_at?: string;
 };
 
 export type CourseLesson = {
@@ -46,6 +48,9 @@ export type CourseLesson = {
   duration_minutes: number | null;
   is_preview: boolean;
   min_score?: number | null;
+  unlock_after_days?: number | null;
+  requires_previous?: boolean;
+  is_manually_locked?: boolean;
   documents?: LessonDocument[];
   items?: LessonItem[];
 };

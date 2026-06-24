@@ -1,11 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { BookOpen, Check, User, Users } from "lucide-react";
+import { BookOpen, Check, ChevronDown, Clock, User, Users } from "lucide-react";
+// ChevronDown used inside CohortPicker and IndividualSlotPreview collapsible headers
 import { addCartItem } from "@/entities/cart";
 import type { CourseCohort } from "@/entities/course/model/cohort";
 import type { CourseDeliveryFormat, DeliveryFormatType } from "@/entities/course";
+import { DAY_LABELS, getScheduleSlots } from "@/entities/course";
+import type { ScheduleSlot } from "@/entities/course";
 import type { ApiError } from "@/shared/api/base";
 import { AUTH_COOKIE_NAMES } from "@/shared/api/config/authCookies";
 import { getClientCookie } from "@/shared/lib/cookies";
@@ -56,15 +59,19 @@ function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
-/** Cohort radio list shown inside a group format card. */
+/** Cohort radio list shown inside a group format card. Starts collapsed. */
 function CohortPicker({
   cohorts,
   selected,
   onSelect,
+  open,
+  onOpenChange,
 }: {
   cohorts: CourseCohort[];
   selected: number | null;
   onSelect: (id: number) => void;
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
 }) {
   if (cohorts.length === 0) {
     return (
@@ -74,54 +81,145 @@ function CohortPicker({
     );
   }
 
+  const activeCohort = cohorts.find(c => c.id === selected);
+
   return (
     <div className="flex flex-col gap-2 w-full">
-      <p className="text-sm font-(family-name:--font-accent) uppercase text-(--color-text-secondary) tracking-wide">
-        Select a schedule
-      </p>
-      <div className="flex flex-col gap-2">
-        {cohorts.map(c => {
-          const spotsLeft = c.group_size ? c.group_size - c.members_count : null;
-          const isSelected = selected === c.id;
-          return (
-            <button
-              key={c.id}
-              type="button"
-              onClick={() => onSelect(c.id)}
-              className="flex items-start justify-between gap-3 rounded-xl border px-4 py-3 text-left transition-colors"
-              style={{
-                borderColor: isSelected ? "var(--color-blue)" : "var(--color-border-light)",
-                background: isSelected ? "color-mix(in srgb, var(--color-blue) 8%, transparent)" : "transparent",
-              }}
-            >
-              <div className="flex flex-col gap-0.5 min-w-0">
-                <span className="font-(family-name:--font-base) font-semibold text-sm text-(--color-text-primary)">
-                  {c.name ?? "Group"}
-                </span>
-                {c.start_date && (
-                  <span className="text-xs text-(--color-text-secondary)">
-                    Starts {formatDate(c.start_date)}
-                  </span>
-                )}
-                {spotsLeft !== null && (
-                  <span className="text-xs text-(--color-text-muted)">
-                    {spotsLeft} spot{spotsLeft !== 1 ? "s" : ""} left
-                  </span>
-                )}
-              </div>
-              <span
-                className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors"
+      <button
+        type="button"
+        onClick={() => onOpenChange(!open)}
+        className="flex items-center justify-between gap-2 w-full text-left"
+      >
+        <span className="text-sm font-(family-name:--font-accent) uppercase text-(--color-text-secondary) tracking-wide">
+          {activeCohort ? activeCohort.name ?? "Group" : "Select a schedule"}
+        </span>
+        <ChevronDown
+          className="h-4 w-4 shrink-0 text-(--color-text-secondary) transition-transform duration-200"
+          style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
+        />
+      </button>
+
+      {open && (
+        <div className="flex flex-col gap-2">
+          {cohorts.map(c => {
+            const spotsLeft = c.group_size ? c.group_size - c.members_count : null;
+            const isSelected = selected === c.id;
+            return (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => onSelect(c.id)}
+                className="flex items-start justify-between gap-3 rounded-xl border px-4 py-3 text-left transition-colors"
                 style={{
                   borderColor: isSelected ? "var(--color-blue)" : "var(--color-border-light)",
-                  background: isSelected ? "var(--color-blue)" : "transparent",
+                  background: isSelected ? "color-mix(in srgb, var(--color-blue) 8%, transparent)" : "transparent",
                 }}
               >
-                {isSelected && <Check className="h-3 w-3 text-white" />}
-              </span>
-            </button>
-          );
-        })}
+                <div className="flex flex-col gap-0.5 min-w-0">
+                  <span className="font-(family-name:--font-base) font-semibold text-sm text-(--color-text-primary)">
+                    {c.name ?? "Group"}
+                  </span>
+                  {c.start_date && (
+                    <span className="text-xs text-(--color-text-secondary)">
+                      Starts {formatDate(c.start_date)}
+                    </span>
+                  )}
+                  {spotsLeft !== null && (
+                    <span className="text-xs text-(--color-text-muted)">
+                      {spotsLeft} spot{spotsLeft !== 1 ? "s" : ""} left
+                    </span>
+                  )}
+                </div>
+                <span
+                  className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors"
+                  style={{
+                    borderColor: isSelected ? "var(--color-blue)" : "var(--color-border-light)",
+                    background: isSelected ? "var(--color-blue)" : "transparent",
+                  }}
+                >
+                  {isSelected && <Check className="h-3 w-3 text-white" />}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Shows available time slots for an individual-format course, grouped by day. Starts collapsed. */
+function IndividualSlotPreview({ slug, formatId }: { slug: string; formatId: number }) {
+  const [slots, setSlots] = useState<ScheduleSlot[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    getScheduleSlots(slug, formatId)
+      .then(data => setSlots(data.filter(s => s.is_available)))
+      .catch(() => setSlots([]))
+      .finally(() => setLoading(false));
+  }, [slug, formatId]);
+
+  // Group by day_of_week, sorted Mon→Sun
+  const byDay = slots.reduce<Record<number, ScheduleSlot[]>>((acc, s) => {
+    (acc[s.day_of_week] ??= []).push(s);
+    return acc;
+  }, {});
+  const days = Object.keys(byDay).map(Number).sort((a, b) => a - b);
+
+  if (loading) {
+    return (
+      <div className="flex items-center gap-2 text-sm text-(--color-text-muted)">
+        <Clock className="h-4 w-4 shrink-0" />
+        Loading available times…
       </div>
+    );
+  }
+
+  if (days.length === 0) {
+    return (
+      <div className="flex items-center gap-2 text-sm text-(--color-text-muted)">
+        <Clock className="h-4 w-4 shrink-0" />
+        No available sessions at this time.
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-3 w-full">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="flex items-center justify-between gap-2 w-full text-left"
+      >
+        <span className="text-sm font-(family-name:--font-accent) uppercase text-(--color-text-secondary) tracking-wide flex items-center gap-1.5">
+          <Clock className="h-4 w-4 shrink-0" />
+          Available sessions ({slots.length})
+        </span>
+        <ChevronDown
+          className="h-4 w-4 shrink-0 text-(--color-text-secondary) transition-transform duration-200"
+          style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
+        />
+      </button>
+
+      {open && days.map(d => (
+        <div key={d} className="flex flex-col gap-1.5">
+          <span className="text-xs font-semibold text-(--color-text-secondary) uppercase tracking-wide">
+            {DAY_LABELS[d as keyof typeof DAY_LABELS]}
+          </span>
+          <div className="flex flex-wrap gap-1.5">
+            {byDay[d].map(s => (
+              <span
+                key={s.id}
+                className="rounded-full border border-(--color-border-light) bg-(--color-bg) px-3 py-1 text-xs font-(family-name:--font-base) text-(--color-text-primary)"
+              >
+                {s.start_time.slice(0, 5)}–{s.end_time.slice(0, 5)}
+              </span>
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -130,10 +228,14 @@ function CohortPicker({
 export function CoursePricingBlock({ courseId, formats, slug, cohorts = [] }: Props) {
   const router = useRouter();
   const [pendingPlanId, setPendingPlanId] = useState<number | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
+  const [cardNotices, setCardNotices] = useState<Record<number, string>>({});
+  const [cohortPickerOpen, setCohortPickerOpen] = useState<Record<number, boolean>>({});
   const [selectedCohort, setSelectedCohort] = useState<Record<number, number>>({});
-
+  const today = new Date().toISOString().split("T")[0];
   const pricedFormats = formats.filter(f => f.pricing);
+
+  const isEnrollmentClosed = (fmt: CourseDeliveryFormat) =>
+    !!fmt.enrollment_deadline && fmt.enrollment_deadline <= today;
 
   const getAvailableCohorts = (formatId: number) =>
     cohorts.filter(
@@ -143,6 +245,13 @@ export function CoursePricingBlock({ courseId, formats, slug, cohorts = [] }: Pr
         (c.group_size === null || c.members_count < c.group_size),
     );
 
+  const setCardNotice = (formatId: number, msg: string) =>
+    setCardNotices(prev => ({ ...prev, [formatId]: msg }));
+  const clearCardNotice = (formatId: number) =>
+    setCardNotices(prev => ({ ...prev, [formatId]: "" }));
+  const openCohortPicker = (formatId: number) =>
+    setCohortPickerOpen(prev => ({ ...prev, [formatId]: true }));
+
   const handleBuy = async (planId: number, formatId: number, formatType: DeliveryFormatType) => {
     if (!getClientCookie(AUTH_COOKIE_NAMES.access)) {
       router.push(`/login?next=${encodeURIComponent(`/courses/${slug}`)}`);
@@ -151,20 +260,21 @@ export function CoursePricingBlock({ courseId, formats, slug, cohorts = [] }: Pr
 
     const role = getClientCookie(AUTH_COOKIE_NAMES.role);
     if (role && role !== "student") {
-      setNotice(STUDENT_ONLY_MESSAGE);
+      setCardNotice(formatId, STUDENT_ONLY_MESSAGE);
       return;
     }
 
     if (formatType === "group") {
       const cohortId = selectedCohort[formatId];
       if (!cohortId) {
-        setNotice("Please select a schedule before purchasing.");
+        openCohortPicker(formatId);
+        setCardNotice(formatId, "Please select a schedule first.");
         return;
       }
     }
 
     setPendingPlanId(planId);
-    setNotice(null);
+    clearCardNotice(formatId);
 
     try {
       const cohortId = formatType === "group" ? selectedCohort[formatId] : undefined;
@@ -180,14 +290,14 @@ export function CoursePricingBlock({ courseId, formats, slug, cohorts = [] }: Pr
         return;
       }
       if (courseError.includes("already has access")) {
-        setNotice(COURSE_AVAILABLE_NOTICE);
+        setCardNotice(formatId, COURSE_AVAILABLE_NOTICE);
         return;
       }
       if (cohortError) {
-        setNotice(cohortError);
+        setCardNotice(formatId, cohortError);
         return;
       }
-      setNotice(apiError.message || apiError.detail || "Could not process your request.");
+      setCardNotice(formatId, apiError.message || apiError.detail || "Could not process your request.");
     } finally {
       setPendingPlanId(null);
     }
@@ -208,7 +318,17 @@ export function CoursePricingBlock({ courseId, formats, slug, cohorts = [] }: Pr
           const plan = fmt.pricing!;
           const Icon = FORMAT_ICON[fmt.format_type];
           const isGroup = fmt.format_type === "group";
+          const isIndividual = fmt.format_type === "individual";
           const availableCohorts = isGroup ? getAvailableCohorts(fmt.id) : [];
+
+          // Hide when enrollment deadline has passed (teacher closed enrollment)
+          if (isEnrollmentClosed(fmt)) return null;
+
+          // Hide group card when every cohort is full / closed
+          if (isGroup && availableCohorts.length === 0) return null;
+
+          // Hide individual card when the max-students limit is reached
+          if (isIndividual && fmt.max_students != null && fmt.enrolled_count >= fmt.max_students) return null;
 
           return (
             <article
@@ -251,15 +371,27 @@ export function CoursePricingBlock({ courseId, formats, slug, cohorts = [] }: Pr
                     cohorts={availableCohorts}
                     selected={selectedCohort[fmt.id] ?? null}
                     onSelect={id => setSelectedCohort(prev => ({ ...prev, [fmt.id]: id }))}
+                    open={cohortPickerOpen[fmt.id] ?? false}
+                    onOpenChange={v => setCohortPickerOpen(prev => ({ ...prev, [fmt.id]: v }))}
                   />
                 )}
+
+                {isIndividual && (
+                  <IndividualSlotPreview slug={slug} formatId={fmt.id} />
+                )}
               </div>
+
+              {cardNotices[fmt.id] && (
+                <p role="status" className="text-center text-sm text-(--color-pink-dark)">
+                  {cardNotices[fmt.id]}
+                </p>
+              )}
 
               <GradientButton
                 onClick={() => handleBuy(plan.id, fmt.id, fmt.format_type)}
                 disabled={
                   pendingPlanId !== null ||
-                  (isGroup && availableCohorts.length > 0 && !selectedCohort[fmt.id])
+                  (isGroup && availableCohorts.length === 0)
                 }
               >
                 {pendingPlanId === plan.id
@@ -272,12 +404,6 @@ export function CoursePricingBlock({ courseId, formats, slug, cohorts = [] }: Pr
           );
         })}
       </div>
-
-      {notice && (
-        <p role="status" className="text-center text-base text-(--color-pink-dark)">
-          {notice}
-        </p>
-      )}
     </section>
   );
 }

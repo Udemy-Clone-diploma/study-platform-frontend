@@ -13,9 +13,12 @@ export async function getLessonDetail(
 }
 
 export type LessonPayload = {
-  title: string;
+  title?: string;
   duration_minutes?: number | null;
   min_score?: number | null;
+  unlock_after_days?: number | null;
+  requires_previous?: boolean;
+  is_manually_locked?: boolean;
 };
 
 export async function createLesson(

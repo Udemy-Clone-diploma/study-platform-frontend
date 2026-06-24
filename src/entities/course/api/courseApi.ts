@@ -211,8 +211,12 @@ export async function removeCohortMember(
   await api.delete(`${COURSES}${slug}/cohorts/${cohortId}/members/${memberId}/`);
 }
 
-export async function getCourseEnrolledStudents(slug: string): Promise<EnrolledStudent[]> {
-  const { data } = await api.get<EnrolledStudent[]>(`${COURSES}${slug}/enrolled-students/`);
+export async function getCourseEnrolledStudents(
+  slug: string,
+  formatId?: number,
+): Promise<EnrolledStudent[]> {
+  const params = formatId ? `?format_id=${formatId}` : "";
+  const { data } = await api.get<EnrolledStudent[]>(`${COURSES}${slug}/enrolled-students/${params}`);
   return data;
 }
 

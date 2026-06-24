@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, Plus, Pencil, Trash2, X, Check, Lock, LockOpen } from "lucide-react";
+import { ChevronDown, Pencil, Trash2, X, Check, Lock, LockOpen } from "lucide-react";
+import { DatePicker } from "@/shared/ui/DatePicker";
+import { AddButton } from "@/shared/ui/AddButton";
+import { ModalShell } from "@/shared/ui/ModalShell";
 import type { CourseCohort, CourseDetail } from "@/entities/course";
 import type {
   CourseDeliveryFormat,
@@ -301,8 +304,8 @@ function CohortRow({ cohort, slug, onDeleted, onUpdated }: {
           <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Group A" style={{ ...inputSm, width: "100%", boxSizing: "border-box" }} />
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
-          <div><label style={labelSm}>Start date</label><input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={inputSm} /></div>
-          <div><label style={labelSm}>Deadline</label><input type="date" value={deadline} onChange={e => setDeadline(e.target.value)} style={inputSm} /></div>
+          <DatePicker label="Start date" value={startDate} onChange={setStartDate} size="sm" />
+          <DatePicker label="Deadline" value={deadline} onChange={setDeadline} size="sm" />
           <div><label style={labelSm}>Duration (months)</label><input type="number" min={0} value={durationMonths} onChange={e => setDuration(e.target.value)} placeholder="0" style={inputSm} /></div>
           <div><label style={labelSm}>h/week</label><input type="number" min={0} value={hoursPerWeek} onChange={e => setHoursPerWeek(e.target.value)} placeholder="0" style={inputSm} /></div>
           <div><label style={labelSm}>Max group size</label><input type="number" min={1} value={groupSize} onChange={e => setGroupSize(e.target.value)} placeholder="—" style={inputSm} /></div>
@@ -427,8 +430,8 @@ function AddCohortForm({ slug, formatId, onCreated, onClose }: {
         <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Group A" style={{ ...inputSm, width: "100%", boxSizing: "border-box" }} />
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
-        <div><label style={labelSm}>Start date</label><input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={inputSm} /></div>
-        <div><label style={labelSm}>Deadline</label><input type="date" value={deadline} onChange={e => setDeadline(e.target.value)} style={inputSm} /></div>
+        <DatePicker label="Start date" value={startDate} onChange={setStartDate} size="sm" />
+        <DatePicker label="Deadline" value={deadline} onChange={setDeadline} size="sm" />
         <div><label style={labelSm}>Duration (months)</label><input type="number" min={0} value={durationMonths} onChange={e => setDuration(e.target.value)} placeholder="0" style={inputSm} /></div>
         <div><label style={labelSm}>h/week</label><input type="number" min={0} value={hoursPerWeek} onChange={e => setHoursPerWeek(e.target.value)} placeholder="0" style={inputSm} /></div>
         <div><label style={labelSm}>Max group size</label><input type="number" min={1} value={groupSize} onChange={e => setGroupSize(e.target.value)} placeholder="—" style={inputSm} /></div>
@@ -452,6 +455,86 @@ function AddCohortForm({ slug, formatId, onCreated, onClose }: {
   );
 }
 
+// ── RemoveFormatModal ──────────────────────────────────────────────────────────
+
+function RemoveFormatModal({
+  fmt,
+  onDelete,
+  onCloseEnrollment,
+  onCancel,
+}: {
+  fmt: CourseDeliveryFormat;
+  onDelete: () => Promise<void>;
+  onCloseEnrollment: () => Promise<void>;
+  onCancel: () => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const hasStudents = (fmt.enrolled_count ?? 0) > 0;
+  const name = FORMAT_LABELS[fmt.format_type];
+
+  async function handleAction() {
+    setBusy(true);
+    setError(null);
+    try {
+      if (hasStudents) {
+        await onCloseEnrollment();
+      } else {
+        await onDelete();
+      }
+    } catch (err: unknown) {
+      setError((err as { message?: string })?.message ?? "Something went wrong.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const title = hasStudents ? "Format has enrolled students" : `Remove "${name}" format?`;
+
+  const BTN_BASE: React.CSSProperties = {
+    fontFamily: "var(--font-base)", fontWeight: 600,
+    fontSize: "clamp(12px, 0.83vw, 14px)", borderRadius: 999,
+    padding: "7px 18px", cursor: busy ? "not-allowed" : "pointer",
+    border: "none", opacity: busy ? 0.6 : 1,
+  };
+
+  return (
+    <ModalShell onClose={onCancel} title={title} width="clamp(320px, 30vw, 460px)">
+      <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(13px, 0.83vw, 15px)", color: "var(--color-text-secondary)", margin: 0, lineHeight: 1.6 }}>
+        {hasStudents ? (
+          <>
+            <strong>{fmt.enrolled_count}</strong> student{fmt.enrolled_count !== 1 ? "s" : ""}{" "}
+            {fmt.enrolled_count !== 1 ? "are" : "is"} enrolled in the{" "}
+            <strong>{name}</strong> format. You can close enrollment to prevent new sign-ups
+            — existing students keep access.
+          </>
+        ) : (
+          "This will also delete the pricing plan for this format. This action cannot be undone."
+        )}
+      </p>
+      {error && (
+        <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.72vw, 13px)", color: "var(--color-danger)", marginTop: 8, marginBottom: 0 }}>
+          {error}
+        </p>
+      )}
+      <div style={{ display: "flex", gap: 8, marginTop: 20, justifyContent: "flex-end" }}>
+        <button
+          type="button" onClick={onCancel} disabled={busy}
+          style={{ ...BTN_BASE, background: "none", border: "1px solid var(--color-border-light)", color: "var(--color-text-secondary)" }}
+        >
+          Cancel
+        </button>
+        <button
+          type="button" onClick={handleAction} disabled={busy}
+          style={{ ...BTN_BASE, background: "var(--color-text-primary)", color: "#fff" }}
+        >
+          {busy ? "Saving…" : hasStudents ? "Close enrollment" : "Remove"}
+        </button>
+      </div>
+    </ModalShell>
+  );
+}
+
 // ── FormatCard ─────────────────────────────────────────────────────────────
 
 type FormatCardProps = {
@@ -470,12 +553,31 @@ function FormatCard({ fmt, slug, cohorts, onUpdated, onDeleted, onCohortCreated,
   const [saving, setSaving]           = useState(false);
   const [error, setError]             = useState<string | null>(null);
   const [addingCohort, setAddingCohort] = useState(false);
+  const [showRemoveModal, setShowRemoveModal] = useState(false);
+  const [toggling, setToggling]       = useState(false);
+
+  const today   = new Date().toISOString().split("T")[0];
+  const isClosed = !!fmt.enrollment_deadline && fmt.enrollment_deadline <= today;
+  const isFull   = fmt.max_students != null && fmt.enrolled_count >= fmt.max_students;
+
+  async function handleToggleEnrollment() {
+    setToggling(true);
+    try {
+      const updated = await updateDeliveryFormat(slug, fmt.id, {
+        enrollment_deadline: isClosed ? null : today,
+      });
+      onUpdated(updated);
+    } finally {
+      setToggling(false);
+    }
+  }
 
   const [price, setPrice]                         = useState(fmt.pricing?.price ?? "");
   const [currency, setCurrency]                   = useState<"USD"|"EUR"|"UAH">(fmt.pricing?.currency ?? "USD");
   const [installments, setInstallments]           = useState(fmt.pricing?.installment_count != null);
   const [installmentCount, setInstallmentCount]   = useState(String(fmt.pricing?.installment_count ?? ""));
   const [installmentAmount, setInstallmentAmount] = useState(fmt.pricing?.installment_amount ?? "");
+  const [maxStudents, setMaxStudents]             = useState(String(fmt.max_students ?? ""));
 
   function handleChange(key: string, value: string | boolean) {
     if (key === "price") {
@@ -499,14 +601,18 @@ function FormatCard({ fmt, slug, cohorts, onUpdated, onDeleted, onCohortCreated,
     setSaving(true);
     setError(null);
     try {
-      const updated = await updateDeliveryFormat(slug, fmt.id, {
+      const payload: Parameters<typeof updateDeliveryFormat>[2] = {
         pricing: {
           price,
           currency,
           installment_count:  installments && installmentCount  ? Number(installmentCount)  : null,
           installment_amount: installments && installmentAmount ? installmentAmount : null,
         },
-      });
+      };
+      if (fmt.format_type === "individual") {
+        payload.max_students = maxStudents.trim() !== "" ? Number(maxStudents) : null;
+      }
+      const updated = await updateDeliveryFormat(slug, fmt.id, payload);
       onUpdated(updated);
       setEditing(false);
     } catch (e: unknown) {
@@ -517,13 +623,15 @@ function FormatCard({ fmt, slug, cohorts, onUpdated, onDeleted, onCohortCreated,
   }
 
   async function handleDelete() {
-    if (!confirm(`Remove the "${FORMAT_LABELS[fmt.format_type]}" format? This will also delete its pricing plan.`)) return;
-    try {
-      await deleteDeliveryFormat(slug, fmt.id);
-      onDeleted(fmt.id);
-    } catch {
-      alert("Failed to delete format.");
-    }
+    await deleteDeliveryFormat(slug, fmt.id);
+    onDeleted(fmt.id);
+  }
+
+  async function handleCloseEnrollment() {
+    const today = new Date().toISOString().split("T")[0];
+    const updated = await updateDeliveryFormat(slug, fmt.id, { enrollment_deadline: today });
+    onUpdated(updated);
+    setShowRemoveModal(false);
   }
 
   return (
@@ -538,14 +646,38 @@ function FormatCard({ fmt, slug, cohorts, onUpdated, onDeleted, onCohortCreated,
               {fmt.pricing
                 ? `${fmt.pricing.currency} ${fmt.pricing.price}${fmt.pricing.installment_count ? ` · ${fmt.pricing.installment_count}× installments` : ""}`
                 : "No price set"}
+              {fmt.format_type === "individual" && fmt.max_students != null && (
+                <span style={{ marginLeft: 8 }}>&middot; {fmt.max_students} spots</span>
+              )}
+            </div>
+          )}
+          {!editing && (isClosed || isFull) && (
+            <div style={{ marginTop: 6, display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{
+                fontFamily: "var(--font-base)", fontWeight: 600,
+                fontSize: "clamp(10px, 0.63vw, 12px)",
+                color: isFull ? "var(--color-text-muted)" : "var(--color-rejected)",
+                background: isFull ? "var(--color-bg)" : "#fff3f3",
+                border: `1px solid ${isFull ? "var(--color-border-light)" : "#ffc5c5"}`,
+                borderRadius: 999, padding: "2px 10px",
+              }}>
+                {isFull ? "Full" : `Enrollment closed${fmt.enrollment_deadline ? ` · ${fmt.enrollment_deadline}` : ""}`}
+              </span>
             </div>
           )}
         </div>
         <div style={{ display: "flex", gap: 6 }}>
           {!editing ? (
             <>
+              <IconBtn
+                onClick={handleToggleEnrollment}
+                title={isFull ? "Format is full" : isClosed ? "Re-open enrollment" : "Close enrollment"}
+                disabled={toggling || isFull}
+              >
+                {isClosed ? <LockOpen size={14} /> : <Lock size={14} />}
+              </IconBtn>
               <IconBtn onClick={() => setEditing(true)} title="Edit pricing"><Pencil size={14} /></IconBtn>
-              <IconBtn onClick={handleDelete} title="Remove format" danger><Trash2 size={14} /></IconBtn>
+              <IconBtn onClick={() => setShowRemoveModal(true)} title="Remove format" danger><Trash2 size={14} /></IconBtn>
             </>
           ) : (
             <>
@@ -565,6 +697,19 @@ function FormatCard({ fmt, slug, cohorts, onUpdated, onDeleted, onCohortCreated,
             installmentAmount={installmentAmount}
             onChange={handleChange}
           />
+          {fmt.format_type === "individual" && (
+            <div style={{ marginTop: 12 }}>
+              <label style={FIELD_LABEL}>Max students (spots)</label>
+              <input
+                type="number"
+                min={1}
+                value={maxStudents}
+                onChange={e => setMaxStudents(e.target.value)}
+                placeholder="Unlimited"
+                style={{ ...PILL_INPUT, width: 180 }}
+              />
+            </div>
+          )}
           {error && (
             <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.72vw, 13px)", color: "var(--color-rejected)", marginTop: 8, marginBottom: 0 }}>
               {error}
@@ -581,13 +726,7 @@ function FormatCard({ fmt, slug, cohorts, onUpdated, onDeleted, onCohortCreated,
               Cohorts ({cohorts.length})
             </span>
             {!addingCohort && (
-              <button
-                type="button"
-                onClick={() => setAddingCohort(true)}
-                style={{ display: "inline-flex", alignItems: "center", gap: 4, fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(11px, 0.72vw, 13px)", color: "var(--color-blue)", background: "none", border: "none", cursor: "pointer", padding: 0 }}
-              >
-                <Plus size={12} /> Add cohort
-              </button>
+              <AddButton onClick={() => setAddingCohort(true)}>Add cohort</AddButton>
             )}
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -606,6 +745,15 @@ function FormatCard({ fmt, slug, cohorts, onUpdated, onDeleted, onCohortCreated,
             </div>
           )}
         </>
+      )}
+
+      {showRemoveModal && (
+        <RemoveFormatModal
+          fmt={fmt}
+          onDelete={handleDelete}
+          onCloseEnrollment={handleCloseEnrollment}
+          onCancel={() => setShowRemoveModal(false)}
+        />
       )}
     </div>
   );
@@ -799,10 +947,12 @@ export function CourseManagementPricingTab({
   course,
   slug,
   onCohortsChanged,
+  onFormatsChanged,
 }: {
   course: CourseDetail;
   slug: string;
   onCohortsChanged?: (cohorts: CourseCohort[]) => void;
+  onFormatsChanged?: (formats: CourseDeliveryFormat[]) => void;
 }) {
   const [formats, setFormats] = useState<CourseDeliveryFormat[]>(course.delivery_formats);
   const [cohorts, setCohorts] = useState<CourseCohort[]>(course.cohorts);
@@ -813,14 +963,19 @@ export function CourseManagementPricingTab({
     onCohortsChanged?.(next);
   }
 
+  function updateFormats(next: CourseDeliveryFormat[]) {
+    setFormats(next);
+    onFormatsChanged?.(next);
+  }
+
   function handleUpdated(updated: CourseDeliveryFormat) {
-    setFormats(prev => prev.map(f => (f.id === updated.id ? updated : f)));
+    updateFormats(formats.map(f => (f.id === updated.id ? updated : f)));
   }
   function handleDeleted(id: number) {
-    setFormats(prev => prev.filter(f => f.id !== id));
+    updateFormats(formats.filter(f => f.id !== id));
   }
   function handleCreated(fmt: CourseDeliveryFormat) {
-    setFormats(prev => [...prev, fmt]);
+    updateFormats([...formats, fmt]);
     setAdding(false);
   }
   function handleCohortCreated(c: CourseCohort) {
@@ -842,19 +997,7 @@ export function CourseManagementPricingTab({
           Delivery formats &amp; pricing
         </h2>
         {!adding && existingTypes.length < ALL_FORMATS.length && (
-          <button
-            type="button"
-            onClick={() => setAdding(true)}
-            style={{
-              display: "inline-flex", alignItems: "center", gap: 6,
-              background: "var(--gradient-brand)", border: "none", borderRadius: 10,
-              padding: "clamp(7px, 0.52vw, 10px) clamp(12px, 1.04vw, 18px)",
-              fontFamily: "var(--font-base)", fontWeight: 700,
-              fontSize: "clamp(12px, 0.78vw, 14px)", color: "#fff", cursor: "pointer",
-            }}
-          >
-            <Plus size={14} /> Add format
-          </button>
+          <AddButton onClick={() => setAdding(true)}>Add format</AddButton>
         )}
       </div>
 

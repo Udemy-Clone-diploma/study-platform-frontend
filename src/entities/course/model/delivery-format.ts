@@ -23,6 +23,7 @@ export type CourseDeliveryFormat = {
   unlock_mode: DeliveryUnlockMode | null;
   // individual
   max_students: number | null;
+  enrolled_count: number;
   // nested pricing (null when no pricing plan set yet)
   pricing: DeliveryFormatPricing | null;
 };

@@ -12,4 +12,6 @@ export type EnrolledStudent = {
   student_id: number;
   student_name: string;
   student_email: string;
+  access_granted_at: string;
+  access_until: string | null;
 };

@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, Lock, LockOpen, UserMinus, UserPlus } from "lucide-react";
+import { ChevronDown, Lock, LockOpen, UserMinus } from "lucide-react";
+import { AddButton } from "@/shared/ui/AddButton";
 import {
   addCohortMember,
   getCourseEnrolledStudents,
@@ -25,29 +26,41 @@ const CARD: React.CSSProperties = {
 
 function AddStudentDropdown({
   enrolledStudents,
-  existingIds,
+  takenIds,
   onAdd,
 }: {
   enrolledStudents: EnrolledStudent[];
-  existingIds: Set<number>;
+  takenIds: Set<number>;
   onAdd: (enrollmentId: number) => Promise<void>;
 }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [adding, setAdding] = useState<number | null>(null);
-  const ref = useRef<HTMLDivElement>(null);
+  const rootRef  = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function onOutside(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false);
     }
     document.addEventListener("mousedown", onOutside);
     return () => document.removeEventListener("mousedown", onOutside);
   }, []);
 
+  useEffect(() => {
+    if (open) {
+      setTimeout(() => inputRef.current?.focus(), 0);
+      // scroll the dropdown panel into view after it renders
+      setTimeout(() => panelRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 50);
+    } else {
+      setSearch("");
+    }
+  }, [open]);
+
   const available = enrolledStudents.filter(
     s =>
-      !existingIds.has(s.enrollment_id) &&
+      !takenIds.has(s.enrollment_id) &&
       (s.student_name.toLowerCase().includes(search.toLowerCase()) ||
         s.student_email.toLowerCase().includes(search.toLowerCase())),
   );
@@ -57,75 +70,113 @@ function AddStudentDropdown({
     try {
       await onAdd(enrollmentId);
       setOpen(false);
-      setSearch("");
     } finally {
       setAdding(null);
     }
   };
 
   return (
-    <div ref={ref} style={{ position: "relative" }}>
-      <button
-        type="button"
-        onClick={() => setOpen(v => !v)}
-        style={{
-          display: "inline-flex", alignItems: "center", gap: 6,
-          fontFamily: "var(--font-base)", fontWeight: 600,
-          fontSize: "clamp(12px, 0.8vw, 14px)", color: "var(--color-blue)",
-          background: "none", border: "1px solid var(--color-blue)",
-          borderRadius: 999, padding: "6px 14px", cursor: "pointer",
-        }}
-      >
-        <UserPlus size={14} /> Add student
-      </button>
+    <div ref={rootRef} style={{ position: "relative", display: "inline-block" }}>
+      <AddButton onClick={() => setOpen(v => !v)}>
+        Add student
+      </AddButton>
 
       {open && (
-        <div style={{
-          position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: 20,
-          background: "#fff", borderRadius: 12,
-          boxShadow: "0 4px 20px rgba(0,0,0,0.12)", width: 280, overflow: "hidden",
-        }}>
-          <div style={{ padding: "10px 12px", borderBottom: "1px solid var(--color-border-light)" }}>
+        <div
+          // stopPropagation prevents the document-level mousedown handler from
+          // seeing clicks inside the panel (including native scrollbar clicks).
+          ref={panelRef}
+          onMouseDown={e => e.stopPropagation()}
+          style={{
+            position: "absolute", top: "calc(100% + 8px)", left: 0, zIndex: 50,
+            background: "#fff", borderRadius: 16,
+            boxShadow: "0 8px 32px rgba(83,98,153,0.18)",
+            border: "1px solid var(--color-border-light)",
+            width: "clamp(240px, 22vw, 320px)",
+            overflow: "hidden",
+          }}
+        >
+          {/* Search */}
+          <div style={{
+            padding: "10px 12px",
+            borderBottom: "1px solid var(--color-border-light)",
+          }}>
             <input
-              autoFocus
+              ref={inputRef}
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search by name or email…"
               style={{
-                fontFamily: "var(--font-base)", fontSize: "clamp(12px, 0.78vw, 13px)",
-                color: "var(--color-text-primary)", background: "var(--color-bg)",
-                borderRadius: 999, border: "1px solid var(--color-text-primary)",
-                padding: "5px 12px", width: "100%", outline: "none", boxSizing: "border-box",
+                fontFamily: "var(--font-base)",
+                fontSize: "clamp(12px, 0.78vw, 14px)",
+                color: "var(--color-text-primary)",
+                background: "var(--color-bg)",
+                borderRadius: 999,
+                border: "1px solid var(--color-text-primary)",
+                padding: "6px 14px",
+                width: "100%",
+                outline: "none",
+                boxSizing: "border-box" as const,
+                letterSpacing: "-0.011em",
               }}
             />
           </div>
-          <div style={{ maxHeight: 220, overflowY: "auto" }}>
+
+          {/* List — mousedown:preventDefault keeps search input focused while scrolling */}
+          <div
+            onMouseDown={e => e.preventDefault()}
+            style={{ maxHeight: 240, overflowY: "auto", padding: "6px 0 12px" }}
+          >
             {available.length === 0 ? (
               <p style={{
-                fontFamily: "var(--font-base)", fontSize: "clamp(12px, 0.78vw, 13px)",
-                color: "var(--color-text-muted)", textAlign: "center", padding: "16px 12px",
+                fontFamily: "var(--font-base)",
+                fontSize: "clamp(12px, 0.78vw, 14px)",
+                color: "var(--color-text-muted)",
+                textAlign: "center",
+                padding: "18px 14px",
+                margin: 0,
               }}>
-                {enrolledStudents.length === 0 ? "No enrolled students" : "No matches"}
+                {enrolledStudents.length === 0 ? "No enrolled students yet" : "No matches"}
               </p>
             ) : available.map(s => (
               <button
-                key={s.enrollment_id} type="button"
+                key={s.enrollment_id}
+                type="button"
                 onClick={() => handleAdd(s.enrollment_id)}
                 disabled={adding === s.enrollment_id}
                 style={{
-                  display: "block", width: "100%", textAlign: "left",
-                  padding: "10px 14px", background: "none", border: "none",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 2,
+                  width: "100%",
+                  textAlign: "left",
+                  padding: "8px 14px",
+                  background: "none",
+                  border: "none",
+                  borderRadius: 0,
                   cursor: adding === s.enrollment_id ? "not-allowed" : "pointer",
-                  borderBottom: "1px solid var(--color-border-light)",
-                  opacity: adding === s.enrollment_id ? 0.6 : 1,
+                  opacity: adding === s.enrollment_id ? 0.5 : 1,
+                  transition: "background 0.1s",
                 }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "var(--color-bg)"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "none"; }}
               >
-                <div style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(12px, 0.8vw, 14px)", color: "var(--color-text-primary)" }}>
+                <span style={{
+                  fontFamily: "var(--font-base)",
+                  fontWeight: 600,
+                  fontSize: "clamp(12px, 0.83vw, 14px)",
+                  color: "var(--color-text-primary)",
+                  letterSpacing: "-0.011em",
+                }}>
                   {s.student_name || "—"}
-                </div>
-                <div style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.72vw, 13px)", color: "var(--color-text-secondary)" }}>
+                </span>
+                <span style={{
+                  fontFamily: "var(--font-base)",
+                  fontSize: "clamp(11px, 0.72vw, 13px)",
+                  color: "var(--color-text-secondary)",
+                }}>
                   {s.student_email}
-                </div>
+                </span>
               </button>
             ))}
           </div>
@@ -177,10 +228,12 @@ function MemberRow({ member, onRemove }: { member: CohortMember; onRemove: (id: 
 
 // ── CohortCard ───────────────────────────────────────────────────────────────
 
-function CohortCard({ cohort, slug, onMembersChanged }: {
+function CohortCard({ cohort, slug, takenIds, onMembersChanged, onTakenChanged }: {
   cohort: CourseCohort;
   slug: string;
+  takenIds: Set<number>;
   onMembersChanged: (count: number) => void;
+  onTakenChanged: (enrollmentId: number, added: boolean) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [members, setMembers] = useState<CohortMember[]>(cohort.members ?? []);
@@ -195,12 +248,10 @@ function CohortCard({ cohort, slug, onMembersChanged }: {
 
   useEffect(() => {
     if (!expanded || enrolledLoaded) return;
-    getCourseEnrolledStudents(slug)
+    getCourseEnrolledStudents(slug, cohort.delivery_format ?? undefined)
       .then(s => { setEnrolled(s); setEnrolledLoaded(true); })
       .catch(() => { setLoadError("Failed to load students."); setEnrolledLoaded(true); });
   }, [expanded, enrolledLoaded, slug]);
-
-  const existingIds = new Set(members.map(m => m.enrollment_id));
 
   const handleToggleOpen = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -220,10 +271,12 @@ function CohortCard({ cohort, slug, onMembersChanged }: {
       onMembersChanged(next.length);
       return next;
     });
+    onTakenChanged(enrollmentId, true);
   };
 
   const handleRemove = async (memberId: number) => {
     const snapshot = members.find(m => m.id === memberId);
+    const enrollmentId = snapshot?.enrollment_id;
     setMembers(prev => {
       const next = prev.filter(m => m.id !== memberId);
       onMembersChanged(next.length);
@@ -231,6 +284,7 @@ function CohortCard({ cohort, slug, onMembersChanged }: {
     });
     try {
       await removeCohortMember(slug, cohort.id, memberId);
+      if (enrollmentId !== undefined) onTakenChanged(enrollmentId, false);
     } catch {
       if (snapshot) setMembers(prev => {
         const restored = [...prev, snapshot];
@@ -331,7 +385,7 @@ function CohortCard({ cohort, slug, onMembersChanged }: {
           {canAdd && enrolledLoaded && (
             <AddStudentDropdown
               enrolledStudents={enrolled}
-              existingIds={existingIds}
+              takenIds={takenIds}
               onAdd={handleAdd}
             />
           )}
@@ -360,6 +414,9 @@ export function CourseManagementCohortsTab({
   onCohortsChanged?: (cohorts: CourseCohort[]) => void;
 }) {
   const [cohorts, setCohorts] = useState<CourseCohort[]>(course.cohorts ?? []);
+  const [takenIds, setTakenIds] = useState<Set<number>>(
+    () => new Set((course.cohorts ?? []).flatMap(c => (c.members ?? []).map(m => m.enrollment_id))),
+  );
 
   function handleMembersChanged(cohortId: number, count: number) {
     setCohorts(prev => {
@@ -367,6 +424,14 @@ export function CourseManagementCohortsTab({
         c.id === cohortId ? { ...c, members_count: count } : c,
       );
       onCohortsChanged?.(next);
+      return next;
+    });
+  }
+
+  function handleTakenChanged(enrollmentId: number, added: boolean) {
+    setTakenIds(prev => {
+      const next = new Set(prev);
+      if (added) next.add(enrollmentId); else next.delete(enrollmentId);
       return next;
     });
   }
@@ -391,7 +456,9 @@ export function CourseManagementCohortsTab({
           key={cohort.id}
           cohort={cohort}
           slug={slug}
+          takenIds={takenIds}
           onMembersChanged={count => handleMembersChanged(cohort.id, count)}
+          onTakenChanged={handleTakenChanged}
         />
       ))}
     </div>

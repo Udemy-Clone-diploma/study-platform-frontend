@@ -8,10 +8,15 @@ export async function getCart(): Promise<Cart> {
   return data;
 }
 
-export async function addCartItem(courseId: number, pricingPlanId?: number): Promise<Cart> {
+export async function addCartItem(
+  courseId: number,
+  pricingPlanId?: number,
+  cohortId?: number,
+): Promise<Cart> {
   const { data } = await api.post<Cart>(`${CART_ENDPOINT}items/`, {
     course_id: courseId,
     ...(pricingPlanId ? { pricing_plan_id: pricingPlanId } : {}),
+    ...(cohortId ? { cohort_id: cohortId } : {}),
   });
   return data;
 }

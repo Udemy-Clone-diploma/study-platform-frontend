@@ -10,7 +10,7 @@ import {
   type CourseLevel,
   type CourseMode,
   type CourseType,
-  type PricingPlan,
+  type DeliveryFormatType,
 } from "@/entities/course";
 import { getWishlistSlugs } from "@/entities/course";
 import {
@@ -64,7 +64,7 @@ async function loadCourses(state: CatalogFilterState, page: number, ordering: st
       level: splitFilter<CourseLevel>(state.level),
       mode: splitFilter<CourseMode>(state.mode),
       ordering,
-      plan_kind: splitFilter<PricingPlan["kind"]>(state.plan_kind),
+      format_type: splitFilter<DeliveryFormatType>(state.format_type),
       price_min: state.price_min ? Number(state.price_min) : undefined,
       price_max: state.price_max ? Number(state.price_max) : undefined,
       rating_min: state.rating_min,

@@ -4,6 +4,25 @@
 :root {
   --font-base: var(--font-mulish), sans-serif;
   --font-accent: var(--font-source-code-pro), monospace;
+    --font-base: var(--font-mulish), sans-serif;
+  --font-accent: var(--font-source-code-pro), monospace;
+
+  --color-brand-lavender: #a7bafa;
+  --color-brand-lavender-soft: #d6e0ff;
+  --color-brand-pink: #fcc4c3;
+  --color-brand-cream: #fff4da;
+
+  --color-blue: #003aff;
+  --color-blue-dark: #0b257c;
+
+  --color-bg: #ffffff;
+  --color-text-primary: #121212;
+  --color-text-secondary: #5e5e5e;
+
+  --color-calendar-bg: #d6e0ff;
+  --color-calendar-today: #a7bafa;
+  --color-calendar-weekend: #fafafa;
+  --color-calendar-border: #e0e0e0;
 }
 
 @theme {
@@ -129,6 +148,12 @@
   /* ── Course-creation page ── */
   --color-bg-creation: #d6e0ff;
   --color-draft:       #cacaca;
+
+  /* ── Calendar ── */
+  --color-calendar-bg:      #d6e0ff;
+  --color-calendar-today:   #a7bafa;
+  --color-calendar-weekend: #fafafa;
+  --color-calendar-border:  #e0e0e0;
 
   /* ── Form / UI ── */
   --color-input-bg:      #e9e9e9;

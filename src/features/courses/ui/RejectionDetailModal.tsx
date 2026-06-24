@@ -52,7 +52,7 @@ function getFieldValue(key: string, detail: CourseDetail | null, record: Rejecte
       return lvl.charAt(0).toUpperCase() + lvl.slice(1);
     }
     case "field-price": {
-      const plan = detail?.pricing_plans?.[0];
+      const plan = detail?.delivery_formats?.find(f => f.pricing)?.pricing;
       return plan ? `€${plan.price}` : "Free";
     }
     default: return "—";

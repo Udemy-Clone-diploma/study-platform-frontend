@@ -212,7 +212,11 @@ function StripePaymentElementForm({
       return;
     }
 
-    onPaymentSuccessRedirect?.();
+    if (onPaymentSuccessRedirect) {
+      onPaymentSuccessRedirect();
+    } else {
+      window.location.href = returnUrl;
+    }
   }
 
   return (

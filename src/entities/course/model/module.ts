@@ -5,14 +5,18 @@ export type LessonDocument = {
   created_at: string;
 };
 
+export type QuestionType = "single_choice" | "multiple_choice" | "true_false" | "short_answer";
+
 export type CourseQuestion = {
   id: number;
   question_type: string;
   text: string;
   options: string[];
-  correct_index: number | null;
+  correct_indices?: number[] | null;
+  exact_set_match?: boolean;
   correct_bool: boolean | null;
   sample_answer: string;
+  accepted_answers?: string[] | null;
   order: number;
 };
 
@@ -23,6 +27,9 @@ export type CourseTest = {
   passing_score: number;
   order: number;
   questions: CourseQuestion[];
+  duration_minutes?: number | null;
+  allow_retakes?: boolean;
+  max_attempts?: number | null;
 };
 
 export type LessonItemType = "text" | "video" | "test";
@@ -37,6 +44,8 @@ export type LessonItem = {
   original_video_name?: string;
   duration_minutes?: number | null;
   test?: CourseTest | null;
+  created_at?: string;
+  updated_at?: string;
 };
 
 export type CourseLesson = {
@@ -46,6 +55,9 @@ export type CourseLesson = {
   duration_minutes: number | null;
   is_preview: boolean;
   min_score?: number | null;
+  unlock_after_days?: number | null;
+  requires_previous?: boolean;
+  is_manually_locked?: boolean;
   documents?: LessonDocument[];
   items?: LessonItem[];
   /**

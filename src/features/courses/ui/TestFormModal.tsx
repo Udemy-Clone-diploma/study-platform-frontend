@@ -11,9 +11,11 @@ export type TestQuestion = {
   type: string;
   text: string;
   options: [string, string, string, string];
-  correct_index: number;
+  correct_indices: number[];
+  exact_set_match: boolean;
   correct_bool: boolean;
   sample_answer: string;
+  accepted_answers: string[];
 };
 
 export type TestFormValues = {
@@ -21,6 +23,8 @@ export type TestFormValues = {
   passing_score: string;
   duration_minutes: string;
   description: string;
+  allow_retakes: boolean;
+  max_attempts: string;
   questions: TestQuestion[];
 };
 
@@ -29,18 +33,22 @@ const EMPTY: TestFormValues = {
   passing_score: "70",
   duration_minutes: "",
   description: "",
+  allow_retakes: false,
+  max_attempts: "",
   questions: [],
 };
 
 function makeQuestion(): TestQuestion {
   return {
     _key: Math.random().toString(36).slice(2),
-    type: "multiple_choice",
+    type: "single_choice",
     text: "",
     options: ["", "", "", ""],
-    correct_index: 0,
+    correct_indices: [0],
+    exact_set_match: true,
     correct_bool: true,
     sample_answer: "",
+    accepted_answers: [],
   };
 }
 
@@ -163,6 +171,7 @@ function QuestionCard({
           ? <div style={inputSt}>{question.type.replace("_", " ")}</div>
           : (
             <StyledSelect value={question.type} onChange={(v) => onUpdate({ type: v })}>
+              <option value="single_choice">Single Choice</option>
               <option value="multiple_choice">Multiple Choice</option>
               <option value="true_false">True/False</option>
               <option value="short_answer">Short answer</option>
@@ -180,16 +189,25 @@ function QuestionCard({
         />
       </div>
 
-      {question.type === "multiple_choice" && (
+      {(question.type === "single_choice" || question.type === "multiple_choice") && (
         <div>
           <label style={labelSt}>Answer Options</label>
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {question.options.map((opt, oi) => {
-              const isCorrect = question.correct_index === oi;
+              const isSingle = question.type === "single_choice";
+              const isCorrect = question.correct_indices.includes(oi);
+              const toggleCorrect = () =>
+                onUpdate({
+                  correct_indices: isSingle
+                    ? [oi]
+                    : isCorrect
+                      ? question.correct_indices.filter((i) => i !== oi)
+                      : [...question.correct_indices, oi],
+                });
               return (
                 <div key={oi} className="flex items-center" style={{ gap: 12 }}>
-                  <div style={{ flexShrink: 0, width: 20, height: 20, border: "1px solid var(--color-blue)", borderRadius: 2, background: isCorrect ? "var(--color-catalog-category-active)" : "var(--color-bg)", display: "flex", alignItems: "center", justifyContent: "center", cursor: readOnly ? "default" : "pointer" }}
-                    onClick={readOnly ? undefined : () => onUpdate({ correct_index: oi })}
+                  <div style={{ flexShrink: 0, width: 20, height: 20, border: "1px solid var(--color-blue)", borderRadius: isSingle ? "50%" : 2, background: isCorrect ? "var(--color-catalog-category-active)" : "var(--color-bg)", display: "flex", alignItems: "center", justifyContent: "center", cursor: readOnly ? "default" : "pointer" }}
+                    onClick={readOnly ? undefined : toggleCorrect}
                     role={readOnly ? undefined : "button"}
                     aria-label={readOnly ? undefined : `Mark option ${oi + 1} as correct`}>
                     {isCorrect && (
@@ -208,7 +226,18 @@ function QuestionCard({
               );
             })}
           </div>
-          {!readOnly && <p style={{ ...hintSt, marginTop: 12 }}>Select the correct answer</p>}
+          {!readOnly && (
+            <p style={{ ...hintSt, marginTop: 12 }}>
+              {question.type === "single_choice" ? "Select the one correct answer" : "Select all correct answers"}
+            </p>
+          )}
+          {!readOnly && question.type === "multiple_choice" && (
+            <label className="flex items-center" style={{ gap: 8, marginTop: 12, cursor: "pointer" }}>
+              <input type="checkbox" checked={question.exact_set_match}
+                onChange={(e) => onUpdate({ exact_set_match: e.target.checked })} />
+              <span style={{ ...hintSt, marginTop: 0 }}>Require an exact match (uncheck for partial credit)</span>
+            </label>
+          )}
         </div>
       )}
 
@@ -237,6 +266,14 @@ function QuestionCard({
             style={{ ...inputSt, cursor: readOnly ? "default" : undefined }}
           />
           {!readOnly && <p style={{ ...hintSt, marginTop: 8 }}>Used as a reference when grading</p>}
+          <label style={{ ...labelSt, marginTop: 16 }}>Other accepted answers</label>
+          <input type="text" value={question.accepted_answers.join(", ")}
+            onChange={readOnly ? undefined : (e) => onUpdate({ accepted_answers: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) })}
+            readOnly={readOnly}
+            placeholder="Comma-separated, e.g. Library, Team library"
+            style={{ ...inputSt, cursor: readOnly ? "default" : undefined }}
+          />
+          {!readOnly && <p style={{ ...hintSt, marginTop: 8 }}>Optional. Any of these (or the sample) count as correct.</p>}
         </div>
       )}
     </div>
@@ -387,6 +424,23 @@ export function TestFormBody({ mode, initialValues = {}, onSave, onCancel }: Tes
           placeholder="Text"
           style={{ ...inputSt, minHeight: 57, resize: readOnly ? "none" : "vertical", cursor: readOnly ? "default" : undefined }}
         />
+      </div>
+
+      <div style={{ marginBottom: "clamp(20px, 2.22vw, 32px)" }}>
+        <label className="flex items-center" style={{ gap: 8, cursor: readOnly ? "default" : "pointer", marginBottom: values.allow_retakes ? 12 : 0 }}>
+          <input type="checkbox" checked={values.allow_retakes} disabled={readOnly}
+            onChange={(e) => setValues((prev) => ({ ...prev, allow_retakes: e.target.checked }))} />
+          <span style={{ ...labelSt, marginBottom: 0 }}>Allow retakes</span>
+        </label>
+        {values.allow_retakes && (
+          <div style={{ maxWidth: 280 }}>
+            <label htmlFor="test-max-attempts" style={labelSt}>Max attempts (blank = unlimited)</label>
+            <input id="test-max-attempts" name="max_attempts" type={readOnly ? "text" : "number"} min="1"
+              value={values.max_attempts || (readOnly ? "Unlimited" : "")}
+              onChange={readOnly ? undefined : handleChange} readOnly={readOnly}
+              placeholder="Unlimited" style={{ ...inputSt, cursor: readOnly ? "default" : undefined }} />
+          </div>
+        )}
       </div>
 
       <div>

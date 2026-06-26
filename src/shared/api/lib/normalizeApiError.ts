@@ -21,9 +21,10 @@ export function normalizeApiError(error: unknown, fallbackMessage: string): ApiE
   }
 
   if (typeof data === "string") {
+    const isHtml = /^\s*</.test(data);
     return {
-      message: data,
-      detail: data,
+      message: isHtml ? error.message || fallbackMessage : data,
+      detail: isHtml ? undefined : data,
       fields: {},
       status,
     };

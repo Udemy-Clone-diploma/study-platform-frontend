@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, ChevronLeft, ChevronRight, Download, ListChecks, Video } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Download, Video } from "lucide-react";
 import {
   byOrder,
   getCourseBySlug,
@@ -20,12 +20,12 @@ import type {
   CourseDetail,
   CourseLesson,
   CourseProgress,
-  CourseTest,
   LessonDocument,
   LessonItem,
 } from "@/entities/course";
 import type { ApiError } from "@/shared/api/base";
 import { GradientButton } from "@/shared/ui/GradientButton";
+import { QuizPlayer } from "@/features/quiz";
 import { CourseDescription } from "@/widgets/course-detail/CourseDescription";
 import { LearnPageDecor } from "./LearnPageDecor";
 import { LearnTabs } from "./LearnTabs";
@@ -253,46 +253,59 @@ export function LessonPlayerView({
             {lesson.title}
           </h1>
 
-          <div className="grid gap-5 lg:grid-cols-[minmax(0,820px)_minmax(320px,400px)] lg:items-stretch">
-            <div className="min-w-0">
-              <LessonContent item={activeItem} />
-            </div>
-            <LessonNotesPanel key={lessonId} slug={slug} lessonId={lessonId} />
-          </div>
-
-          <div className="flex max-w-[820px] flex-col gap-6">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              {/* Completion is a single lesson-level state, so the checkbox lives only
-                  on the last content tab; earlier tabs advance to the next one instead. */}
-              {nextTab ? (
-                <GradientButton onClick={() => setSelectedTabId(nextTab.id)}>
-                  Go to {nextTab.label}
-                </GradientButton>
-              ) : (
-                <CompleteCheckbox
-                  checked={isCompleted}
-                  disabled={!progress}
-                  label="Mark as complete"
-                  onToggle={handleToggleComplete}
-                />
-              )}
-              {nextLesson && isLastTab && (
-                <GradientButton href={`/learn/${slug}/${nextLesson.id}`}>
-                  Next lesson
-                </GradientButton>
-              )}
-            </div>
-
-            {lesson.meeting_url && (
-              <div className="flex flex-col gap-6 border-t border-(--color-text-primary)/10 pt-6">
-                <LessonMeetingCta href={lesson.meeting_url} />
+          {activeItem?.item_type === "test" && activeItem.test ? (
+            <QuizPlayer
+              slug={slug}
+              test={activeItem.test}
+              isMock={isMock}
+              onPassed={() => {
+                if (!isCompleted) handleToggleComplete();
+              }}
+            />
+          ) : (
+            <>
+              <div className="grid gap-5 lg:grid-cols-[minmax(0,820px)_minmax(320px,400px)] lg:items-stretch">
+                <div className="min-w-0">
+                  <LessonContent item={activeItem} />
+                </div>
+                <LessonNotesPanel key={lessonId} slug={slug} lessonId={lessonId} />
               </div>
-            )}
 
-            {lesson.documents && lesson.documents.length > 0 && (
-              <LessonDocuments documents={lesson.documents} />
-            )}
-          </div>
+              <div className="flex max-w-[820px] flex-col gap-6">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  {/* Completion is a single lesson-level state, so the checkbox lives only
+                      on the last content tab; earlier tabs advance to the next one instead. */}
+                  {nextTab ? (
+                    <GradientButton onClick={() => setSelectedTabId(nextTab.id)}>
+                      Go to {nextTab.label}
+                    </GradientButton>
+                  ) : (
+                    <CompleteCheckbox
+                      checked={isCompleted}
+                      disabled={!progress}
+                      label="Mark as complete"
+                      onToggle={handleToggleComplete}
+                    />
+                  )}
+                  {nextLesson && isLastTab && (
+                    <GradientButton href={`/learn/${slug}/${nextLesson.id}`}>
+                      Next lesson
+                    </GradientButton>
+                  )}
+                </div>
+
+                {lesson.meeting_url && (
+                  <div className="flex flex-col gap-6 border-t border-(--color-text-primary)/10 pt-6">
+                    <LessonMeetingCta href={lesson.meeting_url} />
+                  </div>
+                )}
+
+                {lesson.documents && lesson.documents.length > 0 && (
+                  <LessonDocuments documents={lesson.documents} />
+                )}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </section>
@@ -338,35 +351,7 @@ function LessonContent({ item }: { item: LessonItem | null }) {
   if (item?.item_type === "text" && (item.body_html ?? item.content)) {
     return <CourseDescription html={item.body_html ?? item.content ?? ""} />;
   }
-  if (item?.item_type === "test" && item.test) {
-    return <TestBlock test={item.test} />;
-  }
   return <p className="text-(--color-text-secondary)">No content available for this lesson yet.</p>;
-}
-
-/** Summary card for a test block; the interactive quiz player does not exist yet. */
-function TestBlock({ test }: { test: CourseTest }) {
-  return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-(--color-border-light) bg-white p-6">
-      <div className="flex items-center gap-2">
-        <ListChecks className="h-6 w-6 shrink-0 text-(--color-blue)" aria-hidden="true" />
-        <h2 className="font-(family-name:--font-base) text-2xl font-medium text-(--color-text-primary)">
-          {test.title}
-        </h2>
-      </div>
-      {test.description && (
-        <p className="font-(family-name:--font-base) text-base text-(--color-text-secondary)">
-          {test.description}
-        </p>
-      )}
-      <p className="font-(family-name:--font-base) text-base text-(--color-text-primary)">
-        {test.questions.length} questions · passing score {test.passing_score}%
-      </p>
-      <p className="font-(family-name:--font-base) text-sm text-(--color-text-muted)">
-        The quiz player is coming soon.
-      </p>
-    </div>
-  );
 }
 
 /** Custom checkbox that toggles lesson completion. */

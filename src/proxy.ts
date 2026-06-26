@@ -53,6 +53,9 @@ function isPublicPath(pathname: string): boolean {
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-current-path", `${pathname}${request.nextUrl.search}`);
+  const next = () => NextResponse.next({ request: { headers: requestHeaders } });
 
   if (pathname === "/health") {
     return NextResponse.json(
@@ -66,29 +69,38 @@ export function proxy(request: NextRequest) {
   }
 
   if (isPublicPath(pathname)) {
-    return NextResponse.next();
+    return next();
   }
 
   const rule = PROTECTED_ROUTES.find((r) => r.pattern.test(pathname));
 
   if (!rule) {
-    return NextResponse.next();
+    return next();
   }
 
   const accessToken = request.cookies.get(AUTH_COOKIE_NAMES.access)?.value;
+  const refreshToken = request.cookies.get(AUTH_COOKIE_NAMES.refresh)?.value;
 
   if (!accessToken) {
+    if (refreshToken) {
+      return next();
+    }
+
     return NextResponse.redirect(new URL(rule.loginRedirect, request.url));
   }
 
   const role = request.cookies.get(AUTH_COOKIE_NAMES.role)?.value as UserRole | undefined;
 
   if (!role || !rule.allowedRoles.includes(role)) {
+    if (!role && refreshToken) {
+      return next();
+    }
+
     const home = role ? ROLE_HOME[role] : "/login";
     return NextResponse.redirect(new URL(home, request.url));
   }
 
-  return NextResponse.next();
+  return next();
 }
 
 export const config = {

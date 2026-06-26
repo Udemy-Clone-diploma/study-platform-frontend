@@ -7,7 +7,7 @@ export type Enrollment = {
   course_id: number;
   course_title: string;
   course_slug: string;
-  id_order: number | null;
+  order_id: number | null;
   access_status: EnrollmentStatus;
   access_granted_at: string;
   access_until: string | null;

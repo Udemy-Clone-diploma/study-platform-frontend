@@ -71,33 +71,61 @@ export const mockCourseDetail: CourseDetail = {
   moderator_id: null,
   moderator_comment: "",
   moderation_review: null,
-  pricing_plans: [
+  delivery_formats: [
     {
       id: 1,
-      kind: "group",
-      price: "599.00",
-      currency: "EUR",
-      installment_count: 4,
-      installment_amount: "160.00",
+      format_type: "group",
+      start_type: null,
+      course_start_date: null,
+      access_duration_days: null,
+      start_date: "2026-01-15",
+      enrollment_deadline: "2026-01-08",
+      unlock_mode: "sequential",
+      max_students: null,
+      enrolled_count: 0,
+      pricing: {
+        id: 1,
+        price: "599.00",
+        currency: "EUR",
+        installment_count: 4,
+        installment_amount: "160.00",
+      },
     },
     {
       id: 2,
-      kind: "individual",
-      price: "899.00",
-      currency: "EUR",
-      installment_count: 4,
-      installment_amount: "240.00",
+      format_type: "individual",
+      start_type: "manual",
+      course_start_date: null,
+      access_duration_days: null,
+      start_date: null,
+      enrollment_deadline: null,
+      unlock_mode: null,
+      max_students: 5,
+      enrolled_count: 0,
+      pricing: {
+        id: 2,
+        price: "899.00",
+        currency: "EUR",
+        installment_count: 4,
+        installment_amount: "240.00",
+      },
     },
   ],
   cohorts: [
     {
       id: 1,
+      delivery_format: 1,
+      name: "Group A",
       duration_months: 4,
-      hours_per_week_min: 2,
-      hours_per_week_max: 4,
+      hours_per_week: 3,
+      hours_per_week_min: 3,
+      hours_per_week_max: 6,
       group_size: 12,
-      delivery_mode: "both",
       start_date: "2026-01-15",
+      enrollment_deadline: "2026-01-08",
+      is_enrollment_open: true,
+      members_count: 0,
+      members: [],
     },
   ],
   modules: [
@@ -305,8 +333,10 @@ const SAMPLE_TEST: CourseTest = {
   id: 900,
   title: "Module checkpoint",
   description: "A short quiz to confirm the key ideas before moving on.",
-  passing_score: 80,
+  passing_score: 75,
   order: 1,
+  allow_retakes: true,
+  max_attempts: null,
   questions: [
     {
       id: 9001,
@@ -316,21 +346,47 @@ const SAMPLE_TEST: CourseTest = {
         "Pick brand colors",
         "Capture what a user says, thinks, does, and feels",
         "Write production code",
+        "Estimate engineering effort",
       ],
-      correct_index: 1,
+      correct_indices: [1],
       correct_bool: null,
       sample_answer: "",
       order: 1,
     },
     {
       id: 9002,
+      question_type: "multiple_choice",
+      text: "Which of the following are qualitative research methods? (select all that apply)",
+      options: [
+        "User interviews",
+        "A/B testing",
+        "Contextual inquiry",
+        "Server log analysis",
+      ],
+      correct_indices: [0, 2],
+      exact_set_match: true,
+      correct_bool: null,
+      sample_answer: "",
+      order: 2,
+    },
+    {
+      id: 9003,
       question_type: "true_false",
       text: "User interviews should lead with yes/no questions.",
       options: [],
-      correct_index: null,
       correct_bool: false,
       sample_answer: "",
-      order: 2,
+      order: 3,
+    },
+    {
+      id: 9004,
+      question_type: "short_answer",
+      text: "What Figma feature lets you reuse styles and components across files?",
+      options: [],
+      correct_bool: null,
+      sample_answer: "Libraries",
+      accepted_answers: ["Library", "Team library"],
+      order: 4,
     },
   ],
 };
@@ -338,8 +394,8 @@ const SAMPLE_TEST: CourseTest = {
 /**
  * Dev-mode content blocks for a lesson. A lesson is an ordered list of typed
  * items (text / video / test); the player groups every video item under the
- * Video tab and every text item under Reading. Test items are not surfaced in
- * the player yet. A few lessons get distinct shapes so the block model is easy
+ * Video tab and every text item under Reading. Test items render as an
+ * interactive quiz. A few lessons get distinct shapes so the block model is easy
  * to see:
  *   2  -> video, reading, video, reading (a rich multi-block lesson)
  *   3  -> video, reading, and a test block

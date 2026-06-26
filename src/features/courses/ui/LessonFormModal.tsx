@@ -172,13 +172,16 @@ function ItemEditForm({
 }
 
 function buildQuestionPayload(q: TestQuestion) {
+  const isChoice = q.type === "single_choice" || q.type === "multiple_choice";
   return {
     question_type: q.type,
     text: q.text,
-    options: q.type === "multiple_choice" ? q.options : undefined,
-    correct_index: q.type === "multiple_choice" ? q.correct_index : undefined,
+    options: isChoice ? q.options : undefined,
+    correct_indices: isChoice ? q.correct_indices : undefined,
+    exact_set_match: q.type === "multiple_choice" ? q.exact_set_match : undefined,
     correct_bool: q.type === "true_false" ? q.correct_bool : undefined,
     sample_answer: q.type === "short_answer" ? q.sample_answer : undefined,
+    accepted_answers: q.type === "short_answer" ? q.accepted_answers : undefined,
   };
 }
 
@@ -266,6 +269,8 @@ function ContentBlocksEditor({
       title: values.title.trim(),
       description: values.description.trim() || undefined,
       passing_score: values.passing_score ? parseInt(values.passing_score, 10) : 70,
+      allow_retakes: values.allow_retakes,
+      max_attempts: values.allow_retakes && values.max_attempts ? parseInt(values.max_attempts, 10) : null,
     });
     const questions = await Promise.all(
       values.questions.map((q) => createQuestion(courseSlug, moduleId, test.id, buildQuestionPayload(q))),
@@ -290,6 +295,8 @@ function ContentBlocksEditor({
       title: values.title.trim(),
       description: values.description.trim() || undefined,
       passing_score: values.passing_score ? parseInt(values.passing_score, 10) : undefined,
+      allow_retakes: values.allow_retakes,
+      max_attempts: values.allow_retakes && values.max_attempts ? parseInt(values.max_attempts, 10) : null,
     });
     if (durMin != null && !isNaN(durMin)) {
       await updateLessonItem(courseSlug, moduleId, lessonId, itemId, { duration_minutes: durMin });
@@ -412,15 +419,19 @@ function ContentBlocksEditor({
                                 description: t.description ?? "",
                                 passing_score: String(t.passing_score ?? 70),
                                 duration_minutes: item.duration_minutes != null ? String(item.duration_minutes) : "",
+                                allow_retakes: t.allow_retakes ?? false,
+                                max_attempts: t.max_attempts != null ? String(t.max_attempts) : "",
                                 questions: (t.questions ?? []).map((q) => ({
                                   _key: String(q.id),
                                   id: q.id,
                                   type: q.question_type,
                                   text: q.text,
                                   options: (q.options?.length >= 4 ? q.options.slice(0, 4) : [...(q.options ?? []), "", "", "", ""].slice(0, 4)) as [string, string, string, string],
-                                  correct_index: q.correct_index ?? 0,
+                                  correct_indices: q.correct_indices ?? [],
+                                  exact_set_match: q.exact_set_match ?? true,
                                   correct_bool: q.correct_bool ?? true,
                                   sample_answer: q.sample_answer ?? "",
+                                  accepted_answers: q.accepted_answers ?? [],
                                 })),
                               },
                               onSave: (values) => handleTestUpdate(item.id, values),
@@ -497,10 +508,10 @@ function ContentBlocksEditor({
                             <p style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: 13, color: "var(--color-text-primary)", margin: "0 0 8px 0" }}>
                               {qi + 1}. {q.text}
                             </p>
-                            {q.question_type === "multiple_choice" && (
+                            {(q.question_type === "multiple_choice" || q.question_type === "single_choice") && (
                               <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                                 {q.options.map((opt, oi) => {
-                                  const correct = oi === q.correct_index;
+                                  const correct = q.correct_indices?.includes(oi) ?? false;
                                   return (
                                     <div key={oi} className="flex items-center" style={{ gap: 6 }}>
                                       {correct

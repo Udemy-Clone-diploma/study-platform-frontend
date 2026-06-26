@@ -9,6 +9,7 @@ import { enrollInFreeCourse } from "@/entities/course";
 import {
   createInstallmentPaymentIntent,
   createPaymentIntent,
+  downloadOrderInvoice,
   downloadPaymentReceipt,
   getOrders,
   getPayments,
@@ -143,6 +144,49 @@ function PaymentTabs({
         );
       })}
     </nav>
+  );
+}
+
+function InvoiceButton({ orderId }: { orderId: number }) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  async function handleDownload() {
+    if (loading) return;
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const invoice = await downloadOrderInvoice(orderId);
+      const url = window.URL.createObjectURL(invoice);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `invoice-${orderId}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => window.URL.revokeObjectURL(url), 0);
+    } catch {
+      setError("Could not download invoice.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="flex min-w-0 flex-col items-start gap-0.5">
+      <button
+        type="button"
+        onClick={handleDownload}
+        disabled={loading}
+        title="Download invoice for this order."
+        className="w-fit text-left font-(family-name:--font-base) text-[16px] leading-5 font-normal text-[#121212] underline underline-offset-2 transition-colors hover:text-[#003AFF] disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {loading ? "..." : "Invoice"}
+      </button>
+      {error ? <span className="text-[9px] leading-3 text-[#B42318]">{error}</span> : null}
+    </div>
   );
 }
 
@@ -407,8 +451,8 @@ function InstallmentPlansTable({
   return (
     <div className="mt-6 overflow-x-auto">
       {/* TODO: Prefer a dedicated payment-installments endpoint when backend exposes one. */}
-      <div className="min-w-[544px] font-mono text-[12px] text-[#121212]">
-        <div className="grid grid-cols-[minmax(130px,1.35fr)_88px_88px_96px_80px] items-center px-3 pb-4 text-[13px] text-[#6A6A6A]">
+      <div className="w-[831px] font-(family-name:--font-base) text-[#121212]">
+        <div className="grid w-[831px] grid-cols-[minmax(0,1fr)_120px_120px_120px_96px] items-center px-5 pb-4 text-[13px] text-[#6A6A6A]">
           <span>Course</span>
           <span>Date</span>
           <span>Amount</span>
@@ -428,7 +472,7 @@ function InstallmentPlansTable({
             return (
               <div
                 key={`${order.id}-${installment.id}`}
-                className="grid min-h-9 grid-cols-[minmax(130px,1.35fr)_88px_88px_96px_80px] items-center rounded-full bg-[#EEF3FF] px-3 text-[11px]"
+                className="grid h-[55px] w-[831px] grid-cols-[minmax(0,1fr)_120px_120px_120px_96px] items-center rounded-full bg-[#EEF3FF] px-5 text-[16px] leading-5 font-normal"
               >
                 <span className="truncate">
                   {installment.installment_number}/{order.installments_count}{" "}
@@ -438,21 +482,14 @@ function InstallmentPlansTable({
                 <span className="truncate">
                   {formatMoney(installment.amount, installment.currency)}
                 </span>
-                <button
-                  type="button"
-                  disabled
-                  title="Invoice download is not available yet."
-                  className="w-fit text-left text-[11px] text-[#121212] underline underline-offset-2 disabled:cursor-not-allowed"
-                >
-                  Invoice
-                </button>
+                <InvoiceButton orderId={order.id} />
                 <span className="flex justify-end">
                   {canPay ? (
                     <button
                       type="button"
                       onClick={() => onPay(order.id, installment.id)}
                       disabled={isPaying}
-                      className="inline-flex h-6 min-w-[70px] items-center justify-center rounded-full bg-black px-4 text-[10px] font-semibold text-white transition-colors hover:bg-[#252525] disabled:cursor-not-allowed disabled:bg-[#6A6A6A]"
+                      className="inline-flex h-8 min-w-[82px] items-center justify-center rounded-full bg-black px-4 font-(family-name:--font-base) text-[16px] leading-5 font-normal text-white transition-colors hover:bg-[#252525] disabled:cursor-not-allowed disabled:bg-[#6A6A6A]"
                     >
                       {isPaying ? "..." : "To Pay"}
                     </button>

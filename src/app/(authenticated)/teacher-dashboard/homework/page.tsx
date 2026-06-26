@@ -7,6 +7,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ClipboardList,
+  Copy,
   Plus,
   Upload,
   X,
@@ -14,19 +15,31 @@ import {
 import {
   createHomeworkAssignment,
   getHomeworkAssignments,
+  getHomeworkRecipients,
+  publishHomeworkAssignment,
+  uploadHomeworkAssignmentAttachment,
   type HomeworkAssignment,
+  type HomeworkAvailableRecipient,
 } from "@/entities/homework";
 import {
+  createQuestion,
+  createTest,
   getCourseBySlug,
   getTeacherCourses,
+  type CourseDetail,
   type CourseListItem,
   type CourseModule,
 } from "@/entities/course";
+import { TestFormBody, type TestFormValues, type TestQuestion } from "@/features/courses";
 import type { ApiError } from "@/shared/api/base";
 
 type FormState = {
   courseSlug: string;
+  sourceAssignmentId: string;
   moduleId: string;
+  lessonId: string;
+  recipientGroupId: string;
+  testId: string;
   title: string;
   description: string;
   dueAt: string;
@@ -35,7 +48,11 @@ type FormState = {
 
 const EMPTY_FORM: FormState = {
   courseSlug: "",
+  sourceAssignmentId: "",
   moduleId: "",
+  lessonId: "",
+  recipientGroupId: "",
+  testId: "",
   title: "",
   description: "",
   dueAt: "",
@@ -47,6 +64,10 @@ type SelectOption = {
   label: string;
 };
 
+type RecipientGroupOption = SelectOption & {
+  enrollmentIds: number[];
+};
+
 type HomeworkSelectProps = {
   label?: string;
   value: string;
@@ -54,6 +75,7 @@ type HomeworkSelectProps = {
   placeholder: string;
   variant?: "field" | "filter";
   disabled?: boolean;
+  searchable?: boolean;
   onChange: (value: string) => void;
 };
 
@@ -64,47 +86,95 @@ function HomeworkSelect({
   placeholder,
   variant = "field",
   disabled = false,
+  searchable = false,
   onChange,
 }: HomeworkSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [query, setQuery] = useState("");
   const rootRef = useRef<HTMLDivElement>(null);
   const selectedOption = options.find((option) => option.value === value);
+  const filteredOptions =
+    searchable && query.trim()
+      ? options.filter((option) => option.label.toLowerCase().includes(query.trim().toLowerCase()))
+      : options;
 
   useEffect(() => {
     function closeOnOutsidePointer(event: PointerEvent) {
-      if (!rootRef.current?.contains(event.target as Node)) setIsOpen(false);
+      if (!rootRef.current?.contains(event.target as Node)) {
+        setQuery("");
+        setIsOpen(false);
+      }
     }
 
     document.addEventListener("pointerdown", closeOnOutsidePointer);
     return () => document.removeEventListener("pointerdown", closeOnOutsidePointer);
   }, []);
 
+  const controlClassName =
+    variant === "filter"
+      ? "flex h-10 w-full items-center justify-between gap-2 rounded-full bg-white px-4 text-left text-[14px] text-[#121212] outline-none transition focus-within:ring-2 focus-within:ring-[#9DB1FA] focus:ring-2 focus:ring-[#9DB1FA] disabled:cursor-not-allowed disabled:text-[#8A8A8A]"
+      : "flex h-14 w-full items-center justify-between gap-3 rounded-md bg-[#ECECEC] px-4 text-left text-[15px] text-[#121212] outline-none transition focus-within:ring-2 focus-within:ring-[#9DB1FA] focus:ring-2 focus:ring-[#9DB1FA] disabled:cursor-not-allowed disabled:text-[#8A8A8A]";
+
   return (
     <div ref={rootRef} className="relative">
       {label ? <p className="mb-2 text-[14px] font-semibold text-[#121212]">{label}</p> : null}
-      <button
-        type="button"
-        aria-haspopup="listbox"
-        aria-expanded={isOpen}
-        disabled={disabled}
-        onClick={() => setIsOpen((current) => !current)}
-        className={
-          variant === "filter"
-            ? "flex h-10 w-full items-center justify-between gap-2 rounded-full bg-white px-4 text-left text-[14px] text-[#121212] outline-none transition focus:ring-2 focus:ring-[#9DB1FA] disabled:cursor-not-allowed disabled:text-[#8A8A8A]"
-            : "flex h-14 w-full items-center justify-between gap-3 rounded-md bg-[#ECECEC] px-4 text-left text-[15px] text-[#121212] outline-none transition focus:ring-2 focus:ring-[#9DB1FA] disabled:cursor-not-allowed disabled:text-[#8A8A8A]"
-        }
-      >
-        <span className="truncate">{selectedOption?.label ?? placeholder}</span>
-        <ChevronDown
-          size={20}
-          aria-hidden="true"
-          className={`shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`}
-        />
-      </button>
+      {searchable ? (
+        <div className={`${controlClassName} ${disabled ? "cursor-not-allowed text-[#8A8A8A]" : ""}`}>
+          <input
+            type="text"
+            role="combobox"
+            aria-expanded={isOpen}
+            aria-controls={`${label ?? placeholder}-options`}
+            value={isOpen ? query : selectedOption?.label ?? ""}
+            placeholder={placeholder}
+            disabled={disabled}
+            onFocus={() => setIsOpen(true)}
+            onClick={() => setIsOpen(true)}
+            onChange={(event) => {
+              setQuery(event.target.value);
+              setIsOpen(true);
+            }}
+            className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-[#858585] disabled:cursor-not-allowed"
+          />
+          <button
+            type="button"
+            aria-label="Toggle options"
+            disabled={disabled}
+            onClick={() => {
+              if (isOpen) setQuery("");
+              setIsOpen((current) => !current);
+            }}
+            className="shrink-0 disabled:cursor-not-allowed"
+          >
+            <ChevronDown
+              size={20}
+              aria-hidden="true"
+              className={`transition-transform ${isOpen ? "rotate-180" : ""}`}
+            />
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          aria-haspopup="listbox"
+          aria-expanded={isOpen}
+          disabled={disabled}
+          onClick={() => setIsOpen((current) => !current)}
+          className={controlClassName}
+        >
+          <span className="truncate">{selectedOption?.label ?? placeholder}</span>
+          <ChevronDown
+            size={20}
+            aria-hidden="true"
+            className={`shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`}
+          />
+        </button>
+      )}
 
       {isOpen ? (
         <div
           role="listbox"
+          id={`${label ?? placeholder}-options`}
           aria-label={label ?? placeholder}
           className={
             variant === "filter"
@@ -112,16 +182,20 @@ function HomeworkSelect({
               : "absolute z-[140] mt-2 max-h-[248px] w-full overflow-y-auto rounded-[16px] border border-[#E2E2E2] bg-white py-2 shadow-[0_12px_28px_rgba(0,0,0,0.16)]"
           }
         >
-          {options.map((option) => {
+          {filteredOptions.length === 0 ? (
+            <p className="px-5 py-3 text-[14px] text-[#777]">No matching options</p>
+          ) : null}
+          {filteredOptions.map((option) => {
             const isSelected = option.value === value;
             return (
               <button
-                key={option.value}
+                key={option.value || "__empty"}
                 type="button"
                 role="option"
                 aria-selected={isSelected}
                 onClick={() => {
                   onChange(option.value);
+                  setQuery("");
                   setIsOpen(false);
                 }}
                 className={`flex w-full items-center px-5 text-left transition hover:bg-[#F5F7FF] ${
@@ -301,17 +375,35 @@ function deadlineLabel(value: string | null): string {
   return dateLabel(new Date(value));
 }
 
+function buildQuestionPayload(question: TestQuestion) {
+  return {
+    question_type: question.type,
+    text: question.text,
+    options: question.type === "multiple_choice" ? question.options : undefined,
+    correct_index: question.type === "multiple_choice" ? question.correct_index : undefined,
+    correct_bool: question.type === "true_false" ? question.correct_bool : undefined,
+    sample_answer: question.type === "short_answer" ? question.sample_answer : undefined,
+  };
+}
+
 export default function TeacherHomeworkPage() {
   const [courses, setCourses] = useState<CourseListItem[]>([]);
   const [selectedCourseSlug, setSelectedCourseSlug] = useState("");
   const [assignments, setAssignments] = useState<HomeworkAssignment[]>([]);
   const [activeModules, setActiveModules] = useState<CourseModule[]>([]);
+  const [modalCourse, setModalCourse] = useState<CourseDetail | null>(null);
   const [modalModules, setModalModules] = useState<CourseModule[]>([]);
+  const [modalAssignments, setModalAssignments] = useState<HomeworkAssignment[]>([]);
+  const [availableRecipients, setAvailableRecipients] = useState<HomeworkAvailableRecipient[]>([]);
+  const [selectedRecipientIds, setSelectedRecipientIds] = useState<number[]>([]);
+  const [attachmentFiles, setAttachmentFiles] = useState<File[]>([]);
   const [statusFilter, setStatusFilter] = useState("all");
   const [loadingCourses, setLoadingCourses] = useState(true);
   const [loadingAssignments, setLoadingAssignments] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isTestModalOpen, setIsTestModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [savingTest, setSavingTest] = useState(false);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -356,17 +448,46 @@ export default function TeacherHomeworkPage() {
 
   useEffect(() => {
     if (!isModalOpen || !form.courseSlug) {
+      setModalCourse(null);
       setModalModules([]);
+      setModalAssignments([]);
       return;
     }
 
     let cancelled = false;
-    getCourseBySlug(form.courseSlug)
-      .then((course) => {
-        if (!cancelled) setModalModules(course.modules);
+    Promise.all([getCourseBySlug(form.courseSlug), getHomeworkAssignments(form.courseSlug)])
+      .then(([course, homework]) => {
+        if (cancelled) return;
+        setModalCourse(course);
+        setModalModules(course.modules);
+        setModalAssignments(homework);
       })
       .catch(() => {
-        if (!cancelled) setError("Could not load modules for this course.");
+        if (!cancelled) setError("Could not load course homework data.");
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [form.courseSlug, isModalOpen]);
+
+  useEffect(() => {
+    if (!isModalOpen || !form.courseSlug) {
+      setAvailableRecipients([]);
+      setSelectedRecipientIds([]);
+      return;
+    }
+
+    let cancelled = false;
+    getHomeworkRecipients(form.courseSlug)
+      .then((recipients) => {
+        if (!cancelled) {
+          setAvailableRecipients(recipients);
+          setSelectedRecipientIds([]);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setError("Could not load course students.");
       });
 
     return () => {
@@ -393,8 +514,66 @@ export default function TeacherHomeworkPage() {
     () => new Map(activeModules.map((module) => [module.id, module.title])),
     [activeModules],
   );
+  const lessonNameById = useMemo(
+    () =>
+      new Map(
+        activeModules.flatMap((module) =>
+          module.lessons.map((lesson) => [lesson.id, lesson.title] as const),
+        ),
+      ),
+    [activeModules],
+  );
+  const recipientGroups = useMemo<RecipientGroupOption[]>(() => {
+    const activeEnrollmentIds = new Set(availableRecipients.map((recipient) => recipient.id));
+    const groups: RecipientGroupOption[] = [];
+
+    if (availableRecipients.length > 0) {
+      groups.push({
+        value: "all",
+        label: `All enrolled students (${availableRecipients.length})`,
+        enrollmentIds: availableRecipients.map((recipient) => recipient.id),
+      });
+    }
+
+    modalCourse?.cohorts.forEach((cohort) => {
+      const enrollmentIds = cohort.members
+        .map((member) => member.enrollment_id)
+        .filter((id) => activeEnrollmentIds.has(id));
+      if (enrollmentIds.length === 0) return;
+      groups.push({
+        value: `cohort:${cohort.id}`,
+        label: `${cohort.name || `Group ${cohort.id}`} (${enrollmentIds.length})`,
+        enrollmentIds,
+      });
+    });
+
+    availableRecipients
+      .filter((recipient) => recipient.delivery_format_type === "individual")
+      .forEach((recipient) => {
+        groups.push({
+          value: `individual:${recipient.id}`,
+          label: `${recipient.student_name || recipient.student_email} (individual)`,
+          enrollmentIds: [recipient.id],
+        });
+      });
+
+    return groups;
+  }, [availableRecipients, modalCourse]);
+  const selectedModalModule = useMemo(
+    () => modalModules.find((module) => String(module.id) === form.moduleId) ?? null,
+    [form.moduleId, modalModules],
+  );
+  const selectedTest = useMemo(
+    () =>
+      modalModules
+        .flatMap((module) => module.tests)
+        .find((test) => String(test.id) === form.testId) ?? null,
+    [form.testId, modalModules],
+  );
   const isSaveDisabled =
-    saving || !form.courseSlug || !form.moduleId || !form.title.trim() || !form.description.trim();
+    saving || !form.courseSlug || !form.moduleId || !form.lessonId || !form.title.trim() ||
+    (!form.testId && !form.description.trim()) ||
+    selectedRecipientIds.length === 0;
 
   function openModal() {
     setError("");
@@ -403,20 +582,119 @@ export default function TeacherHomeworkPage() {
       ...EMPTY_FORM,
       courseSlug: selectedCourseSlug || courses[0]?.slug || "",
     });
+    setAttachmentFiles([]);
     setIsModalOpen(true);
   }
 
   function closeModal() {
-    if (!saving) setIsModalOpen(false);
+    if (!saving) {
+      setAttachmentFiles([]);
+      setIsTestModalOpen(false);
+      setIsModalOpen(false);
+    }
   }
 
   function updateField(field: keyof FormState, value: string) {
-    setForm((current) => ({
-      ...current,
-      [field]: value,
-      ...(field === "courseSlug" ? { moduleId: "" } : {}),
-    }));
+    if (field === "recipientGroupId") {
+      const group = recipientGroups.find((option) => option.value === value);
+      setSelectedRecipientIds(group?.enrollmentIds ?? []);
+    }
+
+    if (field === "courseSlug") {
+      setModalCourse(null);
+      setModalModules([]);
+      setModalAssignments([]);
+      setAvailableRecipients([]);
+      setSelectedRecipientIds([]);
+    }
+
+    setForm((current) => {
+      const next = { ...current, [field]: value };
+
+      if (field === "courseSlug") {
+        return {
+          ...next,
+          sourceAssignmentId: "",
+          moduleId: "",
+          lessonId: "",
+          recipientGroupId: "",
+          testId: "",
+        };
+      }
+
+      if (field === "moduleId") {
+        return {
+          ...next,
+          lessonId: "",
+          testId: "",
+        };
+      }
+
+      if (field === "sourceAssignmentId") {
+        const sourceAssignment = modalAssignments.find(
+          (assignment) => String(assignment.id) === value,
+        );
+        if (!sourceAssignment) return next;
+        return {
+          ...next,
+          moduleId: sourceAssignment.module ? String(sourceAssignment.module) : "",
+          lessonId: sourceAssignment.lesson ? String(sourceAssignment.lesson) : "",
+          testId: sourceAssignment.test ? String(sourceAssignment.test) : "",
+          title: sourceAssignment.title,
+          description: sourceAssignment.description,
+          maxScore: sourceAssignment.max_score ? String(sourceAssignment.max_score) : "",
+        };
+      }
+
+      return next;
+    });
     setError("");
+  }
+
+  function addAttachmentFiles(files: FileList | null) {
+    if (!files) return;
+    const selectedFiles = Array.from(files);
+    const tooLarge = selectedFiles.find((file) => file.size > 25 * 1024 * 1024);
+    if (tooLarge) {
+      setError(`\"${tooLarge.name}\" exceeds the 25 MB file limit.`);
+      return;
+    }
+    setAttachmentFiles((current) => [...current, ...selectedFiles]);
+    setError("");
+  }
+
+  async function handleCreateTest(values: TestFormValues) {
+    if (!form.courseSlug || !form.moduleId || savingTest) return;
+
+    const moduleId = Number(form.moduleId);
+    setSavingTest(true);
+    setError("");
+
+    try {
+      const test = await createTest(form.courseSlug, moduleId, {
+        title: values.title.trim(),
+        description: values.description.trim() || undefined,
+        passing_score: values.passing_score ? parseInt(values.passing_score, 10) : 70,
+      });
+      const questions = await Promise.all(
+        values.questions.map((question) =>
+          createQuestion(form.courseSlug, moduleId, test.id, buildQuestionPayload(question)),
+        ),
+      );
+      const savedTest = { ...test, questions };
+      setModalModules((current) =>
+        current.map((module) =>
+          module.id === moduleId ? { ...module, tests: [...module.tests, savedTest] } : module,
+        ),
+      );
+      setForm((current) => ({ ...current, testId: String(savedTest.id) }));
+      setIsTestModalOpen(false);
+    } catch (requestError) {
+      const apiError = requestError as Partial<ApiError>;
+      setError(apiError.detail || apiError.message || "Could not create the test.");
+    } finally {
+      setSavingTest(false);
+    }
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -434,18 +712,31 @@ export default function TeacherHomeworkPage() {
 
     try {
       const assignment = await createHomeworkAssignment(form.courseSlug, {
+        source_assignment: form.sourceAssignmentId ? Number(form.sourceAssignmentId) : undefined,
         module: form.moduleId ? Number(form.moduleId) : undefined,
+        lesson: form.lessonId ? Number(form.lessonId) : undefined,
+        test: form.testId ? Number(form.testId) : undefined,
         title: form.title.trim(),
         description: form.description.trim(),
         due_at: form.dueAt ? new Date(`${form.dueAt}T23:59:00`).toISOString() : undefined,
         max_score: maxScore,
       });
+      await Promise.all(
+        attachmentFiles.map((file) =>
+          uploadHomeworkAssignmentAttachment(form.courseSlug, assignment.id, file),
+        ),
+      );
+      const publishedAssignment = await publishHomeworkAssignment(
+        form.courseSlug,
+        assignment.id,
+        selectedRecipientIds,
+      );
       if (selectedCourseSlug === form.courseSlug) {
-        setAssignments((current) => [assignment, ...current]);
+        setAssignments((current) => [publishedAssignment, ...current]);
       } else {
         setSelectedCourseSlug(form.courseSlug);
       }
-      setSuccess("Homework draft saved. It has not been sent to students.");
+      setSuccess(`Homework sent to ${selectedRecipientIds.length} student(s).`);
       setIsModalOpen(false);
     } catch (requestError) {
       const apiError = requestError as Partial<ApiError>;
@@ -550,14 +841,16 @@ export default function TeacherHomeworkPage() {
                     {items.map((assignment) => (
                       <article
                         key={assignment.id}
-                        className="flex min-h-[92px] items-start gap-3 rounded-lg border border-[#ECE8E0] bg-white px-4 py-3 shadow-[0_2px_8px_rgba(18,18,18,0.03)]"
+                        className="rounded-lg border border-[#ECE8E0] bg-white px-4 py-3 shadow-[0_2px_8px_rgba(18,18,18,0.03)]"
                       >
+                        <div className="flex min-h-[68px] items-start gap-3">
                         <div className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#FCE1F1] text-[#CC5D9C]">
                           <ClipboardList size={19} aria-hidden="true" />
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="text-[11px] leading-4 text-[#777]">
-                            {moduleNameById.get(assignment.module ?? 0) ?? "Course task"} ·{" "}
+                            {moduleNameById.get(assignment.module ?? 0) ?? "Course task"} /{" "}
+                            {lessonNameById.get(assignment.lesson ?? 0) ?? "No lesson"} /{" "}
                             {assignment.status}
                           </p>
                           <h3 className="mt-0.5 truncate text-[15px] font-medium text-[#121212]">
@@ -566,6 +859,36 @@ export default function TeacherHomeworkPage() {
                           <p className="mt-1 truncate text-[11px] text-[#6A6A6A]">
                             {assignment.description}
                           </p>
+                          <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
+                            {assignment.test_detail ? (
+                              <span className="rounded bg-[#EEF4FF] px-2 py-1 text-[#3851B0]">
+                                Test: {assignment.test_detail.title}
+                              </span>
+                            ) : null}
+                            {assignment.source_assignment ? (
+                              <span className="inline-flex items-center gap-1 rounded bg-[#F6F3EE] px-2 py-1 text-[#6A5B43]">
+                                <Copy size={11} aria-hidden="true" />
+                                Reused
+                              </span>
+                            ) : null}
+                          </div>
+                          {assignment.attachments.length > 0 ? (
+                            <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
+                              {assignment.attachments.map((attachment) => (
+                                attachment.url ? (
+                                  <a
+                                    key={attachment.id}
+                                    href={attachment.url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="rounded bg-[#F0F3FF] px-2 py-1 text-[#3851B0] hover:underline"
+                                  >
+                                    {attachment.original_name}
+                                  </a>
+                                ) : null
+                              ))}
+                            </div>
+                          ) : null}
                         </div>
                         <div className="shrink-0 text-right text-[11px] text-[#5E5E5E]">
                           <p>{deadlineLabel(assignment.due_at)}</p>
@@ -575,6 +898,32 @@ export default function TeacherHomeworkPage() {
                             </p>
                           ) : null}
                         </div>
+                        </div>
+                        {assignment.teacher_submissions.length > 0 ? (
+                          <div className="mt-3 border-t border-[#EEEAE4] pt-2 text-[12px] text-[#3E3E3E]">
+                            <p className="font-medium">Student answers</p>
+                            {assignment.teacher_submissions.map((submission) => (
+                              <div key={submission.id} className="mt-1">
+                                <p className="truncate">
+                                  {submission.student_name || submission.student_email}: {submission.content || "Files attached"}
+                                </p>
+                                {submission.attachments.map((attachment) => (
+                                  attachment.url ? (
+                                    <a
+                                      key={attachment.id}
+                                      href={attachment.url}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="mr-2 text-[#3851B0] hover:underline"
+                                    >
+                                      {attachment.original_name}
+                                    </a>
+                                  ) : null
+                                ))}
+                              </div>
+                            ))}
+                          </div>
+                        ) : null}
                       </article>
                     ))}
                   </div>
@@ -618,7 +967,34 @@ export default function TeacherHomeworkPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="mt-7">
-              <label className="grid gap-2 text-[14px] font-semibold text-[#121212]">
+              <div className="grid gap-5 sm:grid-cols-2">
+                <HomeworkSelect
+                  label="Subject*"
+                  value={form.courseSlug}
+                  options={courses.map((course) => ({ value: course.slug, label: course.title }))}
+                  placeholder="Select a subject"
+                  disabled={saving || courses.length === 0}
+                  onChange={(value) => updateField("courseSlug", value)}
+                />
+                <HomeworkSelect
+                  label="Reuse previous homework"
+                  value={form.sourceAssignmentId}
+                  options={[
+                    { value: "", label: "Start from scratch" },
+                    ...modalAssignments.map((assignment) => ({
+                      value: String(assignment.id),
+                      label: `${assignment.title} (${assignment.status})`,
+                    })),
+                  ]}
+                  placeholder={
+                    modalAssignments.length === 0 ? "No previous homework" : "Choose a template"
+                  }
+                  disabled={saving || !form.courseSlug || modalAssignments.length === 0}
+                  onChange={(value) => updateField("sourceAssignmentId", value)}
+                />
+              </div>
+
+              <label className="mt-6 grid gap-2 text-[14px] font-semibold text-[#121212]">
                 Title*
                 <input
                   value={form.title}
@@ -633,14 +1009,6 @@ export default function TeacherHomeworkPage() {
 
               <div className="mt-6 grid gap-5 sm:grid-cols-2">
                 <HomeworkSelect
-                  label="Subject*"
-                  value={form.courseSlug}
-                  options={courses.map((course) => ({ value: course.slug, label: course.title }))}
-                  placeholder="Select a subject"
-                  disabled={saving || courses.length === 0}
-                  onChange={(value) => updateField("courseSlug", value)}
-                />
-                <HomeworkSelect
                   label="Module*"
                   value={form.moduleId}
                   options={modalModules.map((module) => ({
@@ -653,22 +1021,118 @@ export default function TeacherHomeworkPage() {
                   disabled={saving || !form.courseSlug || modalModules.length === 0}
                   onChange={(value) => updateField("moduleId", value)}
                 />
+                <HomeworkSelect
+                  label="Lesson*"
+                  value={form.lessonId}
+                  options={(selectedModalModule?.lessons ?? []).map((lesson) => ({
+                    value: String(lesson.id),
+                    label: lesson.title,
+                  }))}
+                  placeholder={
+                    form.moduleId
+                      ? selectedModalModule?.lessons.length
+                        ? "Select a lesson"
+                        : "No lessons in this module"
+                      : "Select a module first"
+                  }
+                  disabled={saving || !form.moduleId || !selectedModalModule?.lessons.length}
+                  onChange={(value) => updateField("lessonId", value)}
+                />
+              </div>
+
+              <div className="mt-6 rounded-md border border-[#E1E1E1] bg-[#FAFAFA] p-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                  <div className="flex-1">
+                    <HomeworkSelect
+                      label="Test as homework"
+                      value={form.testId}
+                      options={[
+                        { value: "", label: "No test" },
+                        ...(selectedModalModule?.tests ?? []).map((test) => ({
+                          value: String(test.id),
+                          label: test.title,
+                        })),
+                      ]}
+                      placeholder={
+                        form.moduleId
+                          ? selectedModalModule?.tests.length
+                            ? "Select an existing test"
+                            : "No tests in this module"
+                          : "Select a module first"
+                      }
+                      disabled={saving || !form.moduleId}
+                      onChange={(value) => updateField("testId", value)}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsTestModalOpen(true)}
+                    disabled={saving || !form.moduleId}
+                    className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-[#CFCFCF] bg-white px-4 text-[13px] font-medium text-[#121212] transition hover:bg-[#F4F4F4] disabled:cursor-not-allowed disabled:text-[#A3A3A3]"
+                  >
+                    <Plus size={15} aria-hidden="true" />
+                    Create test
+                  </button>
+                </div>
+                {selectedTest ? (
+                  <div className="mt-3 rounded-md bg-white px-3 py-2 text-[12px] text-[#3E3E3E]">
+                    <p className="font-medium text-[#121212]">{selectedTest.title}</p>
+                    <p className="mt-1 text-[#6A6A6A]">
+                      {selectedTest.questions.length} question(s), passing score {selectedTest.passing_score}
+                    </p>
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="mt-6">
+                <p className="mb-2 text-[14px] font-semibold text-[#121212]">Group or student*</p>
+                {availableRecipients.length === 0 ? (
+                  <p className="mt-2 text-[12px] text-[#A44]">No active students are enrolled in this course.</p>
+                ) : (
+                  <div>
+                    <HomeworkSelect
+                      value={form.recipientGroupId}
+                      options={recipientGroups}
+                      placeholder="Select a group or individual student"
+                      disabled={saving || recipientGroups.length === 0}
+                      onChange={(value) => updateField("recipientGroupId", value)}
+                    />
+                    {selectedRecipientIds.length > 0 ? (
+                      <div className="mt-2 max-h-28 overflow-y-auto rounded-md border border-[#D8D8D8] bg-[#FAFAFA] p-3 text-[12px] text-[#3E3E3E]">
+                        {availableRecipients
+                          .filter((recipient) => selectedRecipientIds.includes(recipient.id))
+                          .map((recipient) => (
+                            <p key={recipient.id} className="truncate">
+                              {recipient.student_name || recipient.student_email}
+                              <span className="text-[#777]"> · {recipient.student_email}</span>
+                            </p>
+                          ))}
+                      </div>
+                    ) : null}
+                  </div>
+                )}
               </div>
 
               <label className="mt-6 grid gap-2 text-[14px] font-semibold text-[#121212]">
-                Homework content*
+                Homework content{form.testId ? "" : "*"}
                 <textarea
                   value={form.description}
                   onChange={(event) => updateField("description", event.target.value)}
-                  required
+                  required={!form.testId}
                   disabled={saving}
                   rows={10}
-                  placeholder="Write your homework content here... You can include text, instructions, and explanations."
+                  placeholder={
+                    form.testId
+                      ? "Optional instructions for this test homework."
+                      : "Write your homework content here... You can include text, instructions, and explanations."
+                  }
                   className="h-[300px] resize-none rounded-md bg-[#ECECEC] px-4 py-4 text-[15px] outline-none transition placeholder:text-[#858585] focus:ring-2 focus:ring-[#9DB1FA] disabled:cursor-not-allowed"
                 />
               </label>
               <p className="mt-2 text-[12px] text-[#6A6A6A]">
-                This is the main content students will read.
+                {form.testId
+                  ? "Students will receive the selected test. Extra instructions are optional."
+                  : "This is the main content students will read."}
               </p>
 
               <div className="mt-6 grid gap-5 sm:grid-cols-2">
@@ -693,19 +1157,41 @@ export default function TeacherHomeworkPage() {
 
               <div className="mt-6">
                 <p className="text-[14px] font-semibold text-[#121212]">Homework Material</p>
-                <div className="mt-2 flex h-[208px] flex-col items-center justify-center rounded-md border border-dashed border-[#C9C9C9] px-4 text-center text-[#4E4E4E]">
+                <div className="mt-2 flex min-h-[208px] flex-col items-center justify-center rounded-md border border-dashed border-[#C9C9C9] px-4 py-5 text-center text-[#4E4E4E]">
                   <Upload className="mb-3" size={20} aria-hidden="true" />
                   <p className="text-[15px] font-medium">Upload a file for this homework</p>
-                  <p className="mt-1 text-[12px] text-[#6A6A6A]">PDF, JPG, PNG up to 500MB</p>
-                  <button
-                    type="button"
-                    disabled={saving}
-                    onClick={() => setError("File uploads are not available yet.")}
-                    className="mt-3 inline-flex h-8 items-center gap-1.5 rounded-full border border-[#CFCFCF] bg-white px-4 text-[12px] text-[#121212] transition hover:bg-[#F4F4F4] disabled:cursor-not-allowed"
-                  >
+                  <p className="mt-1 text-[12px] text-[#6A6A6A]">Any file type, up to 25 MB per file</p>
+                  <label className="mt-3 inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-full border border-[#CFCFCF] bg-white px-4 text-[12px] text-[#121212] transition hover:bg-[#F4F4F4] has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-60">
                     <Upload size={13} aria-hidden="true" />
                     Choose File
-                  </button>
+                    <input
+                      type="file"
+                      multiple
+                      disabled={saving}
+                      className="sr-only"
+                      onChange={(event) => {
+                        addAttachmentFiles(event.target.files);
+                        event.target.value = "";
+                      }}
+                    />
+                  </label>
+                  {attachmentFiles.length > 0 ? (
+                    <div className="mt-4 w-full max-w-md space-y-1 text-left text-[12px] text-[#3E3E3E]">
+                      {attachmentFiles.map((file, index) => (
+                        <div key={`${file.name}-${index}`} className="flex items-center justify-between gap-3 rounded bg-[#F5F5F5] px-3 py-2">
+                          <span className="truncate">{file.name}</span>
+                          <button
+                            type="button"
+                            disabled={saving}
+                            onClick={() => setAttachmentFiles((current) => current.filter((_, fileIndex) => fileIndex !== index))}
+                            className="shrink-0 text-[#A44] hover:underline disabled:text-[#AAA]"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
               </div>
 
@@ -733,6 +1219,46 @@ export default function TeacherHomeworkPage() {
                 </button>
               </div>
             </form>
+
+            {isTestModalOpen ? (
+              <div
+                role="presentation"
+                className="fixed inset-0 z-[160] flex items-center justify-center bg-black/35 px-4 py-6"
+                onMouseDown={() => {
+                  if (!savingTest) setIsTestModalOpen(false);
+                }}
+              >
+                <section
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label="Create homework test"
+                  className="max-h-[calc(100vh-48px)] w-full max-w-[1120px] overflow-y-auto rounded-[16px] bg-white px-6 py-7 shadow-[0_18px_56px_rgba(18,18,18,0.24)] sm:px-10"
+                  onMouseDown={(event) => event.stopPropagation()}
+                >
+                  <div className="mb-6 flex items-center justify-between gap-4">
+                    <h3 className="flex items-center gap-2 text-[18px] font-semibold text-[#121212]">
+                      <ClipboardList size={18} aria-hidden="true" />
+                      Create test
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => setIsTestModalOpen(false)}
+                      disabled={savingTest}
+                      aria-label="Close test dialog"
+                      className="rounded-full p-1 text-[#121212] transition hover:bg-[#F1F1F1] disabled:cursor-not-allowed"
+                    >
+                      <X size={18} aria-hidden="true" />
+                    </button>
+                  </div>
+                  <TestFormBody
+                    mode="add"
+                    initialValues={{ title: form.title ? `${form.title} test` : "" }}
+                    onSave={handleCreateTest}
+                    onCancel={() => setIsTestModalOpen(false)}
+                  />
+                </section>
+              </div>
+            ) : null}
           </section>
         </div>
       ) : null}

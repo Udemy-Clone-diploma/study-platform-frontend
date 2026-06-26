@@ -23,7 +23,7 @@ export function AppShell({
         <AppSidebar items={sidebarItems} />
 
         <div className="flex min-w-0 flex-1 flex-col overflow-y-auto">
-          <main className={fullBleed ? "min-h-full" : "flex-1 px-[clamp(14px,1.5vw,28px)] py-[clamp(14px,1.5vw,28px)]"}>
+          <main className={fullBleed ? "min-h-full" : "flex-1"}>
             {children}
           </main>
         </div>

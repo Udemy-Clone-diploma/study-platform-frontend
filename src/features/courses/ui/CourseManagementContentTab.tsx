@@ -154,7 +154,7 @@ function TestModal({ item, test, onClose }: { item: LessonItem; test: CourseTest
             {q.question_type === "multiple_choice" && (
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 {q.options.map((opt, oi) => {
-                  const correct = revealed && oi === q.correct_index;
+                  const correct = revealed && (q.correct_indices?.includes(oi) ?? false);
                   return (
                     <div key={oi} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 14px", borderRadius: 10, background: correct ? "rgba(28,187,67,0.08)" : "var(--color-input-bg)", border: `1px solid ${correct ? "var(--color-success)" : "transparent"}`, fontFamily: F, fontSize: "clamp(12px, 0.83vw, 15px)", color: correct ? "var(--color-success)" : "var(--color-text-primary)", transition: "all 0.2s" }}>
                       <span>{opt}</span>

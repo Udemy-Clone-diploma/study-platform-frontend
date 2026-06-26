@@ -5,14 +5,18 @@ export type LessonDocument = {
   created_at: string;
 };
 
+export type QuestionType = "single_choice" | "multiple_choice" | "true_false" | "short_answer";
+
 export type CourseQuestion = {
   id: number;
   question_type: string;
   text: string;
   options: string[];
-  correct_index: number | null;
+  correct_indices?: number[] | null;
+  exact_set_match?: boolean;
   correct_bool: boolean | null;
   sample_answer: string;
+  accepted_answers?: string[] | null;
   order: number;
 };
 
@@ -23,6 +27,9 @@ export type CourseTest = {
   passing_score: number;
   order: number;
   questions: CourseQuestion[];
+  duration_minutes?: number | null;
+  allow_retakes?: boolean;
+  max_attempts?: number | null;
 };
 
 export type LessonItemType = "text" | "video" | "test";
@@ -53,6 +60,13 @@ export type CourseLesson = {
   is_manually_locked?: boolean;
   documents?: LessonDocument[];
   items?: LessonItem[];
+  /**
+   * Live-class link on the lesson detail, exposed only to viewers with
+   * enrollment access (backend gates it behind `has_enrollment_access`).
+   * Absent on the list shape and for preview/non-enrolled viewers; null for
+   * self-paced lessons.
+   */
+  meeting_url?: string | null;
 };
 
 export type CourseModule = {

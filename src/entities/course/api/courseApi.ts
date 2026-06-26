@@ -165,8 +165,8 @@ export async function deletePricingPlan(slug: string, id: number): Promise<void>
 export type CohortInput = Omit<CourseCohort, "id" | "members_count" | "members">;
 
 export async function getCohorts(slug: string): Promise<CourseCohort[]> {
-  const { data } = await api.get<CourseCohort[]>(`${COURSES}${slug}/cohorts/`);
-  return data;
+  const { data } = await api.get<CourseCohort[] | Paginated<CourseCohort>>(`${COURSES}${slug}/cohorts/`);
+  return Array.isArray(data) ? data : data.results;
 }
 
 /** Create a cohort on a course. Course-owner or admin only. */

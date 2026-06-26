@@ -108,7 +108,7 @@ function FormatStatsBar({ fmt, slug, course, slotsKey }: {
   };
 
   return (
-    <div style={{ background: "#fff", borderRadius: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.06)", overflow: "hidden" }}>
+    <div style={{ background: "#fff", borderRadius: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
       {/* Entire stats row is the toggle button */}
       <button
         type="button"

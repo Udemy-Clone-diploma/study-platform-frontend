@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
   CalendarDays,
@@ -112,7 +113,7 @@ function HomeworkSelect({
 
   const controlClassName =
     variant === "filter"
-      ? "flex h-10 w-full items-center justify-between gap-2 rounded-full bg-white px-4 text-left text-[14px] text-[#121212] outline-none transition focus-within:ring-2 focus-within:ring-[#9DB1FA] focus:ring-2 focus:ring-[#9DB1FA] disabled:cursor-not-allowed disabled:text-[#8A8A8A]"
+      ? "flex h-10 w-full items-center justify-between gap-2 rounded-full border border-[#ECECEC] bg-white px-5 text-left text-[20px] leading-none font-normal text-[#121212] shadow-[0_0_4px_rgba(0,0,0,0.06)] outline-none transition focus-within:ring-2 focus-within:ring-[#9DB1FA] focus:ring-2 focus:ring-[#9DB1FA] disabled:cursor-not-allowed disabled:text-[#8A8A8A]"
       : "flex h-14 w-full items-center justify-between gap-3 rounded-md bg-[#ECECEC] px-4 text-left text-[15px] text-[#121212] outline-none transition focus-within:ring-2 focus-within:ring-[#9DB1FA] focus:ring-2 focus:ring-[#9DB1FA] disabled:cursor-not-allowed disabled:text-[#8A8A8A]";
 
   return (
@@ -375,6 +376,102 @@ function deadlineLabel(value: string | null): string {
   return dateLabel(new Date(value));
 }
 
+function cardDateLabel(value: string | null): string {
+  if (!value) return "-";
+  return new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "2-digit" })
+    .format(new Date(value))
+    .replace(/\//g, ".");
+}
+
+function assignmentDateValue(assignment: HomeworkAssignment): string {
+  return assignment.published_at ?? assignment.created_at;
+}
+
+function assignmentKind(assignment: HomeworkAssignment): "Task" | "Test" {
+  return assignment.test_detail ? "Test" : "Task";
+}
+
+function recipientsLabel(assignment: HomeworkAssignment): string {
+  if (assignment.recipients.length === 0) {
+    return assignment.recipients_count > 0
+      ? `${assignment.recipients_count} student${assignment.recipients_count === 1 ? "" : "s"}`
+      : "Not sent";
+  }
+
+  const names = assignment.recipients.map(
+    (recipient) => recipient.student_name || recipient.student_email,
+  );
+  if (names.length <= 2) return names.join(", ");
+  return `${names.slice(0, 2).join(", ")} +${names.length - 2}`;
+}
+
+function latestReviewedAt(assignment: HomeworkAssignment): string | null {
+  const reviewedTimestamps = assignment.teacher_submissions
+    .map((submission) => submission.reviewed_at)
+    .filter((value): value is string => Boolean(value))
+    .map((value) => new Date(value).getTime())
+    .filter((value) => !Number.isNaN(value));
+
+  if (reviewedTimestamps.length === 0) return null;
+  return new Date(Math.max(...reviewedTimestamps)).toISOString();
+}
+
+function TeacherHomeworkCard({
+  assignment,
+  expanded,
+  onToggle,
+}: {
+  assignment: HomeworkAssignment;
+  expanded: boolean;
+  onToggle: () => void;
+}) {
+  const kind = assignmentKind(assignment);
+  const iconSrc = assignment.course_image ?? "/icons/book-gradient.svg";
+  const returnedAt = latestReviewedAt(assignment);
+
+  return (
+    <button
+      type="button"
+      aria-expanded={expanded}
+      onClick={onToggle}
+      className="group grid h-20 w-full max-w-[722px] grid-cols-[60px_minmax(0,1fr)_178px] items-center gap-2.5 rounded-lg bg-white px-3 py-2.5 text-left font-(family-name:--font-base) shadow-[0_0_4px_rgba(0,0,0,0.16)] transition hover:shadow-[0_3px_12px_rgba(0,0,0,0.12)] focus:outline-none focus:ring-2 focus:ring-[#9DB1FA]"
+    >
+      <span className="flex h-[60px] w-[60px] items-center justify-center overflow-hidden rounded-md">
+        <Image
+          src={iconSrc}
+          alt=""
+          width={60}
+          height={60}
+          unoptimized={!!assignment.course_image}
+          aria-hidden="true"
+          className="h-[60px] w-[60px] object-contain"
+        />
+      </span>
+      <span className="min-w-0">
+        <span className="block h-5 max-w-[244px] truncate text-[16px] leading-5 font-normal text-[#5E5E5E]">
+          {assignment.course_title || "Course"} &bull; {kind}
+        </span>
+        <span className="mt-[7px] block max-w-[393px] truncate text-[20px] leading-none font-medium text-[#121212]">
+          {assignment.title}
+        </span>
+      </span>
+      <span className="grid gap-1 text-[11px] leading-none font-normal text-[#5E5E5E]">
+        <span className="truncate">
+          To: <span className="text-[#121212]">{recipientsLabel(assignment)}</span>
+        </span>
+        <span>
+          Sent: <span className="text-[#003AFF]">{cardDateLabel(assignment.published_at)}</span>
+        </span>
+        {returnedAt ? (
+          <span>
+            Returned: <span className="text-[#003AFF]">{cardDateLabel(returnedAt)}</span>
+          </span>
+        ) : null}
+      </span>
+    </button>
+  );
+}
+
 function buildQuestionPayload(question: TestQuestion) {
   return {
     question_type: question.type,
@@ -390,7 +487,6 @@ export default function TeacherHomeworkPage() {
   const [courses, setCourses] = useState<CourseListItem[]>([]);
   const [selectedCourseSlug, setSelectedCourseSlug] = useState("");
   const [assignments, setAssignments] = useState<HomeworkAssignment[]>([]);
-  const [activeModules, setActiveModules] = useState<CourseModule[]>([]);
   const [modalCourse, setModalCourse] = useState<CourseDetail | null>(null);
   const [modalModules, setModalModules] = useState<CourseModule[]>([]);
   const [modalAssignments, setModalAssignments] = useState<HomeworkAssignment[]>([]);
@@ -402,6 +498,7 @@ export default function TeacherHomeworkPage() {
   const [loadingAssignments, setLoadingAssignments] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isTestModalOpen, setIsTestModalOpen] = useState(false);
+  const [expandedAssignmentId, setExpandedAssignmentId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [savingTest, setSavingTest] = useState(false);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
@@ -421,18 +518,16 @@ export default function TeacherHomeworkPage() {
   useEffect(() => {
     if (!selectedCourseSlug) {
       setAssignments([]);
-      setActiveModules([]);
       return;
     }
 
     let cancelled = false;
     setLoadingAssignments(true);
 
-    Promise.all([getHomeworkAssignments(selectedCourseSlug), getCourseBySlug(selectedCourseSlug)])
-      .then(([homework, course]) => {
+    getHomeworkAssignments(selectedCourseSlug)
+      .then((homework) => {
         if (cancelled) return;
         setAssignments(homework);
-        setActiveModules(course.modules);
       })
       .catch(() => {
         if (!cancelled) setError("Could not load homework for this course.");
@@ -504,25 +599,18 @@ export default function TeacherHomeworkPage() {
   );
   const assignmentsByMonth = useMemo(() => {
     const result = new Map<string, HomeworkAssignment[]>();
-    visibleAssignments.forEach((assignment) => {
-      const month = monthLabel(assignment.created_at);
-      result.set(month, [...(result.get(month) ?? []), assignment]);
-    });
+    [...visibleAssignments]
+      .sort(
+        (first, second) =>
+          new Date(assignmentDateValue(second)).getTime() -
+          new Date(assignmentDateValue(first)).getTime(),
+      )
+      .forEach((assignment) => {
+        const month = monthLabel(assignmentDateValue(assignment));
+        result.set(month, [...(result.get(month) ?? []), assignment]);
+      });
     return [...result.entries()];
   }, [visibleAssignments]);
-  const moduleNameById = useMemo(
-    () => new Map(activeModules.map((module) => [module.id, module.title])),
-    [activeModules],
-  );
-  const lessonNameById = useMemo(
-    () =>
-      new Map(
-        activeModules.flatMap((module) =>
-          module.lessons.map((lesson) => [lesson.id, lesson.title] as const),
-        ),
-      ),
-    [activeModules],
-  );
   const recipientGroups = useMemo<RecipientGroupOption[]>(() => {
     const activeEnrollmentIds = new Set(availableRecipients.map((recipient) => recipient.id));
     const groups: RecipientGroupOption[] = [];
@@ -747,67 +835,65 @@ export default function TeacherHomeworkPage() {
   }
 
   return (
-    <main className="min-h-[calc(100vh-76px)] bg-[#FFFDF8] px-4 py-6 sm:px-8 lg:px-11">
-      <section className="mx-auto w-full max-w-[1180px]">
-        <div className="flex flex-col gap-5 border-b border-[#E6E1D8] pb-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-[15px] text-[#121212]">
-            <h1 className="font-(family-name:--font-base) text-[20px] font-semibold">
-              Assignments
-            </h1>
-            <span className="text-[#6A6A6A]">Tests</span>
-            <span className="text-[#6A6A6A]">Completed</span>
-            <span className="text-[#6A6A6A]">Under review</span>
-          </div>
+    <main className="relative isolate min-h-[calc(100vh-76px)] overflow-hidden bg-white px-4 py-7 sm:px-8 lg:px-11">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute top-[-257px] left-[113px] z-0 h-[1002px] w-[1368px] rotate-[-33.8deg] bg-[#FCC4C3] opacity-50 blur-[300px]"
+      />
+      <section className="relative z-10 w-full max-w-[1710px] font-(family-name:--font-base)">
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 className="mr-2 text-[28px] leading-none font-normal text-[#121212]">Homework</h1>
+          <span className="inline-flex h-10 items-center rounded-full border border-[#ECECEC] bg-white px-5 text-[20px] leading-none font-normal text-[#121212] shadow-[0_0_4px_rgba(0,0,0,0.06)]">
+            All Task Types
+          </span>
 
-          <button
-            type="button"
-            onClick={openModal}
-            disabled={loadingCourses || courses.length === 0}
-            className="inline-flex h-10 items-center justify-center gap-2 self-start rounded-full bg-[#D6E0FF] px-5 font-(family-name:--font-accent) text-[13px] font-medium uppercase tracking-wide text-[#121212] transition hover:bg-[#C4D1FF] disabled:cursor-not-allowed disabled:bg-[#E8E8E8] disabled:text-[#8B8B8B] lg:self-auto"
-          >
-            Add homework
-            <Plus size={16} strokeWidth={2.5} aria-hidden="true" />
-          </button>
-        </div>
-
-        <div className="mt-4 flex flex-wrap items-center gap-2 text-[13px]">
-          <span className="rounded-full border border-[#E1DED8] bg-white px-4 py-2 text-[#5E5E5E]">
+        <div className="contents">
+          <span className="hidden">
             All task types
           </span>
-          <div className="w-[min(100%,260px)]">
+          <div className="w-[min(100%,280px)]">
             <HomeworkSelect
               value={selectedCourseSlug}
               options={courses.map((course) => ({ value: course.slug, label: course.title }))}
-              placeholder="All courses"
+              placeholder="Subject"
               variant="filter"
               disabled={loadingCourses || courses.length === 0}
               onChange={setSelectedCourseSlug}
             />
           </div>
-          <div className="w-[150px]">
+          <div className="w-[190px]">
             <HomeworkSelect
               value={statusFilter}
               options={[
-                { value: "all", label: "All statuses" },
+                { value: "all", label: "Status" },
                 { value: "draft", label: "Drafts" },
+                { value: "published", label: "Published" },
+                { value: "closed", label: "Closed" },
               ]}
               placeholder="Status"
               variant="filter"
               onChange={setStatusFilter}
             />
           </div>
-          <span className="rounded-full border border-[#E1DED8] bg-white px-4 py-2 text-[#A3A3A3]">
+          <span className="hidden">
             Group — soon
           </span>
-          <span className="rounded-full border border-[#E1DED8] bg-white px-4 py-2 text-[#A3A3A3]">
+          <span className="hidden">
             Student — soon
           </span>
-          <span className="rounded-full border border-[#E1DED8] bg-white px-4 py-2 text-[#5E5E5E]">
-            Total assignments:
-            <strong className="ml-1 font-semibold text-[#121212]">
-              {visibleAssignments.length}
-            </strong>
+          <span className="inline-flex h-10 items-center rounded-full border border-[#ECECEC] bg-white px-5 text-[20px] leading-none font-normal text-[#121212] shadow-[0_0_4px_rgba(0,0,0,0.06)]">
+            Total Assignments: {visibleAssignments.length}
           </span>
+          <button
+            type="button"
+            onClick={openModal}
+            disabled={loadingCourses || courses.length === 0}
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[#D6E0FF] px-5 font-(family-name:--font-accent) text-[13px] font-medium uppercase tracking-wide text-[#121212] transition hover:bg-[#C4D1FF] disabled:cursor-not-allowed disabled:bg-[#E8E8E8] disabled:text-[#8B8B8B]"
+          >
+            Add homework
+            <Plus size={16} strokeWidth={2.5} aria-hidden="true" />
+          </button>
+        </div>
         </div>
 
         {error && !isModalOpen ? (
@@ -821,11 +907,11 @@ export default function TeacherHomeworkPage() {
           </p>
         ) : null}
 
-        <div className="mt-8">
+        <div className="mt-14">
           {loadingAssignments ? (
             <p className="text-sm text-[#6A6A6A]">Loading assignments...</p>
           ) : assignmentsByMonth.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-[#D9D4CB] bg-white/70 px-6 py-14 text-center">
+            <div className="max-w-[722px] rounded-xl border border-dashed border-[#D9D4CB] bg-white/70 px-6 py-14 text-center">
               <ClipboardList className="mx-auto text-[#9DAEF3]" size={34} aria-hidden="true" />
               <h2 className="mt-3 text-base font-semibold text-[#121212]">No homework yet</h2>
               <p className="mt-1 text-sm text-[#6A6A6A]">
@@ -833,99 +919,140 @@ export default function TeacherHomeworkPage() {
               </p>
             </div>
           ) : (
-            <div className="space-y-8">
+            <div className="space-y-11">
               {assignmentsByMonth.map(([month, items]) => (
                 <section key={month}>
-                  <h2 className="mb-3 text-[15px] font-medium text-[#3E3E3E]">{month}</h2>
-                  <div className="grid gap-3 lg:grid-cols-2">
-                    {items.map((assignment) => (
-                      <article
-                        key={assignment.id}
-                        className="rounded-lg border border-[#ECE8E0] bg-white px-4 py-3 shadow-[0_2px_8px_rgba(18,18,18,0.03)]"
-                      >
-                        <div className="flex min-h-[68px] items-start gap-3">
-                        <div className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#FCE1F1] text-[#CC5D9C]">
-                          <ClipboardList size={19} aria-hidden="true" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-[11px] leading-4 text-[#777]">
-                            {moduleNameById.get(assignment.module ?? 0) ?? "Course task"} /{" "}
-                            {lessonNameById.get(assignment.lesson ?? 0) ?? "No lesson"} /{" "}
-                            {assignment.status}
-                          </p>
-                          <h3 className="mt-0.5 truncate text-[15px] font-medium text-[#121212]">
-                            {assignment.title}
-                          </h3>
-                          <p className="mt-1 truncate text-[11px] text-[#6A6A6A]">
-                            {assignment.description}
-                          </p>
-                          <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
-                            {assignment.test_detail ? (
-                              <span className="rounded bg-[#EEF4FF] px-2 py-1 text-[#3851B0]">
-                                Test: {assignment.test_detail.title}
-                              </span>
-                            ) : null}
-                            {assignment.source_assignment ? (
-                              <span className="inline-flex items-center gap-1 rounded bg-[#F6F3EE] px-2 py-1 text-[#6A5B43]">
-                                <Copy size={11} aria-hidden="true" />
-                                Reused
-                              </span>
-                            ) : null}
-                          </div>
-                          {assignment.attachments.length > 0 ? (
-                            <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
-                              {assignment.attachments.map((attachment) => (
-                                attachment.url ? (
-                                  <a
-                                    key={attachment.id}
-                                    href={attachment.url}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="rounded bg-[#F0F3FF] px-2 py-1 text-[#3851B0] hover:underline"
-                                  >
-                                    {attachment.original_name}
-                                  </a>
-                                ) : null
-                              ))}
+                  <h2 className="mb-6 text-[28px] leading-none font-normal text-[#121212]">{month}</h2>
+                  <div className="grid gap-x-5 gap-y-6 2xl:grid-cols-[minmax(0,722px)_minmax(0,722px)]">
+                    {items.map((assignment) => {
+                      const expanded = expandedAssignmentId === assignment.id;
+                      const returnedAt = latestReviewedAt(assignment);
+
+                      return (
+                        <article key={assignment.id} className="w-full max-w-[722px]">
+                          <TeacherHomeworkCard
+                            assignment={assignment}
+                            expanded={expanded}
+                            onToggle={() => setExpandedAssignmentId((current) => (
+                              current === assignment.id ? null : assignment.id
+                            ))}
+                          />
+                          {expanded ? (
+                            <div className="mt-2 rounded-lg border border-[#ECECEC] bg-white/95 p-4 shadow-[0_0_4px_rgba(0,0,0,0.08)]">
+                              <div className="grid gap-4 text-sm text-[#3E3E3E] md:grid-cols-2">
+                                <div>
+                                  <p className="font-medium text-[#121212]">Sent to</p>
+                                  <p className="mt-1 text-[#5E5E5E]">{recipientsLabel(assignment)}</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-[#121212]">Dates</p>
+                                  <p className="mt-1 text-[#5E5E5E]">
+                                    Sent: {assignment.published_at ? deadlineLabel(assignment.published_at) : "Not sent yet"}
+                                  </p>
+                                  {returnedAt ? (
+                                    <p className="mt-1 text-[#5E5E5E]">Returned: {deadlineLabel(returnedAt)}</p>
+                                  ) : null}
+                                  <p className="mt-1 text-[#5E5E5E]">Due: {deadlineLabel(assignment.due_at)}</p>
+                                </div>
+                              </div>
+
+                              {assignment.module_title || assignment.lesson_title ? (
+                                <p className="mt-4 text-sm text-[#5E5E5E]">
+                                  {[assignment.module_title, assignment.lesson_title].filter(Boolean).join(" / ")}
+                                </p>
+                              ) : null}
+                              {assignment.description ? (
+                                <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-[#333]">
+                                  {assignment.description}
+                                </p>
+                              ) : null}
+
+                              <div className="mt-4 flex flex-wrap gap-2 text-[12px]">
+                                <span className="rounded bg-[#F5F5F5] px-2 py-1 text-[#5E5E5E]">
+                                  {assignment.status}
+                                </span>
+                                {assignment.test_detail ? (
+                                  <span className="rounded bg-[#EEF4FF] px-2 py-1 text-[#3851B0]">
+                                    Test: {assignment.test_detail.title}
+                                  </span>
+                                ) : null}
+                                {assignment.max_score ? (
+                                  <span className="rounded bg-[#FFF0D0] px-2 py-1 text-[#9A6500]">
+                                    {assignment.max_score} pt
+                                  </span>
+                                ) : null}
+                                {assignment.source_assignment ? (
+                                  <span className="inline-flex items-center gap-1 rounded bg-[#F6F3EE] px-2 py-1 text-[#6A5B43]">
+                                    <Copy size={11} aria-hidden="true" />
+                                    Reused
+                                  </span>
+                                ) : null}
+                              </div>
+
+                              {assignment.attachments.length > 0 ? (
+                                <div className="mt-4 flex flex-wrap gap-2 text-[12px]">
+                                  {assignment.attachments.map((attachment) => (
+                                    attachment.url ? (
+                                      <a
+                                        key={attachment.id}
+                                        href={attachment.url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="rounded bg-[#F0F3FF] px-3 py-2 text-[#3851B0] hover:underline"
+                                      >
+                                        {attachment.original_name}
+                                      </a>
+                                    ) : null
+                                  ))}
+                                </div>
+                              ) : null}
+
+                              {assignment.teacher_submissions.length > 0 ? (
+                                <div className="mt-5 border-t border-[#EEEAE4] pt-3 text-[12px] text-[#3E3E3E]">
+                                  <p className="font-medium text-[#121212]">Student answers</p>
+                                  <div className="mt-2 space-y-2">
+                                    {assignment.teacher_submissions.map((submission) => (
+                                      <div key={submission.id} className="rounded-md bg-[#F7F7F7] px-3 py-2">
+                                        <div className="flex flex-wrap items-center justify-between gap-2">
+                                          <p className="min-w-0 truncate font-medium text-[#121212]">
+                                            {submission.student_name || submission.student_email}
+                                          </p>
+                                          <span className="shrink-0 text-[#5E5E5E]">
+                                            {submission.status === "reviewed" && submission.reviewed_at
+                                              ? `Returned: ${deadlineLabel(submission.reviewed_at)}`
+                                              : `Submitted: ${deadlineLabel(submission.submitted_at)}`}
+                                          </span>
+                                        </div>
+                                        {submission.content ? (
+                                          <p className="mt-1 line-clamp-2 text-[#3E3E3E]">{submission.content}</p>
+                                        ) : null}
+                                        {submission.attachments.length > 0 ? (
+                                          <div className="mt-2 flex flex-wrap gap-2">
+                                            {submission.attachments.map((attachment) => (
+                                              attachment.url ? (
+                                                <a
+                                                  key={attachment.id}
+                                                  href={attachment.url}
+                                                  target="_blank"
+                                                  rel="noreferrer"
+                                                  className="text-[#3851B0] hover:underline"
+                                                >
+                                                  {attachment.original_name}
+                                                </a>
+                                              ) : null
+                                            ))}
+                                          </div>
+                                        ) : null}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              ) : null}
                             </div>
                           ) : null}
-                        </div>
-                        <div className="shrink-0 text-right text-[11px] text-[#5E5E5E]">
-                          <p>{deadlineLabel(assignment.due_at)}</p>
-                          {assignment.max_score ? (
-                            <p className="mt-2 rounded-md bg-[#FFF0D0] px-2 py-1 font-medium text-[#9A6500]">
-                              {assignment.max_score} pt
-                            </p>
-                          ) : null}
-                        </div>
-                        </div>
-                        {assignment.teacher_submissions.length > 0 ? (
-                          <div className="mt-3 border-t border-[#EEEAE4] pt-2 text-[12px] text-[#3E3E3E]">
-                            <p className="font-medium">Student answers</p>
-                            {assignment.teacher_submissions.map((submission) => (
-                              <div key={submission.id} className="mt-1">
-                                <p className="truncate">
-                                  {submission.student_name || submission.student_email}: {submission.content || "Files attached"}
-                                </p>
-                                {submission.attachments.map((attachment) => (
-                                  attachment.url ? (
-                                    <a
-                                      key={attachment.id}
-                                      href={attachment.url}
-                                      target="_blank"
-                                      rel="noreferrer"
-                                      className="mr-2 text-[#3851B0] hover:underline"
-                                    >
-                                      {attachment.original_name}
-                                    </a>
-                                  ) : null
-                                ))}
-                              </div>
-                            ))}
-                          </div>
-                        ) : null}
-                      </article>
-                    ))}
+                        </article>
+                      );
+                    })}
                   </div>
                 </section>
               ))}

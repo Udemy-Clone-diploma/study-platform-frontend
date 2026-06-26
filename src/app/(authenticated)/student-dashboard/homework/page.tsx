@@ -113,16 +113,16 @@ function FilterSelect({
   children: ReactNode;
 }) {
   return (
-    <span className="relative inline-flex h-7 items-center">
+    <span className="relative inline-flex h-10 items-center">
       <select
         aria-label={label}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="h-7 appearance-none rounded-full border border-[#ECECEC] bg-white px-3 pr-8 font-(family-name:--font-base) text-[12px] leading-4 font-normal text-[#121212] shadow-[0_0_4px_rgba(0,0,0,0.06)] outline-none transition focus:ring-2 focus:ring-[#9DB1FA]"
+        className="h-10 appearance-none rounded-full border border-[#ECECEC] bg-white px-5 pr-11 font-(family-name:--font-base) text-[20px] leading-none font-normal text-[#121212] shadow-[0_0_4px_rgba(0,0,0,0.06)] outline-none transition focus:ring-2 focus:ring-[#9DB1FA]"
       >
         {children}
       </select>
-      <ChevronDown className="pointer-events-none absolute right-2.5 h-3.5 w-3.5 text-[#121212]" aria-hidden="true" />
+      <ChevronDown className="pointer-events-none absolute right-4 h-5 w-5 text-[#121212]" aria-hidden="true" />
     </span>
   );
 }
@@ -140,40 +140,50 @@ function HomeworkCard({
 }) {
   const kind = assignmentKind(assignment);
   const courseName = assignment.course_title || "Course";
-  const iconSrc = kind === "Test" ? "/icons/copy-check-gradient.svg" : "/icons/book-gradient.svg";
+  const iconSrc = assignment.course_image ?? "/icons/book-gradient.svg";
+  const showScoreBadge = kind === "Test" && assignment.max_score;
 
   return (
     <button
       type="button"
       aria-expanded={expanded}
       onClick={onToggle}
-      className="group grid h-20 w-full max-w-[722px] grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-2.5 rounded-lg bg-white px-3 py-2.5 text-left font-(family-name:--font-base) shadow-[0_0_4px_rgba(0,0,0,0.16)] transition hover:shadow-[0_3px_12px_rgba(0,0,0,0.12)] focus:outline-none focus:ring-2 focus:ring-[#9DB1FA]"
+      className="group grid h-20 w-full max-w-[722px] grid-cols-[60px_minmax(0,1fr)_auto] items-center gap-2.5 rounded-lg bg-white px-3 py-2.5 text-left font-(family-name:--font-base) shadow-[0_0_4px_rgba(0,0,0,0.16)] transition hover:shadow-[0_3px_12px_rgba(0,0,0,0.12)] focus:outline-none focus:ring-2 focus:ring-[#9DB1FA]"
     >
-      <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-md">
-        <Image src={iconSrc} alt="" width={40} height={40} aria-hidden="true" />
+      <span className="flex h-[60px] w-[60px] items-center justify-center overflow-hidden rounded-md">
+        <Image
+          src={iconSrc}
+          alt=""
+          width={60}
+          height={60}
+          unoptimized={!!assignment.course_image}
+          aria-hidden="true"
+          className="h-[60px] w-[60px] object-contain"
+        />
       </span>
       <span className="min-w-0">
-        <span className="block truncate text-[10px] leading-4 font-normal text-[#7A7A7A]">
+        <span className="block h-5 max-w-[244px] truncate text-[16px] leading-5 font-normal text-[#5E5E5E]">
           {courseName} &bull; {kind}
         </span>
-        <span className="mt-0.5 block truncate text-[12px] leading-4 font-normal text-[#121212]">
+        <span className="mt-[7px] block max-w-[393px] truncate text-[20px] leading-none font-medium text-[#121212]">
           {assignment.title}
         </span>
         {submission ? (
-          <span className="mt-1 block text-[10px] leading-3 font-normal text-[#5E5E5E]">
+          <span className="mt-1.5 block text-[12px] leading-none font-normal text-[#5E5E5E]">
             {submission.status === "reviewed" ? "Reviewed" : "Submitted"}
           </span>
         ) : null}
       </span>
-      <span className="flex h-full min-w-[98px] flex-col items-end justify-end gap-1">
-        {kind === "Test" && assignment.max_score ? (
-          <span className="mb-auto inline-flex h-[34px] min-w-[34px] items-center justify-center rounded-md bg-[#FFF0C8] px-2 text-[14px] leading-4 font-normal text-[#9A6500]">
+      <span className="flex h-full min-w-[98px] items-end justify-end">
+        {showScoreBadge ? (
+          <span className="inline-flex h-[60px] min-w-[60px] items-center justify-center rounded-lg bg-[#FFF0C8] px-3 text-[24px] leading-none font-medium text-[#9A6500]">
             {assignment.max_score}+
           </span>
-        ) : null}
-        <span className="whitespace-nowrap pb-0.5 text-[10px] leading-3 font-normal text-[#121212]">
-          Do to: <span className="text-[#003AFF]">{cardDeadlineLabel(assignment.due_at)}</span>
-        </span>
+        ) : (
+          <span className="mb-2 whitespace-nowrap text-[16px] leading-none font-normal text-[#121212]">
+            Do to: <span className="text-[#003AFF]">{cardDeadlineLabel(assignment.due_at)}</span>
+          </span>
+        )}
       </span>
     </button>
   );
@@ -286,10 +296,14 @@ export default function StudentHomeworkPage() {
   }
 
   return (
-    <main className="min-h-[calc(100vh-76px)] bg-[radial-gradient(circle_at_50%_54%,rgba(255,196,196,0.6)_0,rgba(255,238,238,0.5)_28%,#FFFFFF_68%)] px-4 py-7 sm:px-8 lg:px-11">
-      <section className="mx-auto w-full max-w-[1120px] font-(family-name:--font-base)">
-        <div className="flex flex-wrap items-center gap-2">
-          <h1 className="mr-3 text-[15px] leading-5 font-normal text-[#121212]">Homework</h1>
+    <main className="relative isolate min-h-[calc(100vh-76px)] overflow-hidden bg-white px-4 py-7 sm:px-8 lg:px-11">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute top-[-257px] left-[113px] z-0 h-[1002px] w-[1368px] rotate-[-33.8deg] bg-[#FCC4C3] opacity-50 blur-[300px]"
+      />
+      <section className="relative z-10 w-full max-w-[1710px] font-(family-name:--font-base)">
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 className="mr-2 text-[28px] leading-none font-normal text-[#121212]">Homework</h1>
           <FilterSelect
             label="Task type"
             value={taskTypeFilter}
@@ -319,7 +333,7 @@ export default function StudentHomeworkPage() {
             <option value="submitted">Submitted</option>
             <option value="reviewed">Reviewed</option>
           </FilterSelect>
-          <span className="inline-flex h-7 items-center rounded-full border border-[#ECECEC] bg-white px-3 text-[12px] leading-4 font-normal text-[#121212] shadow-[0_0_4px_rgba(0,0,0,0.06)]">
+          <span className="inline-flex h-10 items-center rounded-full border border-[#ECECEC] bg-white px-5 text-[20px] leading-none font-normal text-[#121212] shadow-[0_0_4px_rgba(0,0,0,0.06)]">
             Total Assignments: {filteredAssignments.length}
           </span>
         </div>
@@ -333,16 +347,16 @@ export default function StudentHomeworkPage() {
           </div>
         ) : null}
         {!loading && !error && assignments.length > 0 && filteredAssignments.length === 0 ? (
-          <div className="mt-8 max-w-[722px] rounded-lg border border-dashed border-[#D9D4CB] bg-white px-6 py-10 text-center text-sm text-[#6A6A6A]">
+        <div className="mt-8 max-w-[722px] rounded-lg border border-dashed border-[#D9D4CB] bg-white px-6 py-10 text-center text-sm text-[#6A6A6A]">
             No homework matches these filters.
           </div>
         ) : null}
 
-        <div className="mt-7 space-y-7">
+        <div className="mt-14 space-y-11">
           {groupedAssignments.map((group) => (
             <section key={group.key}>
-              <h2 className="mb-3 text-[15px] leading-5 font-normal text-[#121212]">{group.label}</h2>
-              <div className="grid gap-3 xl:grid-cols-2">
+              <h2 className="mb-6 text-[28px] leading-none font-normal text-[#121212]">{group.label}</h2>
+              <div className="grid gap-x-5 gap-y-6 2xl:grid-cols-[minmax(0,722px)_minmax(0,722px)]">
                 {group.items.map((assignment) => {
                   const submission = submissions[assignment.id];
                   const expanded = expandedAssignmentId === assignment.id;

@@ -6,6 +6,7 @@ export type HomeworkAssignment = {
   id: number;
   course_id: number;
   course_title: string;
+  course_image: string | null;
   source_assignment: number | null;
   module: number | null;
   module_title: string | null;

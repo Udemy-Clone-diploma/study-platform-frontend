@@ -7,6 +7,8 @@ export type TestPayload = {
   title: string;
   description?: string;
   passing_score?: number;
+  allow_retakes?: boolean;
+  max_attempts?: number | null;
 };
 
 export async function createTest(

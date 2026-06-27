@@ -1,4 +1,3 @@
-export * from "./api/coursesApi";
 export * from "./model/catalogFilters";
 export * from "./model/moderatorReview";
 export * from "./ui/CourseManagementInfoTab";

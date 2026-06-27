@@ -3,11 +3,13 @@ import { CourseModuleItem } from "./CourseModuleItem";
 
 type Props = {
   course: Pick<CourseDetail, "modules" | "lessons_count">;
+  slug: string;
+  hasPricing?: boolean;
   hideHeading?: boolean;
 };
 
 /** Curriculum section: heading (optional), summary line, accordion of modules. */
-export function CourseCurriculum({ course, hideHeading = false }: Props) {
+export function CourseCurriculum({ course, slug, hasPricing = false, hideHeading = false }: Props) {
   const sorted = [...course.modules].sort((a, b) => a.order - b.order);
   const hasModules = sorted.length > 0;
 
@@ -28,7 +30,7 @@ export function CourseCurriculum({ course, hideHeading = false }: Props) {
       {hasModules ? (
         <div className="flex flex-col">
           {sorted.map((mod) => (
-            <CourseModuleItem key={mod.id} courseModule={mod} />
+            <CourseModuleItem key={mod.id} courseModule={mod} slug={slug} hasPricing={hasPricing} />
           ))}
         </div>
       ) : (

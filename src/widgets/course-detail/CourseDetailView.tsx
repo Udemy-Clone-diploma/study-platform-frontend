@@ -7,6 +7,7 @@ import { CourseHero } from "./CourseHero";
 import { CoursePricingBlock } from "./CoursePricingBlock";
 import { CourseScheduleCard } from "./CourseScheduleCard";
 import { CourseTeacher } from "./CourseTeacher";
+import { PRICING_ANCHOR_ID } from "./pricingAnchor";
 
 type Props = { course: CourseDetail; reviews: CourseReview[] };
 
@@ -44,7 +45,12 @@ export function CourseDetailView({ course, reviews }: Props) {
               </div>
             </div>
             <div className="lg:col-start-1">
-              <CourseCurriculum course={course} hideHeading />
+              <CourseCurriculum
+                course={course}
+                slug={course.slug}
+                hasPricing={hasPricingPlans}
+                hideHeading
+              />
             </div>
             {course.cohorts.length > 0 && (
               <div className="relative self-start lg:col-start-2">
@@ -74,7 +80,10 @@ export function CourseDetailView({ course, reviews }: Props) {
 
       {hasPricingPlans && (
         <SectionContainer>
-          <section className="relative mb-20 pb-12 sm:mb-32 sm:pb-16 lg:mb-[260px] lg:pb-24">
+          <section
+            id={PRICING_ANCHOR_ID}
+            className="relative mb-20 scroll-mt-24 pb-12 sm:mb-32 sm:pb-16 lg:mb-[260px] lg:pb-24"
+          >
             <DecorBlob
               className="top-[-25%] left-1/2 h-[1000px] w-[1600px] -translate-x-1/2"
               gradient="var(--gradient-glow-lavender)"

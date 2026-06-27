@@ -35,6 +35,11 @@ const PROTECTED_ROUTES: RouteRule[] = [
     allowedRoles: ["student", "teacher", "moderator", "administrator"],
     loginRedirect: "/login",
   },
+  {
+    pattern: /^\/learn(\/|$)/,
+    allowedRoles: ["student", "teacher", "moderator", "administrator"],
+    loginRedirect: "/login",
+  },
 ];
 
 const PUBLIC_PATHS = new Set(["/", "/login", "/register", "/admin/login"]);

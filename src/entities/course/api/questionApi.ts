@@ -7,9 +7,11 @@ export type QuestionPayload = {
   question_type?: string;
   text: string;
   options?: string[];
-  correct_index?: number | null;
+  correct_indices?: number[] | null;
+  exact_set_match?: boolean;
   correct_bool?: boolean | null;
   sample_answer?: string;
+  accepted_answers?: string[] | null;
 };
 
 export async function createQuestion(

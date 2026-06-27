@@ -55,6 +55,8 @@ export type CourseListItem = {
   updated_at?: string;
   /** Date the current student was granted access. Null for non-enrolled contexts (teacher, catalog). */
   enrolled_at: string | null;
+  /** Present on enrolled-courses endpoints. 0-100, integer. */
+  progress_percent?: number;
   tags: CourseTag[];
   /**
    * Present only on teacher my-courses list. Null when the course has no pending edit.

@@ -142,7 +142,7 @@ export default function StudentCoursesPage() {
                         key={`active-${entry.item.id}`}
                         title={entry.item.title}
                         teacherName={entry.item.teacher_name}
-                        progressPercent={0}
+                        progressPercent={entry.item.progress_percent ?? 0}
                         imageSrc={entry.item.image}
                         iconSrc={LEVEL_ICON[entry.item.level] ?? "/icons/curses.svg"}
                         level={entry.item.level}

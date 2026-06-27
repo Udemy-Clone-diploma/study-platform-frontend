@@ -36,6 +36,18 @@ import {
   getTeacherUnavailabilities,
   rescheduleSlot,
 } from "@/entities/course";
+import {
+  checkSlotPersonalConflicts,
+  checkSlotRescheduleConflicts,
+} from "@/entities/course/api/scheduleApi";
+import type { SlotPersonalConflict, ScheduleConflicts, ScheduleConflictPersonalEvent } from "@/entities/course/api/scheduleApi";
+import { deletePersonalEvent, respondToInvitation, updatePersonalEvent } from "@/entities/course/api/calendarApi";
+import type { ApiError } from "@/shared/api/model/types";
+import { ModalShell } from "@/shared/ui/ModalShell";
+
+type RescheduleConflictItem = { type: string; title: string; start_time: string; end_time: string };
+type RescheduleErr = { message: string; items: RescheduleConflictItem[] };
+import { AlertTriangle } from "lucide-react";
 
 // ── Shared styles ──────────────────────────────────────────────────────────────
 
@@ -166,7 +178,7 @@ function PillSelect<T extends string | number>({
 const HOURS   = Array.from({ length: 24 }, (_, i) => i);
 const MINUTES = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
 
-function TimePicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+export function TimePicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -509,7 +521,7 @@ function DayGroup({
   const available = slots.length - booked;
 
   return (
-    <div style={{ borderRadius: 12, border: "1px solid var(--color-border-light)", overflow: "hidden" }}>
+    <div style={{ borderRadius: 12, border: "1px solid var(--color-border-light)" }}>
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
@@ -517,6 +529,7 @@ function DayGroup({
           display: "flex", alignItems: "center", justifyContent: "space-between",
           width: "100%", padding: "9px 12px",
           background: "var(--color-bg)", border: "none",
+          borderTopLeftRadius: 11, borderTopRightRadius: 11,
           borderBottom: open ? "1px solid var(--color-border-light)" : "none",
           cursor: "pointer", gap: 8,
         }}
@@ -582,7 +595,7 @@ function AddSlotForm({
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (end <= start) { setErr("End time must be after start time."); return; }
     setSaving(true);
@@ -641,7 +654,7 @@ function RescheduleForm({
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (end <= start) { setErr("End time must be after start time."); return; }
     setSaving(true);
@@ -716,7 +729,7 @@ function GenerateSlotsForm({
 
   const preview = buildPreview();
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (preview.length === 0) { setErr("No slots fit in this window with the current duration and break settings."); return; }
     setSaving(true); setErr(null);
@@ -816,35 +829,187 @@ function IndividualFormatSection({
   const [rescheduling, setRescheduling] = useState<ScheduleSlot | null>(null);
   const [enrolledStudents, setEnrolledStudents] = useState<EnrolledStudent[]>([]);
 
+  // Slot assign personal conflict modal
+  type AssignConflictState = { slotId: number; enrollmentId: number; pending: SlotPersonalConflict[] };
+  const [assignConflict, setAssignConflict] = useState<AssignConflictState | null>(null);
+  const [assignConflictLoading, setAssignConflictLoading] = useState<number | null>(null);
+  const [conflictRescheduleState, setConflictRescheduleState] = useState<{ eventId: number; date: string; start: string; end: string } | null>(null);
+
+  // Slot reschedule conflict modal
+  type ReschedulePayload = { day_of_week: DayOfWeek; start_time: string; end_time: string };
+  const [rescheduleConflictModal, setRescheduleConflictModal] = useState<{ conflicts: ScheduleConflicts; slotId: number; payload: ReschedulePayload } | null>(null);
+  const [reschedulePendingEvents, setReschedulePendingEvents] = useState<ScheduleConflictPersonalEvent[]>([]);
+  const [rescheduleModalSaving, setRescheduleModalSaving] = useState(false);
+  const [rescheduleEventReschedule, setRescheduleEventReschedule] = useState<{ eventId: number; date: string; start: string; end: string } | null>(null);
+  const [rescheduleEventLoading, setRescheduleEventLoading] = useState<number | null>(null);
+
+  // Add / generate slot conflict modal
+  const [addConflictModal, setAddConflictModal] = useState<{ conflicts: ScheduleConflicts; payloads: ScheduleSlotPayload[] } | null>(null);
+  const [addPendingEvents, setAddPendingEvents] = useState<ScheduleConflictPersonalEvent[]>([]);
+  const [addModalSaving, setAddModalSaving] = useState(false);
+  const [addEventReschedule, setAddEventReschedule] = useState<{ eventId: number; date: string; start: string; end: string } | null>(null);
+  const [addEventLoading, setAddEventLoading] = useState<number | null>(null);
+  const [assignConflictRescheduleErr, setAssignConflictRescheduleErr] = useState<RescheduleErr | null>(null);
 
   useEffect(() => {
     getScheduleSlots(slug, fmt.id).then(setSlots).finally(() => setLoading(false));
     getCourseEnrolledStudents(slug, fmt.id).then(setEnrolledStudents).catch(() => {});
   }, [slug, fmt.id]);
 
-  const handleAdd = async (payload: ScheduleSlotPayload) => {
-    const slot = await createScheduleSlot(slug, fmt.id, payload);
-    setSlots(prev => [...prev, slot]);
-    setAddOpen(false);
-  };
-
-  const handleGenerate = async (payloads: ScheduleSlotPayload[]) => {
+  const resolveAndCreateSlots = async (payloads: ScheduleSlotPayload[]) => {
+    const combined: ScheduleConflicts = { group: [], individual: [], personal: [], personal_events: [] };
+    for (const p of payloads) {
+      const c = await checkSlotRescheduleConflicts(slug, fmt.id, {
+        day_of_week: p.day_of_week,
+        start_time: p.start_time,
+        end_time: p.end_time,
+      });
+      for (const x of c.group) if (!combined.group.find(y => y.id === x.id)) combined.group.push(x);
+      for (const x of c.individual) if (!combined.individual.find(y => y.id === x.id)) combined.individual.push(x);
+      for (const x of c.personal) if (!combined.personal.find(y => y.id === x.id)) combined.personal.push(x);
+      for (const x of c.personal_events) if (!combined.personal_events.find(y => y.id === x.id)) combined.personal_events.push(x);
+    }
+    const hasAny = combined.group.length > 0 || combined.individual.length > 0 ||
+      combined.personal.length > 0 || combined.personal_events.length > 0;
+    if (hasAny) {
+      setAddConflictModal({ conflicts: combined, payloads });
+      setAddPendingEvents(combined.personal_events);
+      setAddEventReschedule(null);
+      setAddOpen(false);
+      setGenerateOpen(false);
+      return;
+    }
     const created: ScheduleSlot[] = [];
     for (const p of payloads) {
       const slot = await createScheduleSlot(slug, fmt.id, p);
       created.push(slot);
     }
     setSlots(prev => [...prev, ...created]);
+    setAddOpen(false);
     setGenerateOpen(false);
   };
 
-  const handleReschedule = async (
-    id: number,
-    payload: { day_of_week: DayOfWeek; start_time: string; end_time: string },
-  ) => {
-    const updated = await rescheduleSlot(slug, fmt.id, id, payload);
-    setSlots(prev => prev.map(s => (s.id === id ? updated : s)));
+  const handleAdd = async (payload: ScheduleSlotPayload) => resolveAndCreateSlots([payload]);
+  const handleGenerate = async (payloads: ScheduleSlotPayload[]) => resolveAndCreateSlots(payloads);
+
+  // Add slot conflict modal handlers
+  const resolveAddEvent = (eventId: number) => {
+    setAddPendingEvents(prev => prev.filter(e => e.id !== eventId));
+    setAddEventReschedule(rs => rs?.eventId === eventId ? null : rs);
+  };
+
+  const handleAddDeleteEvent = async (ev: ScheduleConflictPersonalEvent) => {
+    setAddEventLoading(ev.id);
+    try { await deletePersonalEvent(ev.id); resolveAddEvent(ev.id); }
+    catch { /* ignore */ } finally { setAddEventLoading(null); }
+  };
+
+  const handleAddDeclineEvent = async (ev: ScheduleConflictPersonalEvent) => {
+    if (!ev.invitation_id) return;
+    setAddEventLoading(ev.id);
+    try { await respondToInvitation(ev.invitation_id, "decline"); resolveAddEvent(ev.id); }
+    catch { /* ignore */ } finally { setAddEventLoading(null); }
+  };
+
+  const handleAddRescheduleEvent = async (ev: ScheduleConflictPersonalEvent) => {
+    if (!addEventReschedule || addEventReschedule.eventId !== ev.id) return;
+    setAddEventLoading(ev.id);
+    try {
+      await updatePersonalEvent(ev.id, { date: addEventReschedule.date, start_time: addEventReschedule.start, end_time: addEventReschedule.end });
+      resolveAddEvent(ev.id);
+    } catch { /* ignore */ } finally { setAddEventLoading(null); }
+  };
+
+  const handleAddDeleteBlocksAndSave = async () => {
+    if (!addConflictModal) return;
+    setAddModalSaving(true);
+    try {
+      await Promise.all(addConflictModal.conflicts.personal.map(b => deleteTeacherUnavailability(b.id)));
+      const created: ScheduleSlot[] = [];
+      for (const p of addConflictModal.payloads) { created.push(await createScheduleSlot(slug, fmt.id, p)); }
+      setSlots(prev => [...prev, ...created]);
+      setAddConflictModal(null);
+    } catch { /* ignore */ } finally { setAddModalSaving(false); }
+  };
+
+  const handleAddProceed = async () => {
+    if (!addConflictModal) return;
+    setAddModalSaving(true);
+    try {
+      const created: ScheduleSlot[] = [];
+      for (const p of addConflictModal.payloads) { created.push(await createScheduleSlot(slug, fmt.id, p)); }
+      setSlots(prev => [...prev, ...created]);
+      setAddConflictModal(null);
+    } catch { /* ignore */ } finally { setAddModalSaving(false); }
+  };
+
+  const doReschedule = async (slotId: number, payload: ReschedulePayload) => {
+    const updated = await rescheduleSlot(slug, fmt.id, slotId, payload);
+    setSlots(prev => prev.map(s => (s.id === slotId ? updated : s)));
     setRescheduling(null);
+    setRescheduleConflictModal(null);
+  };
+
+  const handleReschedule = async (id: number, payload: ReschedulePayload) => {
+    const conflicts = await checkSlotRescheduleConflicts(slug, fmt.id, {
+      day_of_week: payload.day_of_week,
+      start_time: payload.start_time,
+      end_time: payload.end_time,
+      slot_id: id,
+    });
+    const hasAny = conflicts.group.length > 0 || conflicts.individual.length > 0 ||
+      conflicts.personal.length > 0 || conflicts.personal_events.length > 0;
+    if (hasAny) {
+      setRescheduleConflictModal({ conflicts, slotId: id, payload });
+      setReschedulePendingEvents(conflicts.personal_events);
+      setRescheduleEventReschedule(null);
+      return;
+    }
+    await doReschedule(id, payload);
+  };
+
+  // Reschedule slot conflict modal handlers
+  const resolveRescheduleEvent = (eventId: number) => {
+    setReschedulePendingEvents(prev => prev.filter(e => e.id !== eventId));
+    setRescheduleEventReschedule(rs => rs?.eventId === eventId ? null : rs);
+  };
+
+  const handleRescheduleDeleteEvent = async (ev: ScheduleConflictPersonalEvent) => {
+    setRescheduleEventLoading(ev.id);
+    try { await deletePersonalEvent(ev.id); resolveRescheduleEvent(ev.id); }
+    catch { /* ignore */ } finally { setRescheduleEventLoading(null); }
+  };
+
+  const handleRescheduleDeclineEvent = async (ev: ScheduleConflictPersonalEvent) => {
+    if (!ev.invitation_id) return;
+    setRescheduleEventLoading(ev.id);
+    try { await respondToInvitation(ev.invitation_id, "decline"); resolveRescheduleEvent(ev.id); }
+    catch { /* ignore */ } finally { setRescheduleEventLoading(null); }
+  };
+
+  const handleRescheduleRescheduleEvent = async (ev: ScheduleConflictPersonalEvent) => {
+    if (!rescheduleEventReschedule || rescheduleEventReschedule.eventId !== ev.id) return;
+    setRescheduleEventLoading(ev.id);
+    try {
+      await updatePersonalEvent(ev.id, { date: rescheduleEventReschedule.date, start_time: rescheduleEventReschedule.start, end_time: rescheduleEventReschedule.end });
+      resolveRescheduleEvent(ev.id);
+    } catch { /* ignore */ } finally { setRescheduleEventLoading(null); }
+  };
+
+  const handleRescheduleDeleteBlocksAndSave = async () => {
+    if (!rescheduleConflictModal) return;
+    setRescheduleModalSaving(true);
+    try {
+      await Promise.all(rescheduleConflictModal.conflicts.personal.map(b => deleteTeacherUnavailability(b.id)));
+      await doReschedule(rescheduleConflictModal.slotId, rescheduleConflictModal.payload);
+    } catch { /* ignore */ } finally { setRescheduleModalSaving(false); }
+  };
+
+  const handleRescheduleProceed = async () => {
+    if (!rescheduleConflictModal) return;
+    setRescheduleModalSaving(true);
+    try { await doReschedule(rescheduleConflictModal.slotId, rescheduleConflictModal.payload); }
+    catch { /* ignore */ } finally { setRescheduleModalSaving(false); }
   };
 
   const handleDelete = async (id: number) => {
@@ -852,10 +1017,56 @@ function IndividualFormatSection({
     setSlots(prev => prev.filter(s => s.id !== id));
   };
 
-  const handleAssign = async (slotId: number, enrollmentId: number | null) => {
+  const doAssign = async (slotId: number, enrollmentId: number | null) => {
     const updated = await assignScheduleSlot(slug, fmt.id, slotId, enrollmentId);
     setSlots(prev => prev.map(s => (s.id === slotId ? updated : s)));
     onAssigned?.();
+  };
+
+  const handleAssign = async (slotId: number, enrollmentId: number | null) => {
+    if (enrollmentId === null) { await doAssign(slotId, null); return; }
+    const conflicts = await checkSlotPersonalConflicts(slug, fmt.id, slotId);
+    if (conflicts.length > 0) {
+      setAssignConflict({ slotId, enrollmentId, pending: conflicts });
+    } else {
+      await doAssign(slotId, enrollmentId);
+    }
+  };
+
+  const handleConflictDelete = async (ev: SlotPersonalConflict) => {
+    setAssignConflictLoading(ev.id);
+    try {
+      await deletePersonalEvent(ev.id);
+      setAssignConflict(prev => prev ? { ...prev, pending: prev.pending.filter(p => p.id !== ev.id) } : null);
+    } finally { setAssignConflictLoading(null); }
+  };
+
+  const handleConflictDecline = async (ev: SlotPersonalConflict) => {
+    if (!ev.invitation_id) return;
+    setAssignConflictLoading(ev.id);
+    try {
+      await respondToInvitation(ev.invitation_id, "decline");
+      setAssignConflict(prev => prev ? { ...prev, pending: prev.pending.filter(p => p.id !== ev.id) } : null);
+    } finally { setAssignConflictLoading(null); }
+  };
+
+  const handleConflictReschedule = async (ev: SlotPersonalConflict, newDate: string, newStart: string, newEnd: string) => {
+    setAssignConflictLoading(ev.id);
+    setAssignConflictRescheduleErr(null);
+    if (newDate === ev.date && newStart === ev.start_time && newEnd === ev.end_time) {
+      setAssignConflictRescheduleErr({ message: "Please choose a different date or time.", items: [] });
+      setAssignConflictLoading(null);
+      return;
+    }
+    try {
+      await updatePersonalEvent(ev.id, { date: newDate, start_time: newStart, end_time: newEnd });
+      setAssignConflict(prev => prev ? { ...prev, pending: prev.pending.filter(p => p.id !== ev.id) } : null);
+    } catch (err: unknown) {
+      const e = err as ApiError;
+      const items = ((e.fields as Record<string, unknown>)?.conflicts ?? []) as RescheduleConflictItem[];
+      setAssignConflictRescheduleErr({ message: e.message || "Cannot reschedule.", items });
+      throw err;
+    } finally { setAssignConflictLoading(null); }
   };
 
   const booked    = slots.filter(s => !s.is_available).length;
@@ -885,8 +1096,8 @@ function IndividualFormatSection({
         </div>
         {!formOpen && (
           <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
-            <AddButton onClick={() => setGenerateOpen(true)}>Generate slots</AddButton>
-            <AddButton onClick={() => setAddOpen(true)}>Add slot</AddButton>
+            <AddButton onClick={() => { setGenerateOpen(true); setAddConflictModal(null); }}>Generate slots</AddButton>
+            <AddButton onClick={() => { setAddOpen(true); setAddConflictModal(null); }}>Add slot</AddButton>
           </div>
         )}
       </div>
@@ -931,14 +1142,417 @@ function IndividualFormatSection({
 
       {addOpen && (
         <div style={{ borderTop: slots.length > 0 ? "1px solid var(--color-border-light)" : undefined, paddingTop: slots.length > 0 ? 14 : 0 }}>
-          <AddSlotForm onAdd={handleAdd} onCancel={() => setAddOpen(false)} />
+          <AddSlotForm onAdd={handleAdd} onCancel={() => { setAddOpen(false); setAddConflictModal(null); }} />
         </div>
       )}
 
       {generateOpen && (
         <div style={{ borderTop: slots.length > 0 ? "1px solid var(--color-border-light)" : undefined, paddingTop: slots.length > 0 ? 14 : 0 }}>
-          <GenerateSlotsForm onGenerate={handleGenerate} onCancel={() => setGenerateOpen(false)} />
+          <GenerateSlotsForm onGenerate={handleGenerate} onCancel={() => { setGenerateOpen(false); setAddConflictModal(null); }} />
         </div>
+      )}
+
+            {/* Unified conflict modal for add/generate slot */}
+      {addConflictModal && (() => {
+        const info = addConflictModal.conflicts;
+        const hasPersonalBlocks = info.personal.length > 0;
+        const hasPendingEvents = addPendingEvents.length > 0;
+        const hasSessionConflicts = info.group.length > 0 || info.individual.length > 0;
+        const blocked = hasPersonalBlocks || hasPendingEvents;
+        const CROW: React.CSSProperties = { fontFamily: "var(--font-base)", fontSize: "clamp(12px, 0.78vw, 13px)", color: "var(--color-text-primary)", padding: "8px 0", borderBottom: "1px solid var(--color-border-light)" };
+        const CMUTED: React.CSSProperties = { color: "var(--color-text-muted)" };
+        const CLABEL: React.CSSProperties = { fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(11px, 0.72vw, 12px)", color: "var(--color-text-secondary)", marginBottom: 6, display: "block" };
+        const CNOTE: React.CSSProperties = { fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.7vw, 12px)", color: "var(--color-text-muted)", margin: "6px 0 0" };
+        const CBTN = (danger = false): React.CSSProperties => ({
+          fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(11px, 0.7vw, 12px)",
+          color: danger ? "var(--color-pink-dark)" : "var(--color-text-primary)",
+          background: "none", border: `1px solid ${danger ? "var(--color-pink-dark)" : "var(--color-border-light)"}`,
+          borderRadius: 999, padding: "3px 10px", cursor: "pointer",
+        });
+        return (
+          <ModalShell
+            onClose={() => !addModalSaving && !addEventLoading && (setAddConflictModal(null), setAddPendingEvents([]), setAddEventReschedule(null))}
+            title="Schedule conflicts"
+            icon={<AlertTriangle size={18} style={{ color: "var(--color-pink-dark)" }} />}
+            width="clamp(560px, 52vw, 740px)"
+          >
+            <div style={{ display: "flex", flexDirection: "column", gap: 18, minHeight: "clamp(320px, 40vh, 520px)" }}>
+              {info.group.length > 0 && (
+                <div>
+                  <span style={CLABEL}>Group sessions</span>
+                  {info.group.map(c => (
+                    <div key={c.id} style={CROW}>
+                      {c.course_title}{c.cohort_name ? ` — ${c.cohort_name}` : ""}
+                      &nbsp;<span style={CMUTED}>{c.start_time}&ndash;{c.end_time}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {info.individual.length > 0 && (
+                <div>
+                  <span style={CLABEL}>Individual sessions</span>
+                  {info.individual.map(c => (
+                    <div key={c.id} style={CROW}>
+                      {c.course_title}&nbsp;<span style={CMUTED}>{c.start_time}&ndash;{c.end_time}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {hasPersonalBlocks && (
+                <div>
+                  <span style={CLABEL}>Personal unavailability blocks</span>
+                  {info.personal.map(b => (
+                    <div key={b.id} style={CROW}>
+                      {b.reason || "Personal block"}&nbsp;<span style={CMUTED}>{b.start_time}&ndash;{b.end_time}</span>
+                    </div>
+                  ))}
+                  <p style={CNOTE}>These blocks must be deleted before saving.</p>
+                </div>
+              )}
+              {addPendingEvents.length > 0 && (
+                <div>
+                  <span style={CLABEL}>Personal events</span>
+                  {addPendingEvents.map(ev => {
+                    const isLoading = addEventLoading === ev.id;
+                    const isRescheduling = addEventReschedule?.eventId === ev.id;
+                    return (
+                      <div key={ev.id} style={{ ...CROW, display: "flex", flexDirection: "column", gap: 6 }}>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
+                          <span>
+                            <strong>{ev.title}</strong>
+                            &nbsp;<span style={CMUTED}>{ev.date} &middot; {ev.start_time}&ndash;{ev.end_time}</span>
+                            {!ev.is_owner && <span style={{ ...CMUTED, marginLeft: 6 }}>(invited)</span>}
+                          </span>
+                          <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                            {ev.is_owner ? (
+                              <>
+                                <button type="button" disabled={isLoading || !!addEventLoading}
+                                  onClick={() => setAddEventReschedule(isRescheduling ? null : { eventId: ev.id, date: ev.date, start: ev.start_time, end: ev.end_time })}
+                                  style={CBTN()}>
+                                  {isRescheduling ? "Cancel" : "Reschedule"}
+                                </button>
+                                <button type="button" disabled={isLoading || !!addEventLoading}
+                                  onClick={() => handleAddDeleteEvent(ev)} style={CBTN(true)}>
+                                  {isLoading ? "…" : "Delete"}
+                                </button>
+                              </>
+                            ) : (
+                              <button type="button" disabled={isLoading || !!addEventLoading}
+                                onClick={() => handleAddDeclineEvent(ev)} style={CBTN(true)}>
+                                {isLoading ? "…" : "Decline invite"}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                        {isRescheduling && addEventReschedule && (
+                          <div style={{ display: "flex", gap: 8, alignItems: "flex-end", flexWrap: "wrap", paddingTop: 4 }}>
+                            <div>
+                              <label style={CLABEL}>New date</label>
+                              <input type="date" value={addEventReschedule.date}
+                                onChange={e => setAddEventReschedule(s => s ? { ...s, date: e.target.value } : s)}
+                                style={{ ...INPUT, width: "auto", padding: "5px 10px" }} />
+                            </div>
+                            <div>
+                              <label style={CLABEL}>Start</label>
+                              <TimePicker value={addEventReschedule.start} onChange={v => setAddEventReschedule(s => s ? { ...s, start: v } : s)} />
+                            </div>
+                            <div>
+                              <label style={CLABEL}>End</label>
+                              <TimePicker value={addEventReschedule.end} onChange={v => setAddEventReschedule(s => s ? { ...s, end: v } : s)} />
+                            </div>
+                            <button type="button" disabled={isLoading}
+                              onClick={() => handleAddRescheduleEvent(ev)}
+                              style={{ ...SUBMIT_BTN, opacity: isLoading ? 0.7 : 1 }}>
+                              {isLoading ? "Saving…" : "Confirm"}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              {blocked && <p style={CNOTE}>Resolve all personal events and blocks to continue.</p>}
+              {hasSessionConflicts && !blocked && (
+                <p style={{ ...CNOTE, color: "var(--color-danger)" }}>Resolve the conflicting sessions above before saving.</p>
+              )}
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {hasPersonalBlocks && (
+                  <button type="button" onClick={handleAddDeleteBlocksAndSave}
+                    disabled={addModalSaving || hasPendingEvents}
+                    style={{ ...SUBMIT_BTN, background: "var(--color-pink-dark)", opacity: (addModalSaving || hasPendingEvents) ? 0.5 : 1, cursor: (addModalSaving || hasPendingEvents) ? "not-allowed" : "pointer" }}>
+                    {addModalSaving ? "Saving…" : "Delete blocks & Save"}
+                  </button>
+                )}
+                {!blocked && !hasSessionConflicts && (
+                  <button type="button" onClick={handleAddProceed} disabled={addModalSaving}
+                    style={{ ...SUBMIT_BTN, opacity: addModalSaving ? 0.7 : 1, cursor: addModalSaving ? "not-allowed" : "pointer" }}>
+                    {addModalSaving ? "Saving…" : "Save"}
+                  </button>
+                )}
+                <button type="button" disabled={addModalSaving}
+                  onClick={() => { setAddConflictModal(null); setAddPendingEvents([]); setAddEventReschedule(null); }}
+                  style={CANCEL_BTN}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </ModalShell>
+        );
+      })()}
+
+      {/* Unified conflict modal for slot reschedule */}
+      {rescheduleConflictModal && (() => {
+        const info = rescheduleConflictModal.conflicts;
+        const hasPersonalBlocks = info.personal.length > 0;
+        const hasPendingEvents = reschedulePendingEvents.length > 0;
+        const hasSessionConflicts = info.group.length > 0 || info.individual.length > 0;
+        const blocked = hasPersonalBlocks || hasPendingEvents;
+        const CROW: React.CSSProperties = { fontFamily: "var(--font-base)", fontSize: "clamp(12px, 0.78vw, 13px)", color: "var(--color-text-primary)", padding: "8px 0", borderBottom: "1px solid var(--color-border-light)" };
+        const CMUTED: React.CSSProperties = { color: "var(--color-text-muted)" };
+        const CLABEL: React.CSSProperties = { fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(11px, 0.72vw, 12px)", color: "var(--color-text-secondary)", marginBottom: 6, display: "block" };
+        const CNOTE: React.CSSProperties = { fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.7vw, 12px)", color: "var(--color-text-muted)", margin: "6px 0 0" };
+        const CBTN = (danger = false): React.CSSProperties => ({
+          fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(11px, 0.7vw, 12px)",
+          color: danger ? "var(--color-pink-dark)" : "var(--color-text-primary)",
+          background: "none", border: `1px solid ${danger ? "var(--color-pink-dark)" : "var(--color-border-light)"}`,
+          borderRadius: 999, padding: "3px 10px", cursor: "pointer",
+        });
+        return (
+          <ModalShell
+            onClose={() => !rescheduleModalSaving && !rescheduleEventLoading && (setRescheduleConflictModal(null), setReschedulePendingEvents([]), setRescheduleEventReschedule(null))}
+            title="Schedule conflicts"
+            icon={<AlertTriangle size={18} style={{ color: "var(--color-pink-dark)" }} />}
+            width="clamp(560px, 52vw, 740px)"
+          >
+            <div style={{ display: "flex", flexDirection: "column", gap: 18, minHeight: "clamp(320px, 40vh, 520px)" }}>
+              {info.group.length > 0 && (
+                <div>
+                  <span style={CLABEL}>Group sessions</span>
+                  {info.group.map(c => (
+                    <div key={c.id} style={CROW}>
+                      {c.course_title}{c.cohort_name ? ` — ${c.cohort_name}` : ""}
+                      &nbsp;<span style={CMUTED}>{c.start_time}&ndash;{c.end_time}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {info.individual.length > 0 && (
+                <div>
+                  <span style={CLABEL}>Individual sessions</span>
+                  {info.individual.map(c => (
+                    <div key={c.id} style={CROW}>
+                      {c.course_title}&nbsp;<span style={CMUTED}>{c.start_time}&ndash;{c.end_time}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {hasPersonalBlocks && (
+                <div>
+                  <span style={CLABEL}>Personal unavailability blocks</span>
+                  {info.personal.map(b => (
+                    <div key={b.id} style={CROW}>
+                      {b.reason || "Personal block"}&nbsp;<span style={CMUTED}>{b.start_time}&ndash;{b.end_time}</span>
+                    </div>
+                  ))}
+                  <p style={CNOTE}>These blocks must be deleted before saving.</p>
+                </div>
+              )}
+              {reschedulePendingEvents.length > 0 && (
+                <div>
+                  <span style={CLABEL}>Personal events</span>
+                  {reschedulePendingEvents.map(ev => {
+                    const isLoading = rescheduleEventLoading === ev.id;
+                    const isRescheduling = rescheduleEventReschedule?.eventId === ev.id;
+                    return (
+                      <div key={ev.id} style={{ ...CROW, display: "flex", flexDirection: "column", gap: 6 }}>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
+                          <span>
+                            <strong>{ev.title}</strong>
+                            &nbsp;<span style={CMUTED}>{ev.date} &middot; {ev.start_time}&ndash;{ev.end_time}</span>
+                            {!ev.is_owner && <span style={{ ...CMUTED, marginLeft: 6 }}>(invited)</span>}
+                          </span>
+                          <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                            {ev.is_owner ? (
+                              <>
+                                <button type="button" disabled={isLoading || !!rescheduleEventLoading}
+                                  onClick={() => setRescheduleEventReschedule(isRescheduling ? null : { eventId: ev.id, date: ev.date, start: ev.start_time, end: ev.end_time })}
+                                  style={CBTN()}>
+                                  {isRescheduling ? "Cancel" : "Reschedule"}
+                                </button>
+                                <button type="button" disabled={isLoading || !!rescheduleEventLoading}
+                                  onClick={() => handleRescheduleDeleteEvent(ev)} style={CBTN(true)}>
+                                  {isLoading ? "…" : "Delete"}
+                                </button>
+                              </>
+                            ) : (
+                              <button type="button" disabled={isLoading || !!rescheduleEventLoading}
+                                onClick={() => handleRescheduleDeclineEvent(ev)} style={CBTN(true)}>
+                                {isLoading ? "…" : "Decline invite"}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                        {isRescheduling && rescheduleEventReschedule && (
+                          <div style={{ display: "flex", gap: 8, alignItems: "flex-end", flexWrap: "wrap", paddingTop: 4 }}>
+                            <div>
+                              <label style={CLABEL}>New date</label>
+                              <input type="date" value={rescheduleEventReschedule.date}
+                                onChange={e => setRescheduleEventReschedule(s => s ? { ...s, date: e.target.value } : s)}
+                                style={{ ...INPUT, width: "auto", padding: "5px 10px" }} />
+                            </div>
+                            <div>
+                              <label style={CLABEL}>Start</label>
+                              <TimePicker value={rescheduleEventReschedule.start} onChange={v => setRescheduleEventReschedule(s => s ? { ...s, start: v } : s)} />
+                            </div>
+                            <div>
+                              <label style={CLABEL}>End</label>
+                              <TimePicker value={rescheduleEventReschedule.end} onChange={v => setRescheduleEventReschedule(s => s ? { ...s, end: v } : s)} />
+                            </div>
+                            <button type="button" disabled={isLoading}
+                              onClick={() => handleRescheduleRescheduleEvent(ev)}
+                              style={{ ...SUBMIT_BTN, opacity: isLoading ? 0.7 : 1 }}>
+                              {isLoading ? "Saving…" : "Confirm"}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              {blocked && <p style={CNOTE}>Resolve all personal events and blocks to continue.</p>}
+              {hasSessionConflicts && !blocked && (
+                <p style={{ ...CNOTE, color: "var(--color-danger)" }}>Resolve the conflicting sessions above before saving.</p>
+              )}
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {hasPersonalBlocks && (
+                  <button type="button" onClick={handleRescheduleDeleteBlocksAndSave}
+                    disabled={rescheduleModalSaving || hasPendingEvents}
+                    style={{ ...SUBMIT_BTN, background: "var(--color-pink-dark)", opacity: (rescheduleModalSaving || hasPendingEvents) ? 0.5 : 1, cursor: (rescheduleModalSaving || hasPendingEvents) ? "not-allowed" : "pointer" }}>
+                    {rescheduleModalSaving ? "Saving…" : "Delete blocks & Save"}
+                  </button>
+                )}
+                {!blocked && !hasSessionConflicts && (
+                  <button type="button" onClick={handleRescheduleProceed} disabled={rescheduleModalSaving}
+                    style={{ ...SUBMIT_BTN, opacity: rescheduleModalSaving ? 0.7 : 1, cursor: rescheduleModalSaving ? "not-allowed" : "pointer" }}>
+                    {rescheduleModalSaving ? "Saving…" : "Save slot"}
+                  </button>
+                )}
+                <button type="button" disabled={rescheduleModalSaving}
+                  onClick={() => { setRescheduleConflictModal(null); setReschedulePendingEvents([]); setRescheduleEventReschedule(null); }}
+                  style={CANCEL_BTN}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </ModalShell>
+        );
+      })()}
+
+{/* Personal event conflict modal shown before slot assignment */}
+      {assignConflict && (
+        <ModalShell
+          title="Personal event conflicts"
+          icon={<AlertTriangle size={16} />}
+          onClose={() => !assignConflictLoading && (setAssignConflict(null), setConflictRescheduleState(null))}
+          width="clamp(620px, 56vw, 800px)"
+          minHeight="640px"
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(12px, 0.78vw, 14px)", color: "var(--color-text-secondary)", margin: 0 }}>
+              The following personal events conflict with this slot&apos;s time. Resolve them to proceed with assignment.
+            </p>
+
+            {assignConflict.pending.map(ev => {
+              const isRescheduling = conflictRescheduleState?.eventId === ev.id;
+              return (
+                <div key={ev.id} style={{ borderRadius: 8, border: "1px solid var(--color-border-light)", padding: "10px 12px", display: "flex", flexDirection: "column", gap: 8 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                    <div>
+                      <p style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(12px, 0.78vw, 14px)", color: "var(--color-text-primary)", margin: 0 }}>{ev.title}</p>
+                      <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.72vw, 13px)", color: "var(--color-text-secondary)", margin: 0 }}>{ev.date} · {ev.start_time}–{ev.end_time}</p>
+                    </div>
+                    <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                      {!isRescheduling && (
+                        <button type="button" disabled={!!assignConflictLoading}
+                          onClick={() => { setConflictRescheduleState({ eventId: ev.id, date: ev.date, start: ev.start_time, end: ev.end_time }); setAssignConflictRescheduleErr(null); }}
+                          style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.72vw, 13px)", fontWeight: 600, color: "var(--color-text-primary)", background: "none", border: "1px solid var(--color-border-light)", borderRadius: 6, padding: "4px 10px", cursor: "pointer" }}>
+                          Reschedule
+                        </button>
+                      )}
+                      {ev.is_owner ? (
+                        <button type="button" disabled={assignConflictLoading === ev.id}
+                          onClick={() => handleConflictDelete(ev)}
+                          style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.72vw, 13px)", fontWeight: 600, color: "var(--color-danger)", background: "none", border: "1px solid #fca5a5", borderRadius: 6, padding: "4px 10px", cursor: "pointer", opacity: assignConflictLoading === ev.id ? 0.5 : 1 }}>
+                          {assignConflictLoading === ev.id ? "…" : "Delete"}
+                        </button>
+                      ) : (
+                        <button type="button" disabled={assignConflictLoading === ev.id}
+                          onClick={() => handleConflictDecline(ev)}
+                          style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.72vw, 13px)", fontWeight: 600, color: "var(--color-danger)", background: "none", border: "1px solid #fca5a5", borderRadius: 6, padding: "4px 10px", cursor: "pointer", opacity: assignConflictLoading === ev.id ? 0.5 : 1 }}>
+                          {assignConflictLoading === ev.id ? "…" : "Decline invite"}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  {isRescheduling && conflictRescheduleState && (
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, paddingTop: 4 }}>
+                      <div>
+                        <DatePicker size="sm" label="Date" value={conflictRescheduleState.date}
+                          onChange={v => setConflictRescheduleState(s => s ? { ...s, date: v } : s)} />
+                      </div>
+                      <div>
+                        <label style={{ fontFamily: "var(--font-base)", fontSize: "clamp(10px, 0.63vw, 11px)", color: "var(--color-text-secondary)", display: "block", marginBottom: 3 }}>Start</label>
+                        <TimePicker value={conflictRescheduleState.start} onChange={v => setConflictRescheduleState(s => s ? { ...s, start: v } : s)} />
+                      </div>
+                      <div>
+                        <label style={{ fontFamily: "var(--font-base)", fontSize: "clamp(10px, 0.63vw, 11px)", color: "var(--color-text-secondary)", display: "block", marginBottom: 3 }}>End</label>
+                        <TimePicker value={conflictRescheduleState.end} onChange={v => setConflictRescheduleState(s => s ? { ...s, end: v } : s)} />
+                      </div>
+                      <div style={{ gridColumn: "1 / -1", display: "flex", gap: 8 }}>
+                        <button type="button" disabled={!!assignConflictLoading}
+                          onClick={() => handleConflictReschedule(ev, conflictRescheduleState.date, conflictRescheduleState.start, conflictRescheduleState.end).then(() => setConflictRescheduleState(null))}
+                          style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(11px, 0.72vw, 13px)", background: "var(--gradient-brand)", border: "none", borderRadius: 6, padding: "5px 14px", cursor: "pointer" }}>
+                          Confirm
+                        </button>
+                        <button type="button" onClick={() => { setConflictRescheduleState(null); setAssignConflictRescheduleErr(null); }}
+                          style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.72vw, 13px)", background: "none", border: "1px solid var(--color-border-light)", borderRadius: 6, padding: "5px 14px", cursor: "pointer" }}>
+                          Cancel
+                        </button>
+                      </div>
+                      {assignConflictRescheduleErr && (
+                        <div style={{ gridColumn: "1 / -1", background: "#fff0f0", borderRadius: 6, padding: "6px 10px" }}>
+                          <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.72vw, 13px)", fontWeight: 600, color: "var(--color-danger)", margin: "0 0 2px" }}>{assignConflictRescheduleErr.message}</p>
+                          {assignConflictRescheduleErr.items.map((c, i) => (
+                            <p key={i} style={{ fontFamily: "var(--font-base)", fontSize: "clamp(10px, 0.63vw, 11px)", color: "var(--color-text-secondary)", margin: "1px 0" }}>
+                              {c.type === "group" ? "Group" : c.type === "individual" ? "Individual" : "Personal"}: {c.title} · {c.start_time}–{c.end_time}
+                            </p>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            <div style={{ display: "flex", gap: 8 }}>
+              {assignConflict.pending.length === 0 && (
+                <button type="button"
+                  onClick={() => { doAssign(assignConflict.slotId, assignConflict.enrollmentId); setAssignConflict(null); }}
+                  style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(12px, 0.78vw, 14px)", background: "var(--gradient-brand)", border: "none", borderRadius: 8, padding: "7px 18px", cursor: "pointer" }}>
+                  Assign
+                </button>
+              )}
+              <button type="button"
+                onClick={() => { setAssignConflict(null); setConflictRescheduleState(null); }}
+                style={{ fontFamily: "var(--font-base)", fontSize: "clamp(12px, 0.78vw, 14px)", background: "none", border: "1px solid var(--color-border-light)", borderRadius: 8, padding: "7px 18px", cursor: "pointer" }}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </ModalShell>
       )}
 
     </div>
@@ -971,28 +1585,26 @@ function UnavailabilityRow({
       : block.day_of_week_display;
 
   return (
-    <div
-      style={{
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "8px 12px", borderRadius: 10,
-        background: "var(--color-bg)", border: "1px solid var(--color-border-light)",
-      }}
-    >
-      <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        <span
-          style={{
-            fontFamily: "var(--font-base)", fontWeight: 600,
-            fontSize: "clamp(12px, 0.83vw, 14px)", color: "var(--color-text-primary)",
-          }}
-        >
+    <div style={{
+      display: "flex", alignItems: "center", justifyContent: "space-between",
+      padding: "10px 14px 10px 12px", borderRadius: 12,
+      background: "rgba(167,186,250,0.1)",
+      borderLeft: "3px solid var(--color-brand-lavender)",
+      gap: 10,
+    }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 3, flex: 1, minWidth: 0 }}>
+        <span style={{
+          fontFamily: "var(--font-base)", fontWeight: 700,
+          fontSize: "clamp(12px, 0.83vw, 14px)", color: "var(--color-text-primary)",
+          whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+        }}>
           {dateStr} &middot; {timeStr}
         </span>
-        <span
-          style={{
-            fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.72vw, 13px)",
-            color: "var(--color-text-secondary)",
-          }}
-        >
+        <span style={{
+          fontFamily: "var(--font-accent)", fontWeight: 500,
+          fontSize: "clamp(9px, 0.6vw, 11px)", color: "var(--color-text-secondary)",
+          textTransform: "uppercase", letterSpacing: "0.04em",
+        }}>
           {block.recurrence_type_display}
           {block.reason ? ` — ${block.reason}` : ""}
         </span>
@@ -1028,16 +1640,23 @@ function AddUnavailabilityForm({
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  const toggleStyle = (active: boolean): React.CSSProperties => ({
-    padding: "5px 14px", borderRadius: 999, cursor: "pointer",
-    fontFamily: "var(--font-base)", fontWeight: 500, fontSize: "clamp(11px, 0.76vw, 13px)",
-    border: `1px solid ${active ? "var(--color-text-primary)" : "var(--color-border-light)"}`,
+  const PL: React.CSSProperties = {
+    fontFamily: "var(--font-accent)", fontWeight: 500,
+    fontSize: "clamp(9px, 0.63vw, 11px)", color: "var(--color-text-secondary)",
+    display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em",
+  };
+
+  const tabBtn = (active: boolean): React.CSSProperties => ({
+    fontFamily: "var(--font-accent)", fontWeight: 500,
+    fontSize: "clamp(9px, 0.63vw, 11px)", letterSpacing: "0.04em", textTransform: "uppercase",
+    padding: "4px 14px", borderRadius: 999, cursor: "pointer",
+    border: `1.5px solid ${active ? "var(--color-text-primary)" : "var(--color-text-secondary)"}`,
     background: active ? "var(--color-text-primary)" : "transparent",
     color: active ? "#fff" : "var(--color-text-secondary)",
-    transition: "all 0.15s",
+    transition: "background 0.15s, color 0.15s",
   });
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!allDay && end <= start) { setErr("End time must be after start time."); return; }
     if (recurrence === "one_time" && !date) { setErr("Date is required for one-time block."); return; }
@@ -1070,61 +1689,63 @@ function AddUnavailabilityForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-      {/* Type + day/date picker */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+    <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+
+      {/* Type */}
+      <div>
+        <label style={PL}>Type</label>
+        <PillSelect
+          options={[
+            { value: "weekly" as RecurrenceType, label: "Every week (recurring)" },
+            { value: "one_time" as RecurrenceType, label: "One-time" },
+            { value: "date_range" as RecurrenceType, label: "Date range" },
+          ]}
+          value={recurrence}
+          onChange={v => setRecurrence(v as RecurrenceType)}
+        />
+      </div>
+
+      {/* Day / Date */}
+      {recurrence === "weekly" ? (
         <div>
-          <label style={LABEL}>Type</label>
-          <PillSelect
-            options={[
-              { value: "weekly" as RecurrenceType, label: "Every week (recurring)" },
-              { value: "one_time" as RecurrenceType, label: "One-time" },
-              { value: "date_range" as RecurrenceType, label: "Date range" },
-            ]}
-            value={recurrence}
-            onChange={v => setRecurrence(v as RecurrenceType)}
-          />
+          <label style={PL}>Day</label>
+          <PillSelect options={DAYS} value={day} onChange={v => setDay(v as DayOfWeek)} />
         </div>
-        {recurrence === "weekly" ? (
-          <div>
-            <label style={LABEL}>Day</label>
-            <PillSelect options={DAYS} value={day} onChange={v => setDay(v as DayOfWeek)} />
-          </div>
-        ) : recurrence === "one_time" ? (
-          <DatePicker label="Date" value={date} onChange={setDate} size="md" />
-        ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-            <DatePicker label="From" value={date} onChange={setDate} size="md" />
-            <DatePicker label="To" value={dateTo} onChange={setDateTo} size="md" min={date || undefined} />
-          </div>
-        )}
-      </div>
-
-      {/* All day toggle */}
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <span style={LABEL}>Hours</span>
-        <div style={{ display: "flex", gap: 6 }}>
-          <button type="button" style={toggleStyle(!allDay)} onClick={() => setAllDay(false)}>Specific</button>
-          <button type="button" style={toggleStyle(allDay)}  onClick={() => setAllDay(true)}>All day</button>
-        </div>
-      </div>
-
-      {/* Time pickers — only shown when not all day */}
-      {!allDay && (
+      ) : recurrence === "one_time" ? (
+        <DatePicker label="Date" value={date} onChange={setDate} size="md" />
+      ) : (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          <DatePicker label="From" value={date} onChange={setDate} size="md" />
+          <DatePicker label="To" value={dateTo} onChange={setDateTo} size="md" min={date || undefined} />
+        </div>
+      )}
+
+      {/* Hours toggle */}
+      <div>
+        <span style={PL}>Hours</span>
+        <div style={{ display: "flex", gap: 6 }}>
+          <button type="button" style={tabBtn(!allDay)} onClick={() => setAllDay(false)}>Specific</button>
+          <button type="button" style={tabBtn(allDay)}  onClick={() => setAllDay(true)}>All day</button>
+        </div>
+      </div>
+
+      {/* Time range */}
+      {!allDay && (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           <div>
-            <label style={LABEL}>Start time</label>
+            <label style={PL}>Start time</label>
             <TimePicker value={start} onChange={setStart} />
           </div>
           <div>
-            <label style={LABEL}>End time</label>
+            <label style={PL}>End time</label>
             <TimePicker value={end} onChange={setEnd} />
           </div>
         </div>
       )}
 
+      {/* Reason */}
       <div>
-        <label style={LABEL}>Reason (optional)</label>
+        <label style={PL}>Reason (optional)</label>
         <input
           type="text"
           style={INPUT}
@@ -1134,12 +1755,40 @@ function AddUnavailabilityForm({
           maxLength={255}
         />
       </div>
+
       {err && <p style={ERR}>{err}</p>}
-      <div style={{ display: "flex", gap: 8 }}>
-        <button type="submit" disabled={saving} style={{ ...SUBMIT_BTN, opacity: saving ? 0.7 : 1, cursor: saving ? "not-allowed" : "pointer" }}>
+
+      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+        <button
+          type="submit"
+          disabled={saving}
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            fontFamily: "var(--font-accent)", fontWeight: 500,
+            fontSize: "clamp(12px, 1.04vw, 20px)", color: "var(--color-text-primary)",
+            background: "var(--gradient-brand)", border: "none", borderRadius: 28,
+            padding: "clamp(6px, 0.42vw, 8px) clamp(18px, 1.4vw, 28px)",
+            cursor: saving ? "not-allowed" : "pointer",
+            textTransform: "uppercase", letterSpacing: "0.03em",
+            opacity: saving ? 0.65 : 1, transition: "opacity 0.2s",
+            whiteSpace: "nowrap",
+          }}
+        >
           <Check size={13} /> {saving ? "Saving…" : "Add block"}
         </button>
-        <button type="button" onClick={onCancel} style={CANCEL_BTN}>Cancel</button>
+        <button
+          type="button"
+          onClick={onCancel}
+          style={{
+            fontFamily: "var(--font-accent)", fontWeight: 500,
+            fontSize: "clamp(10px, 0.7vw, 12px)", color: "var(--color-text-secondary)",
+            background: "transparent", border: "1.5px solid var(--color-text-secondary)",
+            borderRadius: 999, padding: "5px 18px", cursor: "pointer",
+            textTransform: "uppercase", letterSpacing: "0.04em",
+          }}
+        >
+          Cancel
+        </button>
       </div>
     </form>
   );
@@ -1170,50 +1819,59 @@ export function UnavailabilitySection() {
   };
 
   return (
-    <div style={CARD}>
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 14 }}>
-        <div>
-          <p style={SECTION_TITLE}>My unavailability</p>
-          <p
-            style={{
-              fontFamily: "var(--font-base)",
-              fontSize: "clamp(12px, 0.78vw, 14px)",
-              color: "var(--color-text-secondary)",
-              margin: 0,
-            }}
-          >
-            Times when you are not available for any classes. These times are blocked for all your courses.
-          </p>
-        </div>
-        {!addOpen && (
-          <AddButton onClick={() => setAddOpen(true)}>Block time</AddButton>
-        )}
-      </div>
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 
+      {/* Description */}
+      <p style={{
+        fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.76vw, 13px)",
+        color: "var(--color-text-secondary)", margin: 0, lineHeight: 1.5,
+      }}>
+        Times blocked here won&apos;t be available for student bookings across all your courses.
+      </p>
+
+      {/* Existing blocks */}
       {loading && (
-        <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(12px, 0.78vw, 14px)", color: "var(--color-text-muted)" }}>
+        <p style={{ fontFamily: "var(--font-accent)", fontSize: "clamp(10px, 0.65vw, 12px)", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
           Loading…
         </p>
       )}
 
       {!loading && blocks.length === 0 && !addOpen && (
-        <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(12px, 0.78vw, 14px)", color: "var(--color-text-muted)" }}>
-          No unavailability blocks set.
+        <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(12px, 0.78vw, 13px)", color: "var(--color-text-muted)" }}>
+          No time blocks set yet.
         </p>
       )}
 
       {!loading && blocks.length > 0 && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: addOpen ? 14 : 0 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {blocks.map(b => (
             <UnavailabilityRow key={b.id} block={b} onDelete={handleDelete} />
           ))}
         </div>
       )}
 
-      {addOpen && (
-        <div style={{ borderTop: blocks.length > 0 ? "1px solid var(--color-border-light)" : undefined, paddingTop: blocks.length > 0 ? 14 : 0 }}>
+      {/* Add form or Add button */}
+      {addOpen ? (
+        <div style={{ borderTop: "1px solid var(--color-border-light)", paddingTop: 16 }}>
           <AddUnavailabilityForm onAdd={handleAdd} onCancel={() => setAddOpen(false)} />
         </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setAddOpen(true)}
+          style={{
+            alignSelf: "flex-start",
+            display: "inline-flex", alignItems: "center", gap: 6,
+            fontFamily: "var(--font-accent)", fontWeight: 500,
+            fontSize: "clamp(12px, 1.04vw, 20px)", color: "var(--color-text-primary)",
+            background: "var(--gradient-brand)", border: "none", borderRadius: 28,
+            padding: "clamp(6px, 0.42vw, 8px) clamp(18px, 1.4vw, 28px)",
+            cursor: "pointer", textTransform: "uppercase",
+            letterSpacing: "0.03em", transition: "opacity 0.2s",
+          }}
+        >
+          + Block time
+        </button>
       )}
     </div>
   );

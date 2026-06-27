@@ -1,22 +1,29 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Check, ChevronDown, Lock, LockOpen, Pencil, Trash2, UserMinus } from "lucide-react";
+import { AlertTriangle, Check, ChevronDown, Lock, LockOpen, Pencil, Trash2, UserMinus } from "lucide-react";
 import { AddButton } from "@/shared/ui/AddButton";
+import { ModalShell } from "@/shared/ui/ModalShell";
 import type { CourseDetail } from "@/entities/course";
 import type { CourseCohort } from "@/entities/course/model/cohort";
 import type { CohortMember, EnrolledStudent } from "@/entities/course/model/cohortGroup";
 import type { CohortSchedule, CohortSchedulePayload, DayOfWeek } from "@/entities/course/model/schedule";
 import { DAY_LABELS } from "@/entities/course/model/schedule";
+import type { ScheduleConflictPersonalEvent, ScheduleConflicts } from "@/entities/course/api/scheduleApi";
 import {
   addCohortMember,
+  checkCohortScheduleConflicts,
   createCohortSchedule,
   deleteCohortSchedule,
+  deletePersonalEvent,
+  deleteTeacherUnavailability,
   getCohortSchedules,
   getCourseEnrolledStudents,
   removeCohortMember,
+  respondToInvitation,
   updateCohort,
   updateCohortSchedule,
+  updatePersonalEvent,
 } from "@/entities/course";
 
 // ── Shared styles ──────────────────────────────────────────────────────────────
@@ -260,10 +267,13 @@ function CohortScheduleRow({ entry, onDelete, onEdit }: {
 }
 
 // ── CohortScheduleForm ─────────────────────────────────────────────────────────
-function CohortScheduleForm({ initial, onSave, onCancel }: {
+function CohortScheduleForm({ initial, onSave, onCancel, slug, cohortId, excludeScheduleId }: {
   initial?: { day_of_week: DayOfWeek; start_time: string; end_time: string };
   onSave: (p: CohortSchedulePayload) => Promise<void>;
   onCancel: () => void;
+  slug: string;
+  cohortId: number;
+  excludeScheduleId?: number;
 }) {
   const [day, setDay]     = useState<DayOfWeek>(initial?.day_of_week ?? 0);
   const [start, setStart] = useState(initial ? fmtTime(initial.start_time) : "09:00");
@@ -271,30 +281,324 @@ function CohortScheduleForm({ initial, onSave, onCancel }: {
   const [saving, setSaving] = useState(false);
   const [err, setErr]       = useState<string | null>(null);
 
+  // Conflict modal state
+  const [conflictModal, setConflictModal] = useState<{ info: ScheduleConflicts; payload: CohortSchedulePayload } | null>(null);
+  const [pendingEvents, setPendingEvents] = useState<ScheduleConflictPersonalEvent[]>([]);
+  const [modalSaving, setModalSaving] = useState(false);
+  // Per-event reschedule inline form: { eventId, date, start, end }
+  const [rescheduleState, setRescheduleState] = useState<{ eventId: number; date: string; start: string; end: string } | null>(null);
+  const [eventLoading, setEventLoading] = useState<number | null>(null);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (end <= start) { setErr("End time must be after start time."); return; }
     setSaving(true); setErr(null);
-    try { await onSave({ day_of_week: day, start_time: start, end_time: end }); }
-    catch (ex: unknown) { setErr((ex as { message?: string })?.message ?? "Failed to save."); }
-    finally { setSaving(false); }
+    try {
+      const payload: CohortSchedulePayload = { day_of_week: day, start_time: start, end_time: end };
+      const conflicts = await checkCohortScheduleConflicts(slug, cohortId, {
+        ...payload,
+        ...(excludeScheduleId !== undefined ? { schedule_id: excludeScheduleId } : {}),
+      });
+      const hasConflicts =
+        conflicts.group.length > 0 || conflicts.individual.length > 0 ||
+        conflicts.personal.length > 0 || conflicts.personal_events.length > 0;
+      if (hasConflicts) {
+        setConflictModal({ info: conflicts, payload });
+        setPendingEvents(conflicts.personal_events);
+        setRescheduleState(null);
+      } else {
+        await onSave(payload);
+      }
+    } catch (ex: unknown) {
+      setErr((ex as { message?: string })?.message ?? "Failed to save.");
+    } finally {
+      setSaving(false);
+    }
   };
 
+  const resolveEvent = (eventId: number) => {
+    setPendingEvents(prev => prev.filter(e => e.id !== eventId));
+    setRescheduleState(rs => rs?.eventId === eventId ? null : rs);
+  };
+
+  const handleDeleteEvent = async (ev: ScheduleConflictPersonalEvent) => {
+    setEventLoading(ev.id);
+    try {
+      await deletePersonalEvent(ev.id);
+      resolveEvent(ev.id);
+    } catch { /* ignore */ }
+    finally { setEventLoading(null); }
+  };
+
+  const handleDeclineEvent = async (ev: ScheduleConflictPersonalEvent) => {
+    if (!ev.invitation_id) return;
+    setEventLoading(ev.id);
+    try {
+      await respondToInvitation(ev.invitation_id, "decline");
+      resolveEvent(ev.id);
+    } catch { /* ignore */ }
+    finally { setEventLoading(null); }
+  };
+
+  const handleRescheduleEvent = async (ev: ScheduleConflictPersonalEvent) => {
+    if (!rescheduleState || rescheduleState.eventId !== ev.id) return;
+    setEventLoading(ev.id);
+    try {
+      await updatePersonalEvent(ev.id, {
+        date: rescheduleState.date,
+        start_time: rescheduleState.start,
+        end_time: rescheduleState.end,
+      });
+      resolveEvent(ev.id);
+    } catch { /* ignore */ }
+    finally { setEventLoading(null); }
+  };
+
+  const handleDeleteBlocksAndSave = async () => {
+    if (!conflictModal) return;
+    setModalSaving(true);
+    try {
+      await Promise.all(conflictModal.info.personal.map(b => deleteTeacherUnavailability(b.id)));
+      await onSave(conflictModal.payload);
+      setConflictModal(null);
+    } catch (ex: unknown) {
+      setErr((ex as { message?: string })?.message ?? "Failed to save.");
+      setConflictModal(null);
+    } finally {
+      setModalSaving(false);
+    }
+  };
+
+  const handleProceed = async () => {
+    if (!conflictModal) return;
+    setModalSaving(true);
+    try {
+      await onSave(conflictModal.payload);
+      setConflictModal(null);
+    } catch (ex: unknown) {
+      setErr((ex as { message?: string })?.message ?? "Failed to save.");
+      setConflictModal(null);
+    } finally {
+      setModalSaving(false);
+    }
+  };
+
+  const ROW: React.CSSProperties = {
+    fontFamily: "var(--font-base)", fontSize: "clamp(12px, 0.78vw, 13px)",
+    color: "var(--color-text-primary)", padding: "8px 0",
+    borderBottom: "1px solid var(--color-border-light)",
+  };
+  const MUTED: React.CSSProperties = { color: "var(--color-text-muted)" };
+  const ACTION_BTN = (danger = false): React.CSSProperties => ({
+    fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(11px, 0.7vw, 12px)",
+    color: danger ? "var(--color-pink-dark)" : "var(--color-text-primary)",
+    background: "none", border: `1px solid ${danger ? "var(--color-pink-dark)" : "var(--color-border-light)"}`,
+    borderRadius: 999, padding: "3px 10px", cursor: "pointer",
+  });
+
   return (
-    <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
-        <div><label style={LABEL}>Day</label><PillSelect options={DAYS} value={day} onChange={v => setDay(v as DayOfWeek)} /></div>
-        <div><label style={LABEL}>Start time</label><TimePicker value={start} onChange={setStart} /></div>
-        <div><label style={LABEL}>End time</label><TimePicker value={end} onChange={setEnd} /></div>
-      </div>
-      {err && <p style={ERR}>{err}</p>}
-      <div style={{ display: "flex", gap: 8 }}>
-        <button type="submit" disabled={saving} style={{ ...SUBMIT_BTN, opacity: saving ? 0.7 : 1, cursor: saving ? "not-allowed" : "pointer" }}>
-          <Check size={13} /> {saving ? "Saving…" : "Save"}
-        </button>
-        <button type="button" onClick={onCancel} style={CANCEL_BTN}>Cancel</button>
-      </div>
-    </form>
+    <>
+      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+          <div><label style={LABEL}>Day</label><PillSelect options={DAYS} value={day} onChange={v => setDay(v as DayOfWeek)} /></div>
+          <div><label style={LABEL}>Start time</label><TimePicker value={start} onChange={setStart} /></div>
+          <div><label style={LABEL}>End time</label><TimePicker value={end} onChange={setEnd} /></div>
+        </div>
+        {err && <p style={ERR}>{err}</p>}
+        <div style={{ display: "flex", gap: 8 }}>
+          <button type="submit" disabled={saving} style={{ ...SUBMIT_BTN, opacity: saving ? 0.7 : 1, cursor: saving ? "not-allowed" : "pointer" }}>
+            <Check size={13} /> {saving ? "Checking…" : "Save"}
+          </button>
+          <button type="button" onClick={onCancel} style={CANCEL_BTN}>Cancel</button>
+        </div>
+      </form>
+
+      {conflictModal && (() => {
+        const hasPersonalBlocks = conflictModal.info.personal.length > 0;
+        const hasPendingEvents  = pendingEvents.length > 0;
+        const hasSessionConflicts = conflictModal.info.group.length > 0 || conflictModal.info.individual.length > 0;
+        const blocked = hasPersonalBlocks || hasPendingEvents;
+
+        return (
+          <ModalShell
+            onClose={() => !modalSaving && !eventLoading && setConflictModal(null)}
+            title="Schedule conflicts"
+            icon={<AlertTriangle size={18} style={{ color: "var(--color-pink-dark)" }} />}
+            width="clamp(560px, 52vw, 740px)"
+          >
+            <div style={{ display: "flex", flexDirection: "column", gap: 18, minHeight: "clamp(320px, 40vh, 520px)" }}>
+
+              {/* Group / individual — informational */}
+              {conflictModal.info.group.length > 0 && (
+                <div>
+                  <p style={{ ...LABEL, marginBottom: 6 }}>Group sessions</p>
+                  {conflictModal.info.group.map(c => (
+                    <div key={c.id} style={ROW}>
+                      {c.course_title}{c.cohort_name ? ` — ${c.cohort_name}` : ""}
+                      &nbsp;<span style={MUTED}>{c.start_time}–{c.end_time}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {conflictModal.info.individual.length > 0 && (
+                <div>
+                  <p style={{ ...LABEL, marginBottom: 6 }}>Individual sessions</p>
+                  {conflictModal.info.individual.map(c => (
+                    <div key={c.id} style={ROW}>
+                      {c.course_title}&nbsp;<span style={MUTED}>{c.start_time}–{c.end_time}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Weekly unavailability blocks */}
+              {hasPersonalBlocks && (
+                <div>
+                  <p style={{ ...LABEL, marginBottom: 6 }}>Personal unavailability blocks</p>
+                  {conflictModal.info.personal.map(b => (
+                    <div key={b.id} style={ROW}>
+                      {b.reason || "Personal block"}&nbsp;<span style={MUTED}>{b.start_time}–{b.end_time}</span>
+                    </div>
+                  ))}
+                  <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.7vw, 12px)", color: "var(--color-text-muted)", margin: "6px 0 0" }}>
+                    These blocks must be deleted before saving.
+                  </p>
+                </div>
+              )}
+
+              {/* Personal calendar events — per-event actions */}
+              {pendingEvents.length > 0 && (
+                <div>
+                  <p style={{ ...LABEL, marginBottom: 6 }}>Personal events</p>
+                  {pendingEvents.map(ev => {
+                    const isLoading = eventLoading === ev.id;
+                    const isRescheduling = rescheduleState?.eventId === ev.id;
+                    return (
+                      <div key={ev.id} style={{ ...ROW, display: "flex", flexDirection: "column", gap: 6 }}>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
+                          <span>
+                            <strong>{ev.title}</strong>
+                            &nbsp;<span style={MUTED}>{ev.date} · {ev.start_time}–{ev.end_time}</span>
+                            {!ev.is_owner && <span style={{ ...MUTED, marginLeft: 6 }}>(invited)</span>}
+                          </span>
+                          <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                            {ev.is_owner ? (
+                              <>
+                                <button
+                                  type="button"
+                                  disabled={isLoading || !!eventLoading}
+                                  onClick={() => setRescheduleState(isRescheduling ? null : { eventId: ev.id, date: ev.date, start: ev.start_time, end: ev.end_time })}
+                                  style={ACTION_BTN()}
+                                >
+                                  {isRescheduling ? "Cancel" : "Reschedule"}
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={isLoading || !!eventLoading}
+                                  onClick={() => handleDeleteEvent(ev)}
+                                  style={ACTION_BTN(true)}
+                                >
+                                  {isLoading ? "…" : "Delete"}
+                                </button>
+                              </>
+                            ) : (
+                              <button
+                                type="button"
+                                disabled={isLoading || !!eventLoading}
+                                onClick={() => handleDeclineEvent(ev)}
+                                style={ACTION_BTN(true)}
+                              >
+                                {isLoading ? "…" : "Decline invite"}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        {isRescheduling && rescheduleState && (
+                          <div style={{ display: "flex", gap: 8, alignItems: "flex-end", flexWrap: "wrap", paddingTop: 4 }}>
+                            <div>
+                              <label style={LABEL}>New date</label>
+                              <input
+                                type="date"
+                                value={rescheduleState.date}
+                                onChange={e => setRescheduleState(s => s ? { ...s, date: e.target.value } : s)}
+                                style={{ ...INPUT, width: "auto", padding: "5px 10px" }}
+                              />
+                            </div>
+                            <div>
+                              <label style={LABEL}>Start</label>
+                              <TimePicker value={rescheduleState.start} onChange={v => setRescheduleState(s => s ? { ...s, start: v } : s)} />
+                            </div>
+                            <div>
+                              <label style={LABEL}>End</label>
+                              <TimePicker value={rescheduleState.end} onChange={v => setRescheduleState(s => s ? { ...s, end: v } : s)} />
+                            </div>
+                            <button
+                              type="button"
+                              disabled={isLoading}
+                              onClick={() => handleRescheduleEvent(ev)}
+                              style={{ ...SUBMIT_BTN, opacity: isLoading ? 0.7 : 1 }}
+                            >
+                              {isLoading ? "Saving…" : "Confirm"}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Bottom hint when blocked */}
+              {blocked && (
+                <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.7vw, 12px)", color: "var(--color-text-muted)", margin: 0 }}>
+                  Resolve all personal events and blocks to continue.
+                </p>
+              )}
+
+              {/* Session conflict hard-block notice */}
+              {hasSessionConflicts && !hasPendingEvents && (
+                <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.72vw, 13px)", color: "var(--color-danger)", margin: 0 }}>
+                  Resolve the conflicting sessions above before saving.
+                </p>
+              )}
+
+              {/* Action buttons */}
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {hasPersonalBlocks && (
+                  <button
+                    type="button"
+                    onClick={handleDeleteBlocksAndSave}
+                    disabled={modalSaving || hasPendingEvents}
+                    style={{ ...SUBMIT_BTN, background: "var(--color-pink-dark)", opacity: (modalSaving || hasPendingEvents) ? 0.5 : 1, cursor: (modalSaving || hasPendingEvents) ? "not-allowed" : "pointer" }}
+                  >
+                    {modalSaving ? "Saving…" : "Delete blocks & Save"}
+                  </button>
+                )}
+                {!blocked && !hasSessionConflicts && (
+                  <button
+                    type="button"
+                    onClick={handleProceed}
+                    disabled={modalSaving}
+                    style={{ ...SUBMIT_BTN, opacity: modalSaving ? 0.7 : 1, cursor: modalSaving ? "not-allowed" : "pointer" }}
+                  >
+                    {modalSaving ? "Saving…" : "Save"}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => { setConflictModal(null); setPendingEvents([]); setRescheduleState(null); }}
+                  disabled={modalSaving}
+                  style={CANCEL_BTN}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </ModalShell>
+        );
+      })()}
+    </>
   );
 }
 
@@ -488,6 +792,9 @@ function GroupCohortCard({ cohort, slug, takenIds, onMembersChanged, onTakenChan
                       initial={{ day_of_week: s.day_of_week, start_time: s.start_time, end_time: s.end_time }}
                       onSave={handleEditSchedule}
                       onCancel={() => setEditingSchedule(null)}
+                      slug={slug}
+                      cohortId={cohort.id}
+                      excludeScheduleId={s.id}
                     />
                   </div>
                 ) : (
@@ -496,7 +803,7 @@ function GroupCohortCard({ cohort, slug, takenIds, onMembersChanged, onTakenChan
               )}
               {addingSchedule && (
                 <div style={{ borderRadius: 10, border: "1px solid var(--color-border-light)", padding: "10px 12px" }}>
-                  <CohortScheduleForm onSave={handleAddSchedule} onCancel={() => setAddingSchedule(false)} />
+                  <CohortScheduleForm onSave={handleAddSchedule} onCancel={() => setAddingSchedule(false)} slug={slug} cohortId={cohort.id} />
                 </div>
               )}
               {schedulesLoaded && !addingSchedule && !editingSchedule && (

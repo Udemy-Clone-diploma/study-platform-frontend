@@ -52,7 +52,7 @@ export function StudentCourseCard({
 
   return (
     <Link
-      href={`/courses/${slug}`}
+      href={`/learn/${slug}`}
       className="flex items-center justify-center shadow-(--shadow-my-courses-card) transition-[box-shadow,filter] hover:shadow-[0px_0px_40px_rgba(0,0,0,0.22)] focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-blue)"
       style={{
         background: theme.gradient,

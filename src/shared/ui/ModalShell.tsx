@@ -14,6 +14,8 @@ type Props = {
   shadow?: string;
   /** Enables vertical scroll inside the card (default: "90vh"). Pass undefined to disable. */
   maxHeight?: string;
+  /** Minimum height of the scrollable inner area. */
+  minHeight?: string;
   /** CSS z-index for the overlay. Use a higher value for nested modals (default: 50). */
   zIndex?: number;
   children: React.ReactNode;
@@ -28,6 +30,7 @@ export function ModalShell({
   padding = "clamp(20px, 2.78vw, 40px) clamp(24px, 3.47vw, 50px)",
   shadow = "var(--shadow-dashboard-card)",
   maxHeight = "90vh",
+  minHeight,
   zIndex = 50,
   children,
 }: Props) {
@@ -43,7 +46,7 @@ export function ModalShell({
       {/* overflow-hidden on the outer box so border-radius clips correctly */}
       <div
         className="bg-white rounded-2xl"
-        style={{ width, boxShadow: shadow, overflow: "hidden" }}
+        style={{ width, boxShadow: shadow, overflow: "clip" }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* inner scrollable wrapper */}
@@ -51,6 +54,7 @@ export function ModalShell({
           style={{
             padding,
             ...(maxHeight ? { maxHeight, overflowY: "auto" as const } : {}),
+            ...(minHeight ? { minHeight } : {}),
           }}
         >
           {title !== undefined && (

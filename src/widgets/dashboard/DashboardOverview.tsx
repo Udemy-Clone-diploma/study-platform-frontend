@@ -186,7 +186,7 @@ function StudentDashboard() {
     <section className="min-h-[calc(100vh-76px)] bg-white">
       <div
         className="grid min-h-[calc(100vh-76px)]"
-        style={{ gridTemplateColumns: "1fr clamp(240px, 19.2vw, 380px)" }}
+        style={{ gridTemplateColumns: "1fr clamp(270px, 22vw, 362px)" }}
       >
         <div
           className="grid"
@@ -224,7 +224,7 @@ function TeacherDashboard() {
     <section className="min-h-[calc(100vh-76px)] bg-white">
       <div
         className="grid min-h-[calc(100vh-76px)]"
-        style={{ gridTemplateColumns: "1fr clamp(200px, 17.19vw, 330px)" }}
+        style={{ gridTemplateColumns: "1fr clamp(270px, 22vw, 362px)" }}
       >
         <div
           className="grid"
@@ -253,7 +253,13 @@ function TeacherDashboard() {
           </div>
         </div>
 
-        <ScheduleRail />
+        <div style={{
+          marginTop: "clamp(16px, 1.67vw, 32px)",
+          marginRight: "clamp(16px, 1.67vw, 32px)",
+          "--schedule-height": "calc(100vh - 76px - clamp(16px, 1.67vw, 32px))",
+        } as unknown as CSSProperties}>
+          <ScheduleRail />
+        </div>
       </div>
     </section>
   );

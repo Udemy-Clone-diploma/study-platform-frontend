@@ -126,9 +126,17 @@ export type EventInvitationStatus = {
   responded_at: string | null;
 };
 
+export type InvitationConflict = {
+  type: "session" | "personal" | "shared_event";
+  title: string;
+  start_time: string;
+  end_time: string;
+};
+
 export type IncomingInvitation = {
   id: number;
   status: "pending" | "declined";
+  conflicts: InvitationConflict[];
   event: {
     id: string;
     title: string;

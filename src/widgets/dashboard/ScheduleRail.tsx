@@ -7,7 +7,7 @@ import {
   respondToInvitation,
 } from "@/entities/course";
 import type { CalendarEvent } from "@/entities/course/model/calendar";
-import type { IncomingInvitation } from "@/entities/course/api/calendarApi";
+import type { IncomingInvitation, InvitationConflict } from "@/entities/course/api/calendarApi";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -80,7 +80,7 @@ function DayCell({
 }) {
   if (!inMonth) {
     return (
-      <div className="mx-auto flex h-9 w-9 items-center justify-center text-[11px] text-black/15">
+      <div className="mx-auto flex h-9 w-9 items-center justify-center text-sm text-black/15">
         {day}
       </div>
     );
@@ -91,7 +91,7 @@ function DayCell({
       <button
         type="button"
         onClick={onClick}
-        className="mx-auto flex h-9 w-9 items-center justify-center rounded-full text-[11px] font-semibold text-white"
+        className="mx-auto flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold text-white"
         style={{ background: GRADIENT }}
       >
         {day}
@@ -107,7 +107,7 @@ function DayCell({
         className="mx-auto block h-9 w-9 rounded-full p-[1.5px] transition-opacity hover:opacity-70"
         style={{ background: GRADIENT }}
       >
-        <span className="flex h-full w-full items-center justify-center rounded-full bg-white text-[11px] text-black">
+        <span className="flex h-full w-full items-center justify-center rounded-full bg-white text-sm text-black">
           {day}
         </span>
       </button>
@@ -118,7 +118,7 @@ function DayCell({
     <button
       type="button"
       onClick={onClick}
-      className="mx-auto flex h-9 w-9 items-center justify-center rounded-full text-[11px] text-black transition-colors hover:bg-black/5"
+      className="mx-auto flex h-9 w-9 items-center justify-center rounded-full text-sm text-black transition-colors hover:bg-black/5"
     >
       {day}
     </button>
@@ -220,8 +220,15 @@ function EventCard({ event, badge }: { event: CalendarEvent; badge?: string }) {
 
 // ── Invitation card ───────────────────────────────────────────────────────────
 
+function conflictLabel(c: InvitationConflict): string {
+  const prefix = c.type === "session" ? "Session" : c.type === "shared_event" ? "Shared event" : "Personal event";
+  return `${prefix}: ${c.title} · ${c.start_time}–${c.end_time}`;
+}
+
 function InvitationCard({ inv, onRespond }: { inv: IncomingInvitation; onRespond: () => void }) {
   const [busy, setBusy] = useState(false);
+
+  const hasConflicts = inv.conflicts.length > 0;
 
   async function respond(action: "accept" | "decline") {
     setBusy(true);
@@ -246,13 +253,23 @@ function InvitationCard({ inv, onRespond }: { inv: IncomingInvitation; onRespond
           {inv.event.meeting_link}
         </a>
       )}
+
+      {hasConflicts && (
+        <div className="mt-2 rounded bg-red-50 px-2 py-1.5 text-[10px] text-red-600">
+          <p className="mb-0.5 font-semibold uppercase tracking-wide">Schedule conflict</p>
+          {inv.conflicts.map((c, i) => (
+            <p key={i} className="truncate">{conflictLabel(c)}</p>
+          ))}
+        </div>
+      )}
+
       <div className="mt-2.5 flex gap-2">
         <button
           type="button"
-          disabled={busy}
+          disabled={busy || hasConflicts}
           onClick={() => respond("accept")}
-          className="rounded-full px-3 py-1 text-[11px] font-medium text-black disabled:opacity-50"
-          style={{ background: GRADIENT }}
+          className="rounded-full px-3 py-1 text-[11px] font-medium text-black disabled:cursor-not-allowed disabled:opacity-40"
+          style={{ background: hasConflicts ? "rgba(0,0,0,0.08)" : GRADIENT }}
         >
           Accept
         </button>
@@ -372,12 +389,12 @@ export function ScheduleRail() {
 
   return (
     <aside
-      className="flex flex-col rounded-xl gap-4 overflow-hidden bg-[linear-gradient(180deg,#fff4da_0%,#fcc4c3_45%,#a7bafa_100%)]"
+      className="flex flex-col rounded-xl gap-4 bg-[linear-gradient(180deg,#fff4da_0%,#fcc4c3_45%,#a7bafa_100%)]"
       style={{ height: "var(--schedule-height, calc(100vh - 76px))" } as React.CSSProperties}
     >
 
       {/* ── Calendar card ── */}
-      <div className="shrink-0 rounded-xl bg-white p-4 shadow-[0_0_16px_rgba(0,0,0,0.14)]">
+      <div className="shrink-0 rounded-xl bg-[#fafafa] p-4 shadow-[0px_0px_17px_rgba(0,0,0,0.16)]">
 
         {/* Month nav */}
         <div className="mb-4 flex items-center justify-between">
@@ -389,7 +406,7 @@ export function ScheduleRail() {
           >
             <ChevLeft />
           </button>
-          <h2 className="text-sm font-semibold text-black">{MONTH_FMT.format(viewMonth)}</h2>
+          <h2 className="text-base font-semibold text-black">{MONTH_FMT.format(viewMonth)}</h2>
           <button
             type="button"
             aria-label="Next month"
@@ -403,7 +420,7 @@ export function ScheduleRail() {
         {/* Day grid */}
         <div className="grid grid-cols-7 gap-y-3 text-center">
           {WEEK_DAYS.map(d => (
-            <span key={d} className="text-[11px] font-medium text-[#5e5e5e]">{d}</span>
+            <span key={d} className="text-sm font-medium text-[#5e5e5e]">{d}</span>
           ))}
           {days.map((day, i) => {
             const iso        = toISO(day);

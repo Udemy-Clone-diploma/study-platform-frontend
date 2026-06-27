@@ -12,7 +12,10 @@ export function AppShell({ children, sidebarItems }: AppShellProps) {
     <div className="flex h-screen min-w-[1024px] flex-col overflow-hidden bg-white">
       <Header borderRadius="0px 0px clamp(12px,1vw,20px) 0px" />
 
-      <div className="flex flex-1 overflow-hidden items-stretch">
+      <div className="relative flex flex-1 overflow-hidden items-stretch">
+        {/* reserves space for the collapsed icon strip so content never hides behind it */}
+        <div className="shrink-0 w-[clamp(60px,4.5vw,80px)]" aria-hidden="true" />
+
         <AppSidebar items={sidebarItems} />
 
         <div className="flex min-w-0 flex-1 flex-col overflow-y-auto">

@@ -165,10 +165,11 @@ function NewEventPanel({
   const [cohortId,        setCohortId]        = useState<string>("");
   const [extraLessons,    setExtraLessons]    = useState<CourseLesson[] | null>(null);
   const [lessonId,        setLessonId]        = useState<string>("");
-  const [audience,        setAudience]        = useState<"group" | "individual">("group");
-  const [studentQuery,     setStudentQuery]     = useState("");
-  const [enrolledStudents, setEnrolledStudents] = useState<EnrolledStudent[] | null>(null);
-  const [selectedStudent,  setSelectedStudent]  = useState<UserSearchResult | null>(null);
+  const [audience,           setAudience]           = useState<"group" | "individual">("group");
+  const [studentQuery,       setStudentQuery]       = useState("");
+  const [enrolledStudents,   setEnrolledStudents]   = useState<EnrolledStudent[] | null>(null);
+  const [selectedStudent,    setSelectedStudent]    = useState<UserSearchResult | null>(null);
+  const [individualFormatId, setIndividualFormatId] = useState<number | undefined>(undefined);
 
   const [localDate,       setLocalDate]       = useState(date);
   const [isSubmitting,    setIsSubmitting]    = useState(false);
@@ -195,11 +196,18 @@ function NewEventPanel({
       .then(c => { if (!cancelled) setCohorts(c); })
       .catch(() => { if (!cancelled) setCohorts([]); });
     getCourseBySlug(courseSlug)
-      .then(d => { if (!cancelled) setExtraLessons(d.modules.flatMap(m => m.lessons)); })
-      .catch(() => { if (!cancelled) setExtraLessons([]); });
-    getCourseEnrolledStudents(courseSlug)
-      .then(s => { if (!cancelled) setEnrolledStudents(s); })
-      .catch(() => { if (!cancelled) setEnrolledStudents([]); });
+      .then(d => {
+        if (cancelled) return;
+        setExtraLessons(d.modules.flatMap(m => m.lessons));
+        const indFmt = d.delivery_formats.find(f => f.format_type === "individual");
+        setIndividualFormatId(indFmt?.id);
+        getCourseEnrolledStudents(courseSlug, indFmt?.id)
+          .then(s => { if (!cancelled) setEnrolledStudents(s); })
+          .catch(() => { if (!cancelled) setEnrolledStudents([]); });
+      })
+      .catch(() => {
+        if (!cancelled) { setExtraLessons([]); setEnrolledStudents([]); }
+      });
     return () => { cancelled = true; };
   }, [courseSlug]);
 

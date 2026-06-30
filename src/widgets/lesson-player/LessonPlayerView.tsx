@@ -268,7 +268,7 @@ export function LessonPlayerView({
                 <div className="min-w-0">
                   <LessonContent item={activeItem} />
                 </div>
-                <LessonNotesPanel key={lessonId} slug={slug} lessonId={lessonId} />
+                <LessonNotesPanel key={lessonId} slug={slug} lessonId={lessonId} isMock={isMock} />
               </div>
 
               <div className="flex max-w-[820px] flex-col gap-6">

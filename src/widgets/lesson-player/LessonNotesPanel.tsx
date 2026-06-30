@@ -3,42 +3,57 @@
 import { useEffect, useRef, useState } from "react";
 import { readLessonNote, writeLessonNote } from "@/features/learning";
 
-type Props = { slug: string; lessonId: number };
+type Props = { slug: string; lessonId: number; isMock?: boolean };
 
 /**
- * Per-lesson "Take a note" scratchpad (Figma 3113:16283), persisted to
- * localStorage (see lessonNotes). The textarea is uncontrolled and filled from
- * storage after mount so the SSR markup stays stable; mount one per lesson via
- * `key`.
+ * Per-lesson "Take a note" scratchpad (Figma 3113:16283), persisted per user
+ * via the notes API (see lessonNotes). The textarea is uncontrolled and filled
+ * after mount so the SSR markup stays stable; mount one per lesson via `key`.
+ * Mock/preview lessons have no server record, so persistence is skipped.
  */
-export function LessonNotesPanel({ slug, lessonId }: Props) {
+export function LessonNotesPanel({ slug, lessonId, isMock = false }: Props) {
   const ref = useRef<HTMLTextAreaElement>(null);
   // The last persisted value; Save is enabled only when the text differs from it.
   const savedValueRef = useRef("");
   const [canSave, setCanSave] = useState(false);
-  const [justSaved, setJustSaved] = useState(false);
+  const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
 
-  // Fill the textarea from storage after mount (the server renders it empty).
+  // Load the note after mount (the server renders the textarea empty).
   // State defaults hold because the panel remounts per lesson (keyed by lessonId).
   useEffect(() => {
-    const stored = readLessonNote(slug, lessonId);
-    savedValueRef.current = stored;
-    if (ref.current) ref.current.value = stored;
-  }, [slug, lessonId]);
+    if (isMock) return;
+    let cancelled = false;
+    readLessonNote(slug, lessonId).then((stored) => {
+      if (cancelled) return;
+      savedValueRef.current = stored;
+      if (ref.current) ref.current.value = stored;
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [slug, lessonId, isMock]);
 
   const handleChange = () => {
     const text = ref.current?.value ?? "";
     setCanSave(text.trim() !== "" && text !== savedValueRef.current);
-    setJustSaved(false);
+    setStatus("idle");
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!canSave) return;
     const text = ref.current?.value ?? "";
-    writeLessonNote(slug, lessonId, text);
+    if (!isMock) {
+      setStatus("saving");
+      try {
+        await writeLessonNote(slug, lessonId, text);
+      } catch {
+        setStatus("error");
+        return;
+      }
+    }
     savedValueRef.current = text;
     setCanSave(false);
-    setJustSaved(true);
+    setStatus("saved");
   };
 
   return (
@@ -54,14 +69,20 @@ export function LessonNotesPanel({ slug, lessonId }: Props) {
       <button
         type="button"
         onClick={handleSave}
-        disabled={!canSave}
+        disabled={!canSave || status === "saving"}
         className={`mx-auto inline-flex h-[52px] min-w-[200px] items-center justify-center rounded-[28px] px-7 font-(family-name:--font-accent) text-xl font-medium uppercase transition-colors ${
           canSave
             ? "bg-(--color-text-primary) text-white hover:opacity-90"
             : "cursor-not-allowed bg-(--color-placeholder) text-(--color-text-secondary)"
         }`}
       >
-        {justSaved ? "Saved" : "Save"}
+        {status === "saving"
+          ? "Saving..."
+          : status === "error"
+            ? "Try again"
+            : status === "saved"
+              ? "Saved"
+              : "Save"}
       </button>
     </aside>
   );

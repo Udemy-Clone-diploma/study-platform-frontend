@@ -1,25 +1,24 @@
 /**
- * Per-lesson note persistence. There is no notes backend yet, so the lesson
- * player's "Take a note" panel stores text in localStorage keyed by course and
- * lesson. Swap these two functions for an API client when the backend lands.
+ * Per-lesson note persistence. One note per (user, lesson), pinned to the
+ * lesson and scoped to the authenticated user server-side. The route follows
+ * the existing lesson-scoped action convention (`/courses/<slug>/lessons/<id>/...`).
+ * Backend contract: TASK in BACKEND_CHANGES.md.
  */
-const key = (slug: string, lessonId: number) => `nexo:lesson-note:${slug}:${lessonId}`;
+import { api } from "@/shared/api/base";
 
-export function readLessonNote(slug: string, lessonId: number): string {
-  if (typeof window === "undefined") return "";
+const notePath = (slug: string, lessonId: number) =>
+  `courses/${slug}/lessons/${lessonId}/note/`;
+
+export async function readLessonNote(slug: string, lessonId: number): Promise<string> {
   try {
-    return window.localStorage.getItem(key(slug, lessonId)) ?? "";
+    const { data } = await api.get<{ content: string }>(notePath(slug, lessonId));
+    return data.content ?? "";
   } catch {
+    // 404 (no note yet) or a transient failure: start from an empty scratchpad.
     return "";
   }
 }
 
-export function writeLessonNote(slug: string, lessonId: number, text: string): void {
-  if (typeof window === "undefined") return;
-  try {
-    if (text.trim()) window.localStorage.setItem(key(slug, lessonId), text);
-    else window.localStorage.removeItem(key(slug, lessonId));
-  } catch {
-    /* ignore storage failures */
-  }
+export async function writeLessonNote(slug: string, lessonId: number, text: string): Promise<void> {
+  await api.put(notePath(slug, lessonId), { content: text });
 }

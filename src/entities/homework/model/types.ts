@@ -1,10 +1,12 @@
 import type { CourseTest } from "@/entities/course";
+import type { TestAttemptResult } from "@/entities/course";
 
 export type HomeworkAssignmentStatus = "draft" | "published" | "closed";
 
 export type HomeworkAssignment = {
   id: number;
   course_id: number;
+  course_slug: string;
   course_title: string;
   course_image: string | null;
   source_assignment: number | null;
@@ -62,7 +64,8 @@ export type HomeworkSubmission = {
   student_name: string;
   content: string;
   attachments: HomeworkAttachment[];
-  status: "submitted" | "reviewed";
+  test_attempt: TestAttemptResult | null;
+  status: "submitted" | "reviewed" | "retrieved";
   score: number | null;
   feedback: string;
   submitted_at: string;

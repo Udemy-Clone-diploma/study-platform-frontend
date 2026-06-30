@@ -71,6 +71,30 @@ export async function submitHomework(
   return data;
 }
 
+export async function reviewHomeworkSubmission(
+  courseSlug: string,
+  assignmentId: number,
+  submissionId: number,
+  body: { score: number | null; feedback: string },
+): Promise<HomeworkSubmission> {
+  const { data } = await api.patch<HomeworkSubmission>(
+    `courses/${courseSlug}/homework/${assignmentId}/submissions/${submissionId}/`,
+    body,
+  );
+  return data;
+}
+
+export async function retrieveHomeworkSubmission(
+  courseSlug: string,
+  assignmentId: number,
+  submissionId: number,
+): Promise<HomeworkSubmission> {
+  const { data } = await api.post<HomeworkSubmission>(
+    `courses/${courseSlug}/homework/${assignmentId}/submissions/${submissionId}/retrieve/`,
+  );
+  return data;
+}
+
 export async function uploadHomeworkSubmissionAttachment(
   assignmentId: number,
   file: File,

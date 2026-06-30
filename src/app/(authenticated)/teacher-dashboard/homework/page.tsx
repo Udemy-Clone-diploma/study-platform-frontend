@@ -8,7 +8,6 @@ import {
   ChevronLeft,
   ChevronRight,
   ClipboardList,
-  Copy,
   Plus,
   Upload,
   X,
@@ -18,11 +17,15 @@ import {
   getHomeworkAssignments,
   getHomeworkRecipients,
   publishHomeworkAssignment,
+  reviewHomeworkSubmission,
+  retrieveHomeworkSubmission,
   uploadHomeworkAssignmentAttachment,
   type HomeworkAssignment,
   type HomeworkAvailableRecipient,
+  type HomeworkSubmission,
 } from "@/entities/homework";
 import {
+  byOrder,
   createQuestion,
   createTest,
   getCourseBySlug,
@@ -32,6 +35,7 @@ import {
   type CourseModule,
 } from "@/entities/course";
 import { TestFormBody, type TestFormValues, type TestQuestion } from "@/features/courses";
+import { QuizQuestionCard } from "@/features/quiz";
 import type { ApiError } from "@/shared/api/base";
 
 type FormState = {
@@ -68,6 +72,15 @@ type SelectOption = {
 type RecipientGroupOption = SelectOption & {
   enrollmentIds: number[];
 };
+
+type HomeworkQueueFilter = "all" | "waiting_submit" | "to_review" | "completed";
+
+const HOMEWORK_QUEUE_TABS: { value: HomeworkQueueFilter; label: string }[] = [
+  { value: "all", label: "All" },
+  { value: "waiting_submit", label: "Waiting for submit" },
+  { value: "to_review", label: "To review" },
+  { value: "completed", label: "Completed" },
+];
 
 type HomeworkSelectProps = {
   label?: string;
@@ -113,7 +126,7 @@ function HomeworkSelect({
 
   const controlClassName =
     variant === "filter"
-      ? "flex h-10 w-full items-center justify-between gap-2 rounded-full border border-[#ECECEC] bg-white px-5 text-left text-[20px] leading-none font-normal text-[#121212] shadow-[0_0_4px_rgba(0,0,0,0.06)] outline-none transition focus-within:ring-2 focus-within:ring-[#9DB1FA] focus:ring-2 focus:ring-[#9DB1FA] disabled:cursor-not-allowed disabled:text-[#8A8A8A]"
+      ? "flex h-[30px] w-full items-center justify-between gap-2 rounded-full border border-[#ECECEC] bg-white px-3.5 text-left text-[14px] leading-none font-normal text-[#121212] shadow-[0_0_4px_rgba(0,0,0,0.06)] outline-none transition focus-within:ring-2 focus-within:ring-[#9DB1FA] focus:ring-2 focus:ring-[#9DB1FA] disabled:cursor-not-allowed disabled:text-[#8A8A8A]"
       : "flex h-14 w-full items-center justify-between gap-3 rounded-md bg-[#ECECEC] px-4 text-left text-[15px] text-[#121212] outline-none transition focus-within:ring-2 focus-within:ring-[#9DB1FA] focus:ring-2 focus:ring-[#9DB1FA] disabled:cursor-not-allowed disabled:text-[#8A8A8A]";
 
   return (
@@ -179,7 +192,7 @@ function HomeworkSelect({
           aria-label={label ?? placeholder}
           className={
             variant === "filter"
-              ? "absolute z-[140] mt-2 max-h-[248px] min-w-[220px] overflow-y-auto rounded-[16px] border border-[#E2E2E2] bg-white py-3 shadow-[0_12px_28px_rgba(0,0,0,0.16)] sm:min-w-[320px]"
+              ? "absolute z-[140] mt-2 max-h-[248px] min-w-[190px] overflow-y-auto rounded-[16px] border border-[#E2E2E2] bg-white py-3 shadow-[0_12px_28px_rgba(0,0,0,0.16)] sm:min-w-[220px]"
               : "absolute z-[140] mt-2 max-h-[248px] w-full overflow-y-auto rounded-[16px] border border-[#E2E2E2] bg-white py-2 shadow-[0_12px_28px_rgba(0,0,0,0.16)]"
           }
         >
@@ -200,7 +213,7 @@ function HomeworkSelect({
                   setIsOpen(false);
                 }}
                 className={`flex w-full items-center px-5 text-left transition hover:bg-[#F5F7FF] ${
-                  variant === "filter" ? "min-h-14 text-[18px]" : "min-h-12 text-[17px]"
+                  variant === "filter" ? "min-h-10 text-[14px]" : "min-h-12 text-[17px]"
                 } ${isSelected ? "text-[#003AFF]" : "text-[#121212]"}`}
               >
                 {option.label}
@@ -416,24 +429,85 @@ function latestReviewedAt(assignment: HomeworkAssignment): string | null {
   return new Date(Math.max(...reviewedTimestamps)).toISOString();
 }
 
+function submissionTimestamp(submission: HomeworkSubmission): number {
+  const value = submission.reviewed_at || submission.submitted_at;
+  const timestamp = new Date(value).getTime();
+  return Number.isNaN(timestamp) ? 0 : timestamp;
+}
+
+function reviewableSubmissions(assignment: HomeworkAssignment): HomeworkSubmission[] {
+  return [...assignment.teacher_submissions].sort(
+    (first, second) => {
+      const firstIsEditable = first.status !== "reviewed";
+      const secondIsEditable = second.status !== "reviewed";
+      if (firstIsEditable !== secondIsEditable) return firstIsEditable ? -1 : 1;
+      return submissionTimestamp(second) - submissionTimestamp(first);
+    },
+  );
+}
+
+function submissionStatusLabel(status: HomeworkSubmission["status"]): string {
+  if (status === "reviewed") return "Reviewed";
+  if (status === "retrieved") return "Retrieved";
+  return "Submitted";
+}
+
+function studentSubmissionLabel(submission: HomeworkSubmission): string {
+  return submission.student_name || submission.student_email || "Student";
+}
+
+function reviewSubmissionForAssignment(assignment: HomeworkAssignment): HomeworkSubmission | null {
+  return reviewableSubmissions(assignment)[0] ?? null;
+}
+
+function assignmentRecipientCount(assignment: HomeworkAssignment): number {
+  return assignment.recipients_count || assignment.recipients.length;
+}
+
+function hasWaitingRecipients(assignment: HomeworkAssignment): boolean {
+  const recipientCount = assignmentRecipientCount(assignment);
+  return (
+    assignment.status === "published" &&
+    recipientCount > 0 &&
+    assignment.teacher_submissions.length < recipientCount
+  );
+}
+
+function hasUnreviewedSubmission(assignment: HomeworkAssignment): boolean {
+  return assignment.teacher_submissions.some((submission) => submission.status !== "reviewed");
+}
+
+function hasReviewedSubmission(assignment: HomeworkAssignment): boolean {
+  return assignment.teacher_submissions.some((submission) => submission.status === "reviewed");
+}
+
+function assignmentMatchesQueue(
+  assignment: HomeworkAssignment,
+  queue: HomeworkQueueFilter,
+): boolean {
+  if (queue === "all") return true;
+  if (queue === "waiting_submit") return hasWaitingRecipients(assignment);
+  if (queue === "to_review") return hasUnreviewedSubmission(assignment);
+  return hasReviewedSubmission(assignment);
+}
+
 function TeacherHomeworkCard({
   assignment,
-  expanded,
-  onToggle,
+  onOpenReview,
 }: {
   assignment: HomeworkAssignment;
-  expanded: boolean;
-  onToggle: () => void;
+  onOpenReview: () => void;
 }) {
   const kind = assignmentKind(assignment);
   const iconSrc = assignment.course_image ?? "/icons/book-gradient.svg";
   const returnedAt = latestReviewedAt(assignment);
+  const submissionsCount = assignment.teacher_submissions.length;
 
   return (
     <button
       type="button"
-      aria-expanded={expanded}
-      onClick={onToggle}
+      disabled={submissionsCount === 0}
+      onClick={onOpenReview}
       className="group grid h-20 w-full max-w-[722px] grid-cols-[60px_minmax(0,1fr)_178px] items-center gap-2.5 rounded-lg bg-white px-3 py-2.5 text-left font-(family-name:--font-base) shadow-[0_0_4px_rgba(0,0,0,0.16)] transition hover:shadow-[0_3px_12px_rgba(0,0,0,0.12)] focus:outline-none focus:ring-2 focus:ring-[#9DB1FA]"
     >
       <span className="flex h-[60px] w-[60px] items-center justify-center overflow-hidden rounded-md">
@@ -462,6 +536,9 @@ function TeacherHomeworkCard({
         <span>
           Sent: <span className="text-[#003AFF]">{cardDateLabel(assignment.published_at)}</span>
         </span>
+        <span>
+          Submitted: <span className="text-[#121212]">{submissionsCount}</span>
+        </span>
         {returnedAt ? (
           <span>
             Returned: <span className="text-[#003AFF]">{cardDateLabel(returnedAt)}</span>
@@ -472,15 +549,363 @@ function TeacherHomeworkCard({
   );
 }
 
+function HomeworkSubmissionPickerDialog({
+  assignment,
+  submissions,
+  onSelect,
+  onClose,
+}: {
+  assignment: HomeworkAssignment;
+  submissions: HomeworkSubmission[];
+  onSelect: (submissionId: number) => void;
+  onClose: () => void;
+}) {
+  return (
+    <div
+      role="presentation"
+      className="fixed inset-0 z-[145] flex items-center justify-center bg-[#121212]/45 px-4 py-6"
+      onMouseDown={onClose}
+    >
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="homework-submissions-title"
+        className="max-h-[calc(100vh-48px)] w-full max-w-[760px] overflow-y-auto rounded-[16px] bg-white px-6 py-6 font-(family-name:--font-base) text-[#121212] shadow-[0_18px_56px_rgba(18,18,18,0.26)] sm:px-8"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <div className="flex items-start justify-between gap-4 border-b border-[#E7E7E7] pb-5">
+          <div className="min-w-0">
+            <p className="text-[12px] font-medium uppercase tracking-wide text-[#5E5E5E]">
+              Student submissions
+            </p>
+            <h2 id="homework-submissions-title" className="mt-1 truncate text-[24px] font-semibold">
+              {assignment.title}
+            </h2>
+            <p className="mt-1 text-sm text-[#5E5E5E]">{assignment.course_title}</p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close submission list"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition hover:bg-[#F1F1F1]"
+          >
+            <X size={18} aria-hidden="true" />
+          </button>
+        </div>
+
+        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          {submissions.map((submission) => (
+            <button
+              key={submission.id}
+              type="button"
+              onClick={() => onSelect(submission.id)}
+              className="min-h-[136px] rounded-lg border border-[#E7E7E7] bg-white p-4 text-left shadow-[0_1px_8px_rgba(0,0,0,0.08)] transition hover:border-[#9DB1FA] hover:shadow-[0_5px_18px_rgba(0,0,0,0.12)] focus:outline-none focus:ring-2 focus:ring-[#9DB1FA]"
+            >
+              <span className="block truncate text-[17px] font-semibold text-[#121212]">
+                {studentSubmissionLabel(submission)}
+              </span>
+              <span className="mt-1 block truncate text-[12px] text-[#5E5E5E]">
+                {submission.student_email}
+              </span>
+              <span className="mt-4 grid gap-1 text-[12px] text-[#5E5E5E]">
+                <span>
+                  Status: <span className="text-[#121212]">{submissionStatusLabel(submission.status)}</span>
+                </span>
+                <span>
+                  Submitted: <span className="text-[#003AFF]">{cardDateLabel(submission.submitted_at)}</span>
+                </span>
+                {submission.reviewed_at ? (
+                  <span>
+                    Returned: <span className="text-[#003AFF]">{cardDateLabel(submission.reviewed_at)}</span>
+                  </span>
+                ) : null}
+                {submission.score != null ? (
+                  <span>
+                    Score: <span className="text-[#121212]">{submission.score}</span>
+                  </span>
+                ) : null}
+              </span>
+            </button>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
 function buildQuestionPayload(question: TestQuestion) {
   return {
     question_type: question.type,
     text: question.text,
     options: question.type === "multiple_choice" ? question.options : undefined,
-    correct_index: question.type === "multiple_choice" ? question.correct_index : undefined,
+    correct_indices: question.type === "multiple_choice" ? question.correct_indices : undefined,
     correct_bool: question.type === "true_false" ? question.correct_bool : undefined,
     sample_answer: question.type === "short_answer" ? question.sample_answer : undefined,
   };
+}
+
+type ReviewTarget = {
+  assignmentId: number;
+  submissionId: number;
+};
+
+function HomeworkReviewDialog({
+  assignment,
+  submission,
+  score,
+  feedback,
+  saving,
+  retrieving,
+  error,
+  onScoreChange,
+  onFeedbackChange,
+  onClose,
+  onRetrieve,
+  onReturn,
+}: {
+  assignment: HomeworkAssignment;
+  submission: HomeworkSubmission;
+  score: string;
+  feedback: string;
+  saving: boolean;
+  retrieving: boolean;
+  error: string;
+  onScoreChange: (value: string) => void;
+  onFeedbackChange: (value: string) => void;
+  onClose: () => void;
+  onRetrieve: () => void;
+  onReturn: (event: FormEvent<HTMLFormElement>) => void;
+}) {
+  const attempt = submission.test_attempt;
+  const maxScore = assignment.max_score;
+  const isReadOnly = submission.status === "reviewed";
+  const busy = saving || retrieving;
+  const reviewDisabled = busy || isReadOnly || !score.trim() || !feedback.trim();
+
+  return (
+    <div
+      role="presentation"
+      className="fixed inset-0 z-[150] flex items-center justify-center bg-[#121212]/45 px-4 py-6"
+      onMouseDown={onClose}
+    >
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="homework-review-title"
+        className="max-h-[calc(100vh-48px)] w-full max-w-[1180px] overflow-y-auto rounded-[16px] bg-white px-6 py-6 font-(family-name:--font-base) text-[#121212] shadow-[0_18px_56px_rgba(18,18,18,0.26)] sm:px-8"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <div className="flex items-start justify-between gap-4 border-b border-[#E7E7E7] pb-5">
+          <div className="min-w-0">
+            <p className="text-[12px] font-medium uppercase tracking-wide text-[#5E5E5E]">
+              {isReadOnly ? "Homework review - read only" : "Homework review"}
+            </p>
+            <h2 id="homework-review-title" className="mt-1 truncate text-[24px] font-semibold">
+              {assignment.title}
+            </h2>
+            <p className="mt-1 text-sm text-[#5E5E5E]">
+              {submission.student_name || submission.student_email} · {assignment.course_title}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={busy}
+            aria-label="Close review"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition hover:bg-[#F1F1F1] disabled:cursor-not-allowed"
+          >
+            <X size={18} aria-hidden="true" />
+          </button>
+        </div>
+
+        <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
+          <div className="space-y-5">
+            <section className="rounded-lg border border-[#E8E8E8] p-4">
+              <h3 className="text-sm font-semibold">Assignment</h3>
+              <div className="mt-3 grid gap-3 text-sm text-[#3E3E3E] sm:grid-cols-2">
+                <p>
+                  <span className="font-medium text-[#121212]">Module:</span>{" "}
+                  {assignment.module_title || "Not selected"}
+                </p>
+                <p>
+                  <span className="font-medium text-[#121212]">Lesson:</span>{" "}
+                  {assignment.lesson_title || "Not selected"}
+                </p>
+                <p>
+                  <span className="font-medium text-[#121212]">Due:</span>{" "}
+                  {deadlineLabel(assignment.due_at)}
+                </p>
+                <p>
+                  <span className="font-medium text-[#121212]">Max score:</span>{" "}
+                  {maxScore ?? "Not set"}
+                </p>
+              </div>
+              {assignment.description ? (
+                <p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-[#333]">
+                  {assignment.description}
+                </p>
+              ) : null}
+              {assignment.test_detail ? (
+                <div className="mt-4 rounded-md bg-[#EEF4FF] px-3 py-2 text-sm text-[#24376F]">
+                  <p className="font-medium">Test attachment: {assignment.test_detail.title}</p>
+                  <p className="mt-1 text-xs">
+                    {assignment.test_detail.questions.length} question(s), passing score{" "}
+                    {assignment.test_detail.passing_score}%
+                  </p>
+                </div>
+              ) : null}
+              {assignment.attachments.length > 0 ? (
+                <div className="mt-4 flex flex-wrap gap-2 text-xs">
+                  {assignment.attachments.map((attachment) =>
+                    attachment.url ? (
+                      <a
+                        key={attachment.id}
+                        href={attachment.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="rounded bg-[#F0F3FF] px-3 py-2 text-[#3851B0] hover:underline"
+                      >
+                        {attachment.original_name}
+                      </a>
+                    ) : null,
+                  )}
+                </div>
+              ) : null}
+            </section>
+
+            <section className="rounded-lg border border-[#E8E8E8] p-4">
+              <h3 className="text-sm font-semibold">Student submission</h3>
+              <div className="mt-3 flex flex-wrap gap-3 text-xs text-[#5E5E5E]">
+                <span>Submitted: {deadlineLabel(submission.submitted_at)}</span>
+                {submission.reviewed_at ? (
+                  <span>Returned: {deadlineLabel(submission.reviewed_at)}</span>
+                ) : null}
+                <span>Status: {submissionStatusLabel(submission.status)}</span>
+              </div>
+              {submission.content ? (
+                <p className="mt-4 whitespace-pre-wrap rounded-md bg-[#F7F7F7] px-3 py-3 text-sm leading-6 text-[#303030]">
+                  {submission.content}
+                </p>
+              ) : (
+                <p className="mt-4 text-sm text-[#6A6A6A]">No text answer submitted.</p>
+              )}
+              {submission.attachments.length > 0 ? (
+                <div className="mt-4 flex flex-wrap gap-2 text-xs">
+                  {submission.attachments.map((attachment) =>
+                    attachment.url ? (
+                      <a
+                        key={attachment.id}
+                        href={attachment.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="rounded bg-[#F0F3FF] px-3 py-2 text-[#3851B0] hover:underline"
+                      >
+                        {attachment.original_name}
+                      </a>
+                    ) : null,
+                  )}
+                </div>
+              ) : null}
+
+              {attempt ? (
+                <div className="mt-5 border-t border-[#E7E7E7] pt-4">
+                  <div className="flex flex-wrap items-center gap-3 text-sm">
+                    <span className="font-semibold text-[#121212]">
+                      Best test attempt #{attempt.attempt_number}
+                    </span>
+                    <span className="rounded bg-[#FFF0D0] px-2 py-1 text-xs text-[#8B5B00]">
+                      {attempt.score}%
+                    </span>
+                    <span className={attempt.passed ? "text-[#067647]" : "text-[#B42318]"}>
+                      {attempt.passed ? "Passed" : "Not passed"}
+                    </span>
+                  </div>
+                  <div className="mt-4 space-y-3">
+                    {byOrder(attempt.questions).map((question, index) => (
+                      <QuizQuestionCard
+                        key={question.id}
+                        mode="review"
+                        index={index}
+                        graded={question}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ) : assignment.test_detail ? (
+                <p className="mt-4 rounded-md bg-[#FFF5F5] px-3 py-2 text-sm text-[#B42318]">
+                  No test attempt was submitted with this homework.
+                </p>
+              ) : null}
+            </section>
+          </div>
+
+          <form
+            onSubmit={(event) => {
+              if (isReadOnly) {
+                event.preventDefault();
+                return;
+              }
+              onReturn(event);
+            }}
+            className="h-fit rounded-lg border border-[#E8E8E8] p-4"
+          >
+            <h3 className="text-sm font-semibold">Return to student</h3>
+            {isReadOnly ? (
+              <p className="mt-3 rounded-md bg-[#F7F7F7] px-3 py-2 text-xs leading-5 text-[#5E5E5E]">
+                This returned review is read-only. Retrieve it before editing and sending it back.
+              </p>
+            ) : null}
+            <label className="mt-4 grid gap-2 text-sm font-medium">
+              Score{maxScore != null ? ` / ${maxScore}` : ""}
+              <input
+                type="number"
+                min="0"
+                max={maxScore ?? undefined}
+                step="1"
+                value={score}
+                onChange={(event) => onScoreChange(event.target.value)}
+                disabled={busy || isReadOnly}
+                className="h-11 rounded-md bg-[#ECECEC] px-3 text-sm outline-none transition focus:ring-2 focus:ring-[#9DB1FA] disabled:cursor-not-allowed"
+              />
+            </label>
+            <label className="mt-4 grid gap-2 text-sm font-medium">
+              Comment
+              <textarea
+                rows={8}
+                value={feedback}
+                onChange={(event) => onFeedbackChange(event.target.value)}
+                disabled={busy || isReadOnly}
+                className="resize-none rounded-md bg-[#ECECEC] px-3 py-3 text-sm outline-none transition focus:ring-2 focus:ring-[#9DB1FA] disabled:cursor-not-allowed"
+              />
+            </label>
+            {error ? (
+              <p role="alert" className="mt-3 text-sm text-[#B42318]">
+                {error}
+              </p>
+            ) : null}
+            {isReadOnly ? (
+              <button
+                type="button"
+                onClick={onRetrieve}
+                disabled={busy}
+                className="mt-5 h-10 w-full rounded-full bg-[#121212] px-5 text-sm font-medium text-white transition hover:bg-[#303030] disabled:cursor-not-allowed disabled:bg-[#BFBFBF]"
+              >
+                {retrieving ? "Retrieving..." : "Retrieve"}
+              </button>
+            ) : (
+              <button
+                type="submit"
+                disabled={reviewDisabled}
+                className="mt-5 h-10 w-full rounded-full bg-[#121212] px-5 text-sm font-medium text-white transition hover:bg-[#303030] disabled:cursor-not-allowed disabled:bg-[#BFBFBF]"
+              >
+                {saving ? "Returning..." : "Return reviewed homework"}
+              </button>
+            )}
+          </form>
+        </div>
+      </section>
+    </div>
+  );
 }
 
 export default function TeacherHomeworkPage() {
@@ -493,12 +918,19 @@ export default function TeacherHomeworkPage() {
   const [availableRecipients, setAvailableRecipients] = useState<HomeworkAvailableRecipient[]>([]);
   const [selectedRecipientIds, setSelectedRecipientIds] = useState<number[]>([]);
   const [attachmentFiles, setAttachmentFiles] = useState<File[]>([]);
+  const [queueFilter, setQueueFilter] = useState<HomeworkQueueFilter>("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [loadingCourses, setLoadingCourses] = useState(true);
   const [loadingAssignments, setLoadingAssignments] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isTestModalOpen, setIsTestModalOpen] = useState(false);
-  const [expandedAssignmentId, setExpandedAssignmentId] = useState<number | null>(null);
+  const [reviewSelectionAssignmentId, setReviewSelectionAssignmentId] = useState<number | null>(null);
+  const [reviewTarget, setReviewTarget] = useState<ReviewTarget | null>(null);
+  const [reviewScore, setReviewScore] = useState("");
+  const [reviewFeedback, setReviewFeedback] = useState("");
+  const [reviewSaving, setReviewSaving] = useState(false);
+  const [reviewRetrieving, setReviewRetrieving] = useState(false);
+  const [reviewError, setReviewError] = useState("");
   const [saving, setSaving] = useState(false);
   const [savingTest, setSavingTest] = useState(false);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
@@ -590,12 +1022,19 @@ export default function TeacherHomeworkPage() {
     };
   }, [form.courseSlug, isModalOpen]);
 
-  const visibleAssignments = useMemo(
+  const statusFilteredAssignments = useMemo(
     () =>
       assignments.filter(
         (assignment) => statusFilter === "all" || assignment.status === statusFilter,
       ),
     [assignments, statusFilter],
+  );
+  const visibleAssignments = useMemo(
+    () =>
+      statusFilteredAssignments.filter((assignment) =>
+        assignmentMatchesQueue(assignment, queueFilter),
+      ),
+    [queueFilter, statusFilteredAssignments],
   );
   const assignmentsByMonth = useMemo(() => {
     const result = new Map<string, HomeworkAssignment[]>();
@@ -658,10 +1097,48 @@ export default function TeacherHomeworkPage() {
         .find((test) => String(test.id) === form.testId) ?? null,
     [form.testId, modalModules],
   );
+  const reviewAssignment = useMemo(
+    () =>
+      reviewTarget
+        ? assignments.find((assignment) => assignment.id === reviewTarget.assignmentId) ?? null
+        : null,
+    [assignments, reviewTarget],
+  );
+  const reviewSubmission = useMemo(
+    () =>
+      reviewAssignment && reviewTarget
+        ? reviewAssignment.teacher_submissions.find(
+            (submission) => submission.id === reviewTarget.submissionId,
+          ) ?? null
+        : null,
+    [reviewAssignment, reviewTarget],
+  );
+  const reviewSelectionAssignment = useMemo(
+    () =>
+      reviewSelectionAssignmentId
+        ? assignments.find((assignment) => assignment.id === reviewSelectionAssignmentId) ?? null
+        : null,
+    [assignments, reviewSelectionAssignmentId],
+  );
+  const reviewSelectionSubmissions = useMemo(
+    () => (reviewSelectionAssignment ? reviewableSubmissions(reviewSelectionAssignment) : []),
+    [reviewSelectionAssignment],
+  );
   const isSaveDisabled =
     saving || !form.courseSlug || !form.moduleId || !form.lessonId || !form.title.trim() ||
     (!form.testId && !form.description.trim()) ||
     selectedRecipientIds.length === 0;
+
+  useEffect(() => {
+    if (!reviewSubmission) {
+      setReviewScore("");
+      setReviewFeedback("");
+      return;
+    }
+    setReviewScore(reviewSubmission.score != null ? String(reviewSubmission.score) : "");
+    setReviewFeedback(reviewSubmission.feedback ?? "");
+    setReviewError("");
+  }, [reviewSubmission]);
 
   function openModal() {
     setError("");
@@ -680,6 +1157,38 @@ export default function TeacherHomeworkPage() {
       setIsTestModalOpen(false);
       setIsModalOpen(false);
     }
+  }
+
+  function openReview(assignmentId: number, submissionId: number) {
+    setReviewTarget({ assignmentId, submissionId });
+    setReviewSelectionAssignmentId(null);
+    setSuccess("");
+    setReviewError("");
+  }
+
+  function openAssignmentReview(assignment: HomeworkAssignment) {
+    const submissions = reviewableSubmissions(assignment);
+    if (submissions.length === 0) {
+      setError("No submitted homework to review yet.");
+      return;
+    }
+    if (submissions.length > 1) {
+      setReviewSelectionAssignmentId(assignment.id);
+      setSuccess("");
+      setReviewError("");
+      return;
+    }
+    const submission = reviewSubmissionForAssignment(assignment);
+    if (!submission) return;
+    openReview(assignment.id, submission.id);
+  }
+
+  function closeReview() {
+    if (!reviewSaving && !reviewRetrieving) setReviewTarget(null);
+  }
+
+  function closeReviewSelection() {
+    if (!reviewSaving && !reviewRetrieving) setReviewSelectionAssignmentId(null);
   }
 
   function updateField(field: keyof FormState, value: string) {
@@ -834,6 +1343,92 @@ export default function TeacherHomeworkPage() {
     }
   }
 
+  async function handleRetrieveSubmission() {
+    if (!reviewAssignment || !reviewSubmission || reviewRetrieving) return;
+
+    setReviewRetrieving(true);
+    setReviewError("");
+    try {
+      const updated = await retrieveHomeworkSubmission(
+        reviewAssignment.course_slug,
+        reviewAssignment.id,
+        reviewSubmission.id,
+      );
+      setAssignments((current) =>
+        current.map((assignment) =>
+          assignment.id === reviewAssignment.id
+            ? {
+                ...assignment,
+                teacher_submissions: assignment.teacher_submissions.map((submission) =>
+                  submission.id === updated.id ? updated : submission,
+                ),
+              }
+            : assignment,
+        ),
+      );
+      setSuccess("Homework retrieved for editing.");
+    } catch (requestError) {
+      const apiError = requestError as Partial<ApiError>;
+      setReviewError(apiError.detail || apiError.message || "Could not retrieve homework.");
+    } finally {
+      setReviewRetrieving(false);
+    }
+  }
+
+  async function handleReturnSubmission(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!reviewAssignment || !reviewSubmission || reviewSaving) return;
+    if (reviewSubmission.status === "reviewed") {
+      setReviewError("Click Retrieve before editing this returned homework.");
+      return;
+    }
+
+    const score = Number(reviewScore);
+    if (!Number.isInteger(score) || score < 0) {
+      setReviewError("Score must be a whole number.");
+      return;
+    }
+    if (reviewAssignment.max_score != null && score > reviewAssignment.max_score) {
+      setReviewError("Score cannot exceed the assignment maximum.");
+      return;
+    }
+    const feedback = reviewFeedback.trim();
+    if (!feedback) {
+      setReviewError("Comment is required.");
+      return;
+    }
+
+    setReviewSaving(true);
+    setReviewError("");
+    try {
+      const updated = await reviewHomeworkSubmission(
+        reviewAssignment.course_slug,
+        reviewAssignment.id,
+        reviewSubmission.id,
+        { score, feedback },
+      );
+      setAssignments((current) =>
+        current.map((assignment) =>
+          assignment.id === reviewAssignment.id
+            ? {
+                ...assignment,
+                teacher_submissions: assignment.teacher_submissions.map((submission) =>
+                  submission.id === updated.id ? updated : submission,
+                ),
+              }
+            : assignment,
+        ),
+      );
+      setSuccess("Homework returned to the student.");
+      setReviewTarget(null);
+    } catch (requestError) {
+      const apiError = requestError as Partial<ApiError>;
+      setReviewError(apiError.detail || apiError.message || "Could not return homework.");
+    } finally {
+      setReviewSaving(false);
+    }
+  }
+
   return (
     <main className="relative isolate min-h-[calc(100vh-76px)] overflow-hidden bg-white px-4 py-7 sm:px-8 lg:px-11">
       <div
@@ -841,17 +1436,48 @@ export default function TeacherHomeworkPage() {
         className="pointer-events-none absolute top-[-257px] left-[113px] z-0 h-[1002px] w-[1368px] rotate-[-33.8deg] bg-[#FCC4C3] opacity-50 blur-[300px]"
       />
       <section className="relative z-10 w-full max-w-[1710px] font-(family-name:--font-base)">
-        <div className="flex flex-wrap items-center gap-3">
-          <h1 className="mr-2 text-[28px] leading-none font-normal text-[#121212]">Homework</h1>
-          <span className="inline-flex h-10 items-center rounded-full border border-[#ECECEC] bg-white px-5 text-[20px] leading-none font-normal text-[#121212] shadow-[0_0_4px_rgba(0,0,0,0.06)]">
-            All Task Types
-          </span>
+        <div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-4">
+          <h1 className="sr-only">Homework</h1>
+          <nav aria-label="Homework queues" className="flex flex-wrap items-center gap-[50px]">
+            {HOMEWORK_QUEUE_TABS.map((tab) => {
+              const active = queueFilter === tab.value;
+              return (
+                <button
+                  key={tab.value}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => setQueueFilter(tab.value)}
+                  className={`inline-flex h-[30px] items-center text-[20px] leading-none transition ${
+                    active
+                      ? "font-medium text-[#121212]"
+                      : "font-normal text-[#121212] hover:text-[#003AFF]"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </nav>
+          <button
+            type="button"
+            onClick={openModal}
+            disabled={loadingCourses || courses.length === 0}
+            className="inline-flex h-[52px] w-[240px] shrink-0 items-center justify-center gap-2.5 rounded-[28px] bg-[linear-gradient(90deg,#A7BAFA_0%,#FCC4C3_55%,#FFF4DA_100%)] px-7 py-2.5 font-(family-name:--font-accent) text-[20px] leading-[30px] font-medium text-[#121212] uppercase transition hover:brightness-[0.98] focus:outline-none focus:ring-2 focus:ring-[#9DB1FA] disabled:cursor-not-allowed disabled:grayscale disabled:opacity-60"
+          >
+            <span className="whitespace-nowrap">Add homework</span>
+            <Image
+              src="/icons/cross.svg"
+              alt=""
+              width={21}
+              height={21}
+              aria-hidden="true"
+              className="h-[21px] w-[21px] shrink-0"
+            />
+          </button>
+        </div>
 
-        <div className="contents">
-          <span className="hidden">
-            All task types
-          </span>
-          <div className="w-[min(100%,280px)]">
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <div className="w-[min(100%,116px)]">
             <HomeworkSelect
               value={selectedCourseSlug}
               options={courses.map((course) => ({ value: course.slug, label: course.title }))}
@@ -861,7 +1487,7 @@ export default function TeacherHomeworkPage() {
               onChange={setSelectedCourseSlug}
             />
           </div>
-          <div className="w-[190px]">
+          <div className="w-[86px]">
             <HomeworkSelect
               value={statusFilter}
               options={[
@@ -881,19 +1507,12 @@ export default function TeacherHomeworkPage() {
           <span className="hidden">
             Student — soon
           </span>
-          <span className="inline-flex h-10 items-center rounded-full border border-[#ECECEC] bg-white px-5 text-[20px] leading-none font-normal text-[#121212] shadow-[0_0_4px_rgba(0,0,0,0.06)]">
-            Total Assignments: {visibleAssignments.length}
+          <span className="inline-flex h-[30px] items-center rounded-full border border-[#ECECEC] bg-white px-4 text-[14px] leading-none font-normal text-[#121212] shadow-[0_0_4px_rgba(0,0,0,0.06)]">
+            Total Assignments:
           </span>
-          <button
-            type="button"
-            onClick={openModal}
-            disabled={loadingCourses || courses.length === 0}
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[#D6E0FF] px-5 font-(family-name:--font-accent) text-[13px] font-medium uppercase tracking-wide text-[#121212] transition hover:bg-[#C4D1FF] disabled:cursor-not-allowed disabled:bg-[#E8E8E8] disabled:text-[#8B8B8B]"
-          >
-            Add homework
-            <Plus size={16} strokeWidth={2.5} aria-hidden="true" />
-          </button>
-        </div>
+          <span className="inline-flex h-[30px] min-w-[30px] items-center justify-center rounded-full border border-[#ECECEC] bg-white px-2 text-[14px] leading-none font-normal text-[#121212] shadow-[0_0_4px_rgba(0,0,0,0.06)]">
+            {visibleAssignments.length}
+          </span>
         </div>
 
         {error && !isModalOpen ? (
@@ -925,131 +1544,12 @@ export default function TeacherHomeworkPage() {
                   <h2 className="mb-6 text-[28px] leading-none font-normal text-[#121212]">{month}</h2>
                   <div className="grid gap-x-5 gap-y-6 2xl:grid-cols-[minmax(0,722px)_minmax(0,722px)]">
                     {items.map((assignment) => {
-                      const expanded = expandedAssignmentId === assignment.id;
-                      const returnedAt = latestReviewedAt(assignment);
-
                       return (
                         <article key={assignment.id} className="w-full max-w-[722px]">
                           <TeacherHomeworkCard
                             assignment={assignment}
-                            expanded={expanded}
-                            onToggle={() => setExpandedAssignmentId((current) => (
-                              current === assignment.id ? null : assignment.id
-                            ))}
+                            onOpenReview={() => openAssignmentReview(assignment)}
                           />
-                          {expanded ? (
-                            <div className="mt-2 rounded-lg border border-[#ECECEC] bg-white/95 p-4 shadow-[0_0_4px_rgba(0,0,0,0.08)]">
-                              <div className="grid gap-4 text-sm text-[#3E3E3E] md:grid-cols-2">
-                                <div>
-                                  <p className="font-medium text-[#121212]">Sent to</p>
-                                  <p className="mt-1 text-[#5E5E5E]">{recipientsLabel(assignment)}</p>
-                                </div>
-                                <div>
-                                  <p className="font-medium text-[#121212]">Dates</p>
-                                  <p className="mt-1 text-[#5E5E5E]">
-                                    Sent: {assignment.published_at ? deadlineLabel(assignment.published_at) : "Not sent yet"}
-                                  </p>
-                                  {returnedAt ? (
-                                    <p className="mt-1 text-[#5E5E5E]">Returned: {deadlineLabel(returnedAt)}</p>
-                                  ) : null}
-                                  <p className="mt-1 text-[#5E5E5E]">Due: {deadlineLabel(assignment.due_at)}</p>
-                                </div>
-                              </div>
-
-                              {assignment.module_title || assignment.lesson_title ? (
-                                <p className="mt-4 text-sm text-[#5E5E5E]">
-                                  {[assignment.module_title, assignment.lesson_title].filter(Boolean).join(" / ")}
-                                </p>
-                              ) : null}
-                              {assignment.description ? (
-                                <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-[#333]">
-                                  {assignment.description}
-                                </p>
-                              ) : null}
-
-                              <div className="mt-4 flex flex-wrap gap-2 text-[12px]">
-                                <span className="rounded bg-[#F5F5F5] px-2 py-1 text-[#5E5E5E]">
-                                  {assignment.status}
-                                </span>
-                                {assignment.test_detail ? (
-                                  <span className="rounded bg-[#EEF4FF] px-2 py-1 text-[#3851B0]">
-                                    Test: {assignment.test_detail.title}
-                                  </span>
-                                ) : null}
-                                {assignment.max_score ? (
-                                  <span className="rounded bg-[#FFF0D0] px-2 py-1 text-[#9A6500]">
-                                    {assignment.max_score} pt
-                                  </span>
-                                ) : null}
-                                {assignment.source_assignment ? (
-                                  <span className="inline-flex items-center gap-1 rounded bg-[#F6F3EE] px-2 py-1 text-[#6A5B43]">
-                                    <Copy size={11} aria-hidden="true" />
-                                    Reused
-                                  </span>
-                                ) : null}
-                              </div>
-
-                              {assignment.attachments.length > 0 ? (
-                                <div className="mt-4 flex flex-wrap gap-2 text-[12px]">
-                                  {assignment.attachments.map((attachment) => (
-                                    attachment.url ? (
-                                      <a
-                                        key={attachment.id}
-                                        href={attachment.url}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className="rounded bg-[#F0F3FF] px-3 py-2 text-[#3851B0] hover:underline"
-                                      >
-                                        {attachment.original_name}
-                                      </a>
-                                    ) : null
-                                  ))}
-                                </div>
-                              ) : null}
-
-                              {assignment.teacher_submissions.length > 0 ? (
-                                <div className="mt-5 border-t border-[#EEEAE4] pt-3 text-[12px] text-[#3E3E3E]">
-                                  <p className="font-medium text-[#121212]">Student answers</p>
-                                  <div className="mt-2 space-y-2">
-                                    {assignment.teacher_submissions.map((submission) => (
-                                      <div key={submission.id} className="rounded-md bg-[#F7F7F7] px-3 py-2">
-                                        <div className="flex flex-wrap items-center justify-between gap-2">
-                                          <p className="min-w-0 truncate font-medium text-[#121212]">
-                                            {submission.student_name || submission.student_email}
-                                          </p>
-                                          <span className="shrink-0 text-[#5E5E5E]">
-                                            {submission.status === "reviewed" && submission.reviewed_at
-                                              ? `Returned: ${deadlineLabel(submission.reviewed_at)}`
-                                              : `Submitted: ${deadlineLabel(submission.submitted_at)}`}
-                                          </span>
-                                        </div>
-                                        {submission.content ? (
-                                          <p className="mt-1 line-clamp-2 text-[#3E3E3E]">{submission.content}</p>
-                                        ) : null}
-                                        {submission.attachments.length > 0 ? (
-                                          <div className="mt-2 flex flex-wrap gap-2">
-                                            {submission.attachments.map((attachment) => (
-                                              attachment.url ? (
-                                                <a
-                                                  key={attachment.id}
-                                                  href={attachment.url}
-                                                  target="_blank"
-                                                  rel="noreferrer"
-                                                  className="text-[#3851B0] hover:underline"
-                                                >
-                                                  {attachment.original_name}
-                                                </a>
-                                              ) : null
-                                            ))}
-                                          </div>
-                                        ) : null}
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              ) : null}
-                            </div>
-                          ) : null}
                         </article>
                       );
                     })}
@@ -1060,6 +1560,32 @@ export default function TeacherHomeworkPage() {
           )}
         </div>
       </section>
+
+      {reviewAssignment && reviewSubmission ? (
+        <HomeworkReviewDialog
+          assignment={reviewAssignment}
+          submission={reviewSubmission}
+          score={reviewScore}
+          feedback={reviewFeedback}
+          saving={reviewSaving}
+          retrieving={reviewRetrieving}
+          error={reviewError}
+          onScoreChange={setReviewScore}
+          onFeedbackChange={setReviewFeedback}
+          onClose={closeReview}
+          onRetrieve={handleRetrieveSubmission}
+          onReturn={handleReturnSubmission}
+        />
+      ) : null}
+
+      {reviewSelectionAssignment && reviewSelectionSubmissions.length > 1 ? (
+        <HomeworkSubmissionPickerDialog
+          assignment={reviewSelectionAssignment}
+          submissions={reviewSelectionSubmissions}
+          onSelect={(submissionId) => openReview(reviewSelectionAssignment.id, submissionId)}
+          onClose={closeReviewSelection}
+        />
+      ) : null}
 
       {isModalOpen ? (
         <div

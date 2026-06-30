@@ -54,16 +54,20 @@ export type SnapshotTest = {
   description: string;
   passing_score: number;
   order: number;
+  allow_retakes?: boolean;
+  max_attempts?: number | null;
   questions: SnapshotQuestion[];
 };
 
 export type SnapshotQuestion = {
   id: number | null;
-  question_type: "multiple_choice" | "true_false" | "short_answer";
+  question_type: "single_choice" | "multiple_choice" | "true_false" | "short_answer";
   text: string;
   options: string[];
-  correct_index: number | null;
+  correct_indices: number[] | null;
+  exact_set_match?: boolean;
   correct_bool: boolean | null;
   sample_answer: string;
+  accepted_answers?: string[] | null;
   order: number;
 };

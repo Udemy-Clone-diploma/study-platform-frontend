@@ -1,6 +1,12 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
+import {
+  HomeworkQueuePanel,
+  HomeworkReviewPanel,
+  StudentHomeworkProvider,
+} from "./StudentHomeworkDashboardPanels";
 import { MyCoursesDashboardWidget } from "./MyCoursesDashboardWidget";
+import { StudentNotesPanel } from "./StudentNotesPanel";
 
 type DashboardRole = "student" | "teacher";
 
@@ -21,87 +27,6 @@ type ProgressItem = {
   accent: string;
   value: number;
 };
-
-const studentTasks: DashboardListItem[] = [
-  {
-    course: "UX/UI Design",
-    meta: "Task",
-    title: "Landing",
-    icon: "/icons/world.png",
-    accent: "from-[#fff0df] to-[#ffeab2]",
-    date: "20.04",
-    badge: "5+",
-  },
-  {
-    course: "Marketing",
-    meta: "Test",
-    title: "Research",
-    icon: "/icons/statistics.svg",
-    accent: "from-[#dbe4ff] to-[#a7bafa]",
-    date: "23.04",
-    badge: "4+",
-  },
-  {
-    course: "Business analytics",
-    meta: "Task",
-    title: "Risk analysis",
-    icon: "/icons/curses.svg",
-    accent: "from-[#fff0df] to-[#ffeab2]",
-    date: "30.04",
-    badge: "5+",
-  },
-  {
-    course: "UX research",
-    meta: "Workshop",
-    title: "Persona notes",
-    icon: "/icons/diary.svg",
-    accent: "from-[#e7f7ff] to-[#d7ddff]",
-    date: "02.05",
-  },
-];
-
-const studentNotes: DashboardListItem[] = [
-  {
-    course: "UX/UI Design",
-    meta: "Lesson 4",
-    title: "Landing",
-    icon: "/icons/world.png",
-    accent: "from-[#fff3dc] to-[#ffe7ef]",
-    date: "20.04",
-  },
-  {
-    course: "Marketing",
-    meta: "Lesson 3",
-    title: "Research",
-    icon: "/icons/statistics.svg",
-    accent: "from-[#ffe7ef] to-[#dfd7ff]",
-    date: "19.04",
-  },
-  {
-    course: "Business analytics",
-    meta: "Lesson 1",
-    title: "Risk analysis",
-    icon: "/icons/curses.svg",
-    accent: "from-[#e0fbf5] to-[#d8ddff]",
-    date: "17.04",
-  },
-  {
-    course: "Marketing",
-    meta: "Lesson 2",
-    title: "Competitor Analysis",
-    icon: "/icons/pie chart.png",
-    accent: "from-[#ffe7ef] to-[#dfd7ff]",
-    date: "15.04",
-  },
-  {
-    course: "UX/UI Design",
-    meta: "Lesson 4",
-    title: "Design critique",
-    icon: "/icons/world.png",
-    accent: "from-[#fff3dc] to-[#ffe7ef]",
-    date: "12.04",
-  },
-];
 
 const teacherChecks: DashboardListItem[] = [
   {
@@ -190,33 +115,35 @@ export function DashboardOverview({ role }: { role: DashboardRole }) {
 function StudentDashboard() {
   return (
     <section className="min-h-[calc(100vh-76px)] bg-white">
-      <div
-        className="grid min-h-[calc(100vh-76px)]"
-        style={{ gridTemplateColumns: "1fr clamp(200px, 17.19vw, 330px)" }}
-      >
+      <StudentHomeworkProvider>
         <div
-          className="grid"
-          style={{
-            gridTemplateColumns: "clamp(400px, 42.71vw, 820px) clamp(280px, 24.48vw, 470px)",
-            gap: "clamp(12px, 1.25vw, 24px)",
-            paddingInline: "clamp(16px, 2.08vw, 40px)",
-            paddingBlock: "clamp(16px, 1.67vw, 32px)",
-          }}
+          className="grid min-h-[calc(100vh-76px)]"
+          style={{ gridTemplateColumns: "1fr clamp(200px, 17.19vw, 330px)" }}
         >
-          <div className="flex min-w-0 flex-col" style={{ gap: "clamp(12px, 1.04vw, 20px)" }}>
-            <MyCoursesDashboardWidget role="student" />
-            <GrowthCard score="4.9" />
-            <TodoPanel title="To Do" secondaryLabel="Overdue" items={studentTasks.slice(0, 3)} />
+          <div
+            className="grid"
+            style={{
+              gridTemplateColumns: "clamp(400px, 42.71vw, 820px) clamp(280px, 24.48vw, 470px)",
+              gap: "clamp(12px, 1.25vw, 24px)",
+              paddingInline: "clamp(16px, 2.08vw, 40px)",
+              paddingBlock: "clamp(16px, 1.67vw, 32px)",
+            }}
+          >
+            <div className="flex min-w-0 flex-col" style={{ gap: "clamp(12px, 1.04vw, 20px)" }}>
+              <MyCoursesDashboardWidget role="student" />
+              <GrowthCard score="4.9" />
+              <HomeworkQueuePanel />
+            </div>
+
+            <div className="flex min-w-0 flex-col" style={{ gap: "clamp(12px, 1.04vw, 20px)" }}>
+              <HomeworkReviewPanel />
+              <StudentNotesPanel />
+            </div>
           </div>
 
-          <div className="flex min-w-0 flex-col" style={{ gap: "clamp(12px, 1.04vw, 20px)" }}>
-            <CompactTaskPanel items={studentTasks} />
-            <NotesPanel items={studentNotes} />
-          </div>
+          <ScheduleRail />
         </div>
-
-        <ScheduleRail />
-      </div>
+      </StudentHomeworkProvider>
     </section>
   );
 }
@@ -311,31 +238,6 @@ function GrowthCard({ score }: { score: string }) {
           ))}
         </svg>
       </div>
-    </Card>
-  );
-}
-
-function CompactTaskPanel({ items }: { items: DashboardListItem[] }) {
-  return (
-    <Card className="max-h-[300px] overflow-hidden p-4">
-      <ScrollableList>
-        {items.map((item) => (
-          <ListRow key={`${item.title}-${item.date}`} item={item} compact />
-        ))}
-      </ScrollableList>
-    </Card>
-  );
-}
-
-function NotesPanel({ items }: { items: DashboardListItem[] }) {
-  return (
-    <Card className="max-h-[300px] overflow-hidden p-4">
-      <h2 className="mb-2 text-base font-bold text-black">My Notes</h2>
-      <ScrollableList>
-        {items.map((item) => (
-          <ListRow key={`${item.title}-${item.date}`} item={item} compact />
-        ))}
-      </ScrollableList>
     </Card>
   );
 }

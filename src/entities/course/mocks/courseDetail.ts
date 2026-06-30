@@ -1,3 +1,5 @@
+import type { CourseLesson, CourseTest, LessonDocument, LessonItem } from "../model/module";
+import type { CourseProgress } from "../model/progress";
 import type { CourseReview } from "../model/review";
 import type { CourseDetail } from "../model/types";
 
@@ -39,13 +41,15 @@ export const mockCourseDetail: CourseDetail = {
   delivery_type: "scheduled",
   course_type: "profession",
   duration_hours: 64,
+  total_duration_minutes: 64 * 60,
   lessons_count: 10,
   with_certificate: true,
   is_on_sale: false,
   rating_avg: "4.9",
   rating_count: 1850,
   students_count: 1850,
-  is_enrolled: false,
+  is_enrolled: true,
+  group_chat_url: "https://t.me/ux-ui-design-mastery",
   status: "published",
   published_at: "2026-01-10T00:00:00Z",
   enrolled_at: null,
@@ -67,7 +71,6 @@ export const mockCourseDetail: CourseDetail = {
   moderator_id: null,
   moderator_comment: "",
   moderation_review: null,
-  total_duration_minutes: 3840,
   delivery_formats: [
     {
       id: 1,
@@ -115,6 +118,8 @@ export const mockCourseDetail: CourseDetail = {
       name: "Group A",
       duration_months: 4,
       hours_per_week: 3,
+      hours_per_week_min: 3,
+      hours_per_week_max: 6,
       group_size: 12,
       start_date: "2026-01-15",
       enrollment_deadline: "2026-01-08",
@@ -265,3 +270,193 @@ export const mockCourseReviews: CourseReview[] = [
     created_at: "2026-01-22T10:00:00Z",
   },
 ];
+
+/**
+ * Dev-mode progress snapshot for `MOCK_COURSE_DETAIL_SLUG`. The first 3 lessons
+ * are "completed"; the last opened lesson is #4 (Information Architecture).
+ */
+export const mockCourseProgress: CourseProgress = {
+  enrollment_id: 9999,
+  lessons_completed_count: 3,
+  lessons_count: 10,
+  completed_lesson_ids: [1, 2, 3],
+  last_lesson_id: 4,
+  last_opened_at: "2026-05-29T12:30:00Z",
+};
+
+const SAMPLE_BODY_HTML = `
+  <p>This lesson walks through the foundations of the topic. Read through the material,
+  watch the embedded video for a worked example, and download the worksheet at the bottom
+  to practise on your own before the next live session.</p>
+  <h3>What you will learn</h3>
+  <ul>
+    <li>Frame the problem from a user's perspective.</li>
+    <li>Run a 30-minute interview that yields specific, actionable insights.</li>
+    <li>Translate raw notes into an empathy map your team can rally around.</li>
+  </ul>
+  <p>Use the worksheet to record your observations as you work through the exercise.</p>
+`;
+
+const SAMPLE_BODY_HTML_2 = `
+  <p>This is a second reading block. A lesson is an ordered list of content
+  blocks, so it can stack several readings and videos; the player gathers all
+  readings into this tab and all videos into the Video tab.</p>
+  <ul>
+    <li>Synthesize raw interview notes into recurring themes.</li>
+    <li>Prioritize problems by impact and frequency.</li>
+    <li>Turn the findings into a single, sharp problem statement.</li>
+  </ul>
+`;
+
+const SAMPLE_VIDEO_INTRO =
+  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+const SAMPLE_VIDEO_DEMO =
+  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4";
+
+const SAMPLE_DOCUMENTS: LessonDocument[] = [
+  {
+    id: 1,
+    original_name: "Lesson worksheet.pdf",
+    url: "https://example.com/worksheet.pdf",
+    created_at: "2026-01-10T00:00:00Z",
+  },
+  {
+    id: 2,
+    original_name: "Slides.pdf",
+    url: "https://example.com/slides.pdf",
+    created_at: "2026-01-10T00:00:00Z",
+  },
+];
+
+/** Sample quiz block; lesson items of type "test" carry one of these. */
+const SAMPLE_TEST: CourseTest = {
+  id: 900,
+  title: "Module checkpoint",
+  description: "A short quiz to confirm the key ideas before moving on.",
+  passing_score: 75,
+  order: 1,
+  allow_retakes: true,
+  max_attempts: null,
+  questions: [
+    {
+      id: 9001,
+      question_type: "single_choice",
+      text: "What is the goal of an empathy map?",
+      options: [
+        "Pick brand colors",
+        "Capture what a user says, thinks, does, and feels",
+        "Write production code",
+        "Estimate engineering effort",
+      ],
+      correct_indices: [1],
+      correct_bool: null,
+      sample_answer: "",
+      order: 1,
+    },
+    {
+      id: 9002,
+      question_type: "multiple_choice",
+      text: "Which of the following are qualitative research methods? (select all that apply)",
+      options: [
+        "User interviews",
+        "A/B testing",
+        "Contextual inquiry",
+        "Server log analysis",
+      ],
+      correct_indices: [0, 2],
+      exact_set_match: true,
+      correct_bool: null,
+      sample_answer: "",
+      order: 2,
+    },
+    {
+      id: 9003,
+      question_type: "true_false",
+      text: "User interviews should lead with yes/no questions.",
+      options: [],
+      correct_bool: false,
+      sample_answer: "",
+      order: 3,
+    },
+    {
+      id: 9004,
+      question_type: "short_answer",
+      text: "What Figma feature lets you reuse styles and components across files?",
+      options: [],
+      correct_bool: null,
+      sample_answer: "Libraries",
+      accepted_answers: ["Library", "Team library"],
+      order: 4,
+    },
+  ],
+};
+
+/**
+ * Dev-mode content blocks for a lesson. A lesson is an ordered list of typed
+ * items (text / video / test); the player groups every video item under the
+ * Video tab and every text item under Reading. Test items render as an
+ * interactive quiz. A few lessons get distinct shapes so the block model is easy
+ * to see:
+ *   2  -> video, reading, video, reading (a rich multi-block lesson)
+ *   3  -> video, reading, and a test block
+ *   4  -> reading only
+ *   8  -> video only
+ *   otherwise -> one video + one reading
+ */
+function buildLessonItems(lessonId: number): LessonItem[] {
+  const video = (order: number, url: string, name: string): LessonItem => ({
+    id: lessonId * 100 + order,
+    item_type: "video",
+    order,
+    video_url: url,
+    original_video_name: name,
+  });
+  const reading = (order: number, html: string): LessonItem => ({
+    id: lessonId * 100 + order,
+    item_type: "text",
+    order,
+    body_html: html,
+  });
+
+  switch (lessonId) {
+    case 2:
+      return [
+        video(1, SAMPLE_VIDEO_INTRO, "Interview walkthrough.mp4"),
+        reading(2, SAMPLE_BODY_HTML),
+        video(3, SAMPLE_VIDEO_DEMO, "Empathy map demo.mp4"),
+        reading(4, SAMPLE_BODY_HTML_2),
+      ];
+    case 3:
+      return [
+        video(1, SAMPLE_VIDEO_INTRO, "Journey mapping.mp4"),
+        reading(2, SAMPLE_BODY_HTML),
+        { id: 303, item_type: "test", order: 3, test: SAMPLE_TEST },
+      ];
+    case 4:
+      return [reading(1, SAMPLE_BODY_HTML_2)];
+    case 8:
+      return [video(1, SAMPLE_VIDEO_INTRO, "Dark mode tokens.mp4")];
+    default:
+      return [video(1, SAMPLE_VIDEO_INTRO, "Lesson video.mp4"), reading(2, SAMPLE_BODY_HTML)];
+  }
+}
+
+/** Lessons that ship downloadable materials (others render no Materials list). */
+const LESSONS_WITH_DOCUMENTS = new Set([1, 2, 3]);
+
+/** Dev-mode lesson detail map keyed by lesson id (matches `mockCourseDetail.modules[].lessons[].id`). */
+export const mockLessonDetails: Record<number, CourseLesson> = {};
+for (const mod of mockCourseDetail.modules) {
+  for (const lesson of mod.lessons) {
+    mockLessonDetails[lesson.id] = {
+      id: lesson.id,
+      title: lesson.title,
+      order: lesson.order,
+      duration_minutes: lesson.duration_minutes,
+      is_preview: lesson.is_preview,
+      documents: LESSONS_WITH_DOCUMENTS.has(lesson.id) ? SAMPLE_DOCUMENTS : [],
+      meeting_url: lesson.is_preview ? null : "https://meet.google.com/abc-defg-hij",
+      items: buildLessonItems(lesson.id),
+    };
+  }
+}

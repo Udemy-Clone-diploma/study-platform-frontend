@@ -36,8 +36,8 @@ export function CourseHeroCTA({ courseId, slug, isEnrolled, defaultPricingPlan }
 
   if (enrolled) {
     return (
-      <AccentButton size="md" style={buttonStyle} onClick={() => router.push(`/courses/${slug}`)}>
-        Go to course
+      <AccentButton size="md" style={buttonStyle} href={`/learn/${slug}`}>
+        Continue learning
       </AccentButton>
     );
   }

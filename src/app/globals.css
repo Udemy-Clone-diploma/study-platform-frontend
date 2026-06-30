@@ -18,6 +18,18 @@
   --color-bg: #ffffff;
   --color-text-primary: #121212;
   --color-text-secondary: #5e5e5e;
+  --gradient-sidebar-item-expanded: linear-gradient(
+    90deg,
+    #FFF4DA 0%,
+    #FCC4C3 49%,
+    rgb(167 186 250 / 0) 100%
+  );
+  --gradient-sidebar-item-collapsed: linear-gradient(
+    90deg,
+    #FFF4DA 0%,
+    #FCC4C3 49%,
+    #FCC4C3 100%
+  );
 
   --color-calendar-bg: #d6e0ff;
   --color-calendar-today: #a7bafa;
@@ -63,6 +75,11 @@
   --color-catalog-category-active: rgba(167, 186, 250, 0.6);
   --color-catalog-placeholder: #bfbfbf;
 
+  /* ── Quiz / test review tokens ── */
+  --color-quiz-correct: #29d99a;
+  --color-quiz-correct-soft: #4bd37b;
+  --color-quiz-card-bg: rgba(255, 255, 255, 0.47);
+
   /* ── Gradients ── */
   --gradient-blob: radial-gradient(
     50% 50% at 50% 50%,
@@ -106,6 +123,19 @@
     var(--color-brand-lavender) 0%,
     var(--color-brand-pink) 50.96%,
     var(--color-brand-cream) 100%
+  );
+
+  --gradient-sidebar-item-expanded: linear-gradient(
+    90deg,
+    #FFF4DA 0%,
+    #FCC4C3 49%,
+    rgb(167 186 250 / 0) 100%
+  );
+  --gradient-sidebar-item-collapsed: linear-gradient(
+    90deg,
+    #FFF4DA 0%,
+    #FCC4C3 49%,
+    #FCC4C3 100%
   );
 
   --gradient-feedback: linear-gradient(
@@ -199,6 +229,7 @@
   --shadow-lavander-soft: rgba(167, 186, 250, 0.72);
   --shadow-sort-dropdown: 0px 0px 5.2px rgba(54, 54, 54, 0.25);
   --shadow-my-courses-card: 0px 0px 30px rgba(0, 0, 0, 0.16);
+  --shadow-quiz-card: 0px 0px 24.5px rgba(167, 186, 250, 0.5), inset 0px 2px 4px #ffffff;
 }
 
 /* Fonts reference next/font runtime vars — @theme inline passes values through as-is */
@@ -224,6 +255,16 @@ body {
 }
 .dropdown-link:hover {
   color: var(--color-blue);
+}
+
+.sidebar-nav-gradient-expanded:hover,
+.sidebar-nav-gradient-expanded[aria-current="page"] {
+  background-image: var(--gradient-sidebar-item-expanded);
+}
+
+.sidebar-nav-gradient-collapsed:hover,
+.sidebar-nav-gradient-collapsed[aria-current="page"] {
+  background-image: var(--gradient-sidebar-item-collapsed);
 }
 
 .gradient-border {

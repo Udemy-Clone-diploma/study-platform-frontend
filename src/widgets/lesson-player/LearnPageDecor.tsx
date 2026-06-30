@@ -7,7 +7,18 @@ export function LearnPageDecor({ showPlanet = true }: { showPlanet?: boolean }) 
       <DecorBackground />
       <DecorBlob />
       {showPlanet && <DecorPlanet />}
+      <DecorBottomFade />
     </>
+  );
+}
+
+/** Bottom-anchored white fade; pins to the section bottom so the decor blends into white at any content height. */
+function DecorBottomFade() {
+  return (
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-72 bg-gradient-to-b from-transparent to-white"
+    />
   );
 }
 

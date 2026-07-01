@@ -18,7 +18,7 @@ export function AppShell({ children, sidebarItems }: AppShellProps) {
 
         <AppSidebar items={sidebarItems} />
 
-        <div className="flex min-w-0 flex-1 flex-col overflow-y-auto">
+        <div className="flex min-w-0 flex-1 flex-col overflow-y-auto overflow-x-hidden">
           <main className="flex-1">
             {children}
           </main>

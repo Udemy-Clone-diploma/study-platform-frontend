@@ -101,8 +101,9 @@ export async function uploadPendingEditIcon(slug: string, iconSrc: string, iconN
     const res = await fetch(iconSrc);
     if (!res.ok) return;
     const blob = await res.blob();
+    const extension = iconSrc.split(".").pop() || "png";
     const formData = new FormData();
-    formData.append("image", new File([blob], `${iconName}-pic.png`, { type: "image/png" }));
+    formData.append("image", new File([blob], `${iconName}-pic.${extension}`, { type: blob.type }));
     await api.put<CoursePendingEdit>(base(slug), formData);
   } catch { /* best-effort */ }
 }

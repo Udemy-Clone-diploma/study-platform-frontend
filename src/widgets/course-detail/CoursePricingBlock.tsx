@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { BookOpen, Check, ChevronDown, Clock, User, Users } from "lucide-react";
-// ChevronDown used inside CohortPicker and IndividualSlotPreview collapsible headers
+// ChevronDown used inside CohortPicker and IndividualSlotPicker collapsible headers
 import { addCartItem } from "@/entities/cart";
 import type { CourseCohort } from "@/entities/course/model/cohort";
 import type { CourseDeliveryFormat, DeliveryFormatType } from "@/entities/course";
@@ -148,8 +148,21 @@ function CohortPicker({
   );
 }
 
-/** Shows available time slots for an individual-format course, grouped by day. Starts collapsed. */
-function IndividualSlotPreview({ slug, formatId }: { slug: string; formatId: number }) {
+const MIN_INDIVIDUAL_SLOTS = 2;
+const MAX_INDIVIDUAL_SLOTS = 3;
+
+/** Lets the student pick 2-3 of the teacher's available weekly slots for an individual-format course. */
+function IndividualSlotPicker({
+  slug,
+  formatId,
+  selected,
+  onChange,
+}: {
+  slug: string;
+  formatId: number;
+  selected: number[];
+  onChange: (ids: number[]) => void;
+}) {
   const [slots, setSlots] = useState<ScheduleSlot[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
@@ -186,6 +199,15 @@ function IndividualSlotPreview({ slug, formatId }: { slug: string; formatId: num
     );
   }
 
+  function toggle(id: number) {
+    if (selected.includes(id)) {
+      onChange(selected.filter(s => s !== id));
+      return;
+    }
+    if (selected.length >= MAX_INDIVIDUAL_SLOTS) return;
+    onChange([...selected, id]);
+  }
+
   return (
     <div className="flex flex-col gap-3 w-full">
       <button
@@ -203,23 +225,44 @@ function IndividualSlotPreview({ slug, formatId }: { slug: string; formatId: num
         />
       </button>
 
-      {open && days.map(d => (
-        <div key={d} className="flex flex-col gap-1.5">
-          <span className="text-xs font-semibold text-(--color-text-secondary) uppercase tracking-wide">
-            {DAY_LABELS[d as keyof typeof DAY_LABELS]}
-          </span>
-          <div className="flex flex-wrap gap-1.5">
-            {byDay[d].map(s => (
-              <span
-                key={s.id}
-                className="rounded-full border border-(--color-border-light) bg-(--color-bg) px-3 py-1 text-xs font-(family-name:--font-base) text-(--color-text-primary)"
-              >
-                {s.start_time.slice(0, 5)}–{s.end_time.slice(0, 5)}
+      {open && (
+        <>
+          <p className="text-xs text-(--color-text-secondary)">
+            Pick {MIN_INDIVIDUAL_SLOTS}–{MAX_INDIVIDUAL_SLOTS} weekly sessions ({selected.length}/{MAX_INDIVIDUAL_SLOTS} selected)
+          </p>
+          {days.map(d => (
+            <div key={d} className="flex flex-col gap-1.5">
+              <span className="text-xs font-semibold text-(--color-text-secondary) uppercase tracking-wide">
+                {DAY_LABELS[d as keyof typeof DAY_LABELS]}
               </span>
-            ))}
-          </div>
-        </div>
-      ))}
+              <div className="flex flex-wrap gap-1.5">
+                {byDay[d].map(s => {
+                  const isSelected = selected.includes(s.id);
+                  const disabled = !isSelected && selected.length >= MAX_INDIVIDUAL_SLOTS;
+                  return (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => toggle(s.id)}
+                      disabled={disabled}
+                      className="rounded-full border px-3 py-1 text-xs font-(family-name:--font-base) transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+                      style={{
+                        borderColor: isSelected ? "var(--color-blue)" : "var(--color-border-light)",
+                        background: isSelected
+                          ? "color-mix(in srgb, var(--color-blue) 12%, transparent)"
+                          : "var(--color-bg)",
+                        color: isSelected ? "var(--color-blue)" : "var(--color-text-primary)",
+                      }}
+                    >
+                      {s.start_time.slice(0, 5)}–{s.end_time.slice(0, 5)}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </>
+      )}
     </div>
   );
 }
@@ -231,6 +274,7 @@ export function CoursePricingBlock({ courseId, formats, slug, cohorts = [] }: Pr
   const [cardNotices, setCardNotices] = useState<Record<number, string>>({});
   const [cohortPickerOpen, setCohortPickerOpen] = useState<Record<number, boolean>>({});
   const [selectedCohort, setSelectedCohort] = useState<Record<number, number>>({});
+  const [selectedSlots, setSelectedSlots] = useState<Record<number, number[]>>({});
   const today = new Date().toISOString().split("T")[0];
   const pricedFormats = formats.filter(f => f.pricing);
 
@@ -274,12 +318,21 @@ export function CoursePricingBlock({ courseId, formats, slug, cohorts = [] }: Pr
       }
     }
 
+    if (formatType === "individual") {
+      const slotCount = selectedSlots[formatId]?.length ?? 0;
+      if (slotCount < MIN_INDIVIDUAL_SLOTS) {
+        setCardNotice(formatId, `Please select ${MIN_INDIVIDUAL_SLOTS}-${MAX_INDIVIDUAL_SLOTS} available time slots.`);
+        return;
+      }
+    }
+
     setPendingPlanId(planId);
     clearCardNotice(formatId);
 
     try {
       const cohortId = formatType === "group" ? selectedCohort[formatId] : undefined;
-      await addCartItem(courseId, planId, cohortId);
+      const scheduleSlotIds = formatType === "individual" ? selectedSlots[formatId] : undefined;
+      await addCartItem(courseId, planId, cohortId, scheduleSlotIds);
       router.push(CART_URL);
     } catch (error) {
       const apiError = error as Partial<ApiError>;
@@ -378,7 +431,12 @@ export function CoursePricingBlock({ courseId, formats, slug, cohorts = [] }: Pr
                 )}
 
                 {isIndividual && (
-                  <IndividualSlotPreview slug={slug} formatId={fmt.id} />
+                  <IndividualSlotPicker
+                    slug={slug}
+                    formatId={fmt.id}
+                    selected={selectedSlots[fmt.id] ?? []}
+                    onChange={ids => setSelectedSlots(prev => ({ ...prev, [fmt.id]: ids }))}
+                  />
                 )}
               </div>
 

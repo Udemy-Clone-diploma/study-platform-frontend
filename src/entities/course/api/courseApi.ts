@@ -477,7 +477,8 @@ export async function uploadCourseIcon(slug: string, iconSrc: string, iconName: 
     const res = await fetch(iconSrc);
     if (!res.ok) return;
     const blob = await res.blob();
-    await uploadCourseImage(slug, new File([blob], `${iconName}-pic.png`, { type: "image/png" }));
+    const extension = iconSrc.split(".").pop() || "png";
+    await uploadCourseImage(slug, new File([blob], `${iconName}-pic.${extension}`, { type: blob.type }));
   } catch { /* best-effort */ }
 }
 

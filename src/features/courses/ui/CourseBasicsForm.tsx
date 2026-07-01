@@ -9,12 +9,12 @@ import { WhiteButton } from "@/shared/ui/WhiteButton";
 import { ModeratorNoteBanner } from "./ModeratorNoteBanner";
 
 export const COURSE_ICONS = [
-  { name: "automation",    src: "/cources-default-pic/automation-pic.png" },
-  { name: "billing",       src: "/cources-default-pic/billing-pic.png" },
-  { name: "communication", src: "/cources-default-pic/communication-pic.png" },
-  { name: "innovation",    src: "/cources-default-pic/innovation-pic.png" },
-  { name: "intelligence",  src: "/cources-default-pic/intelligence-pic.png" },
-  { name: "workspace",     src: "/cources-default-pic/workspace-pic.png" },
+  { name: "automation",    src: "/cources-default-pic/automation-pic.svg" },
+  { name: "billing",       src: "/cources-default-pic/billing-pic.svg" },
+  { name: "communication", src: "/cources-default-pic/communication-pic.svg" },
+  { name: "innovation",    src: "/cources-default-pic/innovation-pic.svg" },
+  { name: "intelligence",  src: "/cources-default-pic/intelligence-pic.svg" },
+  { name: "workspace",     src: "/cources-default-pic/workspace-pic.svg" },
 ];
 
 const LEVELS = [

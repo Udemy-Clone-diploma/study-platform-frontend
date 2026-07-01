@@ -309,6 +309,41 @@ body {
     0 0 0 2px var(--card-border-color);
 }
 
+.mini-course-card {
+  background: var(--card-bg);
+  box-shadow: var(--shadow-my-courses-card);
+  cursor: pointer;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  transition: box-shadow 0.35s ease;
+}
+.mini-course-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--color-bg);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+  z-index: -1;
+}
+.mini-course-card:hover::before {
+  opacity: 1;
+}
+.mini-course-card:hover {
+  box-shadow: 0px 0px 40px rgba(0, 0, 0, 0.22);
+}
+.mini-course-card:active::before {
+  opacity: 0;
+}
+.mini-course-card:active {
+  box-shadow:
+    var(--shadow-my-courses-card),
+    0 0 0 2px var(--card-border-color);
+}
+
 .category-card-item:hover {
   transform: translateY(-4px);
 }

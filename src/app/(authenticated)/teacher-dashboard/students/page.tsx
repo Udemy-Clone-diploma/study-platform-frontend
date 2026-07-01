@@ -50,22 +50,18 @@ const FORMAT_LABELS: Record<string, string> = {
 
 // ── Local sub-components ──────────────────────────────────────────────────────
 
-function StudentAvatar({ name }: { name: string }) {
+function StudentAvatar({ name, avatar }: { name: string; avatar?: string | null }) {
   const size = "clamp(32px, 2.78vw, 40px)";
+  if (avatar) return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={avatar} alt={name} className="shrink-0 rounded-full" style={{ width: size, height: size, objectFit: "cover" }} />
+  );
   return (
     <div
       className="flex shrink-0 items-center justify-center rounded-full"
-      style={{ width: size, height: size, background: "var(--color-badge-lavender)" }}
+      style={{ width: size, height: size, background: "var(--gradient-brand)" }}
     >
-      <span
-        style={{
-          fontFamily: "var(--font-base)",
-          fontSize: "clamp(9px, 0.69vw, 10px)",
-          fontWeight: 700,
-          color: "var(--color-blue-dark)",
-          lineHeight: 1,
-        }}
-      >
+      <span style={{ fontFamily: "var(--font-accent)", fontWeight: 700, fontSize: "clamp(9px, 0.69vw, 11px)", color: "var(--color-text-primary)", lineHeight: 1 }}>
         {getInitials(name)}
       </span>
     </div>
@@ -313,7 +309,7 @@ export default function TeacherStudentsPage() {
       flex: 3,
       render: (row) => (
         <div className="flex items-center" style={{ gap: "clamp(8px, 0.83vw, 12px)" }}>
-          <StudentAvatar name={row.student_name} />
+          <StudentAvatar name={row.student_name} avatar={row.student_avatar} />
           <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">
             {row.student_name}
           </span>
@@ -380,7 +376,8 @@ export default function TeacherStudentsPage() {
       style={{
         height: "calc(100vh - 76px)",
         overflow: "hidden",
-        paddingInline: "clamp(16px, 2.78vw, 40px)",
+        paddingLeft: "clamp(40px, calc(-110px + 10.42vw), 90px)",
+        paddingRight: "clamp(40px, calc(-110px + 10.42vw), 90px)",
         paddingBlock: "clamp(16px, 2.22vw, 32px)",
       }}
     >

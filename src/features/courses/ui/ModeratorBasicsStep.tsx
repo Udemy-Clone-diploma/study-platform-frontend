@@ -46,7 +46,6 @@ export function ModeratorBasicsStep(props: StepProps) {
     : (course?.category?.name ?? "—");
   const displayLevel    = (!lockedKeys.has("field-level") && pe?.level) ?? course?.level ?? "";
 
-  const priceValue   = course?.delivery_formats?.find(f => f.pricing)?.pricing?.price ?? "";
   const levelLabel   = displayLevel ? displayLevel.charAt(0).toUpperCase() + displayLevel.slice(1) : "—";
 
   const canContinue =
@@ -105,13 +104,6 @@ export function ModeratorBasicsStep(props: StepProps) {
               <div style={valueWithBadgeSt}>{levelLabel}</div>
             </FieldRow>
           </div>
-
-          {/* Price: always locked for pending edits (pricing not tracked in pending edit) */}
-          <FieldRow fieldKey="field-price" label="Price (EUR)" itemStatuses={itemStatuses} onItemStatusToggle={onItemStatusToggle} locked={lockedKeys.has("field-price")}>
-            <span style={{ position: "absolute", left: "clamp(12px, 0.83vw, 16px)", top: "50%", transform: "translateY(-50%)", fontSize: "clamp(14px, 1.04vw, 20px)", fontFamily: bodyFont, color: "var(--color-text-secondary)", pointerEvents: "none", zIndex: 1 }} aria-hidden="true">€</span>
-            <div style={{ ...valueWithBadgeSt, paddingLeft: "clamp(28px, 2.08vw, 36px)" }}>{priceValue || "Free"}</div>
-          </FieldRow>
-
 
         </div>
       </SectionCard>

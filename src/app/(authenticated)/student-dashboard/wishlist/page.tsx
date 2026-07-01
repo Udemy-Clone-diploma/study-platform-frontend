@@ -38,8 +38,8 @@ export default function WishlistPage() {
         minHeight: "calc(100vh - 76px)",
         display: "flex",
         flexDirection: "column",
-        paddingInlineStart: "clamp(40px, 6.25vw, 90px)",
-        paddingInlineEnd: "clamp(16px, 2.78vw, 40px)",
+        paddingInlineStart: "clamp(40px, calc(-110px + 10.42vw), 90px)",
+        paddingInlineEnd: "clamp(40px, calc(-110px + 10.42vw), 90px)",
         paddingTop: "clamp(16px, 2.22vw, 32px)",
         paddingBottom: "clamp(16px, 2.22vw, 32px)",
       }}

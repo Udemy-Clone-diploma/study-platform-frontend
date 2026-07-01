@@ -186,15 +186,19 @@ function StudentDashboard() {
     <section className="min-h-[calc(100vh-76px)] bg-white">
       <div
         className="grid min-h-[calc(100vh-76px)]"
-        style={{ gridTemplateColumns: "1fr clamp(270px, 22vw, 362px)" }}
+        style={{
+          gridTemplateColumns: "1fr clamp(240px, calc(100.53px + 13.62vw), 362px)",
+          gap: "clamp(40px, calc(-110px + 10.42vw), 90px)",
+          paddingTop: "clamp(16px, 2.22vw, 32px)",
+          paddingLeft: "clamp(40px, calc(-110px + 10.42vw), 90px)",
+        }}
       >
         <div
           className="grid"
           style={{
-            gridTemplateColumns: "clamp(400px, 42.71vw, 820px) clamp(280px, 24.48vw, 470px)",
-            gap: "clamp(12px, 1.25vw, 24px)",
-            paddingInline: "clamp(16px, 2.08vw, 40px)",
-            paddingBlock: "clamp(16px, 1.67vw, 32px)",
+            gridTemplateColumns:
+              "clamp(390px, calc(-101.4px + 47.99vw), 820px) clamp(225px, calc(-55.04px + 27.34vw), 470px)",
+            gap: "clamp(12px, calc(-1.71px + 1.34vw), 24px)",
           }}
         >
           <div className="flex min-w-0 flex-col" style={{ gap: "clamp(12px, 1.04vw, 20px)" }}>
@@ -208,12 +212,10 @@ function StudentDashboard() {
             <NotesPanel items={studentNotes} />
           </div>
         </div>
-          <div style={{
-              marginTop: "clamp(16px, 1.67vw, 32px)",
-              marginRight: "clamp(16px, 1.67vw, 32px)",
-              "--schedule-height": "calc(100vh - 76px - clamp(16px, 1.67vw, 32px))",
-            } as unknown as CSSProperties}><ScheduleRail /></div>
-        
+        <div style={{
+          marginRight: "clamp(16px, calc(-11.43px + 2.68vw), 40px)",
+          "--schedule-height": "calc(100vh - 76px - clamp(16px, 2.22vw, 32px))",
+        } as unknown as CSSProperties}><ScheduleRail /></div>
       </div>
     </section>
   );
@@ -224,15 +226,19 @@ function TeacherDashboard() {
     <section className="min-h-[calc(100vh-76px)] bg-white">
       <div
         className="grid min-h-[calc(100vh-76px)]"
-        style={{ gridTemplateColumns: "1fr clamp(270px, 22vw, 362px)" }}
+        style={{
+          gridTemplateColumns: "1fr clamp(240px, calc(100.53px + 13.62vw), 362px)",
+          gap: "clamp(40px, calc(-110px + 10.42vw), 90px)",
+          paddingTop: "clamp(16px, 2.22vw, 32px)",
+          paddingLeft: "clamp(40px, calc(-110px + 10.42vw), 90px)",
+        }}
       >
         <div
           className="grid"
           style={{
-            gridTemplateColumns: "clamp(400px, 42.71vw, 820px) clamp(280px, 24.48vw, 470px)",
-            gap: "clamp(12px, 1.25vw, 24px)",
-            paddingInline: "clamp(16px, 2.08vw, 40px)",
-            paddingBlock: "clamp(16px, 1.67vw, 32px)",
+            gridTemplateColumns:
+              "clamp(390px, calc(-101.4px + 47.99vw), 820px) clamp(225px, calc(-55.04px + 27.34vw), 470px)",
+            gap: "clamp(12px, calc(-1.71px + 1.34vw), 24px)",
           }}
         >
           <div className="flex min-w-0 flex-col" style={{ gap: "clamp(12px, 1.04vw, 20px)" }}>
@@ -254,9 +260,8 @@ function TeacherDashboard() {
         </div>
 
         <div style={{
-          marginTop: "clamp(16px, 1.67vw, 32px)",
-          marginRight: "clamp(16px, 1.67vw, 32px)",
-          "--schedule-height": "calc(100vh - 76px - clamp(16px, 1.67vw, 32px))",
+          marginRight: "clamp(16px, calc(-11.43px + 2.68vw), 40px)",
+          "--schedule-height": "calc(100vh - 76px - clamp(16px, 2.22vw, 32px))",
         } as unknown as CSSProperties}>
           <ScheduleRail />
         </div>

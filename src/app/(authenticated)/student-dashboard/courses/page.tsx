@@ -89,7 +89,11 @@ export default function StudentCoursesPage() {
   return (
     <main
       className="bg-my-courses min-h-[calc(100vh-76px)]"
-      style={{ paddingInline: "clamp(16px, 2.78vw, 40px)", paddingBlock: "clamp(16px, 2.22vw, 32px)" }}
+      style={{
+        paddingLeft: "clamp(40px, calc(-110px + 10.42vw), 90px)",
+        paddingRight: "clamp(40px, calc(-110px + 10.42vw), 90px)",
+        paddingBlock: "clamp(16px, 2.22vw, 32px)",
+      }}
     >
       <div style={{ maxWidth: "1648px", margin: "0 auto" }}>
         <nav

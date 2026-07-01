@@ -1,5 +1,7 @@
 "use client";
 
+import { useState, useRef, useEffect } from "react";
+import { ChevronDown } from "lucide-react";
 import type { Category } from "@/entities/course";
 import { AccentButton } from "@/shared/ui/AccentButton";
 import { SectionCard } from "@/shared/ui/SectionCard";
@@ -50,7 +52,6 @@ export type CourseBasicsFormValues = {
   full_description: string;
   category_id: string;
   level: string;
-  price: string;
 };
 
 type FieldStatusValue = "approved" | "rejected" | "needs_revision";
@@ -77,7 +78,7 @@ type Props = {
   moderatorSectionAction?: SectionActionValue;
   /** Fields that must not be edited — approved by moderator, revision not required.
    *  Values are the `name` attributes of form fields: "title", "short_description",
-   *  "full_description", "icon", "category_id", "level", "price". */
+   *  "full_description", "icon", "category_id", "level". */
   readonlyFields?: Set<string>;
 };
 
@@ -97,6 +98,112 @@ function FieldLabelRow({ htmlFor, label, fieldKey, fieldStatuses }: { htmlFor?: 
     <div className="flex items-center justify-between" style={{ marginBottom: "clamp(8px, 0.63vw, 12px)" }}>
       <label htmlFor={htmlFor} style={{ ...labelSt, marginBottom: 0 }}>{label}</label>
       <FieldStatusBadge status={status} />
+    </div>
+  );
+}
+
+/** Custom dropdown styled to match the form's input fields. */
+function FormSelect({ name, value, options, placeholder, disabled, hasError, onSelect }: {
+  name: string;
+  value: string;
+  options: { value: string; label: string }[];
+  onSelect: (name: string, value: string) => void;
+  placeholder?: string;
+  disabled?: boolean;
+  hasError?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const selected = options.find(o => o.value === value);
+
+  useEffect(() => {
+    if (!open) return;
+    function onOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onOutside);
+    return () => document.removeEventListener("mousedown", onOutside);
+  }, [open]);
+
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => !disabled && setOpen(p => !p)}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          width: "100%",
+          background: hasError ? "var(--color-error-surface)" : "var(--color-input-bg)",
+          borderRadius: 12,
+          border: hasError ? "2px solid rgb(239 68 68)" : "none",
+          padding: "clamp(12px, 0.83vw, 16px)",
+          fontSize: "clamp(14px, 1.04vw, 20px)",
+          fontFamily: "var(--font-base)",
+          color: selected ? "var(--color-text-primary)" : "var(--color-text-secondary)",
+          cursor: disabled ? "default" : "pointer",
+          textAlign: "left",
+          gap: 8,
+        }}
+      >
+        <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          {selected?.label ?? placeholder ?? "Select…"}
+        </span>
+        <ChevronDown
+          size={16}
+          style={{
+            flexShrink: 0,
+            transition: "transform 0.15s",
+            transform: open ? "rotate(180deg)" : "rotate(0deg)",
+            color: "var(--color-text-secondary)",
+          }}
+        />
+      </button>
+      {open && (
+        <ul
+          role="listbox"
+          style={{
+            position: "absolute",
+            top: "calc(100% + 4px)",
+            left: 0,
+            right: 0,
+            background: "var(--color-bg)",
+            borderRadius: 12,
+            boxShadow: "var(--shadow-sort-dropdown)",
+            zIndex: 50,
+            maxHeight: 220,
+            overflowY: "auto",
+            padding: "4px 0",
+            listStyle: "none",
+            margin: 0,
+          }}
+        >
+          {options.map(opt => (
+            <li key={opt.value} role="option" aria-selected={opt.value === value}>
+              <button
+                type="button"
+                onClick={() => { onSelect(name, opt.value); setOpen(false); }}
+                style={{
+                  display: "block",
+                  width: "100%",
+                  textAlign: "left",
+                  padding: "8px 16px",
+                  fontFamily: "var(--font-base)",
+                  fontSize: "clamp(13px, 0.9vw, 16px)",
+                  color: opt.value === value ? "var(--color-blue)" : "var(--color-text-primary)",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                }}
+              >
+                {opt.label}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
@@ -128,6 +235,10 @@ export function CourseBasicsForm({
 }: Props) {
   const ro = (field: string) => readonlyFields?.has(field) ?? false;
   const roWrap = (field: string): React.CSSProperties => ro(field) ? { opacity: 0.5, pointerEvents: "none" } : {};
+
+  function handleSelectChange(name: string, value: string) {
+    onChange({ target: { name, value } } as React.ChangeEvent<HTMLSelectElement>);
+  }
 
   return (
     <SectionCard>
@@ -182,38 +293,32 @@ export function CourseBasicsForm({
         {/* Category + Level */}
         <div className="grid grid-cols-2" style={{ gap: "clamp(16px, 2.08vw, 40px)" }}>
           <div style={roWrap("category_id")}>
-            <FieldLabelRow htmlFor="category_id" label="Category*" fieldKey="field-category" fieldStatuses={fieldStatuses} />
-            <div className="relative">
-              <select id="category_id" name="category_id" value={form.category_id} onChange={onChange} disabled={ro("category_id")} required className={`appearance-none ${fieldCls(!!fieldErrors.category_id)}`} style={{ ...fieldSt(!!fieldErrors.category_id), paddingRight: "clamp(32px, 2.08vw, 40px)" }}>
-                <option value="">Select category</option>
-                {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
-              <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-(--color-text-secondary)" aria-hidden="true">▾</span>
-            </div>
+            <FieldLabelRow label="Category*" fieldKey="field-category" fieldStatuses={fieldStatuses} />
+            <FormSelect
+              name="category_id"
+              value={form.category_id}
+              options={categories.map(c => ({ value: String(c.id), label: c.name }))}
+              onSelect={handleSelectChange}
+              placeholder="Select category"
+              disabled={ro("category_id")}
+              hasError={!!fieldErrors.category_id}
+            />
             {fieldErrors.category_id && <p className="mt-1 text-xs text-red-500">{fieldErrors.category_id}</p>}
           </div>
 
           <div style={roWrap("level")}>
-            <FieldLabelRow htmlFor="level" label="Level*" fieldKey="field-level" fieldStatuses={fieldStatuses} />
-            <div className="relative">
-              <select id="level" name="level" value={form.level} onChange={onChange} disabled={ro("level")} required className={`appearance-none ${fieldCls(!!fieldErrors.level)}`} style={{ ...fieldSt(!!fieldErrors.level), paddingRight: "clamp(32px, 2.08vw, 40px)" }}>
-                <option value="">Select level</option>
-                {LEVELS.map((l) => <option key={l.value} value={l.value}>{l.label}</option>)}
-              </select>
-              <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-(--color-text-secondary)" aria-hidden="true">▾</span>
-            </div>
+            <FieldLabelRow label="Level*" fieldKey="field-level" fieldStatuses={fieldStatuses} />
+            <FormSelect
+              name="level"
+              value={form.level}
+              options={LEVELS}
+              onSelect={handleSelectChange}
+              placeholder="Select level"
+              disabled={ro("level")}
+              hasError={!!fieldErrors.level}
+            />
             {fieldErrors.level && <p className="mt-1 text-xs text-red-500">{fieldErrors.level}</p>}
           </div>
-        </div>
-
-        {/* Price */}
-        <div style={roWrap("price")}>
-          <FieldLabelRow htmlFor="price" label="Price (EUR)" fieldKey="field-price" fieldStatuses={fieldStatuses} />
-          <div className="relative">
-            <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-(--color-text-secondary)" style={{ fontSize: "clamp(14px, 1.04vw, 20px)", fontFamily: "var(--font-base)" }} aria-hidden="true">€</span>
-            <input id="price" name="price" type="number" min="0" step="0.01" value={form.price} onChange={onChange} readOnly={ro("price")} className={fieldCls(!!fieldErrors.price)} style={{ ...fieldSt(!!fieldErrors.price), paddingLeft: "clamp(28px, 2.08vw, 36px)" }} />
-          </div>
-          {fieldErrors.price && <p className="mt-1 text-xs text-red-500">{fieldErrors.price}</p>}
         </div>
 
         {/* Moderator basics feedback */}

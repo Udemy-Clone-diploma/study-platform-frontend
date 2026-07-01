@@ -26,7 +26,7 @@ const STEPS = [
   { name: "Review & Publish", sub: "Launch course"             },
 ];
 
-const ALL_BASICS_KEYS = new Set(["field-title", "field-short-description", "field-full-description", "field-icon", "field-category", "field-level", "field-price"]);
+const ALL_BASICS_KEYS = new Set(["field-title", "field-short-description", "field-full-description", "field-icon", "field-category", "field-level"]);
 
 /** Compare pending edit values directly to the live course to detect real changes.
  *  Treats empty-string pending edit values as "same as live course" - they come from

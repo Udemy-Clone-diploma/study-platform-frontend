@@ -242,6 +242,7 @@ export function CoursePricingBlock({ courseId, formats, slug, cohorts = [] }: Pr
       c =>
         c.delivery_format === formatId &&
         c.is_enrollment_open &&
+        (!c.enrollment_deadline || c.enrollment_deadline >= today) &&
         (c.group_size === null || c.members_count < c.group_size),
     );
 

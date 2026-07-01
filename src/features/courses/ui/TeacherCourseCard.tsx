@@ -16,6 +16,12 @@ const LEVEL_GRADIENT: Record<CourseLevel, string> = {
   advanced:     "var(--gradient-card-pink)",
 };
 
+const LEVEL_BORDER: Record<CourseLevel, string> = {
+  beginner:     "var(--color-brand-lavender)",
+  intermediate: "var(--color-brand-yellow)",
+  advanced:     "var(--color-brand-pink)",
+};
+
 const STATUS_ICON: Record<TeacherCourseStatus, string | null> = {
   draft:                "/icons/pen.svg",
   active:               null,
@@ -114,6 +120,7 @@ export function TeacherCourseCard({
   onEditChanges, onSubmitChanges, onWithdrawEdit, onDiscardChanges,
 }: Props) {
   const gradient   = LEVEL_GRADIENT[level];
+  const border     = LEVEL_BORDER[level];
   const statusIcon = STATUS_ICON[status];
   const clamped    = progressPercent !== undefined ? Math.min(Math.max(progressPercent, 0), 100) : undefined;
   const thumbSize  = "clamp(36px, 4.17vw, 60px)";
@@ -187,15 +194,16 @@ export function TeacherCourseCard({
           href={cardHref()}
           onClick={handleCardClick}
           className={[
-            "flex items-center shadow-(--shadow-my-courses-card) transition-[box-shadow,filter] hover:shadow-[0px_0px_40px_rgba(0,0,0,0.22)] focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-blue)",
+            "mini-course-card flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-blue)",
             status === "completed" ? "grayscale" : "",
           ].join(" ")}
           style={{
-            background: gradient,
+            "--card-bg": gradient,
+            "--card-border-color": border,
             borderRadius: "clamp(12px, 1.39vw, 20px)",
             padding: "clamp(10px, 2.09vw, 40px) clamp(8px, 0.83vw, 12px)",
             gap: "clamp(4px, 0.56vw, 8px)",
-          }}
+          } as React.CSSProperties}
         >
           <Image
             src={imageSrc ?? iconSrc}

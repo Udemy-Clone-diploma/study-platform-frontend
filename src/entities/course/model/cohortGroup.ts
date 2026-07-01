@@ -14,4 +14,5 @@ export type EnrolledStudent = {
   student_email: string;
   access_granted_at: string;
   access_until: string | null;
+  format_type: string | null;
 };

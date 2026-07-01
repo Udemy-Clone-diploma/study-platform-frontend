@@ -719,9 +719,8 @@ function EventDetailPanel({
   const todayISO_    = new Date().toISOString().slice(0, 10);
   const nowTime_     = new Date().toTimeString().slice(0, 5);
   const isPastEvent  = ev.date < todayISO_ || (ev.date === todayISO_ && ev.end_time <= nowTime_);
-  const isFreeSlot      = ev.is_available === true;
-  const isUnavailableEv = ev.type === "unavailable";
-  const canEdit         = role === "teacher" && !isPersonal && !isProcessed && !isReplacement && !isPastEvent && !isFreeSlot && !isUnavailableEv;
+  const isFreeSlot = ev.is_available === true;
+  const canEdit    = role === "teacher" && !isPersonal && !isProcessed && !isReplacement && !isPastEvent && !isFreeSlot;
 
   useEffect(() => {
     if (mode !== "lesson_edit" || !ev.course_slug || lessons !== null) return;

@@ -11,6 +11,11 @@ const nextConfig: NextConfig = {
                 port: "8000",
                 pathname: "/media/**",
             },
+            {
+                protocol: "https",
+                hostname: "nexo-media.s3.amazonaws.com",
+                pathname: "/**",
+            },
         ],
     },
 };

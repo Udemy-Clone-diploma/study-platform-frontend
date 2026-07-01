@@ -15,4 +15,5 @@ export type EnrolledStudent = {
   access_granted_at: string;
   access_until: string | null;
   format_type: string | null;
+  progress_percent: number;
 };

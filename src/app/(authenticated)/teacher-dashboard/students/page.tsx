@@ -339,7 +339,9 @@ export default function TeacherStudentsPage() {
       flex: 1.5,
       cellAlign: "center",
       headerAlign: "center",
-      render: () => <span className="text-(--color-text-secondary)">—</span>,
+      render: (row) => (
+        <span>{row.progress_percent > 0 ? `${row.progress_percent}%` : "—"}</span>
+      ),
     },
     {
       key: "entry_date",

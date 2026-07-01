@@ -210,6 +210,23 @@ export function LessonPlayerView({
     return null;
   }
 
+  const activeTest = activeItem?.item_type === "test" && activeItem.test ? activeItem.test : null;
+
+  if (activeTest) {
+    return (
+      <section className="relative isolate min-h-[calc(100vh-76px)] bg-(--color-brand-lavender-soft) px-8 py-[52px]">
+        <QuizPlayer
+          slug={slug}
+          test={activeTest}
+          isMock={isMock}
+          onPassed={() => {
+            if (!isCompleted) handleToggleComplete();
+          }}
+        />
+      </section>
+    );
+  }
+
   return (
     <section className="relative isolate min-h-[calc(100vh-76px)] overflow-hidden bg-white">
       <LearnPageDecor showPlanet={false} />
@@ -253,22 +270,22 @@ export function LessonPlayerView({
             {lesson.title}
           </h1>
 
-          {activeItem?.item_type === "test" && activeItem.test ? (
-            <QuizPlayer
-              slug={slug}
-              test={activeItem.test}
-              isMock={isMock}
-              onPassed={() => {
-                if (!isCompleted) handleToggleComplete();
-              }}
-            />
-          ) : (
+          {activeItem?.item_type !== "test" ? (
             <>
               <div className="grid gap-5 lg:grid-cols-[minmax(0,820px)_minmax(320px,400px)] lg:items-stretch">
                 <div className="min-w-0">
                   <LessonContent item={activeItem} />
                 </div>
-                <LessonNotesPanel key={lessonId} slug={slug} lessonId={lessonId} isMock={isMock} />
+                <LessonNotesPanel
+                  key={lessonId}
+                  slug={slug}
+                  lessonId={lessonId}
+                  isMock={isMock}
+                  courseTitle={course.title}
+                  courseLevel={course.level}
+                  lessonTitle={lesson.title}
+                  lessonOrder={lesson.order}
+                />
               </div>
 
               <div className="flex max-w-[820px] flex-col gap-6">
@@ -305,7 +322,7 @@ export function LessonPlayerView({
                 )}
               </div>
             </>
-          )}
+          ) : null}
         </div>
       </div>
     </section>

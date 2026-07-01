@@ -13,6 +13,7 @@ import {
 } from "@/entities/course";
 import type { ApiError } from "@/shared/api/base";
 import { QuizQuestionCard, type AnswerState } from "./QuizQuestionCard";
+import { QuizWindow } from "./QuizWindow";
 
 type Props = {
   slug: string;
@@ -91,74 +92,50 @@ export function QuizPlayer({ slug, test, isMock = false, onPassed }: Props) {
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-[1380px] flex-col gap-5">
-      <QuizHeader test={test} />
-
-      <div>
-        {loading ? (
-          <p role="status" className="py-8 text-center text-(--color-text-secondary)">
-            Loading your test...
-          </p>
-        ) : (
-          <div className="mx-auto flex max-w-[1280px] flex-col gap-5">
-            <div className="flex flex-col gap-10">
-              {result
-                ? byOrder(result.questions).map((g, i) => (
-                    <QuizQuestionCard key={g.id} mode="review" index={i} graded={g} />
-                  ))
-                : ordered.map((q, i) => (
-                    <QuizQuestionCard
-                      key={q.id}
-                      mode="answer"
-                      index={i}
-                      questionType={q.question_type}
-                      text={q.text}
-                      options={q.options}
-                      value={answers[q.id]}
-                      onChange={(next) => setAnswers((prev) => ({ ...prev, [q.id]: next }))}
-                    />
-                  ))}
-            </div>
-
-            {error && (
-              <p role="alert" className="text-center text-base text-(--color-danger)">
-                {error}
-              </p>
-            )}
-
-            {result ? (
-              <ResultsFooter slug={slug} result={result} onRetake={restart} />
-            ) : (
-              <div className="flex justify-center pt-4">
-                <QuizButton onClick={handleSubmit} disabled={submitting}>
-                  {submitting ? "Submitting..." : "To the results"}
-                </QuizButton>
-              </div>
-            )}
+    <QuizWindow title={test.title} description={test.description} passingScore={test.passing_score}>
+      {loading ? (
+        <p role="status" className="py-8 text-center text-(--color-text-secondary)">
+          Loading your test...
+        </p>
+      ) : (
+        <div className="mx-auto flex max-w-[1280px] flex-col gap-5">
+          <div className="flex flex-col gap-5">
+            {result
+              ? byOrder(result.questions).map((g, i) => (
+                  <QuizQuestionCard key={g.id} mode="review" index={i} graded={g} />
+                ))
+              : ordered.map((q, i) => (
+                  <QuizQuestionCard
+                    key={q.id}
+                    mode="answer"
+                    index={i}
+                    questionType={q.question_type}
+                    text={q.text}
+                    options={q.options}
+                    value={answers[q.id]}
+                    onChange={(next) => setAnswers((prev) => ({ ...prev, [q.id]: next }))}
+                  />
+                ))}
           </div>
-        )}
-      </div>
-    </div>
-  );
-}
 
-function QuizHeader({ test }: { test: CourseTest }) {
-  return (
-    <div className="flex flex-col gap-2">
-      <h2 className="font-(family-name:--font-base) text-[2rem] leading-10 text-(--color-black)">
-        {test.title}
-      </h2>
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:gap-5">
-        {test.description && (
-          <p className="flex-1 font-(family-name:--font-base) text-xl leading-[25px] text-(--color-black)">
-            {test.description}
-          </p>
-        )}
-        <span className="shrink-0 font-(family-name:--font-accent) text-base font-semibold leading-5 text-(--color-text-primary)">
-          Passing Score: {test.passing_score}%
-        </span>
-      </div>
-    </div>
+          {error && (
+            <p role="alert" className="text-center text-base text-(--color-danger)">
+              {error}
+            </p>
+          )}
+
+          {result ? (
+            <ResultsFooter slug={slug} result={result} onRetake={restart} />
+          ) : (
+            <div className="flex justify-center pt-1">
+              <QuizButton onClick={handleSubmit} disabled={submitting}>
+                {submitting ? "Submitting..." : "To the results"}
+              </QuizButton>
+            </div>
+          )}
+        </div>
+      )}
+    </QuizWindow>
   );
 }
 
@@ -231,7 +208,7 @@ type QuizButtonProps = {
 
 function QuizButton({ children, href, onClick, disabled }: QuizButtonProps) {
   const classes =
-    "inline-flex h-[52px] min-w-[200px] items-center justify-center rounded-full bg-(--color-text-primary) px-7 font-(family-name:--font-accent) text-xl font-medium leading-[30px] text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60";
+    "inline-flex h-[30px] min-w-[124px] items-center justify-center rounded-full bg-(--color-text-primary) px-5 font-(family-name:--font-accent) text-xs font-medium leading-none text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60";
   if (href) {
     return (
       <Link href={href} className={classes}>

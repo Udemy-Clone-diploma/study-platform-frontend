@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { enrollInFreeCourse, type PricingPlan } from "@/entities/course";
 import type { ApiError } from "@/shared/api/base";
 import { AUTH_COOKIE_NAMES } from "@/shared/api/config/authCookies";
 import { getClientCookie } from "@/shared/lib/cookies";
@@ -12,30 +13,31 @@ type Props = {
   courseId: number;
   slug: string;
   isEnrolled: boolean;
-  /** ID of the first available PricingPlan, or null for free courses. */
-  defaultPricingPlanId: number | null;
+  defaultPricingPlan: PricingPlan | null;
 };
 
 const COURSE_AVAILABLE_NOTICE = "The course is already available in My Courses.";
 const FREE_ENROLLMENT_SUCCESS_NOTICE = "Enrollment complete. You can start this course now.";
 const STUDENT_ONLY_MESSAGE = "Enrollment is available only for students.";
+const NO_PRICING_PLAN_NOTICE = "This course does not have an available pricing plan.";
 
 function scrollToPricing() {
   document.getElementById(PRICING_ANCHOR_ID)?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 /**
- * Hero CTA. Free courses create an enrollment directly; paid courses scroll down
+ * Hero CTA. A zero-price plan grants access immediately; a paid plan scrolls down
  * to the pricing block so the student picks a format (cohort/slots) before
  * anything is added to the cart — the cart requires that choice to be valid.
  */
-export function CourseHeroCTA({ courseId, slug, isEnrolled, defaultPricingPlanId }: Props) {
+export function CourseHeroCTA({ slug, isEnrolled, defaultPricingPlan }: Props) {
   const router = useRouter();
   const [enrolled, setEnrolled] = useState(isEnrolled);
   const [pending, setPending] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
 
   const buttonStyle = { minWidth: 200, height: 52, whiteSpace: "nowrap" } as const;
+  const isFreeCourse = defaultPricingPlan !== null && Number(defaultPricingPlan.price) === 0;
 
   if (enrolled) {
     return (
@@ -57,7 +59,12 @@ export function CourseHeroCTA({ courseId, slug, isEnrolled, defaultPricingPlanId
       return;
     }
 
-    if (defaultPricingPlanId !== null) {
+    if (defaultPricingPlan === null) {
+      setNotice(NO_PRICING_PLAN_NOTICE);
+      return;
+    }
+
+    if (!isFreeCourse) {
       scrollToPricing();
       return;
     }
@@ -66,8 +73,7 @@ export function CourseHeroCTA({ courseId, slug, isEnrolled, defaultPricingPlanId
     setNotice(null);
 
     try {
-      const { enrollInCourse } = await import("@/entities/course");
-      await enrollInCourse(courseId);
+      await enrollInFreeCourse(slug);
       setEnrolled(true);
       setNotice(FREE_ENROLLMENT_SUCCESS_NOTICE);
     } catch (error) {
@@ -88,7 +94,7 @@ export function CourseHeroCTA({ courseId, slug, isEnrolled, defaultPricingPlanId
   return (
     <div className="flex flex-col gap-2">
       <AccentButton size="md" className="self-start" style={buttonStyle} onClick={handleClick} disabled={pending}>
-        {pending ? "Processing..." : defaultPricingPlanId !== null ? "Choose a plan" : "Enroll for free"}
+        {pending ? "Processing..." : isFreeCourse ? "Enroll for free" : "Choose a plan"}
       </AccentButton>
       {notice && (
         <p role="status" className="max-w-[460px] text-base text-(--color-pink-dark)">

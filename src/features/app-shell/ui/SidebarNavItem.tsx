@@ -11,18 +11,6 @@ type SidebarNavItemProps = {
   isExpanded: boolean;
 };
 
-const activeIconGradient =
-  "bg-[linear-gradient(90deg,#fff4da_0%,#fcc4c3_49%,#fcc4c3_100%)]";
-
-const activeRowGradient =
-  "bg-[linear-gradient(90deg,#fff4da_0%,#fcc4c3_49%,#a7bafa_100%)]";
-
-const collapsedHoverGradient =
-  "hover:bg-[linear-gradient(90deg,#fff4da_0%,#fcc4c3_49%,#fcc4c3_100%)]";
-
-const expandedHoverGradient =
-  "hover:bg-[linear-gradient(90deg,#fff4da_0%,#fcc4c3_49%,#a7bafa_100%)]";
-
 const expandedRowLayout =
   "-mx-[clamp(10px,0.85vw,16px)] w-[calc(100%_+_clamp(20px,1.7vw,32px))] pl-[clamp(10px,0.85vw,16px)]";
 
@@ -44,15 +32,8 @@ export function SidebarNavItem({
       aria-current={isActive ? "page" : undefined}
       className={[
         "group/item flex h-[clamp(28px,2.2vw,48px)] w-full items-center overflow-hidden rounded-sm text-[#092878] transition-[background-color,background-image,margin,padding,width] duration-200",
+        isExpanded ? "sidebar-nav-gradient-expanded" : "sidebar-nav-gradient-collapsed",
         isExpanded ? expandedRowLayout : "",
-        isExpanded
-          ? expandedHoverGradient
-          : collapsedHoverGradient,
-        isActive
-          ? isExpanded
-            ? activeRowGradient
-            : activeIconGradient
-          : "",
       ].join(" ")}
     >
       <span className="flex h-[clamp(28px,2.2vw,48px)] w-[clamp(36px,2.2vw,48px)] shrink-0 items-center justify-center">

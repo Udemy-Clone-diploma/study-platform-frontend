@@ -30,6 +30,15 @@ export type CourseTest = {
   duration_minutes?: number | null;
   allow_retakes?: boolean;
   max_attempts?: number | null;
+  attempts_used?: number;
+  can_attempt?: boolean;
+  last_attempt?: {
+    id: number;
+    attempt_number: number;
+    score: number;
+    passed: boolean;
+    submitted_at: string;
+  } | null;
 };
 
 export type LessonItemType = "text" | "video" | "test";

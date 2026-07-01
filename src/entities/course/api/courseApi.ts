@@ -9,6 +9,7 @@ import type { DeliveryFormatType } from "../model/delivery-format";
 import type { PricingPlan } from "../model/pricing";
 import type { CourseReview } from "../model/review";
 import type { CourseCompletion } from "../model/completion";
+import type { Enrollment } from "../model/enrollment";
 import type {
   ApprovedCourseRecord,
   CourseDeliveryType,
@@ -26,7 +27,6 @@ import type {
 
 const COURSES = "courses/";
 const CATEGORIES = "categories/";
-const ENROLLMENTS = "enrollments/";
 
 /**
  * Backend accepts these enum-like filters as comma-separated values
@@ -248,16 +248,13 @@ export async function submitCourseReview(
   return data;
 }
 
-export type EnrollResult = { status: "enrolled" };
-
 /**
- * Enroll the authenticated user in a course.
- * Throws a normalized ApiError on failure: status 401 (not authenticated),
- * 400 (invalid course or duplicate enrollment).
+ * Enroll the authenticated student in a course that has a zero-price plan.
+ * The backend validates the price again and rejects paid courses.
  */
-export async function enrollInCourse(courseId: number): Promise<EnrollResult> {
-  await api.post(ENROLLMENTS, { course_id: courseId });
-  return { status: "enrolled" };
+export async function enrollInFreeCourse(slug: string): Promise<Enrollment> {
+  const { data } = await api.post<Enrollment>(`${COURSES}${slug}/enroll-free/`);
+  return data;
 }
 
 export async function getEnrolledCourses(

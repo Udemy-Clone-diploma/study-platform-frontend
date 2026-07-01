@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { enrollInCourse } from "@/entities/course";
+import { enrollInFreeCourse } from "@/entities/course";
 import type { ApiError } from "@/shared/api/base";
 import { AUTH_COOKIE_NAMES } from "@/shared/api/config/authCookies";
 import { getClientCookie } from "@/shared/lib/cookies";
@@ -12,7 +12,7 @@ const PAID_COURSE_MESSAGE = "This course requires payment. See pricing on the co
 const ENROLL_FAILED_MESSAGE = "Could not enroll in this course.";
 const ENROLL_SUCCESS_MESSAGE = "Enrollment complete. You can find this course in My Courses.";
 
-export function useEnrollCourse(courseId: number) {
+export function useEnrollCourse(courseSlug: string) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [enrolled, setEnrolled] = useState(false);
@@ -38,7 +38,7 @@ export function useEnrollCourse(courseId: number) {
     setMessage("");
 
     try {
-      await enrollInCourse(courseId);
+      await enrollInFreeCourse(courseSlug);
       setEnrolled(true);
       setMessage(ENROLL_SUCCESS_MESSAGE);
     } catch (err) {

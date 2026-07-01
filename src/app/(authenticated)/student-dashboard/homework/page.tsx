@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { type FormEvent, type ReactNode, useEffect, useMemo, useState } from "react";
+import { type FormEvent, type ReactNode, useEffect, useId, useMemo, useRef, useState } from "react";
 import { ChevronDown, ClipboardList, Paperclip, X } from "lucide-react";
 import {
   byOrder,
@@ -24,6 +24,24 @@ import { GradientButton } from "@/shared/ui/GradientButton";
 
 type TaskTypeFilter = "all" | "task" | "test";
 type StatusFilter = "all" | "to_do" | "submitted" | "reviewed";
+
+type FilterOption<T extends string = string> = {
+  value: T;
+  label: string;
+};
+
+const TASK_TYPE_OPTIONS: FilterOption<TaskTypeFilter>[] = [
+  { value: "all", label: "All Task Types" },
+  { value: "task", label: "Tasks" },
+  { value: "test", label: "Tests" },
+];
+
+const STATUS_OPTIONS: FilterOption<StatusFilter>[] = [
+  { value: "all", label: "Status" },
+  { value: "to_do", label: "To Do" },
+  { value: "submitted", label: "Submitted" },
+  { value: "reviewed", label: "Reviewed" },
+];
 
 function compactDateLabel(value: string | null): string {
   if (!value) return "";
@@ -94,32 +112,87 @@ function toAnswerInput(
   return { question_id: questionId, answer_text: answer.text };
 }
 
-function FilterSelect({
+function FilterSelect<T extends string>({
   value,
   onChange,
   label,
-  children,
+  options,
 }: {
-  value: string;
-  onChange: (value: string) => void;
+  value: T;
+  onChange: (value: T) => void;
   label: string;
-  children: ReactNode;
+  options: FilterOption<T>[];
 }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const listboxId = useId();
+  const selectedOption = options.find((option) => option.value === value) ?? options[0];
+
+  useEffect(() => {
+    function closeOnOutsidePointer(event: PointerEvent) {
+      if (!rootRef.current?.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+
+    document.addEventListener("pointerdown", closeOnOutsidePointer);
+    return () => document.removeEventListener("pointerdown", closeOnOutsidePointer);
+  }, []);
+
   return (
-    <span className="relative inline-flex h-10 items-center">
-      <select
+    <div ref={rootRef} className="relative inline-flex h-10 items-center">
+      <button
+        type="button"
         aria-label={label}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="h-10 appearance-none rounded-full border border-[#ECECEC] bg-white px-5 pr-11 font-(family-name:--font-base) text-[20px] leading-none font-normal text-[#121212] shadow-[0_0_4px_rgba(0,0,0,0.06)] outline-none transition focus:ring-2 focus:ring-[#9DB1FA]"
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        aria-controls={isOpen ? listboxId : undefined}
+        onClick={() => setIsOpen((current) => !current)}
+        onKeyDown={(event) => {
+          if (event.key === "Escape") setIsOpen(false);
+        }}
+        className="flex h-10 min-w-[118px] items-center justify-between gap-3 rounded-full border border-[#ECECEC] bg-white px-5 font-(family-name:--font-base) text-[20px] leading-none font-normal text-[#121212] shadow-[0_0_4px_rgba(0,0,0,0.06)] outline-none transition hover:shadow-[0_2px_10px_rgba(0,0,0,0.08)] focus:ring-2 focus:ring-[#9DB1FA]"
       >
-        {children}
-      </select>
-      <ChevronDown
-        className="pointer-events-none absolute right-4 h-5 w-5 text-[#121212]"
-        aria-hidden="true"
-      />
-    </span>
+        <span className="truncate">{selectedOption?.label}</span>
+        <ChevronDown
+          className={`h-5 w-5 shrink-0 text-[#121212] transition-transform ${
+            isOpen ? "rotate-180" : ""
+          }`}
+          aria-hidden="true"
+        />
+      </button>
+
+      {isOpen ? (
+        <div
+          id={listboxId}
+          role="listbox"
+          aria-label={label}
+          className="absolute top-[calc(100%+8px)] left-0 z-[120] w-[220px] overflow-hidden rounded-[12px] bg-white py-3 shadow-[0_0_5.2px_rgba(54,54,54,0.25)]"
+        >
+          {options.map((option) => {
+            const isSelected = option.value === value;
+
+            return (
+              <button
+                key={option.value}
+                type="button"
+                role="option"
+                aria-selected={isSelected}
+                onClick={() => {
+                  onChange(option.value);
+                  setIsOpen(false);
+                }}
+                className={`flex min-h-[46px] w-full items-center px-[22px] text-left font-(family-name:--font-base) text-[20px] leading-none transition hover:bg-[#F5F7FF] hover:text-[#003AFF] ${
+                  isSelected ? "text-[#003AFF]" : "text-[#121212]"
+                }`}
+              >
+                {option.label}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -137,7 +210,8 @@ function HomeworkCard({
   const kind = assignmentKind(assignment);
   const courseName = assignment.course_title || "Course";
   const iconSrc = assignment.course_image ?? "/icons/book-gradient.svg";
-  const showScoreBadge = kind === "Test" && assignment.max_score;
+  const reviewedScore =
+    submission?.status === "reviewed" && submission.score != null ? submission.score : null;
 
   return (
     <button
@@ -171,9 +245,9 @@ function HomeworkCard({
         ) : null}
       </span>
       <span className="flex h-full min-w-[98px] items-end justify-end">
-        {showScoreBadge ? (
+        {reviewedScore != null ? (
           <span className="inline-flex h-[60px] min-w-[60px] items-center justify-center rounded-lg bg-[#FFF0C8] px-3 text-[24px] leading-none font-medium text-[#9A6500]">
-            {assignment.max_score}+
+            {reviewedScore}
           </span>
         ) : (
           <span className="mb-2 whitespace-nowrap text-[16px] leading-none font-normal text-[#121212]">
@@ -334,9 +408,7 @@ function HomeworkSidebar({
 
           {submission ? (
             <div className="mt-5 rounded-lg bg-[#F4F7FF] p-4 text-sm">
-              <p className="font-medium text-[#24376F]">
-                {submissionStatusLabel(submission)}
-              </p>
+              <p className="font-medium text-[#24376F]">{submissionStatusLabel(submission)}</p>
               {submission.test_attempt ? (
                 <p className="mt-2 text-[#24376F]">
                   Test attempt sent: {submission.test_attempt.score}% · attempt{" "}
@@ -816,34 +888,24 @@ export default function StudentHomeworkPage() {
           <FilterSelect
             label="Task type"
             value={taskTypeFilter}
-            onChange={(value) => setTaskTypeFilter(value as TaskTypeFilter)}
-          >
-            <option value="all">All Task Types</option>
-            <option value="task">Tasks</option>
-            <option value="test">Tests</option>
-          </FilterSelect>
+            options={TASK_TYPE_OPTIONS}
+            onChange={setTaskTypeFilter}
+          />
           <FilterSelect
             label="Subject"
             value={subjectFilter}
+            options={[
+              { value: "all", label: "Subject" },
+              ...subjectOptions.map((subject) => ({ value: subject, label: subject })),
+            ]}
             onChange={(value) => setSubjectFilter(value)}
-          >
-            <option value="all">Subject</option>
-            {subjectOptions.map((subject) => (
-              <option key={subject} value={subject}>
-                {subject}
-              </option>
-            ))}
-          </FilterSelect>
+          />
           <FilterSelect
             label="Status"
             value={statusFilter}
-            onChange={(value) => setStatusFilter(value as StatusFilter)}
-          >
-            <option value="all">Status</option>
-            <option value="to_do">To Do</option>
-            <option value="submitted">Submitted</option>
-            <option value="reviewed">Reviewed</option>
-          </FilterSelect>
+            options={STATUS_OPTIONS}
+            onChange={setStatusFilter}
+          />
           <span className="inline-flex h-10 items-center rounded-full border border-[#ECECEC] bg-white px-5 text-[20px] leading-none font-normal text-[#121212] shadow-[0_0_4px_rgba(0,0,0,0.06)]">
             Total Assignments: {filteredAssignments.length}
           </span>

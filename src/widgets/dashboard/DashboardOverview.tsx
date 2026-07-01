@@ -1,11 +1,12 @@
 import Image from "next/image";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import {
   HomeworkQueuePanel,
   HomeworkReviewPanel,
   StudentHomeworkProvider,
 } from "./StudentHomeworkDashboardPanels";
 import { MyCoursesDashboardWidget } from "./MyCoursesDashboardWidget";
+import { ScheduleRail } from "./ScheduleRail";
 import { StudentNotesPanel } from "./StudentNotesPanel";
 
 type DashboardRole = "student" | "teacher";
@@ -27,6 +28,12 @@ type ProgressItem = {
   accent: string;
   value: number;
 };
+
+const scheduleRailStyle = {
+  marginTop: "clamp(16px, 1.67vw, 32px)",
+  marginRight: "clamp(16px, 1.67vw, 32px)",
+  "--schedule-height": "calc(100vh - 76px - clamp(16px, 1.67vw, 32px))",
+} as CSSProperties;
 
 const teacherChecks: DashboardListItem[] = [
   {
@@ -96,14 +103,6 @@ const progressItems: ProgressItem[] = [
   },
 ];
 
-const calendarWeeks = [
-  ["30", "31", "1", "2", "3", "4", "5"],
-  ["6", "7", "8", "9", "10", "11", "12"],
-  ["13", "14", "15", "16", "17", "18", "19"],
-  ["20", "21", "22", "23", "24", "25", "26"],
-  ["27", "28", "29", "30", "1", "2", "3"],
-];
-
 export function DashboardOverview({ role }: { role: DashboardRole }) {
   if (role === "teacher") {
     return <TeacherDashboard />;
@@ -118,7 +117,7 @@ function StudentDashboard() {
       <StudentHomeworkProvider>
         <div
           className="grid min-h-[calc(100vh-76px)]"
-          style={{ gridTemplateColumns: "1fr clamp(200px, 17.19vw, 330px)" }}
+          style={{ gridTemplateColumns: "1fr clamp(270px, 22vw, 362px)" }}
         >
           <div
             className="grid"
@@ -141,7 +140,9 @@ function StudentDashboard() {
             </div>
           </div>
 
-          <ScheduleRail />
+          <div style={scheduleRailStyle}>
+            <ScheduleRail />
+          </div>
         </div>
       </StudentHomeworkProvider>
     </section>
@@ -153,7 +154,7 @@ function TeacherDashboard() {
     <section className="min-h-[calc(100vh-76px)] bg-white">
       <div
         className="grid min-h-[calc(100vh-76px)]"
-        style={{ gridTemplateColumns: "1fr clamp(200px, 17.19vw, 330px)" }}
+        style={{ gridTemplateColumns: "1fr clamp(270px, 22vw, 362px)" }}
       >
         <div
           className="grid"
@@ -182,7 +183,9 @@ function TeacherDashboard() {
           </div>
         </div>
 
-        <ScheduleRail />
+        <div style={scheduleRailStyle}>
+          <ScheduleRail />
+        </div>
       </div>
     </section>
   );
@@ -265,7 +268,11 @@ function TodoPanel({
       </div>
       <ScrollableList>
         {items.map((item) => (
-          <ListRow key={`${item.title}-${item.author ?? item.badge}`} item={item} teacher={teacher} />
+          <ListRow
+            key={`${item.title}-${item.author ?? item.badge}`}
+            item={item}
+            teacher={teacher}
+          />
         ))}
       </ScrollableList>
     </Card>
@@ -306,65 +313,6 @@ function CourseProgressPanel({ items }: { items: ProgressItem[] }) {
   );
 }
 
-function ScheduleRail() {
-  return (
-    <aside className="bg-[linear-gradient(180deg,#fff4da_0%,#fcc4c3_45%,#a7bafa_100%)] px-4 py-8">
-      <CalendarCard />
-      <div className="mt-4">
-        <h2 className="mb-3 text-base font-bold text-black">Today&apos;s schedule</h2>
-        <div className="flex flex-col gap-2">
-          {[1, 2].map((item) => (
-            <div key={item} className="rounded-md bg-white/70 px-3 py-3">
-              <p className="text-sm font-semibold text-black">Course</p>
-              <p className="mt-2 text-xs text-black">Lesson&nbsp;&nbsp;|&nbsp;&nbsp;16:30</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </aside>
-  );
-}
-
-function CalendarCard() {
-  return (
-    <Card className="p-4">
-      <div className="mb-4 flex items-center justify-between text-black">
-        <button aria-label="Previous month" className="text-lg leading-none">
-          {"<"}
-        </button>
-        <h2 className="text-xs font-semibold">April 2026</h2>
-        <button aria-label="Next month" className="text-lg leading-none">
-          {">"}
-        </button>
-      </div>
-      <div className="grid grid-cols-7 gap-y-3 text-center text-[11px] text-[#5e5e5e]">
-        {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day, index) => (
-          <span key={`${day}-${index}`}>{day}</span>
-        ))}
-        {calendarWeeks.flat().map((day, index) => {
-          const muted = index < 2 || index > 32;
-          const active = day === "18";
-          const outlined = day === "21" || (day === "30" && index > 28);
-
-          return (
-            <span
-              key={`${day}-${index}`}
-              className={[
-                "mx-auto flex h-7 w-7 items-center justify-center rounded-full",
-                muted ? "text-black/15" : "text-black",
-                active ? "bg-[#fcc4c3] text-white" : "",
-                outlined ? "border border-[#fcc4c3]" : "",
-              ].join(" ")}
-            >
-              {day}
-            </span>
-          );
-        })}
-      </div>
-    </Card>
-  );
-}
-
 function ListRow({
   item,
   compact = false,
@@ -398,7 +346,9 @@ function ListRow({
           From: <span className="text-[#003aff]">{item.author}</span>
         </span>
       ) : null}
-      {item.date && !teacher ? <span className="whitespace-nowrap text-xs text-[#003aff]">{item.date}</span> : null}
+      {item.date && !teacher ? (
+        <span className="whitespace-nowrap text-xs text-[#003aff]">{item.date}</span>
+      ) : null}
     </div>
   );
 }

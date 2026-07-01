@@ -1,4 +1,7 @@
-import { ChevronRight } from "lucide-react";
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import type { GradedQuestion } from "@/entities/course";
 
 export type AnswerState = { selected: number[]; bool: boolean | null; text: string };
@@ -193,6 +196,79 @@ function ChoiceReview({ graded, single }: { graded: GradedQuestion; single: bool
   );
 }
 
+type QuizSelectOption = { value: string; label: string };
+
+const trueFalseOptions: QuizSelectOption[] = [
+  { value: "true", label: "True" },
+  { value: "false", label: "False" },
+];
+
+function QuizSelect({
+  options,
+  value,
+  onChange,
+  placeholder,
+}: {
+  options: QuizSelectOption[];
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const selected = options.find((o) => o.value === value);
+
+  useEffect(() => {
+    function onOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onOutside);
+    return () => document.removeEventListener("mousedown", onOutside);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative w-full">
+      <button
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => setOpen((p) => !p)}
+        className={`${pillBase} gradient-border-input cursor-pointer ${
+          selected ? "text-(--color-text-primary)" : "text-(--color-text-secondary)"
+        }`}
+      >
+        <span>{selected?.label ?? placeholder}</span>
+        <ChevronDown
+          aria-hidden="true"
+          className={`h-6 w-6 shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {open && (
+        <ul
+          role="listbox"
+          className="gradient-border-input absolute left-0 right-0 top-[calc(100%+8px)] z-50 flex flex-col rounded-xl py-2"
+        >
+          {options.map((opt) => (
+            <li key={opt.value} role="option" aria-selected={opt.value === value}>
+              <button
+                type="button"
+                onClick={() => {
+                  onChange(opt.value);
+                  setOpen(false);
+                }}
+                className="w-full px-4 py-3 text-left font-(family-name:--font-base) text-xl leading-[25px] text-(--color-text-primary) transition-colors hover:text-(--color-blue)"
+              >
+                {opt.label}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 function TrueFalseAnswer({
   value,
   onChange,
@@ -201,21 +277,12 @@ function TrueFalseAnswer({
   onChange: (v: boolean | null) => void;
 }) {
   return (
-    <div className="relative w-full">
-      <select
-        value={value === null ? "" : String(value)}
-        onChange={(e) => onChange(e.target.value === "" ? null : e.target.value === "true")}
-        className={`${pillBase} cursor-pointer appearance-none bg-(--color-input-bg) pr-12 text-(--color-text-primary) outline-none`}
-      >
-        <option value="">Select your answer</option>
-        <option value="true">True</option>
-        <option value="false">False</option>
-      </select>
-      <ChevronRight
-        className="pointer-events-none absolute right-3 top-1/2 h-8 w-8 -translate-y-1/2 rotate-90 text-(--color-text-primary)"
-        aria-hidden="true"
-      />
-    </div>
+    <QuizSelect
+      options={trueFalseOptions}
+      value={value === null ? "" : String(value)}
+      onChange={(v) => onChange(v === "true")}
+      placeholder="Select your answer"
+    />
   );
 }
 
@@ -248,7 +315,7 @@ function ShortAnswer({ value, onChange }: { value: string; onChange: (v: string)
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder="Enter your answer..."
-      className={`${pillBase} bg-(--color-input-bg) text-(--color-text-primary) outline-none`}
+      className={`quiz-answer-input ${pillBase} bg-(--color-input-bg) text-(--color-text-primary) outline-none`}
     />
   );
 }

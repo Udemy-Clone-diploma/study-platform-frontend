@@ -139,7 +139,7 @@ export function MyCoursesDashboardWidget({ role }: Props) {
                 key={course.id}
                 title={course.title}
                 teacherName={course.teacher_name}
-                progressPercent={0}
+                progressPercent={course.progress_percent ?? 0}
                 imageSrc={course.image}
                 iconSrc={LEVEL_ICON[course.level] ?? "/icons/curses.svg"}
                 level={course.level}

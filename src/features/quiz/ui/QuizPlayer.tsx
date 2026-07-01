@@ -155,6 +155,8 @@ function ResultsFooter({
       (q.answer_text?.trim() ?? "") !== "",
   ).length;
   const incorrect = result.total_count - result.correct_count;
+  const remaining =
+    result.max_attempts == null ? null : Math.max(0, result.max_attempts - result.attempts_used);
 
   return (
     <div className="flex flex-col gap-6 pt-2">
@@ -183,6 +185,13 @@ function ResultsFooter({
         <span className="flex h-[60px] w-[60px] items-center justify-center rounded-lg bg-(--color-brand-lavender) font-(family-name:--font-accent) text-2xl font-medium leading-[30px] text-(--color-blue-dark)">
           {result.score}
         </span>
+        {remaining != null && (
+          <span className="font-(family-name:--font-base) text-base leading-[25px] text-(--color-text-secondary)">
+            {remaining === 0
+              ? "No attempts left"
+              : `${remaining} attempt${remaining === 1 ? "" : "s"} left`}
+          </span>
+        )}
         {result.can_retake && <GradientButton onClick={onRetake}>Retake</GradientButton>}
         <QuizButton href={`/learn/${slug}`}>Back to course</QuizButton>
       </div>

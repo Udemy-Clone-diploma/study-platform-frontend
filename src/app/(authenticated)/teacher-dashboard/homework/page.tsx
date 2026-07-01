@@ -35,7 +35,7 @@ import {
   type CourseModule,
 } from "@/entities/course";
 import { TestFormBody, type TestFormValues, type TestQuestion } from "@/features/courses";
-import { QuizQuestionCard } from "@/features/quiz";
+import { QuizQuestionCard, QuizWindow } from "@/features/quiz";
 import type { ApiError } from "@/shared/api/base";
 
 type FormState = {
@@ -51,6 +51,9 @@ type FormState = {
   maxScore: string;
 };
 
+const HOMEWORK_SCORE_MIN = 1;
+const HOMEWORK_SCORE_MAX = 5;
+
 const EMPTY_FORM: FormState = {
   courseSlug: "",
   sourceAssignmentId: "",
@@ -61,7 +64,7 @@ const EMPTY_FORM: FormState = {
   title: "",
   description: "",
   dueAt: "",
-  maxScore: "",
+  maxScore: String(HOMEWORK_SCORE_MAX),
 };
 
 type SelectOption = {
@@ -126,20 +129,22 @@ function HomeworkSelect({
 
   const controlClassName =
     variant === "filter"
-      ? "flex h-[30px] w-full items-center justify-between gap-2 rounded-full border border-[#ECECEC] bg-white px-3.5 text-left text-[14px] leading-none font-normal text-[#121212] shadow-[0_0_4px_rgba(0,0,0,0.06)] outline-none transition focus-within:ring-2 focus-within:ring-[#9DB1FA] focus:ring-2 focus:ring-[#9DB1FA] disabled:cursor-not-allowed disabled:text-[#8A8A8A]"
+      ? "flex h-10 w-full items-center justify-between gap-3 rounded-full border border-[#ECECEC] bg-white px-5 text-left font-(family-name:--font-base) text-[20px] leading-none font-normal text-[#121212] shadow-[0_0_4px_rgba(0,0,0,0.06)] outline-none transition focus-within:ring-2 focus-within:ring-[#9DB1FA] focus:ring-2 focus:ring-[#9DB1FA] disabled:cursor-not-allowed disabled:text-[#8A8A8A]"
       : "flex h-14 w-full items-center justify-between gap-3 rounded-md bg-[#ECECEC] px-4 text-left text-[15px] text-[#121212] outline-none transition focus-within:ring-2 focus-within:ring-[#9DB1FA] focus:ring-2 focus:ring-[#9DB1FA] disabled:cursor-not-allowed disabled:text-[#8A8A8A]";
 
   return (
     <div ref={rootRef} className="relative">
       {label ? <p className="mb-2 text-[14px] font-semibold text-[#121212]">{label}</p> : null}
       {searchable ? (
-        <div className={`${controlClassName} ${disabled ? "cursor-not-allowed text-[#8A8A8A]" : ""}`}>
+        <div
+          className={`${controlClassName} ${disabled ? "cursor-not-allowed text-[#8A8A8A]" : ""}`}
+        >
           <input
             type="text"
             role="combobox"
             aria-expanded={isOpen}
             aria-controls={`${label ?? placeholder}-options`}
-            value={isOpen ? query : selectedOption?.label ?? ""}
+            value={isOpen ? query : (selectedOption?.label ?? "")}
             placeholder={placeholder}
             disabled={disabled}
             onFocus={() => setIsOpen(true)}
@@ -213,7 +218,7 @@ function HomeworkSelect({
                   setIsOpen(false);
                 }}
                 className={`flex w-full items-center px-5 text-left transition hover:bg-[#F5F7FF] ${
-                  variant === "filter" ? "min-h-10 text-[14px]" : "min-h-12 text-[17px]"
+                  variant === "filter" ? "min-h-[46px] text-[20px]" : "min-h-12 text-[17px]"
                 } ${isSelected ? "text-[#003AFF]" : "text-[#121212]"}`}
               >
                 {option.label}
@@ -436,14 +441,12 @@ function submissionTimestamp(submission: HomeworkSubmission): number {
 }
 
 function reviewableSubmissions(assignment: HomeworkAssignment): HomeworkSubmission[] {
-  return [...assignment.teacher_submissions].sort(
-    (first, second) => {
-      const firstIsEditable = first.status !== "reviewed";
-      const secondIsEditable = second.status !== "reviewed";
-      if (firstIsEditable !== secondIsEditable) return firstIsEditable ? -1 : 1;
-      return submissionTimestamp(second) - submissionTimestamp(first);
-    },
-  );
+  return [...assignment.teacher_submissions].sort((first, second) => {
+    const firstIsEditable = first.status !== "reviewed";
+    const secondIsEditable = second.status !== "reviewed";
+    if (firstIsEditable !== secondIsEditable) return firstIsEditable ? -1 : 1;
+    return submissionTimestamp(second) - submissionTimestamp(first);
+  });
 }
 
 function submissionStatusLabel(status: HomeworkSubmission["status"]): string {
@@ -609,14 +612,17 @@ function HomeworkSubmissionPickerDialog({
               </span>
               <span className="mt-4 grid gap-1 text-[12px] text-[#5E5E5E]">
                 <span>
-                  Status: <span className="text-[#121212]">{submissionStatusLabel(submission.status)}</span>
+                  Status:{" "}
+                  <span className="text-[#121212]">{submissionStatusLabel(submission.status)}</span>
                 </span>
                 <span>
-                  Submitted: <span className="text-[#003AFF]">{cardDateLabel(submission.submitted_at)}</span>
+                  Submitted:{" "}
+                  <span className="text-[#003AFF]">{cardDateLabel(submission.submitted_at)}</span>
                 </span>
                 {submission.reviewed_at ? (
                   <span>
-                    Returned: <span className="text-[#003AFF]">{cardDateLabel(submission.reviewed_at)}</span>
+                    Returned:{" "}
+                    <span className="text-[#003AFF]">{cardDateLabel(submission.reviewed_at)}</span>
                   </span>
                 ) : null}
                 {submission.score != null ? (
@@ -649,6 +655,89 @@ type ReviewTarget = {
   submissionId: number;
 };
 
+type SubmissionTestAttempt = NonNullable<HomeworkSubmission["test_attempt"]>;
+
+function HomeworkAttemptReviewDialog({
+  assignment,
+  submission,
+  attempt,
+  onClose,
+}: {
+  assignment: HomeworkAssignment;
+  submission: HomeworkSubmission;
+  attempt: SubmissionTestAttempt;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") onClose();
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
+  const title = assignment.test_detail?.title ?? assignment.title;
+  const closeButton = (
+    <button
+      type="button"
+      aria-label="Close test attempt"
+      onClick={onClose}
+      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#121212] transition hover:bg-[#F1F1F1]"
+    >
+      <X size={20} aria-hidden="true" />
+    </button>
+  );
+
+  return (
+    <div
+      role="presentation"
+      className="fixed inset-x-0 top-[76px] bottom-0 z-[170] overflow-y-auto bg-(--color-brand-lavender-soft) px-8 py-[52px]"
+      onMouseDown={(event) => {
+        event.stopPropagation();
+        onClose();
+      }}
+    >
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-label={`${title} submitted attempt`}
+        className="mx-auto max-w-[1380px]"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <QuizWindow
+          title={title}
+          description={`Submitted by ${submission.student_name || submission.student_email}`}
+          passingScore={attempt.passing_score}
+          headerAction={closeButton}
+          className="max-w-[1180px]"
+        >
+          <div className="mb-6 flex flex-wrap items-center gap-3 font-(family-name:--font-base) text-sm">
+            <span className="font-semibold text-[#121212]">
+              Best test attempt #{attempt.attempt_number}
+            </span>
+            <span className="rounded bg-[#FFF0D0] px-2 py-1 text-xs text-[#8B5B00]">
+              {attempt.score}%
+            </span>
+            <span className={attempt.passed ? "text-[#067647]" : "text-[#B42318]"}>
+              {attempt.passed ? "Passed" : "Not passed"}
+            </span>
+            <span className="text-[#5E5E5E]">
+              Correct: {attempt.correct_count} / {attempt.total_count}
+            </span>
+          </div>
+
+          <div className="space-y-4">
+            {byOrder(attempt.questions).map((question, index) => (
+              <QuizQuestionCard key={question.id} mode="review" index={index} graded={question} />
+            ))}
+          </div>
+        </QuizWindow>
+      </section>
+    </div>
+  );
+}
+
 function HomeworkReviewDialog({
   assignment,
   submission,
@@ -660,6 +749,7 @@ function HomeworkReviewDialog({
   onScoreChange,
   onFeedbackChange,
   onClose,
+  onBack,
   onRetrieve,
   onReturn,
 }: {
@@ -673,11 +763,16 @@ function HomeworkReviewDialog({
   onScoreChange: (value: string) => void;
   onFeedbackChange: (value: string) => void;
   onClose: () => void;
+  onBack?: () => void;
   onRetrieve: () => void;
   onReturn: (event: FormEvent<HTMLFormElement>) => void;
 }) {
   const attempt = submission.test_attempt;
-  const maxScore = assignment.max_score;
+  const [isAttemptReviewOpen, setIsAttemptReviewOpen] = useState(false);
+  const maxScore =
+    assignment.max_score != null
+      ? Math.min(Math.max(assignment.max_score, HOMEWORK_SCORE_MIN), HOMEWORK_SCORE_MAX)
+      : HOMEWORK_SCORE_MAX;
   const isReadOnly = submission.status === "reviewed";
   const busy = saving || retrieving;
   const reviewDisabled = busy || isReadOnly || !score.trim() || !feedback.trim();
@@ -707,15 +802,27 @@ function HomeworkReviewDialog({
               {submission.student_name || submission.student_email} · {assignment.course_title}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={busy}
-            aria-label="Close review"
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition hover:bg-[#F1F1F1] disabled:cursor-not-allowed"
-          >
-            <X size={18} aria-hidden="true" />
-          </button>
+          <div className="flex shrink-0 items-center gap-2">
+            {onBack ? (
+              <button
+                type="button"
+                onClick={onBack}
+                disabled={busy}
+                className="inline-flex h-9 items-center justify-center rounded-full border border-[#E1E1E1] px-4 text-sm font-medium text-[#121212] transition hover:bg-[#F7F7F7] disabled:cursor-not-allowed"
+              >
+                Back
+              </button>
+            ) : null}
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={busy}
+              aria-label="Close review"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition hover:bg-[#F1F1F1] disabled:cursor-not-allowed"
+            >
+              <X size={18} aria-hidden="true" />
+            </button>
+          </div>
         </div>
 
         <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
@@ -736,8 +843,7 @@ function HomeworkReviewDialog({
                   {deadlineLabel(assignment.due_at)}
                 </p>
                 <p>
-                  <span className="font-medium text-[#121212]">Max score:</span>{" "}
-                  {maxScore ?? "Not set"}
+                  <span className="font-medium text-[#121212]">Max score:</span> {maxScore}
                 </p>
               </div>
               {assignment.description ? (
@@ -808,29 +914,32 @@ function HomeworkReviewDialog({
               ) : null}
 
               {attempt ? (
-                <div className="mt-5 border-t border-[#E7E7E7] pt-4">
-                  <div className="flex flex-wrap items-center gap-3 text-sm">
-                    <span className="font-semibold text-[#121212]">
+                <button
+                  type="button"
+                  onClick={() => setIsAttemptReviewOpen(true)}
+                  className="mt-4 flex w-full max-w-[420px] items-center gap-3 rounded-md bg-[#F0F3FF] px-3 py-2 text-left text-sm text-[#3851B0] transition hover:bg-[#E7ECFF] focus:outline-none focus:ring-2 focus:ring-[#9DB1FA]"
+                >
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-[linear-gradient(135deg,#FCC4C3_0%,#A7BAFA_100%)]">
+                    <Image
+                      src="/icons/test.svg"
+                      alt=""
+                      width={22}
+                      height={22}
+                      className="h-5 w-5"
+                    />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate font-medium text-[#121212]">
                       Best test attempt #{attempt.attempt_number}
                     </span>
-                    <span className="rounded bg-[#FFF0D0] px-2 py-1 text-xs text-[#8B5B00]">
-                      {attempt.score}%
+                    <span className="mt-0.5 flex flex-wrap items-center gap-2 text-xs">
+                      <span>{attempt.score}%</span>
+                      <span className={attempt.passed ? "text-[#067647]" : "text-[#B42318]"}>
+                        {attempt.passed ? "Passed" : "Not passed"}
+                      </span>
                     </span>
-                    <span className={attempt.passed ? "text-[#067647]" : "text-[#B42318]"}>
-                      {attempt.passed ? "Passed" : "Not passed"}
-                    </span>
-                  </div>
-                  <div className="mt-4 space-y-3">
-                    {byOrder(attempt.questions).map((question, index) => (
-                      <QuizQuestionCard
-                        key={question.id}
-                        mode="review"
-                        index={index}
-                        graded={question}
-                      />
-                    ))}
-                  </div>
-                </div>
+                  </span>
+                </button>
               ) : assignment.test_detail ? (
                 <p className="mt-4 rounded-md bg-[#FFF5F5] px-3 py-2 text-sm text-[#B42318]">
                   No test attempt was submitted with this homework.
@@ -856,11 +965,11 @@ function HomeworkReviewDialog({
               </p>
             ) : null}
             <label className="mt-4 grid gap-2 text-sm font-medium">
-              Score{maxScore != null ? ` / ${maxScore}` : ""}
+              Score / {maxScore}
               <input
                 type="number"
-                min="0"
-                max={maxScore ?? undefined}
+                min={HOMEWORK_SCORE_MIN}
+                max={maxScore}
                 step="1"
                 value={score}
                 onChange={(event) => onScoreChange(event.target.value)}
@@ -904,6 +1013,14 @@ function HomeworkReviewDialog({
           </form>
         </div>
       </section>
+      {attempt && isAttemptReviewOpen ? (
+        <HomeworkAttemptReviewDialog
+          assignment={assignment}
+          submission={submission}
+          attempt={attempt}
+          onClose={() => setIsAttemptReviewOpen(false)}
+        />
+      ) : null}
     </div>
   );
 }
@@ -924,7 +1041,10 @@ export default function TeacherHomeworkPage() {
   const [loadingAssignments, setLoadingAssignments] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isTestModalOpen, setIsTestModalOpen] = useState(false);
-  const [reviewSelectionAssignmentId, setReviewSelectionAssignmentId] = useState<number | null>(null);
+  const [reviewSelectionAssignmentId, setReviewSelectionAssignmentId] = useState<number | null>(
+    null,
+  );
+  const [isReviewSelectionOpen, setIsReviewSelectionOpen] = useState(false);
   const [reviewTarget, setReviewTarget] = useState<ReviewTarget | null>(null);
   const [reviewScore, setReviewScore] = useState("");
   const [reviewFeedback, setReviewFeedback] = useState("");
@@ -1100,23 +1220,23 @@ export default function TeacherHomeworkPage() {
   const reviewAssignment = useMemo(
     () =>
       reviewTarget
-        ? assignments.find((assignment) => assignment.id === reviewTarget.assignmentId) ?? null
+        ? (assignments.find((assignment) => assignment.id === reviewTarget.assignmentId) ?? null)
         : null,
     [assignments, reviewTarget],
   );
   const reviewSubmission = useMemo(
     () =>
       reviewAssignment && reviewTarget
-        ? reviewAssignment.teacher_submissions.find(
+        ? (reviewAssignment.teacher_submissions.find(
             (submission) => submission.id === reviewTarget.submissionId,
-          ) ?? null
+          ) ?? null)
         : null,
     [reviewAssignment, reviewTarget],
   );
   const reviewSelectionAssignment = useMemo(
     () =>
       reviewSelectionAssignmentId
-        ? assignments.find((assignment) => assignment.id === reviewSelectionAssignmentId) ?? null
+        ? (assignments.find((assignment) => assignment.id === reviewSelectionAssignmentId) ?? null)
         : null,
     [assignments, reviewSelectionAssignmentId],
   );
@@ -1125,7 +1245,11 @@ export default function TeacherHomeworkPage() {
     [reviewSelectionAssignment],
   );
   const isSaveDisabled =
-    saving || !form.courseSlug || !form.moduleId || !form.lessonId || !form.title.trim() ||
+    saving ||
+    !form.courseSlug ||
+    !form.moduleId ||
+    !form.lessonId ||
+    !form.title.trim() ||
     (!form.testId && !form.description.trim()) ||
     selectedRecipientIds.length === 0;
 
@@ -1159,9 +1283,10 @@ export default function TeacherHomeworkPage() {
     }
   }
 
-  function openReview(assignmentId: number, submissionId: number) {
+  function openReview(assignmentId: number, submissionId: number, fromSelection = false) {
     setReviewTarget({ assignmentId, submissionId });
-    setReviewSelectionAssignmentId(null);
+    if (!fromSelection) setReviewSelectionAssignmentId(null);
+    setIsReviewSelectionOpen(false);
     setSuccess("");
     setReviewError("");
   }
@@ -1174,6 +1299,7 @@ export default function TeacherHomeworkPage() {
     }
     if (submissions.length > 1) {
       setReviewSelectionAssignmentId(assignment.id);
+      setIsReviewSelectionOpen(true);
       setSuccess("");
       setReviewError("");
       return;
@@ -1184,11 +1310,25 @@ export default function TeacherHomeworkPage() {
   }
 
   function closeReview() {
-    if (!reviewSaving && !reviewRetrieving) setReviewTarget(null);
+    if (!reviewSaving && !reviewRetrieving) {
+      setReviewTarget(null);
+      setReviewSelectionAssignmentId(null);
+      setIsReviewSelectionOpen(false);
+    }
   }
 
   function closeReviewSelection() {
-    if (!reviewSaving && !reviewRetrieving) setReviewSelectionAssignmentId(null);
+    if (!reviewSaving && !reviewRetrieving) {
+      setReviewSelectionAssignmentId(null);
+      setIsReviewSelectionOpen(false);
+    }
+  }
+
+  function backToReviewSelection() {
+    if (!reviewSaving && !reviewRetrieving) {
+      setReviewTarget(null);
+      setIsReviewSelectionOpen(true);
+    }
   }
 
   function updateField(field: keyof FormState, value: string) {
@@ -1232,6 +1372,10 @@ export default function TeacherHomeworkPage() {
           (assignment) => String(assignment.id) === value,
         );
         if (!sourceAssignment) return next;
+        const inheritedMaxScore =
+          sourceAssignment.max_score != null
+            ? Math.min(Math.max(sourceAssignment.max_score, HOMEWORK_SCORE_MIN), HOMEWORK_SCORE_MAX)
+            : HOMEWORK_SCORE_MAX;
         return {
           ...next,
           moduleId: sourceAssignment.module ? String(sourceAssignment.module) : "",
@@ -1239,7 +1383,7 @@ export default function TeacherHomeworkPage() {
           testId: sourceAssignment.test ? String(sourceAssignment.test) : "",
           title: sourceAssignment.title,
           description: sourceAssignment.description,
-          maxScore: sourceAssignment.max_score ? String(sourceAssignment.max_score) : "",
+          maxScore: String(inheritedMaxScore),
         };
       }
 
@@ -1299,8 +1443,13 @@ export default function TeacherHomeworkPage() {
     if (!form.courseSlug || saving) return;
 
     const maxScore = form.maxScore ? Number(form.maxScore) : undefined;
-    if (maxScore !== undefined && (!Number.isInteger(maxScore) || maxScore < 1)) {
-      setError("Maximum score must be a positive whole number.");
+    if (
+      maxScore !== undefined &&
+      (!Number.isInteger(maxScore) ||
+        maxScore < HOMEWORK_SCORE_MIN ||
+        maxScore > HOMEWORK_SCORE_MAX)
+    ) {
+      setError(`Maximum score must be a whole number from ${HOMEWORK_SCORE_MIN} to ${HOMEWORK_SCORE_MAX}.`);
       return;
     }
 
@@ -1384,12 +1533,12 @@ export default function TeacherHomeworkPage() {
     }
 
     const score = Number(reviewScore);
-    if (!Number.isInteger(score) || score < 0) {
-      setReviewError("Score must be a whole number.");
-      return;
-    }
-    if (reviewAssignment.max_score != null && score > reviewAssignment.max_score) {
-      setReviewError("Score cannot exceed the assignment maximum.");
+    const maxScore =
+      reviewAssignment.max_score != null
+        ? Math.min(Math.max(reviewAssignment.max_score, HOMEWORK_SCORE_MIN), HOMEWORK_SCORE_MAX)
+        : HOMEWORK_SCORE_MAX;
+    if (!Number.isInteger(score) || score < HOMEWORK_SCORE_MIN || score > maxScore) {
+      setReviewError(`Score must be a whole number from ${HOMEWORK_SCORE_MIN} to ${maxScore}.`);
       return;
     }
     const feedback = reviewFeedback.trim();
@@ -1421,6 +1570,8 @@ export default function TeacherHomeworkPage() {
       );
       setSuccess("Homework returned to the student.");
       setReviewTarget(null);
+      setReviewSelectionAssignmentId(null);
+      setIsReviewSelectionOpen(false);
     } catch (requestError) {
       const apiError = requestError as Partial<ApiError>;
       setReviewError(apiError.detail || apiError.message || "Could not return homework.");
@@ -1447,10 +1598,8 @@ export default function TeacherHomeworkPage() {
                   type="button"
                   aria-pressed={active}
                   onClick={() => setQueueFilter(tab.value)}
-                  className={`inline-flex h-[30px] items-center text-[20px] leading-none transition ${
-                    active
-                      ? "font-medium text-[#121212]"
-                      : "font-normal text-[#121212] hover:text-[#003AFF]"
+                  className={`inline-flex h-9 items-center font-(family-name:--font-base) text-[24px] leading-none font-semibold text-[#121212] transition ${
+                    active ? "" : "hover:text-[#003AFF]"
                   }`}
                 >
                   {tab.label}
@@ -1476,8 +1625,8 @@ export default function TeacherHomeworkPage() {
           </button>
         </div>
 
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          <div className="w-[min(100%,116px)]">
+        <div className="mt-3 flex h-10 w-[min(100%,1020px)] items-center gap-2">
+          <div className="w-[260px] shrink-0">
             <HomeworkSelect
               value={selectedCourseSlug}
               options={courses.map((course) => ({ value: course.slug, label: course.title }))}
@@ -1487,7 +1636,7 @@ export default function TeacherHomeworkPage() {
               onChange={setSelectedCourseSlug}
             />
           </div>
-          <div className="w-[86px]">
+          <div className="w-[190px] shrink-0">
             <HomeworkSelect
               value={statusFilter}
               options={[
@@ -1501,16 +1650,12 @@ export default function TeacherHomeworkPage() {
               onChange={setStatusFilter}
             />
           </div>
-          <span className="hidden">
-            Group — soon
-          </span>
-          <span className="hidden">
-            Student — soon
-          </span>
-          <span className="inline-flex h-[30px] items-center rounded-full border border-[#ECECEC] bg-white px-4 text-[14px] leading-none font-normal text-[#121212] shadow-[0_0_4px_rgba(0,0,0,0.06)]">
+          <span className="hidden">Group — soon</span>
+          <span className="hidden">Student — soon</span>
+          <span className="inline-flex h-10 items-center rounded-full border border-[#ECECEC] bg-white px-5 font-(family-name:--font-base) text-[20px] leading-none font-normal text-[#121212] shadow-[0_0_4px_rgba(0,0,0,0.06)]">
             Total Assignments:
           </span>
-          <span className="inline-flex h-[30px] min-w-[30px] items-center justify-center rounded-full border border-[#ECECEC] bg-white px-2 text-[14px] leading-none font-normal text-[#121212] shadow-[0_0_4px_rgba(0,0,0,0.06)]">
+          <span className="inline-flex h-10 min-w-10 items-center justify-center rounded-full border border-[#ECECEC] bg-white px-3 font-(family-name:--font-base) text-[20px] leading-none font-normal text-[#121212] shadow-[0_0_4px_rgba(0,0,0,0.06)]">
             {visibleAssignments.length}
           </span>
         </div>
@@ -1541,7 +1686,9 @@ export default function TeacherHomeworkPage() {
             <div className="space-y-11">
               {assignmentsByMonth.map(([month, items]) => (
                 <section key={month}>
-                  <h2 className="mb-6 text-[28px] leading-none font-normal text-[#121212]">{month}</h2>
+                  <h2 className="mb-6 text-[28px] leading-none font-normal text-[#121212]">
+                    {month}
+                  </h2>
                   <div className="grid gap-x-5 gap-y-6 2xl:grid-cols-[minmax(0,722px)_minmax(0,722px)]">
                     {items.map((assignment) => {
                       return (
@@ -1573,16 +1720,17 @@ export default function TeacherHomeworkPage() {
           onScoreChange={setReviewScore}
           onFeedbackChange={setReviewFeedback}
           onClose={closeReview}
+          onBack={reviewSelectionAssignment ? backToReviewSelection : undefined}
           onRetrieve={handleRetrieveSubmission}
           onReturn={handleReturnSubmission}
         />
       ) : null}
 
-      {reviewSelectionAssignment && reviewSelectionSubmissions.length > 1 ? (
+      {reviewSelectionAssignment && isReviewSelectionOpen && reviewSelectionSubmissions.length > 1 ? (
         <HomeworkSubmissionPickerDialog
           assignment={reviewSelectionAssignment}
           submissions={reviewSelectionSubmissions}
-          onSelect={(submissionId) => openReview(reviewSelectionAssignment.id, submissionId)}
+          onSelect={(submissionId) => openReview(reviewSelectionAssignment.id, submissionId, true)}
           onClose={closeReviewSelection}
         />
       ) : null}
@@ -1731,7 +1879,8 @@ export default function TeacherHomeworkPage() {
                   <div className="mt-3 rounded-md bg-white px-3 py-2 text-[12px] text-[#3E3E3E]">
                     <p className="font-medium text-[#121212]">{selectedTest.title}</p>
                     <p className="mt-1 text-[#6A6A6A]">
-                      {selectedTest.questions.length} question(s), passing score {selectedTest.passing_score}
+                      {selectedTest.questions.length} question(s), passing score{" "}
+                      {selectedTest.passing_score}
                     </p>
                   </div>
                 ) : null}
@@ -1740,7 +1889,9 @@ export default function TeacherHomeworkPage() {
               <div className="mt-6">
                 <p className="mb-2 text-[14px] font-semibold text-[#121212]">Group or student*</p>
                 {availableRecipients.length === 0 ? (
-                  <p className="mt-2 text-[12px] text-[#A44]">No active students are enrolled in this course.</p>
+                  <p className="mt-2 text-[12px] text-[#A44]">
+                    No active students are enrolled in this course.
+                  </p>
                 ) : (
                   <div>
                     <HomeworkSelect
@@ -1794,15 +1945,16 @@ export default function TeacherHomeworkPage() {
                   onChange={(value) => updateField("dueAt", value)}
                 />
                 <label className="grid gap-2 text-[14px] font-semibold text-[#121212]">
-                  Maximum score
+                  Maximum score (1-5)
                   <input
                     type="number"
-                    min="1"
+                    min={HOMEWORK_SCORE_MIN}
+                    max={HOMEWORK_SCORE_MAX}
                     step="1"
                     value={form.maxScore}
                     onChange={(event) => updateField("maxScore", event.target.value)}
                     disabled={saving}
-                    placeholder="For example, 100"
+                    placeholder="5"
                     className="h-14 rounded-md bg-[#ECECEC] px-4 text-[15px] outline-none transition placeholder:text-[#858585] focus:ring-2 focus:ring-[#9DB1FA] disabled:cursor-not-allowed"
                   />
                 </label>
@@ -1813,7 +1965,9 @@ export default function TeacherHomeworkPage() {
                 <div className="mt-2 flex min-h-[208px] flex-col items-center justify-center rounded-md border border-dashed border-[#C9C9C9] px-4 py-5 text-center text-[#4E4E4E]">
                   <Upload className="mb-3" size={20} aria-hidden="true" />
                   <p className="text-[15px] font-medium">Upload a file for this homework</p>
-                  <p className="mt-1 text-[12px] text-[#6A6A6A]">Any file type, up to 25 MB per file</p>
+                  <p className="mt-1 text-[12px] text-[#6A6A6A]">
+                    Any file type, up to 25 MB per file
+                  </p>
                   <label className="mt-3 inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-full border border-[#CFCFCF] bg-white px-4 text-[12px] text-[#121212] transition hover:bg-[#F4F4F4] has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-60">
                     <Upload size={13} aria-hidden="true" />
                     Choose File
@@ -1831,12 +1985,19 @@ export default function TeacherHomeworkPage() {
                   {attachmentFiles.length > 0 ? (
                     <div className="mt-4 w-full max-w-md space-y-1 text-left text-[12px] text-[#3E3E3E]">
                       {attachmentFiles.map((file, index) => (
-                        <div key={`${file.name}-${index}`} className="flex items-center justify-between gap-3 rounded bg-[#F5F5F5] px-3 py-2">
+                        <div
+                          key={`${file.name}-${index}`}
+                          className="flex items-center justify-between gap-3 rounded bg-[#F5F5F5] px-3 py-2"
+                        >
                           <span className="truncate">{file.name}</span>
                           <button
                             type="button"
                             disabled={saving}
-                            onClick={() => setAttachmentFiles((current) => current.filter((_, fileIndex) => fileIndex !== index))}
+                            onClick={() =>
+                              setAttachmentFiles((current) =>
+                                current.filter((_, fileIndex) => fileIndex !== index),
+                              )
+                            }
                             className="shrink-0 text-[#A44] hover:underline disabled:text-[#AAA]"
                           >
                             Remove

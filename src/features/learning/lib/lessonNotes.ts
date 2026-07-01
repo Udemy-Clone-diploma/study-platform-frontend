@@ -1,8 +1,9 @@
+import { api } from "@/shared/api/base";
+
 /**
- * Per-lesson note persistence. There is no notes backend yet, so the lesson
- * player's "Take a note" panel stores text in localStorage keyed by course and
- * lesson. The index lets dashboards list real saved notes without knowing
- * every course/lesson pair in advance.
+ * Per-lesson note persistence. Real lessons use the backend note endpoint,
+ * while localStorage remains as a local index/cache for the student dashboard
+ * and for dev-mock lessons that do not have a server record.
  */
 const NOTE_KEY_PREFIX = "nexo:lesson-note:";
 const INDEX_KEY = "nexo:lesson-notes:index";
@@ -10,6 +11,7 @@ const NOTES_UPDATED_EVENT = "nexo:lesson-notes-updated";
 
 const key = (slug: string, lessonId: number) => `${NOTE_KEY_PREFIX}${slug}:${lessonId}`;
 const noteId = (slug: string, lessonId: number) => `${slug}:${lessonId}`;
+const notePath = (slug: string, lessonId: number) => `courses/${slug}/lessons/${lessonId}/note/`;
 
 export type LessonNoteMetadata = {
   courseTitle?: string;
@@ -25,6 +27,10 @@ export type StoredLessonNote = LessonNoteMetadata & {
   text: string;
   createdAt: string;
   updatedAt: string;
+};
+
+type LessonNoteOptions = {
+  localOnly?: boolean;
 };
 
 function emitNotesUpdated(): void {
@@ -86,7 +92,13 @@ function upsertIndexedNote(
   writeIndex([next, ...notes.filter((note) => note.id !== id)]);
 }
 
-export function readLessonNote(slug: string, lessonId: number): string {
+function removeIndexedNote(slug: string, lessonId: number): void {
+  const id = noteId(slug, lessonId);
+  window.localStorage.removeItem(key(slug, lessonId));
+  writeIndex(readIndex().filter((note) => note.id !== id));
+}
+
+function readLocalLessonNote(slug: string, lessonId: number): string {
   if (typeof window === "undefined") return "";
   try {
     return window.localStorage.getItem(key(slug, lessonId)) ?? "";
@@ -95,7 +107,7 @@ export function readLessonNote(slug: string, lessonId: number): string {
   }
 }
 
-export function writeLessonNote(
+function writeLocalLessonNote(
   slug: string,
   lessonId: number,
   text: string,
@@ -103,21 +115,50 @@ export function writeLessonNote(
 ): void {
   if (typeof window === "undefined") return;
   try {
-    const notes = readIndex();
-    const id = noteId(slug, lessonId);
-
     if (text.trim()) {
       window.localStorage.setItem(key(slug, lessonId), text);
       upsertIndexedNote(slug, lessonId, text, metadata);
     } else {
-      window.localStorage.removeItem(key(slug, lessonId));
-      writeIndex(notes.filter((note) => note.id !== id));
+      removeIndexedNote(slug, lessonId);
     }
-
     emitNotesUpdated();
   } catch {
     /* ignore storage failures */
   }
+}
+
+export async function readLessonNote(
+  slug: string,
+  lessonId: number,
+  options: LessonNoteOptions = {},
+): Promise<string> {
+  if (options.localOnly) {
+    return readLocalLessonNote(slug, lessonId);
+  }
+
+  try {
+    const { data } = await api.get<{ content: string }>(notePath(slug, lessonId));
+    const content = data.content ?? "";
+    writeLocalLessonNote(slug, lessonId, content);
+    return content;
+  } catch {
+    // No note yet, offline fallback, or a transient failure: keep the panel usable.
+    return readLocalLessonNote(slug, lessonId);
+  }
+}
+
+export async function writeLessonNote(
+  slug: string,
+  lessonId: number,
+  text: string,
+  metadata: LessonNoteMetadata = {},
+  options: LessonNoteOptions = {},
+): Promise<void> {
+  if (!options.localOnly) {
+    await api.put(notePath(slug, lessonId), { content: text });
+  }
+
+  writeLocalLessonNote(slug, lessonId, text, metadata);
 }
 
 export function updateLessonNoteMetadata(
@@ -178,10 +219,7 @@ export function subscribeToLessonNotes(listener: () => void): () => void {
   if (typeof window === "undefined") return () => {};
 
   const handleStorage = (event: StorageEvent) => {
-    if (
-      event.key === INDEX_KEY ||
-      event.key?.startsWith(NOTE_KEY_PREFIX)
-    ) {
+    if (event.key === INDEX_KEY || event.key?.startsWith(NOTE_KEY_PREFIX)) {
       listener();
     }
   };

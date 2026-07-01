@@ -1,9 +1,9 @@
-import Image from "next/image";
 import Link from "next/link";
 import { getCategories } from "@/entities/course";
 import { getMe } from "@/entities/user";
 import { CatalogDropdown } from "@/features/courses";
 import { UserDropdown } from "@/features/auth";
+import { NotificationBell } from "@/features/notifications";
 import { getAccessToken } from "@/shared/api/authCookies";
 import { AccentButton } from "@/shared/ui/AccentButton";
 import { SearchBar } from "@/shared/ui/SearchBar";
@@ -85,13 +85,7 @@ export async function Header({ borderRadius = "0px 0px 20px 20px" }: HeaderProps
                             </Link>
 
                             <div className="flex items-center h-full" style={{ gap: 28 }}>
-                                <button
-                                    aria-label="Notifications"
-                                    className="flex items-center justify-center transition-opacity hover:opacity-70"
-                                    style={{ width: 40, height: 40 }}
-                                >
-                                    <Image src="/layout/notifications-icon.png" alt="Notifications" width={24} height={24} />
-                                </button>
+                                <NotificationBell />
                                 <UserDropdown firstName={user?.first_name ?? null} role={user?.role ?? null} avatar={user?.avatar ?? null} />
                             </div>
                         </div>

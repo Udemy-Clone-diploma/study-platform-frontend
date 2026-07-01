@@ -280,6 +280,7 @@ export function LessonPlayerView({
                   key={lessonId}
                   slug={slug}
                   lessonId={lessonId}
+                  isMock={isMock}
                   courseTitle={course.title}
                   courseLevel={course.level}
                   lessonTitle={lesson.title}

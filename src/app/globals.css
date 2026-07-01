@@ -215,6 +215,12 @@
     rgba(255, 244, 218, 0.45) 100%
   );
 
+  --gradient-notification: linear-gradient(
+    to right,
+    #fedccf 0%,
+    #fee7d4 100%
+  );
+
   /* ── Shadows ── */
   --shadow-dashboard-card: 0px 0px 17px rgba(0, 0, 0, 0.16);
   --shadow-modal:          0px 0px 40px rgba(0, 0, 0, 0.2);
@@ -249,6 +255,10 @@ body {
   opacity: 1;
 }
 
+.quiz-answer-input::placeholder {
+  color: var(--color-text-secondary);
+}
+
 .dropdown-link {
   color: var(--color-text-primary);
   transition: color 0.15s;
@@ -270,6 +280,13 @@ body {
 .gradient-border {
   background:
     linear-gradient(#fff, #fff) padding-box,
+    var(--gradient-catalog-border) border-box;
+  border: 2px solid transparent;
+}
+
+.gradient-border-input {
+  background:
+    linear-gradient(var(--color-input-bg), var(--color-input-bg)) padding-box,
     var(--gradient-catalog-border) border-box;
   border: 2px solid transparent;
 }

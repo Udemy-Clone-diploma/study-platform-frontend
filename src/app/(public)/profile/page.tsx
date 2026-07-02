@@ -56,6 +56,8 @@ function ProfilePage() {
     const [specialization, setSpecialization]             = useState("");
     const [experience, setExperience]                     = useState("");
     const [bio, setBio]                                   = useState("");
+    const [yearsExperience, setYearsExperience]           = useState("");
+    const [partnershipsCount, setPartnershipsCount]       = useState("");
     const [instructionLanguage, setInstructionLanguage]   = useState<UserLanguage>("en");
 
     // Student-specific edit state
@@ -75,6 +77,8 @@ function ProfilePage() {
                     setSpecialization(tp?.specialization ?? "");
                     setExperience(tp?.experience ?? "");
                     setBio(tp?.bio ?? "");
+                    setYearsExperience(tp?.years_experience != null ? String(tp.years_experience) : "");
+                    setPartnershipsCount(tp?.partnerships_count != null ? String(tp.partnerships_count) : "");
                 } else if (data.role === "student") {
                     const sp = data.profile as StudentProfile;
                     setDateOfBirth(sp?.date_of_birth ?? "");
@@ -97,6 +101,8 @@ function ProfilePage() {
             setSpecialization(tp?.specialization ?? "");
             setExperience(tp?.experience ?? "");
             setBio(tp?.bio ?? "");
+            setYearsExperience(tp?.years_experience != null ? String(tp.years_experience) : "");
+            setPartnershipsCount(tp?.partnerships_count != null ? String(tp.partnerships_count) : "");
         } else if (user.role === "student") {
             const sp = user.profile as StudentProfile;
             setDateOfBirth(sp?.date_of_birth ?? "");
@@ -116,6 +122,8 @@ function ProfilePage() {
                 setSpecialization(tp?.specialization ?? "");
                 setExperience(tp?.experience ?? "");
                 setBio(tp?.bio ?? "");
+                setYearsExperience(tp?.years_experience != null ? String(tp.years_experience) : "");
+                setPartnershipsCount(tp?.partnerships_count != null ? String(tp.partnerships_count) : "");
             } else if (user.role === "student") {
                 const sp = user.profile as StudentProfile;
                 setDateOfBirth(sp?.date_of_birth ?? "");
@@ -157,7 +165,13 @@ function ProfilePage() {
             });
 
             if (user?.role === "teacher") {
-                const profile = await updateTeacherProfile({ specialization, experience, bio });
+                const profile = await updateTeacherProfile({
+                    specialization,
+                    experience,
+                    bio,
+                    years_experience: yearsExperience.trim() ? parseInt(yearsExperience, 10) : null,
+                    partnerships_count: partnershipsCount.trim() ? parseInt(partnershipsCount, 10) : null,
+                });
                 updated = { ...updated, profile };
             } else if (user?.role === "student") {
                 const profile = await updateStudentProfile({
@@ -251,10 +265,14 @@ function ProfilePage() {
                                 specialization={specialization}
                                 experience={experience}
                                 bio={bio}
+                                yearsExperience={yearsExperience}
+                                partnershipsCount={partnershipsCount}
                                 onFirstNameChange={setFirstName}
                                 onLastNameChange={setLastName}
                                 onLanguageChange={handleLanguageChange}
                                 onInstructionLanguageChange={setInstructionLanguage}
+                                onYearsExperienceChange={setYearsExperience}
+                                onPartnershipsCountChange={setPartnershipsCount}
                                 onSpecializationChange={setSpecialization}
                                 onExperienceChange={setExperience}
                                 onBioChange={setBio}

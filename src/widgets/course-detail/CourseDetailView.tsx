@@ -41,7 +41,7 @@ export function CourseDetailView({ course, reviews }: Props) {
               aria-hidden="true"
               className="pointer-events-none absolute inset-0 -z-10"
               style={{
-                background: "radial-gradient(ellipse at center, rgba(255,255,255,0) 0%, rgba(255,255,255,0.9) 75%, rgba(255,255,255,1) 100%)",
+                background: "radial-gradient(ellipse at center, rgba(255,255,255,0) 0%, rgba(255,255,255,0.9) 78%, rgba(255,255,255,1) 100%)",
               }}
               
             />
@@ -49,10 +49,10 @@ export function CourseDetailView({ course, reviews }: Props) {
               aria-hidden="true"
               className="pointer-events-none absolute inset-0 -z-10"
               style={{
-                background: "radial-gradient(ellipse at center, rgba(255,255,255,0) 0%, rgba(255,255,255,0.9) 75%, rgba(255,255,255,1) 100%)",
+                background: "radial-gradient(ellipse at center, rgba(255,255,255,0) 0%, rgba(255,255,255,0.9) 78%, rgba(255,255,255,1) 100%)",
               }}
             />
-            <CourseTeacher teacher={course.teacher} quote={course.quote} />
+            <CourseTeacher teacher={course.teacher} quote={course.short_description} />
           </section>
 
           <section className="grid grid-cols-1 gap-x-8 gap-y-8 sm:gap-x-12 lg:grid-cols-[minmax(0,1fr)_369px] lg:gap-x-[111px] lg:gap-y-10">

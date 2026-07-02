@@ -19,6 +19,8 @@ type Props = {
     specialization: string;
     experience: string;
     bio: string;
+    yearsExperience: string;
+    partnershipsCount: string;
     onFirstNameChange: (v: string) => void;
     onLastNameChange: (v: string) => void;
     onLanguageChange: (v: UserLanguage) => void;
@@ -26,6 +28,8 @@ type Props = {
     onSpecializationChange: (v: string) => void;
     onExperienceChange: (v: string) => void;
     onBioChange: (v: string) => void;
+    onYearsExperienceChange: (v: string) => void;
+    onPartnershipsCountChange: (v: string) => void;
     onChangePassword: () => void;
 };
 
@@ -33,9 +37,10 @@ type Props = {
 export function TeacherFields({
     editing, email, dateJoined,
     firstName, lastName, language, instructionLanguage,
-    profile, specialization, experience, bio,
+    profile, specialization, experience, bio, yearsExperience, partnershipsCount,
     onFirstNameChange, onLastNameChange, onLanguageChange, onInstructionLanguageChange,
     onSpecializationChange, onExperienceChange, onBioChange,
+    onYearsExperienceChange, onPartnershipsCountChange,
     onChangePassword,
 }: Props) {
     return (
@@ -98,6 +103,16 @@ export function TeacherFields({
                         <span style={VALUE_STYLE}>••••••••••••••</span>
                     )}
                 </div>
+
+                {/* Row 4 — optional course-detail instructor-card stats. Shown there only if set. */}
+                <ProfileField
+                    label="Years of experience (optional)" value={profile?.years_experience != null ? String(profile.years_experience) : "—"}
+                    editing={editing} inputValue={yearsExperience} onInputChange={onYearsExperienceChange}
+                />
+                <ProfileField
+                    label="Partnerships with companies (optional)" value={profile?.partnerships_count != null ? String(profile.partnerships_count) : "—"}
+                    editing={editing} inputValue={partnershipsCount} onInputChange={onPartnershipsCountChange}
+                />
             </div>
 
             {/* Bio — full width below the grid */}

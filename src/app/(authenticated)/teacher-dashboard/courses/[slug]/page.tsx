@@ -18,6 +18,7 @@ import {
   SimpleStudentsList,
 } from "@/features/courses";
 import { AccentButton } from "@/shared/ui/AccentButton";
+import { PageShell } from "@/shared/ui/PageShell";
 import { WhiteButton } from "@/shared/ui/WhiteButton";
 
 // ── Lookups ────────────────────────────────────────────────────────────────────
@@ -275,15 +276,7 @@ export default function CourseManagementPage() {
   };
 
   return (
-    <main
-      className="bg-my-courses min-h-[calc(100vh-76px)]"
-      style={{
-        paddingLeft: "clamp(40px, calc(-110px + 10.42vw), 90px)",
-        paddingRight: "clamp(40px, calc(-110px + 10.42vw), 90px)",
-        paddingTop: "clamp(16px, 2.22vw, 32px)",
-        paddingBottom: 360,
-      }}
-    >
+    <PageShell className="bg-my-courses" style={{ paddingBottom: 360 }}>
       <div style={{ maxWidth: "1648px", margin: "0 auto" }}>
       {/* Back nav */}
       <div style={{ marginBottom: "clamp(16px, 1.39vw, 24px)" }}>
@@ -445,6 +438,6 @@ export default function CourseManagementPage() {
         <SelfPacedFormatTab fmt={fmtByType.self_paced} slug={slug} />
       )}
       </div>
-    </main>
+    </PageShell>
   );
 }

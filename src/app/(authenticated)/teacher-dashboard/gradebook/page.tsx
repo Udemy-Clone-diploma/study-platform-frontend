@@ -18,6 +18,7 @@ import {
   type HomeworkSubmission,
 } from "@/entities/homework";
 import type { ApiError } from "@/shared/api/base";
+import { PageShell } from "@/shared/ui/PageShell";
 
 type SelectOption = {
   value: string;
@@ -80,7 +81,7 @@ function GradebookSelect({
   }, []);
 
   return (
-    <div ref={rootRef} className={`relative h-10 ${className}`}>
+    <div ref={rootRef} className={`relative h-[clamp(32px,2.78vw,40px)] ${className}`}>
       <button
         type="button"
         aria-label={ariaLabel}
@@ -88,7 +89,7 @@ function GradebookSelect({
         aria-expanded={open}
         disabled={disabled}
         onClick={() => setOpen((current) => !current)}
-        className="flex h-10 w-full items-center justify-between gap-2 rounded-full border border-[#ECECEC] bg-white px-4 font-(family-name:--font-base) text-[15px] leading-[20px] font-normal text-[#121212] shadow-[0_0_4px_rgba(0,0,0,0.06)] outline-none transition hover:shadow-[0_2px_10px_rgba(0,0,0,0.08)] focus:ring-2 focus:ring-[#9DB1FA] disabled:cursor-not-allowed disabled:text-[#8A8A8A]"
+        className="flex h-[clamp(32px,2.78vw,40px)] w-full items-center justify-between gap-2 rounded-full border border-[#ECECEC] bg-white px-4 font-(family-name:--font-base) text-[15px] leading-[20px] font-normal text-[#121212] shadow-[0_0_4px_rgba(0,0,0,0.06)] outline-none transition hover:shadow-[0_2px_10px_rgba(0,0,0,0.08)] focus:ring-2 focus:ring-[#9DB1FA] disabled:cursor-not-allowed disabled:text-[#8A8A8A]"
       >
         <span className="min-w-0 truncate leading-[20px]">{selected?.label ?? placeholder}</span>
         <ChevronDown
@@ -395,14 +396,14 @@ export default function TeacherGradebookPage() {
   );
 
   return (
-    <main className="relative isolate h-[calc(100vh-76px)] overflow-hidden bg-white px-4 py-[52px] sm:px-8 lg:pr-[90px] lg:pl-[89px]">
+    <PageShell className="relative isolate bg-white" fixedHeight>
       <div
         aria-hidden="true"
         className="pointer-events-none absolute top-[-257px] left-[113px] z-0 h-[1002px] w-[1368px] rotate-[-33.8deg] bg-[#FCC4C3] opacity-50 blur-[300px]"
       />
 
-      <section className="relative z-10 h-full w-full font-(family-name:--font-base) text-[#121212]">
-        <div className="flex h-10 shrink-0 items-center gap-3">
+      <section className="relative z-10 flex h-full w-full flex-col font-(family-name:--font-base) text-[#121212]">
+        <div className="flex h-[clamp(32px,2.78vw,40px)] shrink-0 items-center gap-3">
           <h1 className="mr-6 text-[18px] leading-none font-semibold">Homework</h1>
           <GradebookSelect
             value={selectedCourseSlug}
@@ -437,8 +438,8 @@ export default function TeacherGradebookPage() {
           </div>
         ) : null}
 
-        <div className="mt-7 grid min-h-0 w-full grid-cols-[331px_minmax(0,1fr)] gap-[20px]">
-          <aside className="h-[min(793px,calc(100vh-248px))] overflow-hidden rounded-[16px] bg-white shadow-(--shadow-dashboard-card)">
+        <div className="mt-7 grid min-h-0 w-full flex-1 grid-cols-[331px_minmax(0,1fr)] gap-[20px]">
+          <aside className="h-full overflow-hidden rounded-[16px] bg-white shadow-(--shadow-dashboard-card)">
             <div className="flex h-10 items-center justify-center rounded-t-[16px] bg-[linear-gradient(90deg,var(--color-brand-lavender)_0%,var(--color-brand-pink)_55%,var(--color-brand-cream)_100%)] text-[20px] leading-none font-normal tracking-normal">
               Modules
             </div>
@@ -467,7 +468,7 @@ export default function TeacherGradebookPage() {
             </div>
           </aside>
 
-          <section className="flex h-[min(793px,calc(100vh-248px))] min-w-0 flex-col gap-[10px] overflow-hidden rounded-[16px] bg-white shadow-(--shadow-dashboard-card)">
+          <section className="flex h-full min-w-0 flex-col gap-[10px] overflow-hidden rounded-[16px] bg-white shadow-(--shadow-dashboard-card)">
             <div className="grid h-10 shrink-0 grid-cols-[274px_minmax(0,1fr)] items-center rounded-t-[16px] bg-[linear-gradient(90deg,var(--color-brand-lavender)_0%,var(--color-brand-pink)_55%,var(--color-brand-cream)_100%)] text-center text-[20px] leading-none font-normal tracking-normal">
               <span>Students</span>
               <span>Lessons</span>
@@ -547,6 +548,6 @@ export default function TeacherGradebookPage() {
           </section>
         </div>
       </section>
-    </main>
+    </PageShell>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from "react";
 import { ChevronDown, Search } from "lucide-react";
+import { PageShell } from "@/shared/ui/PageShell";
 import {
   getTeacherCourses,
   getCourseEnrolledStudents,
@@ -371,16 +372,7 @@ export default function TeacherStudentsPage() {
   // ── Render ───────────────────────────────────────────────────────────────────
 
   return (
-    <main
-      className="flex flex-col bg-my-courses"
-      style={{
-        height: "calc(100vh - 76px)",
-        overflow: "hidden",
-        paddingLeft: "clamp(40px, calc(-110px + 10.42vw), 90px)",
-        paddingRight: "clamp(40px, calc(-110px + 10.42vw), 90px)",
-        paddingBlock: "clamp(16px, 2.22vw, 32px)",
-      }}
-    >
+    <PageShell className="bg-my-courses" fixedHeight>
       <div style={{ maxWidth: "1648px", margin: "0 auto", width: "100%", display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
         {/* Top bar */}
         <div
@@ -435,16 +427,16 @@ export default function TeacherStudentsPage() {
             style={{
               minWidth: "clamp(180px, 18vw, 320px)",
               maxWidth: 470,
-              height: "clamp(36px, 3.61vw, 52px)",
+              height: "clamp(32px, 2.78vw, 40px)",
               border: "1px solid var(--color-brand-lavender)",
               borderRadius: 40,
-              padding: "clamp(6px, 0.69vw, 10px) clamp(12px, 1.39vw, 20px)",
+              padding: "clamp(6px, 0.56vw, 8px) clamp(12px, 1.11vw, 16px)",
             }}
           >
             <Search
               style={{
-                width: "clamp(16px, 1.67vw, 24px)",
-                height: "clamp(16px, 1.67vw, 24px)",
+                width: "clamp(14px, 1.39vw, 20px)",
+                height: "clamp(14px, 1.39vw, 20px)",
                 color: "var(--color-brand-lavender)",
                 flexShrink: 0,
               }}
@@ -473,6 +465,6 @@ export default function TeacherStudentsPage() {
           scrollable
         />
       </div>
-    </main>
+    </PageShell>
   );
 }

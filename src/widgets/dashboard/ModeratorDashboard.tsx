@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { SIDEBAR_GAP } from "@/shared/ui/PageShell";
 
 // ── Placeholder data ──────────────────────────────────────────────────────────
 
@@ -46,7 +47,7 @@ export function ModeratorDashboard() {
         {/* ── Main content ── */}
         <div
           style={{
-            paddingInline: "clamp(16px, 2.08vw, 40px)",
+            paddingInline: SIDEBAR_GAP,
             paddingBlock: "clamp(16px, 1.67vw, 32px)",
             display: "flex",
             flexDirection: "column",

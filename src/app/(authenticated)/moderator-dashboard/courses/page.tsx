@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useAutoRefresh } from "@/shared/lib/useAutoRefresh";
+import { PageShell } from "@/shared/ui/PageShell";
 import {
   getUnassignedModerationCourses,
   getMyModerationCourses,
@@ -334,14 +335,7 @@ export default function ModeratorCoursesPage() {
   const visible = getVisible();
 
   return (
-    <main
-      className="bg-my-courses min-h-[calc(100vh-76px)]"
-      style={{
-        paddingLeft: "clamp(40px, calc(-110px + 10.42vw), 90px)",
-        paddingRight: "clamp(40px, calc(-110px + 10.42vw), 90px)",
-        paddingBlock: "clamp(16px, 2.22vw, 32px)",
-      }}
-    >
+    <PageShell className="bg-my-courses">
       <div style={{ maxWidth: "1648px", margin: "0 auto" }}>
 
         {/* Tabs */}
@@ -453,6 +447,6 @@ export default function ModeratorCoursesPage() {
           onCancel={() => { setPendingSlug(null); setAssignError(""); }}
         />
       )}
-    </main>
+    </PageShell>
   );
 }

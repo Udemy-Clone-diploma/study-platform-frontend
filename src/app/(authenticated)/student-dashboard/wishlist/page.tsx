@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { CourseCard } from "@/features/courses";
 import { Pagination } from "@/shared/ui/Pagination";
+import { PageShell } from "@/shared/ui/PageShell";
 import { getWishlist } from "@/entities/course";
 import type { CourseListItem } from "@/entities/course";
 import type { ApiError } from "@/shared/api/base";
@@ -32,18 +33,7 @@ export default function WishlistPage() {
   }
 
   return (
-    <main
-      className="bg-wishlist"
-      style={{
-        minHeight: "calc(100vh - 76px)",
-        display: "flex",
-        flexDirection: "column",
-        paddingInlineStart: "clamp(40px, calc(-110px + 10.42vw), 90px)",
-        paddingInlineEnd: "clamp(40px, calc(-110px + 10.42vw), 90px)",
-        paddingTop: "clamp(16px, 2.22vw, 32px)",
-        paddingBottom: "clamp(16px, 2.22vw, 32px)",
-      }}
-    >
+    <PageShell className="bg-wishlist" style={{ display: "flex", flexDirection: "column" }}>
       <h1
         className="font-normal text-(--color-text-primary)"
         style={{ fontSize: "clamp(20px, 2.22vw, 32px)", marginBottom: "clamp(16px, 1.67vw, 32px)", flexShrink: 0 }}
@@ -78,6 +68,6 @@ export default function WishlistPage() {
           />
         </div>
       )}
-    </main>
+    </PageShell>
   );
 }

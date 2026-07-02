@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Calendar, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { PageShell } from "@/shared/ui/PageShell";
 import {
   getTeacherCourses,
   getCohorts,
@@ -687,16 +688,7 @@ export default function TeacherAttendancePage() {
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <main
-      className="flex flex-col bg-my-courses"
-      style={{
-        height: "calc(100vh - 76px)",
-        overflow: "hidden",
-        paddingLeft: "clamp(40px, calc(-110px + 10.42vw), 90px)",
-        paddingRight: "clamp(40px, calc(-110px + 10.42vw), 90px)",
-        paddingBlock: "clamp(16px, 2.22vw, 32px)",
-      }}
-    >
+    <PageShell className="bg-my-courses" fixedHeight>
       <div
         style={{
           maxWidth: "1648px",
@@ -775,6 +767,6 @@ export default function TeacherAttendancePage() {
           scrollable
         />
       </div>
-    </main>
+    </PageShell>
   );
 }

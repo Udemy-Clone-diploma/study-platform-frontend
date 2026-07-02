@@ -8,6 +8,7 @@ import {
 import { MyCoursesDashboardWidget } from "./MyCoursesDashboardWidget";
 import { ScheduleRail } from "./ScheduleRail";
 import { StudentNotesPanel } from "./StudentNotesPanel";
+import { PAGE_PADDING_TOP, SIDEBAR_GAP } from "@/shared/ui/PageShell";
 
 type DashboardRole = "student" | "teacher";
 
@@ -118,9 +119,9 @@ function StudentDashboard() {
           className="grid min-h-[calc(100vh-76px)]"
           style={{
             gridTemplateColumns: "1fr clamp(240px, calc(100.53px + 13.62vw), 362px)",
-            gap: "clamp(40px, calc(-110px + 10.42vw), 90px)",
-            paddingTop: "clamp(16px, 2.22vw, 32px)",
-            paddingLeft: "clamp(40px, calc(-110px + 10.42vw), 90px)",
+            gap: SIDEBAR_GAP,
+            paddingTop: PAGE_PADDING_TOP,
+            paddingLeft: SIDEBAR_GAP,
           }}
         >
           <div
@@ -159,9 +160,9 @@ function TeacherDashboard() {
         className="grid min-h-[calc(100vh-76px)]"
         style={{
           gridTemplateColumns: "1fr clamp(240px, calc(100.53px + 13.62vw), 362px)",
-          gap: "clamp(40px, calc(-110px + 10.42vw), 90px)",
-          paddingTop: "clamp(16px, 2.22vw, 32px)",
-          paddingLeft: "clamp(40px, calc(-110px + 10.42vw), 90px)",
+          gap: SIDEBAR_GAP,
+          paddingTop: PAGE_PADDING_TOP,
+          paddingLeft: SIDEBAR_GAP,
         }}
       >
         <div

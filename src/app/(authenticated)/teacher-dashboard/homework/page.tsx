@@ -37,6 +37,8 @@ import {
 import { TestFormBody, type TestFormValues, type TestQuestion } from "@/features/courses";
 import { QuizQuestionCard, QuizWindow } from "@/features/quiz";
 import type { ApiError } from "@/shared/api/base";
+import { PageShell } from "@/shared/ui/PageShell";
+import { PillSelect } from "@/shared/ui/PillSelect";
 
 type FormState = {
   courseSlug: string;
@@ -1581,7 +1583,7 @@ export default function TeacherHomeworkPage() {
   }
 
   return (
-    <main className="relative isolate min-h-[calc(100vh-76px)] overflow-hidden bg-white px-4 py-7 sm:px-8 lg:px-11">
+    <PageShell className="relative isolate overflow-hidden bg-white">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute top-[-257px] left-[113px] z-0 h-[1002px] w-[1368px] rotate-[-33.8deg] bg-[#FCC4C3] opacity-50 blur-[300px]"
@@ -1625,31 +1627,25 @@ export default function TeacherHomeworkPage() {
           </button>
         </div>
 
-        <div className="mt-3 flex h-10 w-[min(100%,1020px)] items-center gap-2">
-          <div className="w-[260px] shrink-0">
-            <HomeworkSelect
-              value={selectedCourseSlug}
-              options={courses.map((course) => ({ value: course.slug, label: course.title }))}
-              placeholder="Subject"
-              variant="filter"
-              disabled={loadingCourses || courses.length === 0}
-              onChange={setSelectedCourseSlug}
-            />
-          </div>
-          <div className="w-[190px] shrink-0">
-            <HomeworkSelect
-              value={statusFilter}
-              options={[
-                { value: "all", label: "Status" },
-                { value: "draft", label: "Drafts" },
-                { value: "published", label: "Published" },
-                { value: "closed", label: "Closed" },
-              ]}
-              placeholder="Status"
-              variant="filter"
-              onChange={setStatusFilter}
-            />
-          </div>
+        <div className="mt-3 flex w-[min(100%,1020px)] items-center gap-2">
+          <PillSelect
+            value={selectedCourseSlug}
+            options={courses.map((course) => ({ value: course.slug, label: course.title }))}
+            placeholder="Subject"
+            disabled={loadingCourses || courses.length === 0}
+            onChange={setSelectedCourseSlug}
+          />
+          <PillSelect
+            value={statusFilter}
+            options={[
+              { value: "all", label: "Status" },
+              { value: "draft", label: "Drafts" },
+              { value: "published", label: "Published" },
+              { value: "closed", label: "Closed" },
+            ]}
+            placeholder="Status"
+            onChange={setStatusFilter}
+          />
           <span className="hidden">Group — soon</span>
           <span className="hidden">Student — soon</span>
           <span className="inline-flex h-10 items-center rounded-full border border-[#ECECEC] bg-white px-5 font-(family-name:--font-base) text-[20px] leading-none font-normal text-[#121212] shadow-[0_0_4px_rgba(0,0,0,0.06)]">
@@ -2076,6 +2072,6 @@ export default function TeacherHomeworkPage() {
           </section>
         </div>
       ) : null}
-    </main>
+    </PageShell>
   );
 }

@@ -12,11 +12,13 @@ export async function addCartItem(
   courseId: number,
   pricingPlanId?: number,
   cohortId?: number,
+  scheduleSlotIds?: number[],
 ): Promise<Cart> {
   const { data } = await api.post<Cart>(`${CART_ENDPOINT}items/`, {
     course_id: courseId,
     ...(pricingPlanId ? { pricing_plan_id: pricingPlanId } : {}),
     ...(cohortId ? { cohort_id: cohortId } : {}),
+    ...(scheduleSlotIds && scheduleSlotIds.length ? { schedule_slot_ids: scheduleSlotIds } : {}),
   });
   return data;
 }

@@ -8,6 +8,7 @@ import {
 import { MyCoursesDashboardWidget } from "./MyCoursesDashboardWidget";
 import { ScheduleRail } from "./ScheduleRail";
 import { StudentNotesPanel } from "./StudentNotesPanel";
+import { PAGE_PADDING_TOP, SIDEBAR_GAP } from "@/shared/ui/PageShell";
 
 type DashboardRole = "student" | "teacher";
 
@@ -30,9 +31,8 @@ type ProgressItem = {
 };
 
 const scheduleRailStyle = {
-  marginTop: "clamp(16px, 1.67vw, 32px)",
-  marginRight: "clamp(16px, 1.67vw, 32px)",
-  "--schedule-height": "calc(100vh - 76px - clamp(16px, 1.67vw, 32px))",
+  marginRight: "clamp(16px, calc(-11.43px + 2.68vw), 40px)",
+  "--schedule-height": "calc(100vh - 76px - clamp(16px, 2.22vw, 32px))",
 } as CSSProperties;
 
 const teacherChecks: DashboardListItem[] = [
@@ -117,15 +117,19 @@ function StudentDashboard() {
       <StudentHomeworkProvider>
         <div
           className="grid min-h-[calc(100vh-76px)]"
-          style={{ gridTemplateColumns: "1fr clamp(270px, 22vw, 362px)" }}
+          style={{
+            gridTemplateColumns: "1fr clamp(240px, calc(100.53px + 13.62vw), 362px)",
+            gap: SIDEBAR_GAP,
+            paddingTop: PAGE_PADDING_TOP,
+            paddingLeft: SIDEBAR_GAP,
+          }}
         >
           <div
             className="grid"
             style={{
-              gridTemplateColumns: "clamp(400px, 42.71vw, 820px) clamp(280px, 24.48vw, 470px)",
-              gap: "clamp(12px, 1.25vw, 24px)",
-              paddingInline: "clamp(16px, 2.08vw, 40px)",
-              paddingBlock: "clamp(16px, 1.67vw, 32px)",
+              gridTemplateColumns:
+                "clamp(390px, calc(-101.4px + 47.99vw), 820px) clamp(225px, calc(-55.04px + 27.34vw), 470px)",
+              gap: "clamp(12px, calc(-1.71px + 1.34vw), 24px)",
             }}
           >
             <div className="flex min-w-0 flex-col" style={{ gap: "clamp(12px, 1.04vw, 20px)" }}>
@@ -154,15 +158,19 @@ function TeacherDashboard() {
     <section className="min-h-[calc(100vh-76px)] bg-white">
       <div
         className="grid min-h-[calc(100vh-76px)]"
-        style={{ gridTemplateColumns: "1fr clamp(270px, 22vw, 362px)" }}
+        style={{
+          gridTemplateColumns: "1fr clamp(240px, calc(100.53px + 13.62vw), 362px)",
+          gap: SIDEBAR_GAP,
+          paddingTop: PAGE_PADDING_TOP,
+          paddingLeft: SIDEBAR_GAP,
+        }}
       >
         <div
           className="grid"
           style={{
-            gridTemplateColumns: "clamp(400px, 42.71vw, 820px) clamp(280px, 24.48vw, 470px)",
-            gap: "clamp(12px, 1.25vw, 24px)",
-            paddingInline: "clamp(16px, 2.08vw, 40px)",
-            paddingBlock: "clamp(16px, 1.67vw, 32px)",
+            gridTemplateColumns:
+              "clamp(390px, calc(-101.4px + 47.99vw), 820px) clamp(225px, calc(-55.04px + 27.34vw), 470px)",
+            gap: "clamp(12px, calc(-1.71px + 1.34vw), 24px)",
           }}
         >
           <div className="flex min-w-0 flex-col" style={{ gap: "clamp(12px, 1.04vw, 20px)" }}>

@@ -21,6 +21,7 @@ import {
 import { QuizQuestionCard, QuizWindow, type AnswerState } from "@/features/quiz";
 import type { ApiError } from "@/shared/api/base";
 import { GradientButton } from "@/shared/ui/GradientButton";
+import { PageShell } from "@/shared/ui/PageShell";
 
 type TaskTypeFilter = "all" | "task" | "test";
 type StatusFilter = "all" | "to_do" | "submitted" | "reviewed";
@@ -877,7 +878,7 @@ export default function StudentHomeworkPage() {
   }
 
   return (
-    <main className="relative isolate min-h-[calc(100vh-76px)] overflow-hidden bg-white px-4 py-7 sm:px-8 lg:px-11">
+    <PageShell className="relative isolate overflow-hidden bg-white">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute top-[-257px] left-[113px] z-0 h-[1002px] w-[1368px] rotate-[-33.8deg] bg-[#FCC4C3] opacity-50 blur-[300px]"
@@ -984,6 +985,6 @@ export default function StudentHomeworkPage() {
         }}
       />
       <HomeworkQuizModal assignment={testAssignment} onClose={() => setTestAssignment(null)} />
-    </main>
+    </PageShell>
   );
 }

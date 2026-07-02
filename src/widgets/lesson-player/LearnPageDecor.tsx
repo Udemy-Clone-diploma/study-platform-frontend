@@ -29,7 +29,7 @@ function DecorBackground() {
     <div
       aria-hidden="true"
       className="pointer-events-none absolute top-0 -z-20 overflow-hidden"
-      style={{ left: "-80px", width: "100vw", height: "1572px" }}
+      style={{ left: "-160px", width: "calc(100vw + 160px)", height: "1572px" }}
     >
       <Image
         src="/backgrounds/learn-page-bg.png"

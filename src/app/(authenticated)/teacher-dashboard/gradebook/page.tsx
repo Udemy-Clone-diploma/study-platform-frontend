@@ -1,7 +1,7 @@
 "use client";
 
-import { type CSSProperties, useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, ClipboardList } from "lucide-react";
+import { type CSSProperties, useEffect, useMemo, useState } from "react";
+import { ClipboardList } from "lucide-react";
 import {
   getCourseBySlug,
   getCourseEnrolledStudents,
@@ -18,11 +18,8 @@ import {
   type HomeworkSubmission,
 } from "@/entities/homework";
 import type { ApiError } from "@/shared/api/base";
-
-type SelectOption = {
-  value: string;
-  label: string;
-};
+import { PageShell } from "@/shared/ui/PageShell";
+import { PillSelect } from "@/shared/ui/PillSelect";
 
 type GradebookStudent = {
   enrollmentId: number;
@@ -44,91 +41,12 @@ const STUDENT_NAME_COLUMN_WIDTH = 220;
 const GRADE_CELL_WIDTH = 62;
 const LESSON_COLUMN_MIN_GAP = 32;
 const STUDENT_COLUMNS_WIDTH = STUDENT_NUMBER_COLUMN_WIDTH + STUDENT_NAME_COLUMN_WIDTH;
-const ALL_GROUPS_FILTER_VALUE = "all";
-const INDIVIDUAL_FILTER_VALUE = "individual";
 
-function GradebookSelect({
-  value,
-  options,
-  ariaLabel,
-  placeholder,
-  className = "",
-  disabled = false,
-  onChange,
-}: {
-  value: string;
-  options: SelectOption[];
-  ariaLabel: string;
-  placeholder: string;
-  className?: string;
-  disabled?: boolean;
-  onChange: (value: string) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null);
-  const selected = options.find((option) => option.value === value);
-
-  useEffect(() => {
-    function closeOnOutsidePointer(event: PointerEvent) {
-      if (!rootRef.current?.contains(event.target as Node)) {
-        setOpen(false);
-      }
-    }
-
-    document.addEventListener("pointerdown", closeOnOutsidePointer);
-    return () => document.removeEventListener("pointerdown", closeOnOutsidePointer);
-  }, []);
-
-  return (
-    <div ref={rootRef} className={`relative h-10 ${className}`}>
-      <button
-        type="button"
-        aria-label={ariaLabel}
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        disabled={disabled}
-        onClick={() => setOpen((current) => !current)}
-        className="flex h-10 w-full items-center justify-between gap-2 rounded-full border border-[#ECECEC] bg-white px-4 font-(family-name:--font-base) text-[15px] leading-[20px] font-normal text-[#121212] shadow-[0_0_4px_rgba(0,0,0,0.06)] outline-none transition hover:shadow-[0_2px_10px_rgba(0,0,0,0.08)] focus:ring-2 focus:ring-[#9DB1FA] disabled:cursor-not-allowed disabled:text-[#8A8A8A]"
-      >
-        <span className="min-w-0 truncate leading-[20px]">{selected?.label ?? placeholder}</span>
-        <ChevronDown
-          size={18}
-          aria-hidden="true"
-          className={`shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
-        />
-      </button>
-
-      {open ? (
-        <div
-          role="listbox"
-          aria-label={ariaLabel}
-          className="absolute z-[120] mt-2 max-h-[248px] min-w-full overflow-y-auto rounded-[14px] border border-[#E2E2E2] bg-white py-2 shadow-[0_12px_28px_rgba(0,0,0,0.16)]"
-        >
-          {options.map((option) => {
-            const isSelected = option.value === value;
-            return (
-              <button
-                key={option.value}
-                type="button"
-                role="option"
-                aria-selected={isSelected}
-                onClick={() => {
-                  onChange(option.value);
-                  setOpen(false);
-                }}
-                className={`flex min-h-10 w-full items-center px-4 text-left font-(family-name:--font-base) text-[15px] leading-[20px] transition hover:bg-[#F5F7FF] ${
-                  isSelected ? "text-[#003AFF]" : "text-[#121212]"
-                }`}
-              >
-                {option.label}
-              </button>
-            );
-          })}
-        </div>
-      ) : null}
-    </div>
-  );
-}
+type GradebookMode = "group" | "individual";
+const GRADEBOOK_FORMAT_OPTIONS: { value: GradebookMode; label: string }[] = [
+  { value: "group", label: "Group" },
+  { value: "individual", label: "Individual" },
+];
 
 function lessonColumnLabel(index: number): string {
   return `${index + 1}. Les.`;
@@ -242,7 +160,8 @@ export default function TeacherGradebookPage() {
   const [students, setStudents] = useState<EnrolledStudent[]>([]);
   const [individualStudents, setIndividualStudents] = useState<EnrolledStudent[]>([]);
   const [assignments, setAssignments] = useState<HomeworkAssignment[]>([]);
-  const [selectedCohortId, setSelectedCohortId] = useState(ALL_GROUPS_FILTER_VALUE);
+  const [mode, setMode] = useState<GradebookMode>("group");
+  const [selectedCohortId, setSelectedCohortId] = useState("");
   const [selectedModuleId, setSelectedModuleId] = useState<number | null>(null);
   const [loadingCourses, setLoadingCourses] = useState(true);
   const [loadingGradebook, setLoadingGradebook] = useState(false);
@@ -303,9 +222,9 @@ export default function TeacherGradebookPage() {
         setIndividualStudents(individualEnrolledStudents);
         setAssignments(homework);
         setSelectedModuleId(course.modules[0]?.id ?? null);
-        setSelectedCohortId(
-          course.cohorts[0] ? String(course.cohorts[0].id) : ALL_GROUPS_FILTER_VALUE,
-        );
+        const hasGroup = course.delivery_formats.some((format) => format.format_type === "group");
+        setMode(hasGroup ? "group" : "individual");
+        setSelectedCohortId(course.cohorts[0] ? String(course.cohorts[0].id) : "");
       } catch (requestError) {
         if (!cancelled) {
           const apiError = requestError as Partial<ApiError>;
@@ -328,15 +247,29 @@ export default function TeacherGradebookPage() {
 
   const cohorts = useMemo(() => courseDetail?.cohorts ?? [], [courseDetail]);
   const cohortOptions = useMemo(
-    () => [
-      { value: ALL_GROUPS_FILTER_VALUE, label: "All groups" },
-      { value: INDIVIDUAL_FILTER_VALUE, label: "individual" },
-      ...cohorts.map((cohort, index) => ({
+    () =>
+      cohorts.map((cohort, index) => ({
         value: String(cohort.id),
         label: cohortLabel(cohort, index),
       })),
-    ],
     [cohorts],
+  );
+
+  const hasGroupFormat = useMemo(
+    () => courseDetail?.delivery_formats.some((format) => format.format_type === "group") ?? false,
+    [courseDetail],
+  );
+  const hasIndividualFormat = useMemo(
+    () =>
+      courseDetail?.delivery_formats.some((format) => format.format_type === "individual") ?? false,
+    [courseDetail],
+  );
+  const modeOptions = useMemo(
+    () =>
+      GRADEBOOK_FORMAT_OPTIONS.filter((option) =>
+        option.value === "group" ? hasGroupFormat : hasIndividualFormat,
+      ),
+    [hasGroupFormat, hasIndividualFormat],
   );
 
   const selectedCohort = cohorts.find((cohort) => String(cohort.id) === selectedCohortId) ?? null;
@@ -344,7 +277,7 @@ export default function TeacherGradebookPage() {
     courseDetail?.modules.find((module) => module.id === selectedModuleId) ?? null;
   const lessonColumns = selectedModule?.lessons ?? [];
   const visibleStudents =
-    selectedCohortId === INDIVIDUAL_FILTER_VALUE
+    mode === "individual"
       ? studentsFromEnrollments(individualStudents)
       : selectedCohort
         ? studentsFromCohort(selectedCohort)
@@ -395,33 +328,46 @@ export default function TeacherGradebookPage() {
   );
 
   return (
-    <main className="relative isolate h-[calc(100vh-76px)] overflow-hidden bg-white px-4 py-[52px] sm:px-8 lg:pr-[90px] lg:pl-[89px]">
+    <PageShell className="relative isolate bg-white" fixedHeight>
       <div
         aria-hidden="true"
         className="pointer-events-none absolute top-[-257px] left-[113px] z-0 h-[1002px] w-[1368px] rotate-[-33.8deg] bg-[#FCC4C3] opacity-50 blur-[300px]"
       />
 
-      <section className="relative z-10 h-full w-full font-(family-name:--font-base) text-[#121212]">
-        <div className="flex h-10 shrink-0 items-center gap-3">
-          <h1 className="mr-6 text-[18px] leading-none font-semibold">Homework</h1>
-          <GradebookSelect
+      <section className="relative z-10 flex h-full w-full flex-col font-(family-name:--font-base) text-[#121212]">
+        <div className="flex h-[clamp(32px,2.78vw,40px)] shrink-0 items-center gap-3">
+          <h1
+            className="mr-6 font-semibold"
+            style={{ fontSize: "clamp(18px, 1.67vw, 24px)", lineHeight: 1 }}
+          >
+            Homework
+          </h1>
+          <PillSelect
             value={selectedCourseSlug}
             options={courseOptions}
             ariaLabel="Course"
             placeholder={loadingCourses ? "Loading courses" : "Select course"}
             disabled={loadingCourses || courseOptions.length === 0}
-            className="w-[230px]"
             onChange={setSelectedCourseSlug}
           />
-          <GradebookSelect
-            value={selectedCohortId}
-            options={cohortOptions}
-            ariaLabel="Group"
-            placeholder="Group"
-            disabled={loadingGradebook || !courseDetail}
-            className="w-[132px]"
-            onChange={setSelectedCohortId}
+          <PillSelect
+            value={mode}
+            options={modeOptions}
+            ariaLabel="Type"
+            placeholder="Type"
+            disabled={loadingGradebook || !courseDetail || modeOptions.length === 0}
+            onChange={(value: string) => setMode(value as GradebookMode)}
           />
+          {mode === "group" && cohortOptions.length > 0 && (
+            <PillSelect
+              value={selectedCohortId}
+              options={cohortOptions}
+              ariaLabel="Group"
+              placeholder="Group"
+              disabled={loadingGradebook || !courseDetail}
+              onChange={setSelectedCohortId}
+            />
+          )}
         </div>
 
         {error ? (
@@ -437,8 +383,8 @@ export default function TeacherGradebookPage() {
           </div>
         ) : null}
 
-        <div className="mt-7 grid min-h-0 w-full grid-cols-[331px_minmax(0,1fr)] gap-[20px]">
-          <aside className="h-[min(793px,calc(100vh-248px))] overflow-hidden rounded-[16px] bg-white shadow-(--shadow-dashboard-card)">
+        <div className="mt-7 grid min-h-0 w-full flex-1 grid-cols-[331px_minmax(0,1fr)] gap-[20px]">
+          <aside className="h-full overflow-hidden rounded-[16px] bg-white shadow-(--shadow-dashboard-card)">
             <div className="flex h-10 items-center justify-center rounded-t-[16px] bg-[linear-gradient(90deg,var(--color-brand-lavender)_0%,var(--color-brand-pink)_55%,var(--color-brand-cream)_100%)] text-[20px] leading-none font-normal tracking-normal">
               Modules
             </div>
@@ -467,7 +413,7 @@ export default function TeacherGradebookPage() {
             </div>
           </aside>
 
-          <section className="flex h-[min(793px,calc(100vh-248px))] min-w-0 flex-col gap-[10px] overflow-hidden rounded-[16px] bg-white shadow-(--shadow-dashboard-card)">
+          <section className="flex h-full min-w-0 flex-col gap-[10px] overflow-hidden rounded-[16px] bg-white shadow-(--shadow-dashboard-card)">
             <div className="grid h-10 shrink-0 grid-cols-[274px_minmax(0,1fr)] items-center rounded-t-[16px] bg-[linear-gradient(90deg,var(--color-brand-lavender)_0%,var(--color-brand-pink)_55%,var(--color-brand-cream)_100%)] text-center text-[20px] leading-none font-normal tracking-normal">
               <span>Students</span>
               <span>Lessons</span>
@@ -547,6 +493,6 @@ export default function TeacherGradebookPage() {
           </section>
         </div>
       </section>
-    </main>
+    </PageShell>
   );
 }

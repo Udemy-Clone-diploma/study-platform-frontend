@@ -1,3 +1,4 @@
+export * from "./api/attendanceApi";
 export * from "./api/courseApi";
 export * from "./api/deliveryFormatApi";
 export * from "./api/moduleApi";
@@ -31,5 +32,6 @@ export * from "./model/progress";
 export * from "./model/review";
 export * from "./model/schedule";
 export * from "./model/calendar";
+export * from "./model/attendance";
 export * from "./model/tag";
 export * from "./model/teacher";

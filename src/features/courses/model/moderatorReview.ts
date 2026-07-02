@@ -15,7 +15,6 @@ export const BASICS_FIELD_KEYS = [
   "field-icon",
   "field-category",
   "field-level",
-  "field-price",
 ];
 
 export const SUBMIT_LABEL: Record<NonNullable<ModeratorAction>, string> = {

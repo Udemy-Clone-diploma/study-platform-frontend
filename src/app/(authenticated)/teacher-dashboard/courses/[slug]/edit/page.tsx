@@ -36,7 +36,7 @@ async function matchIconToImage(imageUrl: string): Promise<string | null> {
   }
 }
 
-const EMPTY_FORM: CourseBasicsFormValues = { title: "", short_description: "", full_description: "", category_id: "", level: "", price: "" };
+const EMPTY_FORM: CourseBasicsFormValues = { title: "", short_description: "", full_description: "", category_id: "", level: "" };
 
 const UI_KEY_TO_FIELD: Record<string, string> = {
   "field-title":             "title",
@@ -45,7 +45,6 @@ const UI_KEY_TO_FIELD: Record<string, string> = {
   "field-icon":              "icon",
   "field-category":          "category_id",
   "field-level":             "level",
-  "field-price":             "price",
 };
 
 /** Returns the set of field names that are read-only (approved by moderator, no revision needed). */
@@ -110,7 +109,6 @@ export default function EditCourseBasicsPage() {
               ? String(pendingEdit.category_id)
               : course.category ? String(course.category.id) : "",
             level: pendingEdit.level || course.level,
-            price: "",
           });
           if (course.moderation_review) {
             setModerationReview(course.moderation_review);
@@ -134,7 +132,6 @@ export default function EditCourseBasicsPage() {
             full_description: course.full_description,
             category_id: course.category ? String(course.category.id) : "",
             level: course.level,
-            price: "",
           });
           if (course.image) {
             const matched = await matchIconToImage(course.image);
@@ -200,12 +197,7 @@ export default function EditCourseBasicsPage() {
         await savePendingEditMetadata(slug, buildPayload() as Parameters<typeof savePendingEditMetadata>[1]);
         await doPendingIconUpload();
       } else {
-        const priceNum = parseFloat(form.price);
-        await updateCourse(slug, {
-          ...buildPayload(),
-          pricing_type: !isNaN(priceNum) && priceNum > 0 ? "full_payment" : "free",
-          price: form.price || "0",
-        });
+        await updateCourse(slug, buildPayload());
         await doIconUpload();
       }
       router.push(`/teacher-dashboard/courses/${slug}/content`);

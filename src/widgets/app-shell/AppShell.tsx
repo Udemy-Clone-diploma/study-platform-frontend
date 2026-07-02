@@ -18,7 +18,7 @@ export function AppShell({ children, sidebarItems, fullBleed = false }: AppShell
 
         <AppSidebar items={sidebarItems} />
 
-        <div className="flex min-w-0 flex-1 flex-col overflow-y-auto">
+        <div className="flex min-w-0 flex-1 flex-col overflow-y-auto overflow-x-hidden">
           <main className={fullBleed ? "min-h-full" : "flex-1"}>{children}</main>
         </div>
       </div>

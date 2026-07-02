@@ -18,6 +18,7 @@ import {
   SimpleStudentsList,
 } from "@/features/courses";
 import { AccentButton } from "@/shared/ui/AccentButton";
+import { PageShell } from "@/shared/ui/PageShell";
 import { WhiteButton } from "@/shared/ui/WhiteButton";
 
 // ── Lookups ────────────────────────────────────────────────────────────────────
@@ -275,10 +276,8 @@ export default function CourseManagementPage() {
   };
 
   return (
-    <main
-      className="bg-my-courses min-h-[calc(100vh-76px)]"
-      style={{ paddingInline: "clamp(16px, 2.78vw, 40px)", paddingTop: "clamp(16px, 1.67vw, 28px)", paddingBottom: 360 }}
-    >
+    <PageShell className="bg-my-courses" style={{ paddingBottom: 360 }}>
+      <div style={{ maxWidth: "1648px", margin: "0 auto" }}>
       {/* Back nav */}
       <div style={{ marginBottom: "clamp(16px, 1.39vw, 24px)" }}>
         <WhiteButton onClick={() => router.push("/teacher-dashboard/courses")}>My courses</WhiteButton>
@@ -396,7 +395,6 @@ export default function CourseManagementPage() {
         <CourseManagementPricingTab
           course={course}
           slug={slug}
-          onCohortsChanged={cohorts => handleCourseUpdated({ cohorts })}
           onFormatsChanged={delivery_formats => handleCourseUpdated({ delivery_formats })}
         />
       )}
@@ -439,6 +437,7 @@ export default function CourseManagementPage() {
       {tab === "self_paced" && fmtByType.self_paced && (
         <SelfPacedFormatTab fmt={fmtByType.self_paced} slug={slug} />
       )}
-    </main>
+      </div>
+    </PageShell>
   );
 }

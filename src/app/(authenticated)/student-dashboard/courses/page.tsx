@@ -5,6 +5,7 @@ import { StudentCourseCard, CompletedCourseCard, CompletionResultModal } from "@
 import { getEnrolledCourses, getStudentCompletions } from "@/entities/course";
 import type { CourseListItem, CourseLevel, CourseCompletion } from "@/entities/course";
 import type { ApiError } from "@/shared/api/base";
+import { PageShell } from "@/shared/ui/PageShell";
 
 const TABS = ["All", "Current", "Completed"] as const;
 type Tab = (typeof TABS)[number];
@@ -87,10 +88,7 @@ export default function StudentCoursesPage() {
   }
 
   return (
-    <main
-      className="bg-my-courses min-h-[calc(100vh-76px)]"
-      style={{ paddingInline: "clamp(16px, 2.78vw, 40px)", paddingBlock: "clamp(16px, 2.22vw, 32px)" }}
-    >
+    <PageShell className="bg-my-courses">
       <div style={{ maxWidth: "1648px", margin: "0 auto" }}>
         <nav
           aria-label="Course filter"
@@ -173,6 +171,6 @@ export default function StudentCoursesPage() {
           onClose={() => setSelectedCompletion(null)}
         />
       )}
-    </main>
+    </PageShell>
   );
 }

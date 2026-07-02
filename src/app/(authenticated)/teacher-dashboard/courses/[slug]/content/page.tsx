@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { Plus, ArrowUpRight } from "lucide-react";
@@ -14,15 +14,11 @@ import {
   deleteLesson,
   updateCourse,
   getPendingEdit,
-  savePendingEditModules,
-  savePendingEditMetadata,
   discardPendingEdit,
-  nextTempId,
   uploadLessonDocument,
   deleteLessonDocument,
 } from "@/entities/course";
 import type { CourseDetail, CourseModule, CourseLesson, ModerationReview } from "@/entities/course";
-import type { SnapshotModule, SnapshotQuestion } from "@/entities/course";
 import {
   CourseCreationLayout,
   CourseCreationStepper,
@@ -40,8 +36,6 @@ import { WhiteButton } from "@/shared/ui/WhiteButton";
 
 const PUBLISHED_STATUSES = new Set(["published", "hidden"]);
 
-type ItemsBaseline = Array<{ id: number; item_type: string; content: string; video_url: string | null }> | undefined;
-
 type ModalState =
   | { open: false }
   | { open: true; mode: "add" }
@@ -52,78 +46,6 @@ type LessonModalState =
   | { open: true; mode: "add"; moduleId: number }
   | { open: true; mode: "edit"; moduleId: number; lesson: CourseLesson };
 
-function snapshotToCourseModule(s: SnapshotModule): CourseModule {
-  return {
-    id: s.id ?? 0,
-    title: s.title,
-    description: s.description,
-    order: s.order,
-    lessons: s.lessons.map((l) => ({
-      id: l.id ?? 0,
-      title: l.title,
-      duration_minutes: l.duration_minutes,
-      min_score: l.min_score,
-      is_preview: l.is_preview,
-      order: l.order,
-    })),
-    tests: s.tests.map((t) => ({
-      id: t.id ?? 0,
-      title: t.title,
-      description: t.description,
-      passing_score: t.passing_score,
-      order: t.order,
-      questions: t.questions.map((q) => ({
-        id: q.id ?? 0,
-        question_type: q.question_type,
-        text: q.text,
-        options: q.options,
-        correct_indices: q.correct_indices,
-        exact_set_match: q.exact_set_match,
-        correct_bool: q.correct_bool,
-        sample_answer: q.sample_answer,
-        accepted_answers: q.accepted_answers,
-        order: q.order,
-      })),
-    })),
-  };
-}
-
-function courseModuleToSnapshot(m: CourseModule): SnapshotModule {
-  return {
-    id: m.id > 0 ? m.id : null,
-    title: m.title,
-    description: m.description,
-    order: m.order,
-    lessons: m.lessons.map((l) => ({
-      id: l.id > 0 ? l.id : null,
-      title: l.title,
-      duration_minutes: l.duration_minutes ?? null,
-      min_score: l.min_score ?? null,
-      is_preview: l.is_preview,
-      order: l.order,
-    })),
-    tests: m.tests.map((t) => ({
-      id: t.id > 0 ? t.id : null,
-      title: t.title,
-      description: t.description,
-      passing_score: t.passing_score,
-      order: t.order,
-      questions: t.questions.map((q) => ({
-        id: q.id > 0 ? q.id : null,
-        question_type: q.question_type as SnapshotQuestion["question_type"],
-        text: q.text,
-        options: q.options,
-        correct_indices: q.correct_indices ?? null,
-        exact_set_match: q.exact_set_match,
-        correct_bool: q.correct_bool,
-        sample_answer: q.sample_answer ?? "",
-        accepted_answers: q.accepted_answers ?? null,
-        order: q.order,
-      })),
-    })),
-  };
-}
-
 export default function CourseContentPage() {
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
@@ -131,16 +53,15 @@ export default function CourseContentPage() {
   const [course, setCourse] = useState<CourseDetail | null>(null);
   const [moduleList, setModuleList] = useState<CourseModule[]>([]);
   const [moderationReview, setModerationReview] = useState<ModerationReview | null>(null);
-  /** True when working with a pending edit instead of the live course. */
+  /** True when working with a pending edit (published course) instead of a live draft course. */
   const [isPendingEditMode, setIsPendingEditMode] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
+  /** The slug every CRUD call targets: the live course's slug for a normal draft,
+   *  or the hidden PENDING_EDIT shadow course's slug when editing a published course. */
+  const [contentSlug, setContentSlug] = useState<string | null>(null);
 
   const [modal, setModal] = useState<ModalState>({ open: false });
   const [lessonModal, setLessonModal] = useState<LessonModalState>({ open: false });
-
-  // Baseline items_snapshot per lesson ID from when the pending edit was created.
-  // Never mutated after initial load — used to detect item changes during moderation.
-  const originalItemsRef = useRef<Map<number, ItemsBaseline>>(new Map());
 
   useEffect(() => {
     if (!slug) return;
@@ -154,71 +75,25 @@ export default function CourseContentPage() {
           const pe = await getPendingEdit(slug);
           setIsLocked(pe.status === "pending");
           if (c.moderation_review) setModerationReview(c.moderation_review);
-          // Capture the original items_snapshot baseline once at load time.
-          originalItemsRef.current = new Map(
-            pe.modules_snapshot.flatMap((m) =>
-              m.lessons
-                .filter((l) => l.id !== null)
-                .map((l) => [l.id as number, l.items_snapshot]),
-            ),
-          );
-          const actualLessonsById = new Map<number, CourseLesson>(
-            (Array.isArray(c.modules) ? c.modules : []).flatMap((m) => m.lessons).map((l) => [l.id, l]),
-          );
-          setModuleList(
-            pe.modules_snapshot.map((s) => {
-              const mod = snapshotToCourseModule(s);
-              return {
-                ...mod,
-                lessons: mod.lessons.map((l) => {
-                  const actual = l.id > 0 ? actualLessonsById.get(l.id) : undefined;
-                  return actual ? { ...l, items: actual.items ?? [] } : l;
-                }),
-              };
-            }),
-          );
+          const draft = await getCourseBySlug(pe.draft_course_slug);
+          setContentSlug(pe.draft_course_slug);
+          setModuleList(Array.isArray(draft.modules) ? draft.modules : []);
         } else {
+          setContentSlug(slug);
           setModuleList(Array.isArray(c.modules) ? c.modules : []);
           if (c.moderation_review) setModerationReview(c.moderation_review);
         }
       })
-      .catch(() => {});
-  }, [slug]);
-
-  /** Persist the current moduleList as the pending edit snapshot.
-   *  Restores the original items_snapshot baseline for each existing lesson
-   *  so the moderator can always compare against the pre-edit state. */
-  const flushSnapshot = useCallback(
-    async (modules: CourseModule[]) => {
-      if (!slug) return;
-      const snapshot = modules.map((m) => {
-        const base = courseModuleToSnapshot(m);
-        return {
-          ...base,
-          lessons: base.lessons.map((sl) => ({
-            ...sl,
-            items_snapshot: sl.id != null && sl.id > 0
-              ? originalItemsRef.current.get(sl.id)
-              : undefined,
-          })),
-        };
-      });
-      await savePendingEditModules(slug, snapshot);
-    },
-    [slug],
-  );
+      .catch(() => router.push("/teacher-dashboard/courses"));
+  }, [slug, router]);
 
   async function syncCourseDuration(modules: CourseModule[]) {
-    if (!slug) return;
+    if (!contentSlug) return;
     const totalMin = modules.flatMap((m) => m.lessons).reduce((s, l) => s + (l.duration_minutes ?? 0), 0);
     if (totalMin <= 0) return;
     const hours = Math.max(1, Math.ceil(totalMin / 60));
     try {
-      if (isPendingEditMode) {
-        await savePendingEditMetadata(slug, { duration_hours: hours });
-      } else {
-        await updateCourse(slug, { duration_hours: hours });
-      }
+      await updateCourse(contentSlug, { duration_hours: hours });
     } catch { /* best-effort */ }
   }
 
@@ -231,45 +106,23 @@ export default function CourseContentPage() {
   function closeModal() { setModal({ open: false }); }
 
   async function handleSaveModule(moduleTitle: string) {
-    if (!slug) return;
-    if (isPendingEditMode) {
-      const order = moduleList.length + 1;
-      let updated: CourseModule[];
-      if (modal.open && modal.mode === "add") {
-        const newMod: CourseModule = { id: nextTempId(), title: moduleTitle, description: "", order, lessons: [], tests: [] };
-        updated = [...moduleList, newMod];
-      } else if (modal.open && modal.mode === "edit") {
-        updated = moduleList.map((m) =>
-          m.id === modal.moduleId ? { ...m, title: moduleTitle } : m,
-        );
-      } else return;
-      setModuleList(updated);
-      await flushSnapshot(updated);
-    } else {
-      if (modal.open && modal.mode === "add") {
-        const newMod = await createModule(slug, { title: moduleTitle });
-        setModuleList((prev) => [...prev, newMod]);
-      } else if (modal.open && modal.mode === "edit") {
-        const updated = await updateModule(slug, modal.moduleId, { title: moduleTitle });
-        setModuleList((prev) => prev.map((m) => (m.id === updated.id ? updated : m)));
-      }
+    if (!contentSlug) return;
+    if (modal.open && modal.mode === "add") {
+      const newMod = await createModule(contentSlug, { title: moduleTitle });
+      setModuleList((prev) => [...prev, newMod]);
+    } else if (modal.open && modal.mode === "edit") {
+      const updated = await updateModule(contentSlug, modal.moduleId, { title: moduleTitle });
+      setModuleList((prev) => prev.map((m) => (m.id === updated.id ? updated : m)));
     }
     closeModal();
   }
 
   async function handleDeleteModule(moduleId: number) {
-    if (!slug) return;
-    if (isPendingEditMode) {
-      const updated = moduleList.filter((m) => m.id !== moduleId);
-      setModuleList(updated);
-      await flushSnapshot(updated);
-      void syncCourseDuration(updated);
-    } else {
-      await deleteModule(slug, moduleId);
-      const updatedModules = moduleList.filter((m) => m.id !== moduleId);
-      setModuleList(updatedModules);
-      void syncCourseDuration(updatedModules);
-    }
+    if (!contentSlug) return;
+    await deleteModule(contentSlug, moduleId);
+    const updatedModules = moduleList.filter((m) => m.id !== moduleId);
+    setModuleList(updatedModules);
+    void syncCourseDuration(updatedModules);
   }
 
   // ── Lesson handlers ───────────────────────────────────────────────────
@@ -279,12 +132,12 @@ export default function CourseContentPage() {
   function closeLessonModal() { setLessonModal({ open: false }); }
 
   async function _syncDocuments(moduleId: number, lessonId: number, values: LessonFormValues) {
-    if (!slug || lessonId <= 0) return;
+    if (!contentSlug) return;
     await Promise.all(
-      values.deleted_document_ids.map((id) => deleteLessonDocument(slug, moduleId, lessonId, id)),
+      values.deleted_document_ids.map((id) => deleteLessonDocument(contentSlug, moduleId, lessonId, id)),
     );
     const uploaded = await Promise.all(
-      values.new_documents.map((file) => uploadLessonDocument(slug, moduleId, lessonId, file)),
+      values.new_documents.map((file) => uploadLessonDocument(contentSlug, moduleId, lessonId, file)),
     );
     setModuleList((prev) =>
       prev.map((m) =>
@@ -303,7 +156,7 @@ export default function CourseContentPage() {
   }
 
   async function handleSaveLesson(values: LessonFormValues) {
-    if (!slug || !lessonModal.open) return;
+    if (!contentSlug || !lessonModal.open) return;
     const { mode, moduleId } = lessonModal;
     const lessonId = mode === "edit" ? lessonModal.lesson.id : null;
     const durNum = values.duration_minutes ? parseInt(values.duration_minutes, 10) : null;
@@ -314,82 +167,39 @@ export default function CourseContentPage() {
       ...(scoreNum !== null && !isNaN(scoreNum) ? { min_score: scoreNum } : {}),
     };
 
-    if (isPendingEditMode) {
-      let updated: CourseModule[];
-      if (mode === "add") {
-        const newLesson: CourseLesson = {
-          id: nextTempId(),
-          title: payload.title,
-          duration_minutes: durNum,
-          min_score: scoreNum,
-          is_preview: false,
-          order: (moduleList.find((m) => m.id === moduleId)?.lessons.length ?? 0) + 1,
-        };
-        updated = moduleList.map((m) =>
-          m.id === moduleId ? { ...m, lessons: [...m.lessons, newLesson] } : m,
-        );
-      } else if (lessonId !== null) {
-        updated = moduleList.map((m) =>
-          m.id === moduleId
-            ? {
-                ...m,
-                lessons: m.lessons.map((l) =>
-                  l.id === lessonId
-                    ? { ...l, title: payload.title, duration_minutes: durNum, min_score: scoreNum }
-                    : l,
-                ),
-              }
-            : m,
-        );
-        if (lessonId > 0) await _syncDocuments(moduleId, lessonId, values);
-      } else return;
-      setModuleList(updated);
-      await flushSnapshot(updated);
-      void syncCourseDuration(updated);
-    } else {
-      if (mode === "add") {
-        const newLesson = await createLesson(slug, moduleId, payload);
-        const updatedModules = moduleList.map((m) =>
-          m.id === moduleId ? { ...m, lessons: [...m.lessons, newLesson] } : m,
-        );
-        setModuleList(updatedModules);
-        await _syncDocuments(moduleId, newLesson.id, values);
-        void syncCourseDuration(updatedModules);
-        // Switch to edit mode so the user can immediately add content blocks
-        setLessonModal({ open: true, mode: "edit", moduleId, lesson: { ...newLesson, items: [] } });
-        return;
-      } else if (lessonId !== null) {
-        const updated = await updateLesson(slug, moduleId, lessonId, payload);
-        const updatedModules = moduleList.map((m) =>
-          m.id === moduleId
-            ? { ...m, lessons: m.lessons.map((l) => (l.id === updated.id ? updated : l)) }
-            : m,
-        );
-        setModuleList(updatedModules);
-        await _syncDocuments(moduleId, lessonId, values);
-        void syncCourseDuration(updatedModules);
-      }
+    if (mode === "add") {
+      const newLesson = await createLesson(contentSlug, moduleId, payload);
+      const updatedModules = moduleList.map((m) =>
+        m.id === moduleId ? { ...m, lessons: [...m.lessons, newLesson] } : m,
+      );
+      setModuleList(updatedModules);
+      await _syncDocuments(moduleId, newLesson.id, values);
+      void syncCourseDuration(updatedModules);
+      // Switch to edit mode so the user can immediately add content blocks
+      setLessonModal({ open: true, mode: "edit", moduleId, lesson: { ...newLesson, items: [] } });
+      return;
+    } else if (lessonId !== null) {
+      const updated = await updateLesson(contentSlug, moduleId, lessonId, payload);
+      const updatedModules = moduleList.map((m) =>
+        m.id === moduleId
+          ? { ...m, lessons: m.lessons.map((l) => (l.id === updated.id ? updated : l)) }
+          : m,
+      );
+      setModuleList(updatedModules);
+      await _syncDocuments(moduleId, lessonId, values);
+      void syncCourseDuration(updatedModules);
     }
     closeLessonModal();
   }
 
   async function handleDeleteLesson(moduleId: number, lessonId: number) {
-    if (!slug) return;
-    if (isPendingEditMode) {
-      const updated = moduleList.map((m) =>
-        m.id === moduleId ? { ...m, lessons: m.lessons.filter((l) => l.id !== lessonId) } : m,
-      );
-      setModuleList(updated);
-      await flushSnapshot(updated);
-      void syncCourseDuration(updated);
-    } else {
-      await deleteLesson(slug, moduleId, lessonId);
-      const updatedModules = moduleList.map((m) =>
-        m.id === moduleId ? { ...m, lessons: m.lessons.filter((l) => l.id !== lessonId) } : m,
-      );
-      setModuleList(updatedModules);
-      void syncCourseDuration(updatedModules);
-    }
+    if (!contentSlug) return;
+    await deleteLesson(contentSlug, moduleId, lessonId);
+    const updatedModules = moduleList.map((m) =>
+      m.id === moduleId ? { ...m, lessons: m.lessons.filter((l) => l.id !== lessonId) } : m,
+    );
+    setModuleList(updatedModules);
+    void syncCourseDuration(updatedModules);
   }
 
   // ── Submit / discard for pending edit ────────────────────────────────
@@ -598,7 +408,7 @@ export default function CourseContentPage() {
             deleted_document_ids: [],
             items: lessonModal.lesson.items ?? [],
           } : undefined}
-          courseSlug={lessonModal.mode === "edit" ? slug : undefined}
+          courseSlug={lessonModal.mode === "edit" ? (contentSlug ?? undefined) : undefined}
           moduleId={lessonModal.mode === "edit" ? lessonModal.moduleId : undefined}
           lessonId={lessonModal.mode === "edit" ? lessonModal.lesson.id : undefined}
           onClose={closeLessonModal}

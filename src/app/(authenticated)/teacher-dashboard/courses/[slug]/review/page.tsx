@@ -11,7 +11,6 @@ import {
   submitPendingEdit,
 } from "@/entities/course";
 import type { CourseDetail, CourseModule, CourseLesson, CourseTest } from "@/entities/course";
-import type { SnapshotModule } from "@/entities/course";
 import {
   CourseCreationLayout,
   CourseCreationStepper,
@@ -155,43 +154,6 @@ function ModuleReviewCard({ module, index }: { module: CourseModule; index: numb
   );
 }
 
-/** Convert a SnapshotModule to a CourseModule for display purposes only. */
-function snapshotToDisplay(s: SnapshotModule): CourseModule {
-  return {
-    id: s.id ?? 0,
-    title: s.title,
-    description: s.description,
-    order: s.order,
-    lessons: s.lessons.map((l) => ({
-      id: l.id ?? 0,
-      title: l.title,
-      duration_minutes: l.duration_minutes,
-      min_score: l.min_score,
-      is_preview: l.is_preview,
-      order: l.order,
-    })),
-    tests: s.tests.map((t) => ({
-      id: t.id ?? 0,
-      title: t.title,
-      description: t.description,
-      passing_score: t.passing_score,
-      order: t.order,
-      questions: t.questions.map((q) => ({
-        id: q.id ?? 0,
-        question_type: q.question_type,
-        text: q.text,
-        options: q.options,
-        correct_indices: q.correct_indices,
-        exact_set_match: q.exact_set_match,
-        correct_bool: q.correct_bool,
-        sample_answer: q.sample_answer,
-        accepted_answers: q.accepted_answers,
-        order: q.order,
-      })),
-    })),
-  };
-}
-
 export default function CourseReviewPage() {
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
@@ -212,15 +174,16 @@ export default function CourseReviewPage() {
 
         if (isPublished) {
           const pe = await getPendingEdit(slug);
-          setDisplayTitle(pe.title);
-          setModuleList(pe.modules_snapshot.map(snapshotToDisplay));
+          const draft = await getCourseBySlug(pe.draft_course_slug);
+          setDisplayTitle(draft.title);
+          setModuleList(Array.isArray(draft.modules) ? draft.modules : []);
         } else {
           setDisplayTitle(c.title);
           setModuleList(Array.isArray(c.modules) ? c.modules : []);
         }
       })
-      .catch(() => {});
-  }, [slug]);
+      .catch(() => router.push("/teacher-dashboard/courses"));
+  }, [slug, router]);
 
   async function handleSubmit() {
     if (!slug || submitting) return;

@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
-import { ChevronDown, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { PageShell } from "@/shared/ui/PageShell";
+import { PillSelect } from "@/shared/ui/PillSelect";
 import {
   getTeacherCourses,
   getCourseEnrolledStudents,
@@ -65,98 +66,6 @@ function StudentAvatar({ name, avatar }: { name: string; avatar?: string | null 
       <span style={{ fontFamily: "var(--font-accent)", fontWeight: 700, fontSize: "clamp(9px, 0.69vw, 11px)", color: "var(--color-text-primary)", lineHeight: 1 }}>
         {getInitials(name)}
       </span>
-    </div>
-  );
-}
-
-interface PillDropdownProps {
-  value: string;
-  options: { value: string; label: string }[];
-  onChange: (v: string) => void;
-  disabled?: boolean;
-}
-
-function PillDropdown({ value, options, onChange, disabled = false }: PillDropdownProps) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  const selected = options.find((o) => o.value === value);
-
-  useEffect(() => {
-    if (!open) return;
-    function onOutside(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener("mousedown", onOutside);
-    return () => document.removeEventListener("mousedown", onOutside);
-  }, [open]);
-
-  return (
-    <div ref={ref} style={{ position: "relative" }}>
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={() => !disabled && setOpen((p) => !p)}
-        className="flex items-center gap-[10px] bg-white text-(--color-text-primary) transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
-        style={{
-          height: "clamp(32px, 2.78vw, 40px)",
-          padding: "clamp(6px, 0.56vw, 8px) clamp(12px, 1.11vw, 16px)",
-          boxShadow: "0px 0px 4px rgba(72, 70, 70, 0.16)",
-          borderRadius: "clamp(16px, 1.39vw, 20px)",
-          fontFamily: "var(--font-base)",
-          fontSize: "clamp(13px, 1.11vw, 20px)",
-          whiteSpace: "nowrap",
-        }}
-      >
-        <span>{selected?.label ?? options[0]?.label}</span>
-        <ChevronDown
-          style={{
-            width: "clamp(14px, 1.11vw, 16px)",
-            height: "clamp(14px, 1.11vw, 16px)",
-            flexShrink: 0,
-            transition: "transform 0.15s",
-            transform: open ? "rotate(180deg)" : "rotate(0deg)",
-          }}
-        />
-      </button>
-
-      {open && (
-        <ul
-          role="listbox"
-          className="absolute left-0 z-50 overflow-y-auto bg-white"
-          style={{
-            top: "calc(100% + 6px)",
-            minWidth: "clamp(160px, 14vw, 260px)",
-            borderRadius: 12,
-            boxShadow: "var(--shadow-sort-dropdown)",
-            padding: "4px 0",
-            listStyle: "none",
-            margin: 0,
-            maxHeight: 240,
-          }}
-        >
-          {options.map((opt) => (
-            <li key={opt.value} role="option" aria-selected={opt.value === value}>
-              <button
-                type="button"
-                onClick={() => { onChange(opt.value); setOpen(false); }}
-                className="w-full text-left transition-colors hover:text-(--color-blue)"
-                style={{
-                  display: "block",
-                  padding: "clamp(6px, 0.56vw, 8px) clamp(12px, 1.11vw, 16px)",
-                  fontFamily: "var(--font-base)",
-                  fontSize: "clamp(13px, 1.11vw, 18px)",
-                  color: opt.value === value ? "var(--color-blue)" : "var(--color-text-primary)",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                }}
-              >
-                {opt.label}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
     </div>
   );
 }
@@ -393,7 +302,7 @@ export default function TeacherStudentsPage() {
             </h1>
 
             {/* Course */}
-            <PillDropdown
+            <PillSelect
               value={selectedCourse}
               options={courseOptions}
               onChange={handleCourseChange}
@@ -402,7 +311,7 @@ export default function TeacherStudentsPage() {
 
             {/* Delivery format — shown only when a specific course is selected */}
             {selectedCourse !== ALL_COURSES && (
-              <PillDropdown
+              <PillSelect
                 value={selectedFormat}
                 options={formatOptions}
                 onChange={handleFormatChange}
@@ -412,7 +321,7 @@ export default function TeacherStudentsPage() {
 
             {/* Group — shown only when the group delivery format is active */}
             {isGroupFormat && (
-              <PillDropdown
+              <PillSelect
                 value={selectedGroup}
                 options={groupOptions}
                 onChange={setSelectedGroup}

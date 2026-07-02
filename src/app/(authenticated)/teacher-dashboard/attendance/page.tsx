@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Calendar, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 import { PageShell } from "@/shared/ui/PageShell";
+import { PillSelect } from "@/shared/ui/PillSelect";
 import {
   getTeacherCourses,
   getCohorts,
@@ -13,12 +14,14 @@ import {
   getEnrollmentSessionDates,
   getEnrollmentAttendance,
   markEnrollmentAttendance,
+  getDeliveryFormats,
 } from "@/entities/course";
 import type {
   CourseListItem,
   CourseCohort,
   AttendanceRecord,
   IndividualEnrollment,
+  CourseDeliveryFormat,
 } from "@/entities/course";
 import { DataTable } from "@/shared/ui/DataTable";
 import type { DataTableColumn } from "@/shared/ui/DataTable";
@@ -53,97 +56,6 @@ const FORMAT_OPTIONS: { value: Mode; label: string }[] = [
 ];
 
 // ── PillDropdown ──────────────────────────────────────────────────────────────
-
-interface PillDropdownProps {
-  value: string;
-  options: { value: string; label: string }[];
-  onChange: (v: string) => void;
-  disabled?: boolean;
-}
-
-function PillDropdown({ value, options, onChange, disabled = false }: PillDropdownProps) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  const selected = options.find((o) => o.value === value);
-
-  useEffect(() => {
-    if (!open) return;
-    function onOutside(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener("mousedown", onOutside);
-    return () => document.removeEventListener("mousedown", onOutside);
-  }, [open]);
-
-  return (
-    <div ref={ref} style={{ position: "relative" }}>
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={() => !disabled && setOpen((p) => !p)}
-        className="flex items-center gap-[10px] bg-white text-(--color-text-primary) transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
-        style={{
-          height: "clamp(32px, 2.78vw, 40px)",
-          padding: "clamp(6px, 0.56vw, 8px) clamp(12px, 1.11vw, 16px)",
-          boxShadow: "0px 0px 4px rgba(72, 70, 70, 0.16)",
-          borderRadius: "clamp(16px, 1.39vw, 20px)",
-          fontFamily: "var(--font-base)",
-          fontSize: "clamp(13px, 1.11vw, 20px)",
-          whiteSpace: "nowrap",
-        }}
-      >
-        <span>{selected?.label ?? options[0]?.label}</span>
-        <ChevronDown
-          style={{
-            width: "clamp(14px, 1.11vw, 16px)",
-            height: "clamp(14px, 1.11vw, 16px)",
-            flexShrink: 0,
-            transition: "transform 0.15s",
-            transform: open ? "rotate(180deg)" : "rotate(0deg)",
-          }}
-        />
-      </button>
-      {open && (
-        <ul
-          role="listbox"
-          className="absolute left-0 z-50 overflow-y-auto bg-white"
-          style={{
-            top: "calc(100% + 6px)",
-            minWidth: "clamp(160px, 14vw, 260px)",
-            borderRadius: 12,
-            boxShadow: "var(--shadow-sort-dropdown)",
-            padding: "4px 0",
-            listStyle: "none",
-            margin: 0,
-            maxHeight: 240,
-          }}
-        >
-          {options.map((opt) => (
-            <li key={opt.value} role="option" aria-selected={opt.value === value}>
-              <button
-                type="button"
-                onClick={() => { onChange(opt.value); setOpen(false); }}
-                className="w-full text-left transition-colors hover:text-(--color-blue)"
-                style={{
-                  display: "block",
-                  padding: "clamp(6px, 0.56vw, 8px) clamp(12px, 1.11vw, 16px)",
-                  fontFamily: "var(--font-base)",
-                  fontSize: "clamp(13px, 1.11vw, 18px)",
-                  color: opt.value === value ? "var(--color-blue)" : "var(--color-text-primary)",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                }}
-              >
-                {opt.label}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
 
 // ── MiniCalendar ──────────────────────────────────────────────────────────────
 
@@ -437,6 +349,9 @@ export default function TeacherAttendancePage() {
 
   const [mode, setMode] = useState<Mode>("group");
 
+  const [formats, setFormats]           = useState<CourseDeliveryFormat[]>([]);
+  const [loadingFormats, setLoadingFormats] = useState(false);
+
   const [cohorts, setCohorts]               = useState<CourseCohort[]>([]);
   const [selectedCohort, setSelectedCohort] = useState<string>("");
 
@@ -465,6 +380,31 @@ export default function TeacherAttendancePage() {
       .catch(() => {})
       .finally(() => setLoadingCourses(false));
   }, []);
+
+  // ── Load delivery formats (independent of mode, used to know which types exist) ──
+  useEffect(() => {
+    if (!selectedCourse) {
+      setFormats([]);
+      return;
+    }
+    let cancelled = false;
+    setLoadingFormats(true);
+    getDeliveryFormats(selectedCourse)
+      .then((list) => {
+        if (cancelled) return;
+        setFormats(list);
+        const hasGroup = list.some((format) => format.format_type === "group");
+        const hasIndividual = list.some((format) => format.format_type === "individual");
+        setMode((current) => {
+          if (current === "group" && hasGroup) return current;
+          if (current === "individual" && hasIndividual) return current;
+          return hasGroup ? "group" : "individual";
+        });
+      })
+      .catch(() => { if (!cancelled) setFormats([]); })
+      .finally(() => { if (!cancelled) setLoadingFormats(false); });
+    return () => { cancelled = true; };
+  }, [selectedCourse]);
 
   // ── Load cohorts (group mode) ──────────────────────────────────────────────
   useEffect(() => {
@@ -555,6 +495,7 @@ export default function TeacherAttendancePage() {
   const handleCourseChange = useCallback((slug: string) => {
     metaFetchedFor.current = "";
     setSelectedCourse(slug);
+    setFormats([]);
     setCohorts([]); setSelectedCohort("");
     setIndividuals([]); setSelectedEnrollment("");
     setSessionDates(new Set()); setSelectedDate(null); setRecords([]);
@@ -609,6 +550,12 @@ export default function TeacherAttendancePage() {
     value: String(e.enrollment_id),
     label: e.student_name,
   }));
+
+  const hasGroupFormat = formats.some((format) => format.format_type === "group");
+  const hasIndividualFormat = formats.some((format) => format.format_type === "individual");
+  const modeOptions = FORMAT_OPTIONS.filter((option) =>
+    option.value === "group" ? hasGroupFormat : hasIndividualFormat,
+  );
 
   const isCalDisabled =
     !selectedCourse ||
@@ -718,27 +665,29 @@ export default function TeacherAttendancePage() {
               Attendance
             </h1>
             {courseOptions.length > 0 && (
-              <PillDropdown
+              <PillSelect
                 value={selectedCourse}
                 options={courseOptions}
                 onChange={handleCourseChange}
                 disabled={loadingCourses}
               />
             )}
-            <PillDropdown
+            <PillSelect
               value={mode}
-              options={FORMAT_OPTIONS}
+              options={modeOptions}
               onChange={handleModeChange}
+              disabled={loadingFormats || modeOptions.length === 0}
+              placeholder="Type"
             />
             {mode === "group" && cohortOptions.length > 0 && (
-              <PillDropdown
+              <PillSelect
                 value={selectedCohort}
                 options={cohortOptions}
                 onChange={handleCohortChange}
               />
             )}
             {mode === "individual" && enrollmentOptions.length > 0 && (
-              <PillDropdown
+              <PillSelect
                 value={selectedEnrollment}
                 options={enrollmentOptions}
                 onChange={handleEnrollmentChange}

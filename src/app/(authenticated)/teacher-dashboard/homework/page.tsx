@@ -38,6 +38,7 @@ import { TestFormBody, type TestFormValues, type TestQuestion } from "@/features
 import { QuizQuestionCard, QuizWindow } from "@/features/quiz";
 import type { ApiError } from "@/shared/api/base";
 import { PageShell } from "@/shared/ui/PageShell";
+import { PillSelect } from "@/shared/ui/PillSelect";
 
 type FormState = {
   courseSlug: string;
@@ -1626,31 +1627,25 @@ export default function TeacherHomeworkPage() {
           </button>
         </div>
 
-        <div className="mt-3 flex h-10 w-[min(100%,1020px)] items-center gap-2">
-          <div className="w-[260px] shrink-0">
-            <HomeworkSelect
-              value={selectedCourseSlug}
-              options={courses.map((course) => ({ value: course.slug, label: course.title }))}
-              placeholder="Subject"
-              variant="filter"
-              disabled={loadingCourses || courses.length === 0}
-              onChange={setSelectedCourseSlug}
-            />
-          </div>
-          <div className="w-[190px] shrink-0">
-            <HomeworkSelect
-              value={statusFilter}
-              options={[
-                { value: "all", label: "Status" },
-                { value: "draft", label: "Drafts" },
-                { value: "published", label: "Published" },
-                { value: "closed", label: "Closed" },
-              ]}
-              placeholder="Status"
-              variant="filter"
-              onChange={setStatusFilter}
-            />
-          </div>
+        <div className="mt-3 flex w-[min(100%,1020px)] items-center gap-2">
+          <PillSelect
+            value={selectedCourseSlug}
+            options={courses.map((course) => ({ value: course.slug, label: course.title }))}
+            placeholder="Subject"
+            disabled={loadingCourses || courses.length === 0}
+            onChange={setSelectedCourseSlug}
+          />
+          <PillSelect
+            value={statusFilter}
+            options={[
+              { value: "all", label: "Status" },
+              { value: "draft", label: "Drafts" },
+              { value: "published", label: "Published" },
+              { value: "closed", label: "Closed" },
+            ]}
+            placeholder="Status"
+            onChange={setStatusFilter}
+          />
           <span className="hidden">Group — soon</span>
           <span className="hidden">Student — soon</span>
           <span className="inline-flex h-10 items-center rounded-full border border-[#ECECEC] bg-white px-5 font-(family-name:--font-base) text-[20px] leading-none font-normal text-[#121212] shadow-[0_0_4px_rgba(0,0,0,0.06)]">

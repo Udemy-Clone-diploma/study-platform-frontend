@@ -7,7 +7,7 @@ export function CourseDescription({ html }: Props) {
   const clean = sanitizeCourseHtml(html);
   return (
     <div
-      className="text-lg text-(--color-text-primary) [&_h3]:mt-6 [&_h3]:mb-3 [&_h3]:text-2xl [&_h3]:font-semibold [&_li]:my-1 [&_p]:my-4 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-6"
+      className="text-lg text-(--color-text-primary) [&_h3]:mt-6 [&_h3]:mb-3 [&_h3]:text-2xl [&_h3]:font-semibold [&_li]:my-1 [&_p]:my-4 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-6 [&_table]:my-4 [&_table]:block [&_table]:max-w-full [&_table]:overflow-x-auto"
       dangerouslySetInnerHTML={{ __html: clean }}
     />
   );

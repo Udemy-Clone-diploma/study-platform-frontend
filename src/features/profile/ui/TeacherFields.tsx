@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { ProfileField, ProfileLanguageField, ProfileInstructionLanguageField, LABEL_STYLE, VALUE_STYLE, TEXTAREA_STYLE, formatDate } from "./ProfileField";
 import type { TeacherProfile, UserLanguage } from "@/entities/user";
 
@@ -21,6 +22,8 @@ type Props = {
     bio: string;
     yearsExperience: string;
     partnershipsCount: string;
+    signaturePreview: string | null;
+    onSignatureChange: (file: File) => void;
     onFirstNameChange: (v: string) => void;
     onLastNameChange: (v: string) => void;
     onLanguageChange: (v: UserLanguage) => void;
@@ -38,11 +41,15 @@ export function TeacherFields({
     editing, email, dateJoined,
     firstName, lastName, language, instructionLanguage,
     profile, specialization, experience, bio, yearsExperience, partnershipsCount,
+    signaturePreview, onSignatureChange,
     onFirstNameChange, onLastNameChange, onLanguageChange, onInstructionLanguageChange,
     onSpecializationChange, onExperienceChange, onBioChange,
     onYearsExperienceChange, onPartnershipsCountChange,
     onChangePassword,
 }: Props) {
+    const signatureFileRef = useRef<HTMLInputElement>(null);
+    const signatureSrc = signaturePreview ?? profile?.signature ?? null;
+
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: "1.25vw" }}>
 
@@ -128,6 +135,43 @@ export function TeacherFields({
                 ) : (
                     <span style={VALUE_STYLE}>{profile?.bio || "—"}</span>
                 )}
+            </div>
+
+            {/* Signature — drawn onto generated course certificates */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.208vw" }}>
+                <span style={LABEL_STYLE}>Signature</span>
+                <p style={{ ...VALUE_STYLE, fontWeight: 400, color: "var(--color-text-secondary)", margin: 0 }}>
+                    Required before you can enable certificates on a course.
+                </p>
+                <div
+                    onClick={editing ? () => signatureFileRef.current?.click() : undefined}
+                    style={{
+                        width: "12vw", height: "5vw", borderRadius: 12,
+                        border: "1px dashed var(--color-border-light)",
+                        background: "var(--color-bg)",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        cursor: editing ? "pointer" : "default", overflow: "hidden",
+                    }}
+                >
+                    {signatureSrc ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={signatureSrc} alt="Signature" style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} />
+                    ) : (
+                        <span style={{ ...VALUE_STYLE, fontWeight: 400, color: "var(--color-text-muted)", fontSize: "0.9vw" }}>
+                            {editing ? "Click to upload" : "Not uploaded"}
+                        </span>
+                    )}
+                </div>
+                <input
+                    ref={signatureFileRef}
+                    type="file"
+                    accept="image/*"
+                    style={{ display: "none" }}
+                    onChange={e => {
+                        const file = e.target.files?.[0];
+                        if (file) onSignatureChange(file);
+                    }}
+                />
             </div>
         </div>
     );

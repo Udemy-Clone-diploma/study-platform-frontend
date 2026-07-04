@@ -1,14 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, ChevronLeft, ChevronRight, Download, Video } from "lucide-react";
+import { CalendarDays, Check, ChevronLeft, ChevronRight, Download, Video } from "lucide-react";
 import {
   byOrder,
   getCourseBySlug,
   getCourseProgress,
   getLesson,
+  getLessonSessions,
   markLessonComplete,
   readMockProgress,
   recordLessonOpened,
@@ -22,6 +23,7 @@ import type {
   CourseProgress,
   LessonDocument,
   LessonItem,
+  LessonSession,
 } from "@/entities/course";
 import type { ApiError } from "@/shared/api/base";
 import { GradientButton } from "@/shared/ui/GradientButton";
@@ -62,14 +64,20 @@ export function LessonPlayerView({
   const [course, setCourse] = useState<CourseDetail | null>(initialCourse ?? null);
   const [lesson, setLesson] = useState<CourseLesson | null>(initialLesson ?? null);
   const [progress, setProgress] = useState<CourseProgress | null>(initialProgress);
+  const [sessions, setSessions] = useState<LessonSession[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(!(initialCourse && initialLesson));
+  // The page's actual scroll container is an ancestor `overflow-y-auto` div in
+  // AppShell, not the window — scrollIntoView on this root finds it regardless.
+  const contentRef = useRef<HTMLElement>(null);
 
-  // Load course + lesson (+ progress for real courses). Mock routes pass them in.
+  // Load course + lesson (+ progress + scheduled sessions for real courses).
+  // Mock routes pass course/lesson/progress in; sessions are not mocked.
   useEffect(() => {
     if (initialCourse && initialLesson) {
       setCourse(initialCourse);
       setLesson(initialLesson);
+      setSessions([]);
       setLoading(false);
       return;
     }
@@ -80,18 +88,26 @@ export function LessonPlayerView({
 
     (async () => {
       try {
-        const [courseRes, lessonRes, progressRes] = await Promise.all([
+        const [courseRes, lessonRes, progressRes, sessionsRes] = await Promise.all([
           getCourseBySlug(slug),
           getLesson(slug, lessonId),
           getCourseProgress(slug).catch((err: Partial<ApiError>) => {
             if (err.status === 403 || err.status === 401) return null;
             throw err;
           }),
+          getLessonSessions(slug, lessonId).catch(() => []),
         ]);
         if (cancelled) return;
+        // Learn is done once the course is completed — send the student back to
+        // My Courses, where the completed card (with the certificate) now lives.
+        if (progressRes?.is_course_completed) {
+          router.replace("/student-dashboard/courses");
+          return;
+        }
         setCourse(courseRes);
         setLesson(lessonRes);
         setProgress(progressRes);
+        setSessions(sessionsRes);
       } catch (err) {
         if (cancelled) return;
         const apiError = err as Partial<ApiError>;
@@ -125,9 +141,14 @@ export function LessonPlayerView({
   }, [slug, lessonId, isMock, initialProgress]);
 
   const isCompleted = progress?.completed_lesson_ids.includes(lessonId) ?? false;
+  const [completeError, setCompleteError] = useState<string | null>(null);
+  useEffect(() => {
+    setCompleteError(null);
+  }, [lessonId]);
 
   const handleToggleComplete = () => {
     if (!progress) return;
+    setCompleteError(null);
 
     // Dev-mock course: persist locally; there is no backend to call.
     if (isMock) {
@@ -156,7 +177,10 @@ export function LessonPlayerView({
           p ? { ...p, lessons_completed_count: result.lessons_completed_count } : p,
         ),
       )
-      .catch(() => setProgress(previous));
+      .catch((err: Partial<ApiError>) => {
+        setProgress(previous);
+        setCompleteError(err.message ?? "Could not update completion status.");
+      });
   };
 
   const flatLessons = useMemo(() => {
@@ -212,23 +236,11 @@ export function LessonPlayerView({
 
   const activeTest = activeItem?.item_type === "test" && activeItem.test ? activeItem.test : null;
 
-  if (activeTest) {
-    return (
-      <section className="relative isolate min-h-[calc(100vh-76px)] bg-(--color-brand-lavender-soft) px-8 py-[52px]">
-        <QuizPlayer
-          slug={slug}
-          test={activeTest}
-          isMock={isMock}
-          onPassed={() => {
-            if (!isCompleted) handleToggleComplete();
-          }}
-        />
-      </section>
-    );
-  }
-
   return (
-    <section className="relative isolate min-h-[calc(100vh-76px)] overflow-hidden bg-white">
+    <section
+      ref={contentRef}
+      className="relative isolate min-h-[calc(100vh-76px)] overflow-hidden bg-white"
+    >
       <LearnPageDecor showPlanet={false} />
 
       <div className="relative z-10 flex w-full flex-col gap-6 px-5 py-6 lg:gap-8 lg:px-12 lg:py-10 xl:px-[90px]">
@@ -311,17 +323,29 @@ export function LessonPlayerView({
                   )}
                 </div>
 
-                {lesson.meeting_url && (
-                  <div className="flex flex-col gap-6 border-t border-(--color-text-primary)/10 pt-6">
-                    <LessonMeetingCta href={lesson.meeting_url} />
-                  </div>
+                {completeError && (
+                  <p role="alert" className="text-sm text-(--color-pink-dark)">
+                    {completeError}
+                  </p>
                 )}
+
+                {sessions.length > 0 && <LessonSessionsList sessions={sessions} />}
 
                 {lesson.documents && lesson.documents.length > 0 && (
                   <LessonDocuments documents={lesson.documents} />
                 )}
               </div>
             </>
+          ) : activeTest ? (
+            <QuizPlayer
+              slug={slug}
+              test={activeTest}
+              isMock={isMock}
+              onPassed={() => {
+                if (!isCompleted) handleToggleComplete();
+              }}
+              nextLessonHref={isLastTab && nextLesson ? `/learn/${slug}/${nextLesson.id}` : undefined}
+            />
           ) : null}
         </div>
       </div>
@@ -365,8 +389,8 @@ function LessonContent({ item }: { item: LessonItem | null }) {
       </div>
     );
   }
-  if (item?.item_type === "text" && (item.body_html ?? item.content)) {
-    return <CourseDescription html={item.body_html ?? item.content ?? ""} />;
+  if (item?.item_type === "text" && item.body_html) {
+    return <CourseDescription html={item.body_html} />;
   }
   return <p className="text-(--color-text-secondary)">No content available for this lesson yet.</p>;
 }
@@ -409,19 +433,64 @@ function CompleteCheckbox({
   );
 }
 
-/** "Join live session" CTA shown when the lesson exposes a live-class link. */
-function LessonMeetingCta({ href }: { href: string }) {
+/** Live sessions the teacher has scheduled for this lesson (via the calendar). */
+function LessonSessionsList({ sessions }: { sessions: LessonSession[] }) {
   return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="inline-flex w-fit items-center gap-2 rounded-full px-5 py-3 font-(family-name:--font-accent) text-sm font-medium uppercase text-(--color-text-primary) transition hover:opacity-90"
-      style={{ background: "var(--gradient-brand)" }}
+    <div className="flex flex-col gap-4 border-t border-(--color-text-primary)/10 pt-6">
+      <h2 className="font-(family-name:--font-base) text-lg font-semibold text-(--color-text-primary)">
+        Live sessions
+      </h2>
+      <ul className="flex flex-col gap-3">
+        {sessions.map((session) => (
+          <li key={session.id}>
+            <LessonSessionCard session={session} />
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function LessonSessionCard({ session }: { session: LessonSession }) {
+  const date = new Date(`${session.date}T00:00:00`);
+  const dateLabel = date.toLocaleDateString(undefined, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+
+  const now = new Date();
+  const todayISO = now.toISOString().slice(0, 10);
+  const nowHM = now.toTimeString().slice(0, 5);
+  const isPast = session.date < todayISO || (session.date === todayISO && session.end_time <= nowHM);
+
+  return (
+    <div
+      className={`flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-(--color-brand-lavender-soft) px-5 py-4 ${
+        isPast ? "opacity-50 grayscale" : ""
+      }`}
     >
-      <Video className="h-5 w-5" aria-hidden="true" />
-      Join live session with teacher
-    </a>
+      <div className="flex items-center gap-2 font-(family-name:--font-base) text-base text-(--color-text-primary)">
+        <CalendarDays className="h-5 w-5 shrink-0" aria-hidden="true" />
+        <span>
+          {dateLabel}, {session.start_time}–{session.end_time}
+        </span>
+      </div>
+      {session.meeting_link ? (
+        <a
+          href={session.meeting_link}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex w-fit items-center gap-2 rounded-full px-5 py-2.5 font-(family-name:--font-accent) text-sm font-medium uppercase text-(--color-text-primary) transition hover:opacity-90"
+          style={{ background: "var(--gradient-brand)" }}
+        >
+          <Video className="h-4 w-4" aria-hidden="true" />
+          Join live session
+        </a>
+      ) : (
+        <span className="text-sm text-(--color-text-secondary)">Meeting link not shared yet</span>
+      )}
+    </div>
   );
 }
 

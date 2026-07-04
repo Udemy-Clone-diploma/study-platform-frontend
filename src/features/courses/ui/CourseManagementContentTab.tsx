@@ -5,7 +5,7 @@ import { Astroid, ChevronDown, X } from "lucide-react";
 import type {
   CourseDetail, CourseLesson, CourseModule, CourseTest, LessonItem,
 } from "@/entities/course";
-import { getLessonDetail } from "@/entities/course";
+import { getLessonDetail, updateLesson } from "@/entities/course";
 import { SectionCard } from "@/shared/ui/SectionCard";
 import { GradientButton } from "@/shared/ui/GradientButton";
 
@@ -90,8 +90,6 @@ function TextModal({ item, onClose }: { item: LessonItem; onClose: () => void })
       <ItemMeta item={item} />
       {item.body_html ? (
         <div style={{ fontFamily: F, fontSize: "clamp(13px, 0.9vw, 16px)", color: "var(--color-text-primary)", lineHeight: 1.75 }} dangerouslySetInnerHTML={{ __html: item.body_html }} />
-      ) : item.content ? (
-        <p style={{ fontFamily: F, fontSize: "clamp(13px, 0.9vw, 16px)", color: "var(--color-text-primary)", lineHeight: 1.75, margin: 0 }}>{item.content}</p>
       ) : (
         <p style={{ fontFamily: F, color: "var(--color-text-muted)" }}>No content.</p>
       )}
@@ -247,10 +245,19 @@ function ItemRow({ item, onOpen }: { item: LessonItem; onOpen: () => void }) {
 
 // ── Lesson row (expandable, lazy-loads items) ─────────────────────────────────
 
-function LessonAccordion({ lesson, slug, onOpen }: { lesson: CourseLesson; slug: string; onOpen: (item: LessonItem) => void }) {
+function LessonAccordion({
+  lesson, slug, moduleId, onOpen, onUpdated,
+}: {
+  lesson: CourseLesson;
+  slug: string;
+  moduleId: number;
+  onOpen: (item: LessonItem) => void;
+  onUpdated: (lesson: CourseLesson) => void;
+}) {
   const [expanded, setExpanded] = useState(false);
   const [items, setItems]       = useState<LessonItem[] | null>(lesson.items !== undefined ? lesson.items : null);
   const [loading, setLoading]   = useState(false);
+  const [savingMandatory, setSavingMandatory] = useState(false);
 
   function toggle() {
     if (!expanded && items === null) {
@@ -263,27 +270,61 @@ function LessonAccordion({ lesson, slug, onOpen }: { lesson: CourseLesson; slug:
     setExpanded(v => !v);
   }
 
+  async function handleMandatoryChange() {
+    setSavingMandatory(true);
+    try {
+      const updated = await updateLesson(slug, moduleId, lesson.id, { is_mandatory: !lesson.is_mandatory });
+      onUpdated(updated);
+    } finally {
+      setSavingMandatory(false);
+    }
+  }
+
   return (
     <div>
-      <button
-        type="button"
-        onClick={toggle}
-        style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "4px 12px", width: "100%", padding: "clamp(4px, 0.28vw, 5px) 0", background: "none", border: "none", cursor: "pointer", textAlign: "left" }}
-      >
-        <Astroid aria-hidden size={12} style={{ color: "var(--color-text-primary)", flexShrink: 0 }} fill="currentColor" />
+      <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "4px 12px", width: "100%", padding: "clamp(4px, 0.28vw, 5px) 0" }}>
+        <button
+          type="button"
+          onClick={toggle}
+          style={{ display: "flex", alignItems: "center", gap: 12, flex: 1, minWidth: 0, background: "none", border: "none", cursor: "pointer", textAlign: "left", padding: 0 }}
+        >
+          <Astroid aria-hidden size={12} style={{ color: "var(--color-text-primary)", flexShrink: 0 }} fill="currentColor" />
 
-        <span style={{ fontFamily: F, fontWeight: 400, fontSize: "clamp(14px, 1.39vw, 20px)", color: "var(--color-text-primary)", flex: 1 }}>
-          {lesson.title}
-        </span>
-
-        {lesson.duration_minutes ? (
-          <span style={{ fontFamily: F, fontSize: "clamp(11px, 0.73vw, 13px)", color: "var(--color-text-muted)", flexShrink: 0 }}>
-            {lesson.duration_minutes} min
+          <span style={{ fontFamily: F, fontWeight: 400, fontSize: "clamp(14px, 1.39vw, 20px)", color: "var(--color-text-primary)", flex: 1, minWidth: 0 }}>
+            {lesson.title}
           </span>
-        ) : null}
 
-        <ChevronDown size={16} style={{ color: "var(--color-text-muted)", flexShrink: 0, transform: expanded ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
-      </button>
+          {lesson.duration_minutes ? (
+            <span style={{ fontFamily: F, fontSize: "clamp(11px, 0.73vw, 13px)", color: "var(--color-text-muted)", flexShrink: 0 }}>
+              {lesson.duration_minutes} min
+            </span>
+          ) : null}
+        </button>
+
+        <label
+          title="Required to complete the course"
+          style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0, cursor: savingMandatory ? "default" : "pointer", opacity: savingMandatory ? 0.6 : 1 }}
+        >
+          <input
+            type="checkbox"
+            checked={!!lesson.is_mandatory}
+            disabled={savingMandatory}
+            onChange={handleMandatoryChange}
+          />
+          <span style={{ fontFamily: F, fontSize: "clamp(11px, 0.73vw, 13px)", color: "var(--color-text-secondary)" }}>
+            Mandatory
+          </span>
+        </label>
+
+        <button
+          type="button"
+          onClick={toggle}
+          aria-label={expanded ? "Collapse lesson" : "Expand lesson"}
+          style={{ display: "flex", flexShrink: 0, background: "none", border: "none", cursor: "pointer", padding: 0 }}
+        >
+          <ChevronDown size={16} style={{ color: "var(--color-text-muted)", transform: expanded ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
+        </button>
+      </div>
 
       {expanded && (
         <div style={{ paddingLeft: "clamp(20px, 1.67vw, 24px)", paddingTop: 4, display: "flex", flexDirection: "column", gap: 2 }}>
@@ -305,7 +346,7 @@ function LessonAccordion({ lesson, slug, onOpen }: { lesson: CourseLesson; slug:
 // ── Module row (expandable, public-detail style) ──────────────────────────────
 
 function ModuleAccordion({
-  module, index, isOpen, onToggle, slug, onOpen,
+  module, index, isOpen, onToggle, slug, onOpen, onLessonUpdated,
 }: {
   module: CourseModule;
   index: number;
@@ -313,6 +354,7 @@ function ModuleAccordion({
   onToggle: () => void;
   slug: string;
   onOpen: (modal: ModalState) => void;
+  onLessonUpdated: (moduleId: number, lesson: CourseLesson) => void;
 }) {
   function openItem(item: LessonItem) {
     if (item.item_type === "text")  onOpen({ kind: "text",  item });
@@ -341,7 +383,14 @@ function ModuleAccordion({
       {isOpen && (
         <div style={{ marginTop: "clamp(12px, 1.39vw, 20px)", display: "flex", flexDirection: "column", gap: 4 }}>
           {module.lessons.map(lesson => (
-            <LessonAccordion key={lesson.id} lesson={lesson} slug={slug} onOpen={openItem} />
+            <LessonAccordion
+              key={lesson.id}
+              lesson={lesson}
+              slug={slug}
+              moduleId={module.id}
+              onOpen={openItem}
+              onUpdated={updated => onLessonUpdated(module.id, updated)}
+            />
           ))}
 
           {module.lessons.length === 0 && (
@@ -357,10 +406,14 @@ function ModuleAccordion({
 
 // ── Main component ─────────────────────────────────────────────────────────────
 
-type Props = { course: CourseDetail; slug: string };
+type Props = {
+  course: CourseDetail;
+  slug: string;
+  onLessonUpdated: (moduleId: number, lesson: CourseLesson) => void;
+};
 
 /** Module accordion with expandable lessons, per-item modals (text / video / test). */
-export function CourseManagementContentTab({ course, slug }: Props) {
+export function CourseManagementContentTab({ course, slug, onLessonUpdated }: Props) {
   const allIds = course.modules.map(m => m.id);
   const [openModules, setOpenModules] = useState<Set<number>>(new Set());
   const [modal, setModal]             = useState<ModalState>(null);
@@ -410,6 +463,7 @@ export function CourseManagementContentTab({ course, slug }: Props) {
               onToggle={() => toggleModule(m.id)}
               slug={slug}
               onOpen={setModal}
+              onLessonUpdated={onLessonUpdated}
             />
           ))}
         </div>

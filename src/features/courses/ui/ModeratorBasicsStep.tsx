@@ -40,11 +40,11 @@ export function ModeratorBasicsStep(props: StepProps) {
   const displayTitle     = (!lockedKeys.has("field-title")             && draft?.title)             || course?.title             || "—";
   const displayShortDesc = (!lockedKeys.has("field-short-description") && draft?.short_description) || course?.short_description || "—";
   const displayFullDesc  = (!lockedKeys.has("field-full-description")  && draft?.full_description)  || course?.full_description  || "—";
-  const displayImage    = (!lockedKeys.has("field-icon")        && draft?.image)             ?? course?.image ?? null;
+  const displayImage    = (!lockedKeys.has("field-icon")        && draft?.image)             || course?.image             || null;
   const displayCategory = !lockedKeys.has("field-category") && draft
     ? (draft.category?.name ?? "—")
     : (course?.category?.name ?? "—");
-  const displayLevel    = (!lockedKeys.has("field-level") && draft?.level) ?? course?.level ?? "";
+  const displayLevel    = (!lockedKeys.has("field-level") && draft?.level) || course?.level || "";
 
   const levelLabel   = displayLevel ? displayLevel.charAt(0).toUpperCase() + displayLevel.slice(1) : "—";
 

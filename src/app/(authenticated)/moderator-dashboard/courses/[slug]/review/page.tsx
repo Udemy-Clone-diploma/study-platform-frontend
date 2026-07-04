@@ -33,7 +33,9 @@ function computeLockedFieldKeys(draft: CourseDetail, course: CourseDetail): Set<
   if (draft.title !== course.title)                             changed.add("field-title");
   if (draft.short_description !== course.short_description)     changed.add("field-short-description");
   if (draft.full_description  !== course.full_description)      changed.add("field-full-description");
-  if ((draft.image ?? null) !== (course.image ?? null))         changed.add("field-icon");
+  // Cloning duplicates the image under a fresh generated storage path, so two
+  // byte-identical images never share a URL — compare content hash instead.
+  if ((draft.image_hash ?? null) !== (course.image_hash ?? null)) changed.add("field-icon");
   if ((draft.category?.id ?? null) !== (course.category?.id ?? null)) changed.add("field-category");
   if (draft.level !== course.level)                              changed.add("field-level");
   return new Set([...ALL_BASICS_KEYS].filter((k) => !changed.has(k)));
@@ -56,7 +58,8 @@ function computeLockedContentKeys(course: CourseDetail | null, draft: CourseDeta
       const metaUnchanged =
         dl.title === live.title &&
         dl.duration_minutes === live.duration_minutes &&
-        dl.is_preview === live.is_preview;
+        dl.is_preview === live.is_preview &&
+        !!dl.is_mandatory === !!live.is_mandatory;
       const draftItems = dl.items ?? [];
       const liveItems = live.items ?? [];
       let itemsUnchanged: boolean;
@@ -67,9 +70,18 @@ function computeLockedContentKeys(course: CourseDetail | null, draft: CourseDeta
         itemsUnchanged = draftItems.every((di) => {
           if (di.source_lesson_item_id == null) return false;
           const li = liveById.get(di.source_lesson_item_id);
-          return li !== undefined &&
-            (di.content ?? "") === (li.content ?? "") &&
-            (di.video_url ?? null) === (li.video_url ?? null);
+          if (li === undefined) return false;
+          // Cloning duplicates an uploaded video under a fresh generated path,
+          // so video_url (which resolves to the file's URL when there's no
+          // external link) always differs even when the file is unchanged —
+          // whenever either side has an uploaded file, compare content hash
+          // instead and ignore video_url; only fall back to comparing the raw
+          // link when neither side has an uploaded file at all.
+          const hasFile = !!di.video_hash || !!li.video_hash;
+          const videoUnchanged = hasFile
+            ? (di.video_hash ?? null) === (li.video_hash ?? null)
+            : (di.video_url ?? null) === (li.video_url ?? null);
+          return (di.body_html ?? "") === (li.body_html ?? "") && videoUnchanged;
         });
       }
       if (metaUnchanged && itemsUnchanged) locked.add(`lesson-${dl.id}`);
@@ -89,6 +101,7 @@ export default function ModeratorReviewPage() {
   const router    = useRouter();
 
   const [course, setCourse]                       = useState<CourseDetail | null>(null);
+  const [loading, setLoading]                     = useState(true);
   const [step, setStep]                           = useState<0 | 1 | 2>(0);
   const [action, setAction]                       = useState<ModeratorAction>(null);
   const [comment, setComment]                     = useState("");
@@ -168,7 +181,7 @@ export default function ModeratorReviewPage() {
         ...(mr.basics_field_statuses ?? {}),
         ...(mr.content_item_statuses ?? {}),
       } as ItemStatuses);
-    }).catch(() => {});
+    }).catch(() => {}).finally(() => setLoading(false));
   }, [slug]);
 
   const moduleList = useMemo(
@@ -357,6 +370,24 @@ export default function ModeratorReviewPage() {
     router,
     courseSlug: slug ?? "",
   };
+
+  if (loading) {
+    return (
+      <CourseCreationLayout>
+        <p
+          style={{
+            fontFamily: "var(--font-base)",
+            fontSize: "clamp(14px, 0.83vw, 16px)",
+            color: "var(--color-text-secondary)",
+            textAlign: "center",
+            padding: "clamp(40px, 6vw, 80px) 0",
+          }}
+        >
+          Loading…
+        </p>
+      </CourseCreationLayout>
+    );
+  }
 
   return (
     <CourseCreationLayout>

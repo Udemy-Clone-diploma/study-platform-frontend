@@ -268,8 +268,12 @@ export async function getEnrolledCourses(
   return data;
 }
 
-export async function getStudentCompletions(): Promise<Paginated<CourseCompletion>> {
-  const { data } = await api.get<Paginated<CourseCompletion>>(`${COURSES}completions/`);
+export async function getStudentCompletions(params?: {
+  page?: number;
+  page_size?: number;
+  with_certificate?: boolean;
+}): Promise<Paginated<CourseCompletion>> {
+  const { data } = await api.get<Paginated<CourseCompletion>>(`${COURSES}completions/`, { params });
   return data;
 }
 
@@ -385,6 +389,13 @@ export async function createCourse(data: Record<string, unknown>): Promise<Cours
 export async function updateCourse(slug: string, data: Record<string, unknown>): Promise<CourseDetail> {
   const { data: result } = await api.patch<CourseDetail>(`${COURSES}${slug}/`, data);
   return result;
+}
+
+export async function downloadCertificatePreview(slug: string): Promise<Blob> {
+  const { data } = await api.get<Blob>(`${COURSES}${slug}/certificate-preview/`, {
+    responseType: "blob",
+  });
+  return data;
 }
 
 export async function submitCourseForReview(slug: string): Promise<void> {

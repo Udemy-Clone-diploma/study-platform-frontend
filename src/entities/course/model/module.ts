@@ -51,9 +51,10 @@ export type LessonItem = {
   id: number;
   item_type: LessonItemType;
   order: number;
-  content?: string;
   body_html?: string | null;
   video_url?: string | null;
+  /** Content hash of the uploaded video file, if any; null for an external video_url link. */
+  video_hash?: string | null;
   original_video_name?: string;
   duration_minutes?: number | null;
   test?: CourseTest | null;
@@ -73,6 +74,8 @@ export type CourseLesson = {
   unlock_after_days?: number | null;
   requires_previous?: boolean;
   is_manually_locked?: boolean;
+  /** If this lesson has a test, it must be passed before the lesson can be marked complete. */
+  is_mandatory?: boolean;
   documents?: LessonDocument[];
   items?: LessonItem[];
   /** Set only on a pending-edit draft course's lessons: the live lesson this was cloned from. */

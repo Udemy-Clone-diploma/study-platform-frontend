@@ -64,6 +64,15 @@ export async function uploadAvatar(file: File): Promise<UserData> {
   return response.data;
 }
 
+export async function uploadTeacherSignature(file: File): Promise<TeacherProfile> {
+  const form = new FormData();
+  form.append("signature", file);
+  const response = await api.patch<UserData>("auth/me/profile/teacher/", form, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return response.data.profile as TeacherProfile;
+}
+
 export async function changePassword(payload: { old_password: string; new_password: string }): Promise<void> {
   await api.post("auth/change-password/", payload);
 }

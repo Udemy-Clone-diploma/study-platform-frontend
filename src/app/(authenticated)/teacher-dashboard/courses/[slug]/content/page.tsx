@@ -51,6 +51,7 @@ export default function CourseContentPage() {
   const router = useRouter();
 
   const [course, setCourse] = useState<CourseDetail | null>(null);
+  const [loading, setLoading] = useState(true);
   const [moduleList, setModuleList] = useState<CourseModule[]>([]);
   const [moderationReview, setModerationReview] = useState<ModerationReview | null>(null);
   /** True when working with a pending edit (published course) instead of a live draft course. */
@@ -84,7 +85,8 @@ export default function CourseContentPage() {
           if (c.moderation_review) setModerationReview(c.moderation_review);
         }
       })
-      .catch(() => router.push("/teacher-dashboard/courses"));
+      .catch(() => router.push("/teacher-dashboard/courses"))
+      .finally(() => setLoading(false));
   }, [slug, router]);
 
   async function syncCourseDuration(modules: CourseModule[]) {
@@ -163,6 +165,7 @@ export default function CourseContentPage() {
     const scoreNum = values.min_score ? parseInt(values.min_score, 10) : null;
     const payload = {
       title: values.title.trim(),
+      is_mandatory: values.is_mandatory,
       ...(durNum !== null && !isNaN(durNum) ? { duration_minutes: durNum } : {}),
       ...(scoreNum !== null && !isNaN(scoreNum) ? { min_score: scoreNum } : {}),
     };
@@ -216,6 +219,24 @@ export default function CourseContentPage() {
 
   function handleSaveDraft() {
     router.push("/teacher-dashboard/courses");
+  }
+
+  if (loading) {
+    return (
+      <CourseCreationLayout>
+        <p
+          style={{
+            fontFamily: "var(--font-base)",
+            fontSize: "clamp(14px, 0.83vw, 16px)",
+            color: "var(--color-text-secondary)",
+            textAlign: "center",
+            padding: "clamp(40px, 6vw, 80px) 0",
+          }}
+        >
+          Loading…
+        </p>
+      </CourseCreationLayout>
+    );
   }
 
   return (
@@ -403,6 +424,7 @@ export default function CourseContentPage() {
             title: lessonModal.lesson.title,
             duration_minutes: lessonModal.lesson.duration_minutes != null ? String(lessonModal.lesson.duration_minutes) : "",
             min_score: lessonModal.lesson.min_score != null ? String(lessonModal.lesson.min_score) : "",
+            is_mandatory: lessonModal.lesson.is_mandatory ?? false,
             existing_documents: lessonModal.lesson.documents ?? [],
             new_documents: [],
             deleted_document_ids: [],

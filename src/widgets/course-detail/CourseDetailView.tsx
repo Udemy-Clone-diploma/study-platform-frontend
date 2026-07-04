@@ -117,15 +117,15 @@ export function CourseDetailView({ course, reviews }: Props) {
                 the section regardless of how tall it grows (e.g. 3-4 pricing cards).
                 Move one with its left-/right- value; spin with rotate-[Ndeg]. */}
             <DecorImage
-              src="/backgrounds/00 4.png"
+              src="/backgrounds/00 4.svg"
               className="absolute top-1/2 left-[-8%] -z-10 hidden -translate-y-1/2 rotate-[0deg] lg:block"
             />
             <DecorImage
-              src="/backgrounds/00 3.png"
+              src="/backgrounds/00 3.svg"
               className="absolute top-1/2 left-[50%] -z-10 hidden -translate-x-1/2 -translate-y-1/2 scale-x-[-1] scale-y-[-1] rotate-[-20deg] lg:block"
             />
             <DecorImage
-              src="/backgrounds/00 2.png"
+              src="/backgrounds/00 2.svg"
               className="absolute top-1/2 right-[-7%] -z-10 hidden -translate-y-1/2 rotate-[170deg] lg:block"
             />
             <CoursePricingBlock

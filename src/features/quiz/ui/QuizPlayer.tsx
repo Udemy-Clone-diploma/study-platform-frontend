@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { GradientButton } from "@/shared/ui/GradientButton";
 import type { CourseTest, TestAnswerInput, TestAttemptResult } from "@/entities/course";
 import {
@@ -20,6 +19,9 @@ type Props = {
   test: CourseTest;
   isMock?: boolean;
   onPassed?: () => void;
+  /** Present when this test is the lesson's last content block and there's a lesson
+   *  after it — shows a "Next lesson" CTA on the results screen alongside Retake. */
+  nextLessonHref?: string;
 };
 
 const emptyAnswer = (): AnswerState => ({ selected: [], bool: null, text: "" });
@@ -32,7 +34,7 @@ function toAnswerInput(questionId: number, questionType: string, a: AnswerState)
   return { question_id: questionId, answer_text: a.text };
 }
 
-export function QuizPlayer({ slug, test, isMock = false, onPassed }: Props) {
+export function QuizPlayer({ slug, test, isMock = false, onPassed, nextLessonHref }: Props) {
   const ordered = byOrder(test.questions);
   const [answers, setAnswers] = useState<Record<number, AnswerState>>(() =>
     Object.fromEntries(ordered.map((q) => [q.id, emptyAnswer()])),
@@ -125,10 +127,10 @@ export function QuizPlayer({ slug, test, isMock = false, onPassed }: Props) {
           )}
 
           {result ? (
-            <ResultsFooter slug={slug} result={result} onRetake={restart} />
+            <ResultsFooter result={result} onRetake={restart} nextLessonHref={nextLessonHref} />
           ) : (
-            <div className="flex justify-center pt-1">
-              <QuizButton onClick={handleSubmit} disabled={submitting}>
+            <div className="flex flex-wrap items-center justify-center gap-5 pt-1">
+              <QuizButton onClick={handleSubmit} disabled={submitting} size="lg">
                 {submitting ? "Submitting..." : "To the results"}
               </QuizButton>
             </div>
@@ -140,13 +142,13 @@ export function QuizPlayer({ slug, test, isMock = false, onPassed }: Props) {
 }
 
 function ResultsFooter({
-  slug,
   result,
   onRetake,
+  nextLessonHref,
 }: {
-  slug: string;
   result: TestAttemptResult;
   onRetake: () => void;
+  nextLessonHref?: string;
 }) {
   const answered = result.questions.filter(
     (q) =>
@@ -193,7 +195,7 @@ function ResultsFooter({
           </span>
         )}
         {result.can_retake && <GradientButton onClick={onRetake}>Retake</GradientButton>}
-        <QuizButton href={`/learn/${slug}`}>Back to course</QuizButton>
+        {nextLessonHref && <GradientButton href={nextLessonHref}>Next lesson</GradientButton>}
       </div>
     </div>
   );
@@ -201,21 +203,28 @@ function ResultsFooter({
 
 type QuizButtonProps = {
   children: React.ReactNode;
-  href?: string;
   onClick?: () => void;
   disabled?: boolean;
+  size?: "sm" | "lg";
+  variant?: "solid" | "outline";
 };
 
-function QuizButton({ children, href, onClick, disabled }: QuizButtonProps) {
-  const classes =
-    "inline-flex h-[30px] min-w-[124px] items-center justify-center rounded-full bg-(--color-text-primary) px-5 font-(family-name:--font-accent) text-xs font-medium leading-none text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60";
-  if (href) {
-    return (
-      <Link href={href} className={classes}>
-        {children}
-      </Link>
-    );
-  }
+function QuizButton({
+  children,
+  onClick,
+  disabled,
+  size = "sm",
+  variant = "solid",
+}: QuizButtonProps) {
+  const sizeClasses =
+    size === "lg"
+      ? "h-[52px] min-w-[200px] px-8 text-base"
+      : "h-[30px] min-w-[124px] px-5 text-xs";
+  const variantClasses =
+    variant === "outline"
+      ? "border border-(--color-text-primary) text-(--color-text-primary)"
+      : "bg-(--color-text-primary) text-white";
+  const classes = `inline-flex items-center justify-center rounded-full font-(family-name:--font-accent) font-medium leading-none transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 ${sizeClasses} ${variantClasses}`;
   return (
     <button type="button" onClick={onClick} disabled={disabled} className={classes}>
       {children}

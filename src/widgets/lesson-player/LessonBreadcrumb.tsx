@@ -205,9 +205,14 @@ function CurriculumPopover({
                         >
                           <Check className="h-2.5 w-2.5" strokeWidth={3} />
                         </span>
-                        <span className="truncate">
+                        <span className="min-w-0 truncate">
                           Lesson {lsn.order}: {lsn.title}
                         </span>
+                        {lsn.is_mandatory && (
+                          <span className="ml-auto flex-shrink-0 rounded-full bg-(--color-brand-yellow) px-2 py-0.5 font-(family-name:--font-accent) text-[10px] uppercase text-(--color-text-primary)">
+                            Mandatory
+                          </span>
+                        )}
                         {isDone && <span className="sr-only">Completed</span>}
                       </Link>
                     </li>

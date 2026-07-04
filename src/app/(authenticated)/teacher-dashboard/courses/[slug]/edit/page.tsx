@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { getCategories, getCourseBySlug, updateCourse, uploadCourseIcon, getPendingEdit, savePendingEditMetadata, uploadPendingEditIcon } from "@/entities/course";
+import { getCategories, getCourseBySlug, updateCourse, uploadCourseIcon, getPendingEdit } from "@/entities/course";
 import type { Category } from "@/entities/course";
 import {
   CourseCreationLayout,
@@ -64,18 +64,19 @@ export default function EditCourseBasicsPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedIcon, setSelectedIcon] = useState<string | null>(null);
   const loadedIconRef = useRef<string | null>(null);
-  /** Live course field values — used to detect which fields actually changed in pending edit mode. */
-  const liveCourseValuesRef = useRef<Omit<CourseBasicsFormValues, "price"> | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [generalError, setGeneralError] = useState("");
   const [form, setForm] = useState<CourseBasicsFormValues>(EMPTY_FORM);
-  /** True when editing a published course — saves go to pending edit, not live course. */
+  /** True when editing a published course — saves go to the hidden draft course, not the live one. */
   const [isPendingEditMode, setIsPendingEditMode] = useState(false);
   /** Pending edit is locked (submitted for moderation) — show read-only. */
   const [isLocked, setIsLocked] = useState(false);
+  /** The slug every save targets: the live course's slug for a normal draft,
+   *  or the hidden PENDING_EDIT shadow course's slug when editing a published course. */
+  const [contentSlug, setContentSlug] = useState<string | null>(null);
   const [moderationReview, setModerationReview] = useState<import("@/entities/course").ModerationReview | null>(null);
   /** Fields approved by moderator — read-only when pending edit is in needs_revision state. */
   const [readonlyFields, setReadonlyFields] = useState<Set<string> | undefined>(undefined);
@@ -91,24 +92,16 @@ export default function EditCourseBasicsPage() {
         setIsPendingEditMode(isPublished);
 
         if (isPublished) {
-          // Load or auto-create the pending edit for this published course
           const pendingEdit = await getPendingEdit(slug);
           setIsLocked(pendingEdit.status === "pending");
-          liveCourseValuesRef.current = {
-            title: course.title,
-            short_description: course.short_description,
-            full_description: course.full_description,
-            category_id: course.category ? String(course.category.id) : "",
-            level: course.level,
-          };
+          const draft = await getCourseBySlug(pendingEdit.draft_course_slug);
+          setContentSlug(pendingEdit.draft_course_slug);
           setForm({
-            title: pendingEdit.title || course.title,
-            short_description: pendingEdit.short_description || course.short_description,
-            full_description: pendingEdit.full_description || course.full_description,
-            category_id: pendingEdit.category_id
-              ? String(pendingEdit.category_id)
-              : course.category ? String(course.category.id) : "",
-            level: pendingEdit.level || course.level,
+            title: draft.title,
+            short_description: draft.short_description,
+            full_description: draft.full_description,
+            category_id: draft.category ? String(draft.category.id) : "",
+            level: draft.level,
           });
           if (course.moderation_review) {
             setModerationReview(course.moderation_review);
@@ -116,16 +109,15 @@ export default function EditCourseBasicsPage() {
               setReadonlyFields(buildReadonlyFields(course.moderation_review.basics_field_statuses));
             }
           }
-          // pending edit image if teacher already changed it, else fall back to live course image
-          const imageToMatch = pendingEdit.image || course.image || null;
-          if (imageToMatch) {
-            const matched = await matchIconToImage(imageToMatch);
+          if (draft.image) {
+            const matched = await matchIconToImage(draft.image);
             if (matched) {
               setSelectedIcon(matched);
               loadedIconRef.current = matched;
             }
           }
         } else {
+          setContentSlug(slug);
           setForm({
             title: course.title,
             short_description: course.short_description,
@@ -148,9 +140,9 @@ export default function EditCourseBasicsPage() {
           }
         }
       })
-      .catch(() => {})
+      .catch(() => router.push("/teacher-dashboard/courses"))
       .finally(() => setLoading(false));
-  }, [slug]);
+  }, [slug, router]);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     const { name, value } = e.target;
@@ -160,46 +152,29 @@ export default function EditCourseBasicsPage() {
 
   async function doIconUpload() {
     const icon = COURSE_ICONS.find((i) => i.name === selectedIcon);
-    if (icon && slug) await uploadCourseIcon(slug, icon.src, icon.name);
+    if (icon && contentSlug && selectedIcon !== loadedIconRef.current) await uploadCourseIcon(contentSlug, icon.src, icon.name);
   }
 
   function buildPayload(fallback = false): Record<string, unknown> {
-    const orig = isPendingEditMode ? liveCourseValuesRef.current : null;
-
-    // In pending edit mode, send the live course value for unchanged fields so the
-    // backend's auto-created pending edit (which may have empty strings) gets corrected
-    // and the backend won't report those fields as changed.
-    const title            = form.title            || orig?.title            || (fallback ? "Untitled Course" : form.title);
-    const short_description = form.short_description || orig?.short_description || (fallback ? "-" : form.short_description);
-    const full_description  = form.full_description  || orig?.full_description  || (fallback ? "-" : form.full_description);
-    const level            = form.level            || orig?.level            || (fallback ? "beginner" : form.level);
+    const title            = form.title            || (fallback ? "Untitled Course" : form.title);
+    const short_description = form.short_description || (fallback ? "-" : form.short_description);
+    const full_description  = form.full_description  || (fallback ? "-" : form.full_description);
+    const level            = form.level            || (fallback ? "beginner" : form.level);
 
     const payload: Record<string, unknown> = { title, short_description, full_description, level };
     if (form.category_id) payload.category_id = parseInt(form.category_id, 10);
     return payload;
   }
 
-  async function doPendingIconUpload() {
-    if (selectedIcon && selectedIcon !== loadedIconRef.current) {
-      const icon = COURSE_ICONS.find((i) => i.name === selectedIcon);
-      if (icon && slug) await uploadPendingEditIcon(slug, icon.src, icon.name);
-    }
-  }
-
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!slug) return;
+    if (!contentSlug) return;
     setFieldErrors({});
     setGeneralError("");
     setSubmitting(true);
     try {
-      if (isPendingEditMode) {
-        await savePendingEditMetadata(slug, buildPayload() as Parameters<typeof savePendingEditMetadata>[1]);
-        await doPendingIconUpload();
-      } else {
-        await updateCourse(slug, buildPayload());
-        await doIconUpload();
-      }
+      await updateCourse(contentSlug, buildPayload());
+      await doIconUpload();
       router.push(`/teacher-dashboard/courses/${slug}/content`);
     } catch (err) {
       const apiErr = err as Partial<ApiError>;
@@ -214,17 +189,12 @@ export default function EditCourseBasicsPage() {
   }
 
   async function handleSaveDraft() {
-    if (!slug) return;
+    if (!contentSlug) return;
     setGeneralError("");
     setSaving(true);
     try {
-      if (isPendingEditMode) {
-        await savePendingEditMetadata(slug, buildPayload(true) as Parameters<typeof savePendingEditMetadata>[1]);
-        await doPendingIconUpload();
-      } else {
-        await updateCourse(slug, buildPayload(true));
-        await doIconUpload();
-      }
+      await updateCourse(contentSlug, buildPayload(true));
+      await doIconUpload();
       router.push("/teacher-dashboard/courses");
     } catch (err) {
       setGeneralError((err as Partial<ApiError>).message ?? "Failed to save.");
@@ -233,7 +203,23 @@ export default function EditCourseBasicsPage() {
     }
   }
 
-  if (loading) return null;
+  if (loading) {
+    return (
+      <CourseCreationLayout>
+        <p
+          style={{
+            fontFamily: "var(--font-base)",
+            fontSize: "clamp(14px, 0.83vw, 16px)",
+            color: "var(--color-text-secondary)",
+            textAlign: "center",
+            padding: "clamp(40px, 6vw, 80px) 0",
+          }}
+        >
+          Loading…
+        </p>
+      </CourseCreationLayout>
+    );
+  }
 
   return (
     <CourseCreationLayout>

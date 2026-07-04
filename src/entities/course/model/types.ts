@@ -131,6 +131,13 @@ export type CourseDetail = Omit<CourseListItem, "teacher_name" | "price" | "curr
   /** Course-specific pull-quote. Belongs on the course, not the teacher (one teacher, many courses). */
   quote: string | null;
   full_description: string;
+  /** Content hash of the course image, if any — see the moderator review diff logic
+   *  for why this exists (cloning gives byte-identical images different URLs). */
+  image_hash: string | null;
+  /** Minimum weighted average grade (0-100) required to pass the course. */
+  passing_score: number;
+  /** Blurb printed on the certificate PDF. Required before with_certificate can be enabled. */
+  certificate_description: string;
   teacher: Teacher;
   moderator_id: number | null;
   moderator_comment: string;

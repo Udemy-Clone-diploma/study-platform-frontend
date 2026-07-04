@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import type { CourseDetail, CourseModule, CoursePendingEdit } from "@/entities/course";
+import type { CourseDetail, CourseModule } from "@/entities/course";
 import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 
 export type ModeratorAction = "approved" | "needs_revision" | "rejected" | null;
@@ -31,7 +31,8 @@ export const CONTENT_ACTIONS: { key: NonNullable<ItemStatus>; label: string; col
 
 export type StepProps = {
   course: CourseDetail | null;
-  pendingEdit: CoursePendingEdit | null;
+  /** The hidden draft course being edited, when reviewing a pending edit on a published course. */
+  draftCourse: CourseDetail | null;
   lockedKeys: Set<string>;
   moduleList: CourseModule[];
   action: ModeratorAction;

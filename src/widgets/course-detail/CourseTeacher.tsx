@@ -22,6 +22,11 @@ export function CourseTeacher({ teacher, quote }: Props) {
             <h2 className="text-3xl text-(--color-text-primary) sm:text-4xl lg:text-5xl">
               {teacher.name}
             </h2>
+            {teacher.specialization && (
+              <p className="text-lg text-(--color-text-secondary) sm:text-xl">
+                {teacher.specialization}
+              </p>
+            )}
             <SectionBadge>Instructor</SectionBadge>
           </div>
           <p className="text-lg text-(--color-text-primary) sm:text-xl lg:text-2xl">{teacher.bio}</p>

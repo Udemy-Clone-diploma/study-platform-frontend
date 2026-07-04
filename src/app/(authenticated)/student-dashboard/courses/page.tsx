@@ -58,14 +58,22 @@ export default function StudentCoursesPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  // A completed course keeps its (unrevoked) enrollment, so it would otherwise
+  // show up as both an active card and a completed card — keep only the
+  // completed one once a course has been finished.
+  const completedCourseIds = new Set(
+    completions.map((c) => c.course).filter((id): id is number => id != null),
+  );
+  const activeCourses = courses.filter((c) => !completedCourseIds.has(c.id));
+
   const allItems: AllItem[] = [
-    ...courses.map((item): AllItem => ({ kind: "active", item })),
+    ...activeCourses.map((item): AllItem => ({ kind: "active", item })),
     ...completions.map((item): AllItem => ({ kind: "completed", item })),
   ].sort((a, b) => itemDate(b) - itemDate(a));
 
   const displayItems: AllItem[] =
     activeTab === "Current"
-      ? courses
+      ? activeCourses
           .sort((a, b) =>
             new Date(b.enrolled_at ?? b.created_at).getTime() -
             new Date(a.enrolled_at ?? a.created_at).getTime(),

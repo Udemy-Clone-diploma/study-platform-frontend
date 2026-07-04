@@ -1,50 +1,13 @@
 import { api } from "@/shared/api/base";
-import type { CoursePendingEdit, SnapshotModule } from "../model/pending-edit";
+import type { CoursePendingEdit } from "../model/pending-edit";
 
 const base = (slug: string) => `courses/${slug}/pending-edit/`;
 
-export type PendingEditMetadataPayload = Partial<
-  Pick<
-    CoursePendingEdit,
-    | "title"
-    | "subtitle"
-    | "short_description"
-    | "full_description"
-    | "level"
-    | "language"
-    | "mode"
-    | "delivery_type"
-    | "course_type"
-    | "duration_hours"
-    | "with_certificate"
-    | "is_on_sale"
-    | "tag_ids"
-  > & { category_id: number | null }
->;
-
-/** GET — load (or auto-create) the pending edit for a published course. */
+/** GET — load (or auto-create) the pending edit for a published course.
+ *  Returns draft_course_slug — fetch that with getCourseBySlug() and use it as
+ *  the target slug for normal course/module/lesson/etc. CRUD while editing. */
 export async function getPendingEdit(slug: string): Promise<CoursePendingEdit> {
   const { data } = await api.get<CoursePendingEdit>(base(slug));
-  return data;
-}
-
-/** PUT — create-or-update course metadata in the pending edit. */
-export async function savePendingEditMetadata(
-  slug: string,
-  payload: PendingEditMetadataPayload,
-): Promise<CoursePendingEdit> {
-  const { data } = await api.put<CoursePendingEdit>(base(slug), payload);
-  return data;
-}
-
-/** PUT with modules_snapshot — save the full modules tree. */
-export async function savePendingEditModules(
-  slug: string,
-  modules: SnapshotModule[],
-): Promise<CoursePendingEdit> {
-  const { data } = await api.put<CoursePendingEdit>(base(slug), {
-    modules_snapshot: toSnapshotPayload(modules),
-  });
   return data;
 }
 
@@ -60,12 +23,12 @@ export async function withdrawPendingEdit(slug: string): Promise<CoursePendingEd
   return data;
 }
 
-/** DELETE — discard all pending changes; published course stays untouched. */
+/** DELETE — discard all pending changes (deletes the draft course too); published course stays untouched. */
 export async function discardPendingEdit(slug: string): Promise<void> {
   await api.delete(base(slug));
 }
 
-/** POST .../approve/ — moderator applies changes to the live course. */
+/** POST .../approve/ — moderator merges the draft course onto the live course. */
 export async function approvePendingEdit(slug: string): Promise<void> {
   await api.post(`${base(slug)}approve/`);
 }
@@ -93,47 +56,4 @@ export async function rejectPendingEdit(
     final_comment: finalComment,
   });
   return data;
-}
-
-/** PUT image to the pending edit (multipart). Only call when the icon actually changed. */
-export async function uploadPendingEditIcon(slug: string, iconSrc: string, iconName: string): Promise<void> {
-  try {
-    const res = await fetch(iconSrc);
-    if (!res.ok) return;
-    const blob = await res.blob();
-    const extension = iconSrc.split(".").pop() || "png";
-    const formData = new FormData();
-    formData.append("image", new File([blob], `${iconName}-pic.${extension}`, { type: blob.type }));
-    await api.put<CoursePendingEdit>(base(slug), formData);
-  } catch { /* best-effort */ }
-}
-
-/**
- * Convert frontend module list to backend snapshot format.
- * Temporary negative IDs (used for newly added items) become null so the backend
- * knows to create new records on approval.
- */
-export function toSnapshotPayload(modules: SnapshotModule[]): SnapshotModule[] {
-  return modules.map((mod) => ({
-    ...mod,
-    id: mod.id !== null && mod.id > 0 ? mod.id : null,
-    lessons: mod.lessons.map((l) => ({
-      ...l,
-      id: l.id !== null && l.id > 0 ? l.id : null,
-    })),
-    tests: mod.tests.map((t) => ({
-      ...t,
-      id: t.id !== null && t.id > 0 ? t.id : null,
-      questions: t.questions.map((q) => ({
-        ...q,
-        id: q.id !== null && q.id > 0 ? q.id : null,
-      })),
-    })),
-  }));
-}
-
-/** Generate a temporary negative ID for newly created snapshot items. */
-let _tempIdCounter = -1;
-export function nextTempId(): number {
-  return _tempIdCounter--;
 }

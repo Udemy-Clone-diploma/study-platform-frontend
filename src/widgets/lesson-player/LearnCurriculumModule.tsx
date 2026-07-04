@@ -76,6 +76,11 @@ export function LearnCurriculumModule({
                     <span className="min-w-0">
                       Lesson {lesson.order}: {lesson.title}.
                     </span>
+                    {lesson.is_mandatory && (
+                      <span className="flex-shrink-0 rounded-full bg-(--color-brand-yellow) px-3 py-0.5 font-(family-name:--font-accent) text-xs uppercase text-(--color-text-primary)">
+                        Mandatory
+                      </span>
+                    )}
                   </Link>
                 </li>
               );

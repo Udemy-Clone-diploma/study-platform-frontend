@@ -9,8 +9,7 @@ import {
   getCourseBySlug, approveCourse, rejectCourse, saveReviewDraft,
   approvePendingEdit, rejectPendingEdit, getPendingEdit,
 } from "@/entities/course";
-import type { CoursePendingEdit, SnapshotModule } from "@/entities/course";
-import type { CourseDetail, CourseModule, CourseLesson } from "@/entities/course";
+import type { CourseDetail, CoursePendingEdit } from "@/entities/course";
 import { CourseCreationLayout, CourseCreationStepper } from "@/features/courses";
 import {
   computeSectionAction, computeFinalAction,
@@ -28,109 +27,73 @@ const STEPS = [
 
 const ALL_BASICS_KEYS = new Set(["field-title", "field-short-description", "field-full-description", "field-icon", "field-category", "field-level"]);
 
-/** Compare pending edit values directly to the live course to detect real changes.
- *  Treats empty-string pending edit values as "same as live course" - they come from
- *  the backend auto-creating the pending edit without copying the course fields. */
-function computeLockedFieldKeys(pe: CoursePendingEdit, course: CourseDetail): Set<string> {
+/** Compare the draft course directly to the live course to detect real changes. */
+function computeLockedFieldKeys(draft: CourseDetail, course: CourseDetail): Set<string> {
   const changed = new Set<string>();
-  if ((pe.title || course.title) !== course.title)                                        changed.add("field-title");
-  if ((pe.short_description || course.short_description) !== course.short_description)    changed.add("field-short-description");
-  if ((pe.full_description  || course.full_description)  !== course.full_description)     changed.add("field-full-description");
-  if (pe.image && pe.image !== course.image)                                              changed.add("field-icon");
-  if ((pe.category_id ?? course.category?.id) !== course.category?.id)                   changed.add("field-category");
-  if ((pe.level || course.level) !== course.level)                                        changed.add("field-level");
+  if (draft.title !== course.title)                             changed.add("field-title");
+  if (draft.short_description !== course.short_description)     changed.add("field-short-description");
+  if (draft.full_description  !== course.full_description)      changed.add("field-full-description");
+  // Cloning duplicates the image under a fresh generated storage path, so two
+  // byte-identical images never share a URL — compare content hash instead.
+  if ((draft.image_hash ?? null) !== (course.image_hash ?? null)) changed.add("field-icon");
+  if ((draft.category?.id ?? null) !== (course.category?.id ?? null)) changed.add("field-category");
+  if (draft.level !== course.level)                              changed.add("field-level");
   return new Set([...ALL_BASICS_KEYS].filter((k) => !changed.has(k)));
 }
 
-function computeLockedContentKeys(course: CourseDetail | null, snapshot: SnapshotModule[]): Set<string> {
-  if (!course) return new Set();
+/** Compare the draft course's lessons/tests to the live course's, correlating
+ *  by source_lesson_id/source_test_id (null = new-since-clone, never locked).
+ *  Keys are the draft's own lesson/test id — matches moduleList (= draftCourse.modules)
+ *  and stays stable across a needs_revision cycle, since the draft is reused, not re-cloned. */
+function computeLockedContentKeys(course: CourseDetail | null, draft: CourseDetail | null): Set<string> {
+  if (!course || !draft) return new Set();
   const liveLessons = new Map(course.modules.flatMap((m) => m.lessons.map((l) => [l.id, l])));
   const liveTests   = new Map(course.modules.flatMap((m) => (m.tests ?? []).map((t) => [t.id, t])));
   const locked = new Set<string>();
-  for (const mod of snapshot) {
-    for (const sl of mod.lessons) {
-      if (sl.id === null) continue;
-      const live = liveLessons.get(sl.id);
+  for (const mod of draft.modules) {
+    for (const dl of mod.lessons) {
+      if (dl.source_lesson_id == null) continue;
+      const live = liveLessons.get(dl.source_lesson_id);
       if (!live) continue;
       const metaUnchanged =
-        sl.title === live.title &&
-        sl.duration_minutes === live.duration_minutes &&
-        sl.is_preview === live.is_preview;
+        dl.title === live.title &&
+        dl.duration_minutes === live.duration_minutes &&
+        dl.is_preview === live.is_preview &&
+        !!dl.is_mandatory === !!live.is_mandatory;
+      const draftItems = dl.items ?? [];
       const liveItems = live.items ?? [];
       let itemsUnchanged: boolean;
-      if (sl.items_snapshot !== undefined) {
-        // Full comparison against baseline captured at pending-edit creation time.
-        if (sl.items_snapshot.length !== liveItems.length) {
-          itemsUnchanged = false;
-        } else {
-          const liveById = new Map(liveItems.map((i) => [i.id, i]));
-          itemsUnchanged = sl.items_snapshot.every((si) => {
-            const li = liveById.get(si.id);
-            return li !== undefined &&
-              (si.content ?? "") === (li.content ?? "") &&
-              // Same rationale as above: null snapshot video_url = file video, not a real change.
-              (si.video_url == null || si.video_url === (li.video_url ?? null));
-          });
-        }
+      if (draftItems.length !== liveItems.length) {
+        itemsUnchanged = false;
       } else {
-        // No baseline (old snapshot): safe to auto-lock only when the lesson
-        // has no content blocks at all; if blocks exist we can't tell what changed.
-        itemsUnchanged = liveItems.length === 0;
+        const liveById = new Map(liveItems.map((i) => [i.id, i]));
+        itemsUnchanged = draftItems.every((di) => {
+          if (di.source_lesson_item_id == null) return false;
+          const li = liveById.get(di.source_lesson_item_id);
+          if (li === undefined) return false;
+          // Cloning duplicates an uploaded video under a fresh generated path,
+          // so video_url (which resolves to the file's URL when there's no
+          // external link) always differs even when the file is unchanged —
+          // whenever either side has an uploaded file, compare content hash
+          // instead and ignore video_url; only fall back to comparing the raw
+          // link when neither side has an uploaded file at all.
+          const hasFile = !!di.video_hash || !!li.video_hash;
+          const videoUnchanged = hasFile
+            ? (di.video_hash ?? null) === (li.video_hash ?? null)
+            : (di.video_url ?? null) === (li.video_url ?? null);
+          return (di.body_html ?? "") === (li.body_html ?? "") && videoUnchanged;
+        });
       }
-      if (metaUnchanged && itemsUnchanged) locked.add(`lesson-${sl.id}`);
+      if (metaUnchanged && itemsUnchanged) locked.add(`lesson-${dl.id}`);
     }
-    for (const st of mod.tests) {
-      if (st.id === null) continue;
-      const live = liveTests.get(st.id);
-      if (live && st.title === live.title && st.passing_score === live.passing_score)
-        locked.add(`test-${st.id}`);
+    for (const dt of mod.tests) {
+      if (dt.source_test_id == null) continue;
+      const live = liveTests.get(dt.source_test_id);
+      if (live && dt.title === live.title && dt.passing_score === live.passing_score)
+        locked.add(`test-${dt.id}`);
     }
   }
   return locked;
-}
-
-function buildDisplayModules(snapshot: SnapshotModule[], course?: CourseDetail | null): CourseModule[] {
-  const liveLessonsById = new Map<number, CourseLesson>(
-    (course?.modules ?? []).flatMap((m) => m.lessons).map((l) => [l.id, l]),
-  );
-  return snapshot.map((mod, mi) => ({
-    id: mod.id ?? -(mi + 1),
-    title: mod.title,
-    description: mod.description ?? null,
-    order: mod.order,
-    lessons: mod.lessons.map((l, li) => {
-      const actual = l.id != null && l.id > 0 ? liveLessonsById.get(l.id) : undefined;
-      return {
-        id: l.id ?? -(li + 1) - (mi + 1) * 1000,
-        title: l.title,
-        order: l.order,
-        duration_minutes: l.duration_minutes ?? null,
-        is_preview: l.is_preview,
-        min_score: l.min_score ?? null,
-        items: actual?.items ?? [],
-        documents: actual?.documents ?? [],
-      };
-    }),
-    tests: mod.tests.map((t, ti) => ({
-      id: t.id ?? -(ti + 1) - (mi + 1) * 1000,
-      title: t.title,
-      description: t.description ?? "",
-      passing_score: t.passing_score ?? 70,
-      order: t.order,
-      questions: t.questions.map((q, qi) => ({
-        id: q.id ?? -(qi + 1),
-        question_type: q.question_type,
-        text: q.text,
-        options: q.options ?? [],
-        correct_indices: q.correct_indices ?? null,
-        exact_set_match: q.exact_set_match,
-        correct_bool: q.correct_bool ?? null,
-        sample_answer: q.sample_answer ?? "",
-        accepted_answers: q.accepted_answers ?? null,
-        order: q.order,
-      })),
-    })),
-  })) as unknown as CourseModule[];
 }
 
 export default function ModeratorReviewPage() {
@@ -138,6 +101,7 @@ export default function ModeratorReviewPage() {
   const router    = useRouter();
 
   const [course, setCourse]                       = useState<CourseDetail | null>(null);
+  const [loading, setLoading]                     = useState(true);
   const [step, setStep]                           = useState<0 | 1 | 2>(0);
   const [action, setAction]                       = useState<ModeratorAction>(null);
   const [comment, setComment]                     = useState("");
@@ -151,6 +115,7 @@ export default function ModeratorReviewPage() {
   const [basicsAction, setBasicsAction] = useState<ItemStatus>(null);
   const [contentAction, setContentAction] = useState<ItemStatus>(null);
   const [pendingEdit, setPendingEdit]   = useState<CoursePendingEdit | null>(null);
+  const [draftCourse, setDraftCourse]   = useState<CourseDetail | null>(null);
   const [lockedKeys, setLockedKeys]     = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -159,15 +124,20 @@ export default function ModeratorReviewPage() {
       setCourse(c);
       const isPE = c.status === "published" || c.status === "hidden";
       let pe: CoursePendingEdit | null = null;
+      let draft: CourseDetail | null = null;
       if (isPE) {
-        try { pe = await getPendingEdit(slug); } catch { /* no pending edit */ }
+        try {
+          pe = await getPendingEdit(slug);
+          draft = await getCourseBySlug(pe.draft_course_slug);
+        } catch { /* no pending edit */ }
       }
       setPendingEdit(pe);
+      setDraftCourse(draft);
 
-      if (pe) {
+      if (pe && draft) {
         // Compute locked keys from diff
-        const fieldLocked    = computeLockedFieldKeys(pe, c);
-        const contentLocked  = computeLockedContentKeys(c, pe.modules_snapshot ?? []);
+        const fieldLocked    = computeLockedFieldKeys(draft, c);
+        const contentLocked  = computeLockedContentKeys(c, draft);
         const allLocked      = new Set([...fieldLocked, ...contentLocked]);
         setLockedKeys(allLocked);
 
@@ -211,14 +181,14 @@ export default function ModeratorReviewPage() {
         ...(mr.basics_field_statuses ?? {}),
         ...(mr.content_item_statuses ?? {}),
       } as ItemStatuses);
-    }).catch(() => {});
+    }).catch(() => {}).finally(() => setLoading(false));
   }, [slug]);
 
   const moduleList = useMemo(
-    () => pendingEdit
-      ? buildDisplayModules(pendingEdit.modules_snapshot ?? [], course)
+    () => pendingEdit && draftCourse
+      ? draftCourse.modules
       : Array.isArray(course?.modules) ? course.modules : [],
-    [pendingEdit, course],
+    [pendingEdit, draftCourse, course],
   );
   const title      = course?.title ?? "Untitled Course";
 
@@ -231,7 +201,10 @@ export default function ModeratorReviewPage() {
   }, [itemStatuses]);
 
   useEffect(() => {
-    const allContentKeys = moduleList.flatMap((m) => m.lessons.map((l) => `lesson-${l.id}`));
+    const allContentKeys = moduleList.flatMap((m) => [
+      ...m.lessons.map((l) => `lesson-${l.id}`),
+      ...(m.tests ?? []).map((t) => `test-${t.id}`),
+    ]);
     const contentStatuses = allContentKeys.map((k) => itemStatuses[k] ?? null);
     const computed = computeSectionAction(contentStatuses);
     if (computed !== null) setContentAction(computed);
@@ -251,14 +224,27 @@ export default function ModeratorReviewPage() {
     });
   }
 
-  const hasAnyFlagged = Object.values(itemStatuses).some(
-    (s) => s === "rejected" || s === "needs_revision",
+  // Only count statuses for content that still exists — a lesson/test/field carried
+  // over from a previous review cycle's saved statuses but since deleted by the
+  // teacher must not keep blocking approval as a phantom "flagged" item.
+  const validItemKeys = useMemo(() => {
+    const keys = new Set<string>(BASICS_FIELD_KEYS);
+    for (const m of moduleList) {
+      for (const l of m.lessons) keys.add(`lesson-${l.id}`);
+      for (const t of m.tests ?? []) keys.add(`test-${t.id}`);
+    }
+    return keys;
+  }, [moduleList]);
+  const validItemEntries = Object.entries(itemStatuses).filter(([k]) => validItemKeys.has(k));
+
+  const hasAnyFlagged = validItemEntries.some(
+    ([, s]) => s === "rejected" || s === "needs_revision",
   );
 
   const allApproved =
     !hasAnyFlagged &&
-    Object.values(itemStatuses).length > 0 &&
-    Object.values(itemStatuses).every((s) => s === "approved") &&
+    validItemEntries.length > 0 &&
+    validItemEntries.every(([, s]) => s === "approved") &&
     basicsAction === "approved" &&
     contentAction === "approved";
 
@@ -356,7 +342,7 @@ export default function ModeratorReviewPage() {
 
   const sharedProps: StepProps = {
     course,
-    pendingEdit,
+    draftCourse,
     lockedKeys,
     moduleList,
     action,
@@ -384,6 +370,24 @@ export default function ModeratorReviewPage() {
     router,
     courseSlug: slug ?? "",
   };
+
+  if (loading) {
+    return (
+      <CourseCreationLayout>
+        <p
+          style={{
+            fontFamily: "var(--font-base)",
+            fontSize: "clamp(14px, 0.83vw, 16px)",
+            color: "var(--color-text-secondary)",
+            textAlign: "center",
+            padding: "clamp(40px, 6vw, 80px) 0",
+          }}
+        >
+          Loading…
+        </p>
+      </CourseCreationLayout>
+    );
+  }
 
   return (
     <CourseCreationLayout>

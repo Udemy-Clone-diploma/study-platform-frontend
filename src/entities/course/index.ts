@@ -13,6 +13,7 @@ export * from "./api/questionApi";
 export * from "./api/attemptApi";
 export * from "./lib/byOrder";
 export * from "./lib/useCourseProgress";
+export * from "./lib/useCompletionRedirect";
 export * from "./lib/mockProgress";
 export * from "./lib/mockAttempt";
 export * from "./lib/formatDuration";

@@ -45,7 +45,9 @@ export function Footer() {
                         gap: "clamp(12px, 1.67vw, 32px)",
                     }}
                 >
-                    <div style={{ width: "100%", aspectRatio: "340 / 114", background: "var(--color-placeholder)" }} />
+                    <div style={{ width: "100%", aspectRatio: "340 / 114", position: "relative" }}>
+                        <Image src="/logo/Nexo4u_logo3.svg" alt="Nexo4you" fill className="object-contain object-left" />
+                    </div>
 
                     <div style={{ display: "flex", alignItems: "center", gap: "clamp(16px, 1.875vw, 36px)" }}>
                         {SOCIAL.map((s) => (

@@ -89,3 +89,14 @@ export type TeacherUnavailabilityPayload = {
   end_time: string;
   reason?: string;
 };
+
+// ── Lesson-scoped live sessions ───────────────────────────────────────────────
+
+/** A scheduled live session (from the calendar) tied to a specific lesson. */
+export type LessonSession = {
+  id: number;
+  date: string; // "YYYY-MM-DD"
+  start_time: string; // "HH:MM"
+  end_time: string;
+  meeting_link: string | null;
+};

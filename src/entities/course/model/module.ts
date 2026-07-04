@@ -18,6 +18,8 @@ export type CourseQuestion = {
   sample_answer: string;
   accepted_answers?: string[] | null;
   order: number;
+  /** Set only on a pending-edit draft course's questions: the live question this was cloned from. */
+  source_question_id?: number | null;
 };
 
 export type CourseTest = {
@@ -39,6 +41,8 @@ export type CourseTest = {
     passed: boolean;
     submitted_at: string;
   } | null;
+  /** Set only on a pending-edit draft course's tests: the live test this was cloned from. */
+  source_test_id?: number | null;
 };
 
 export type LessonItemType = "text" | "video" | "test";
@@ -47,14 +51,17 @@ export type LessonItem = {
   id: number;
   item_type: LessonItemType;
   order: number;
-  content?: string;
   body_html?: string | null;
   video_url?: string | null;
+  /** Content hash of the uploaded video file, if any; null for an external video_url link. */
+  video_hash?: string | null;
   original_video_name?: string;
   duration_minutes?: number | null;
   test?: CourseTest | null;
   created_at?: string;
   updated_at?: string;
+  /** Set only on a pending-edit draft course's items: the live item this was cloned from. */
+  source_lesson_item_id?: number | null;
 };
 
 export type CourseLesson = {
@@ -67,8 +74,12 @@ export type CourseLesson = {
   unlock_after_days?: number | null;
   requires_previous?: boolean;
   is_manually_locked?: boolean;
+  /** If this lesson has a test, it must be passed before the lesson can be marked complete. */
+  is_mandatory?: boolean;
   documents?: LessonDocument[];
   items?: LessonItem[];
+  /** Set only on a pending-edit draft course's lessons: the live lesson this was cloned from. */
+  source_lesson_id?: number | null;
   /**
    * Live-class link on the lesson detail, exposed only to viewers with
    * enrollment access (backend gates it behind `has_enrollment_access`).
@@ -85,4 +96,6 @@ export type CourseModule = {
   order: number;
   lessons: CourseLesson[];
   tests: CourseTest[];
+  /** Set only on a pending-edit draft course's modules: the live module this was cloned from. */
+  source_module_id?: number | null;
 };

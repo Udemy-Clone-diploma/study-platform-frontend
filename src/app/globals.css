@@ -111,6 +111,19 @@
     rgba(167, 186, 250, 0) 72%
   );
 
+  /* Hero ellipses only (course-detail teacher photo) — same brand cream/pink/lavender
+     sequence as --gradient-ellipse but semi-transparent with a soft fade to fully
+     transparent at the edge, so the two overlapping circles blend into each other
+     instead of the top one opaquely covering the bottom one. Kept separate from
+     --gradient-ellipse (used elsewhere) so tuning this doesn't affect those. */
+  --gradient-hero-ellipse: radial-gradient(
+    circle,
+    rgba(255, 244, 218, 0.85) 0%,
+    rgba(252, 196, 195, 0.75) 45%,
+    rgba(167, 186, 250, 0.90) 70%,
+    rgba(167, 186, 250, 0) 100%
+  );
+
   --gradient-profile-line: linear-gradient(
     180deg,
     var(--color-brand-lavender) 0%,

@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { Clock, Play, Upload, FileText, X, ClipboardList, ChevronUp, ChevronDown, Plus, Eye, EyeOff, CheckCircle2, XCircle, MinusCircle } from "lucide-react";
 import { ModalShell } from "@/shared/ui/ModalShell";
 import { ModalFooter } from "@/shared/ui/ModalFooter";
+import { sanitizeCourseHtml } from "@/shared/lib/sanitizeCourseHtml";
+import { RichTextEditor } from "@/shared/ui/RichTextEditor";
 import {
   createLessonItem,
   updateLessonItem,
@@ -22,6 +24,7 @@ export type LessonFormValues = {
   title: string;
   duration_minutes: string;
   min_score: string;
+  is_mandatory: boolean;
   existing_documents?: LessonDocument[];
   new_documents: File[];
   deleted_document_ids: number[];
@@ -32,6 +35,7 @@ const EMPTY: LessonFormValues = {
   title: "",
   duration_minutes: "",
   min_score: "70",
+  is_mandatory: false,
   existing_documents: [],
   new_documents: [],
   deleted_document_ids: [],
@@ -81,6 +85,11 @@ const TYPE_META: Record<LessonItemType, { label: string; icon: React.ReactNode }
   test: { label: "Test", icon: <ClipboardList size={15} /> },
 };
 
+/** Plain-text rendition of a text block's body_html, for the one-line list preview. */
+function textPreview(html: string): string {
+  return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+}
+
 function ItemEditForm({
   item,
   onSaveText,
@@ -88,14 +97,14 @@ function ItemEditForm({
   onCancel,
 }: {
   item: LessonItem;
-  onSaveText: (content: string, durationMinutes?: number | null) => Promise<void>;
+  onSaveText: (bodyHtml: string, durationMinutes?: number | null) => Promise<void>;
   onSaveVideo: (data: { video?: File | null; video_url?: string; duration_minutes?: number | null }) => Promise<void>;
   onCancel: () => void;
 }) {
   const [saving, setSaving] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const [content, setContent] = useState(item.content ?? "");
+  const [bodyHtml, setBodyHtml] = useState(item.body_html ?? "");
 
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoUrl, setVideoUrl] = useState(item.video_url ?? "");
@@ -105,7 +114,7 @@ function ItemEditForm({
     setSaving(true);
     try {
       if (item.item_type === "text") {
-        await onSaveText(content, duration ? parseInt(duration, 10) : null);
+        await onSaveText(bodyHtml, duration ? parseInt(duration, 10) : null);
       } else {
         await onSaveVideo({
           video: videoFile,
@@ -121,13 +130,7 @@ function ItemEditForm({
     <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 8 }}>
       {item.item_type === "text" && (
         <>
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="Write text content here..."
-            autoFocus
-            style={{ ...inputSt, fontSize: "clamp(13px, 1.04vw, 16px)", minHeight: 100, resize: "vertical" }}
-          />
+          <RichTextEditor value={bodyHtml} onChange={setBodyHtml} placeholder="Write text content here..." />
           <div className="flex items-center" style={{ gap: 6 }}>
             <Clock size={14} style={{ color: "var(--color-text-secondary)", flexShrink: 0 }} />
             <input type="number" min="1" value={duration} onChange={(e) => setDuration(e.target.value)} placeholder="Duration (min)" style={{ ...inputSt, fontSize: 14, padding: "8px 12px", maxWidth: 160 }} />
@@ -222,8 +225,8 @@ function ContentBlocksEditor({
     onItemsChange?.(sorted);
   }
 
-  async function handleSaveText(itemId: number, content: string, durationMinutes?: number | null) {
-    const payload: { content: string; duration_minutes?: number } = { content };
+  async function handleSaveText(itemId: number, bodyHtml: string, durationMinutes?: number | null) {
+    const payload: { body_html: string; duration_minutes?: number } = { body_html: bodyHtml };
     if (durationMinutes != null && !isNaN(durationMinutes)) payload.duration_minutes = durationMinutes;
     const updated = await updateLessonItem(courseSlug, moduleId, lessonId, itemId, payload);
     const next = items.map((it) => (it.id === itemId ? updated : it));
@@ -249,7 +252,7 @@ function ContentBlocksEditor({
   }
 
   async function addText() {
-    const item = await createLessonItem(courseSlug, moduleId, lessonId, { item_type: "text", content: "" });
+    const item = await createLessonItem(courseSlug, moduleId, lessonId, { item_type: "text", body_html: "" });
     const next = [...items, item];
     setItems(next);
     onItemsChange?.(next);
@@ -353,7 +356,7 @@ function ContentBlocksEditor({
           const meta = TYPE_META[item.item_type];
           const preview =
             item.item_type === "text"
-              ? (item.content?.slice(0, 90) || "(empty)")
+              ? (textPreview(item.body_html ?? "").slice(0, 90) || "(empty)")
               : item.item_type === "video"
                 ? (item.original_video_name ?? item.video_url ?? "Video")
                 : (item.test?.title ?? "Test");
@@ -462,9 +465,16 @@ function ContentBlocksEditor({
               {readOnly && expandedId === item.id && (
                 <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px solid var(--color-border-light)" }}>
                   {item.item_type === "text" && (
-                    <p style={{ fontFamily: "var(--font-base)", fontSize: 14, lineHeight: "22px", color: "var(--color-text-primary)", whiteSpace: "pre-wrap", margin: 0 }}>
-                      {item.content || <span style={{ color: "var(--color-text-secondary)" }}>(no content)</span>}
-                    </p>
+                    item.body_html ? (
+                      <div
+                        style={{ fontFamily: "var(--font-base)", fontSize: 14, lineHeight: "22px", color: "var(--color-text-primary)" }}
+                        dangerouslySetInnerHTML={{ __html: sanitizeCourseHtml(item.body_html) }}
+                      />
+                    ) : (
+                      <p style={{ fontFamily: "var(--font-base)", fontSize: 14, color: "var(--color-text-secondary)", margin: 0 }}>
+                        (no content)
+                      </p>
+                    )
                   )}
 
                   {item.item_type === "video" && (
@@ -791,6 +801,22 @@ export function LessonFormModal({ mode, initialValues = {}, onClose, onSave, cou
                 style={{ ...inputSt, padding: "clamp(10px, 0.83vw, 12px) clamp(16px, 1.39vw, 20px)", cursor: readOnly ? "default" : undefined }}
               />
             </div>
+          </div>
+
+          <div>
+            <label className="flex items-center" style={{ gap: 8, cursor: readOnly ? "default" : "pointer" }}>
+              <input
+                type="checkbox"
+                checked={values.is_mandatory}
+                disabled={readOnly}
+                onChange={(e) => setValues((prev) => ({ ...prev, is_mandatory: e.target.checked }))}
+              />
+              <span style={{ ...labelSt, marginBottom: 0 }}>Required to complete the course</span>
+            </label>
+            <p style={hintSt}>
+              If this lesson has a test, students must pass it before they can finish the course
+              (e.g. a final exam).
+            </p>
           </div>
         </div>
 

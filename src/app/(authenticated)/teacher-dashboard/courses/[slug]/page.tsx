@@ -390,7 +390,21 @@ export default function CourseManagementPage() {
       {tab === "info" && (
         <CourseManagementInfoTab course={course} slug={slug} onCourseUpdated={handleCourseUpdated} onTabChange={t => setTab(t as Tab)} />
       )}
-      {tab === "content" && <CourseManagementContentTab course={course} slug={slug} />}
+      {tab === "content" && (
+        <CourseManagementContentTab
+          course={course}
+          slug={slug}
+          onLessonUpdated={(moduleId, lesson) =>
+            handleCourseUpdated({
+              modules: course.modules.map(m =>
+                m.id === moduleId
+                  ? { ...m, lessons: m.lessons.map(l => (l.id === lesson.id ? lesson : l)) }
+                  : m,
+              ),
+            })
+          }
+        />
+      )}
       {tab === "pricing" && (
         <CourseManagementPricingTab
           course={course}

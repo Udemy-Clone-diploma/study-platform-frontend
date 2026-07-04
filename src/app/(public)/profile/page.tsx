@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { updateMe, uploadAvatar, updateTeacherProfile, updateStudentProfile, withAuth } from "@/features/auth";
+import { updateMe, uploadAvatar, uploadTeacherSignature, updateTeacherProfile, updateStudentProfile, withAuth } from "@/features/auth";
 import { getMe } from "@/entities/user";
 import type { UserData, UserLanguage, TeacherProfile, StudentProfile } from "@/entities/user";
 import {
@@ -56,7 +56,11 @@ function ProfilePage() {
     const [specialization, setSpecialization]             = useState("");
     const [experience, setExperience]                     = useState("");
     const [bio, setBio]                                   = useState("");
+    const [yearsExperience, setYearsExperience]           = useState("");
+    const [partnershipsCount, setPartnershipsCount]       = useState("");
     const [instructionLanguage, setInstructionLanguage]   = useState<UserLanguage>("en");
+    const [signatureFile, setSignatureFile]               = useState<File | null>(null);
+    const [signaturePreview, setSignaturePreview]         = useState<string | null>(null);
 
     // Student-specific edit state
     const [dateOfBirth, setDateOfBirth]     = useState("");
@@ -75,6 +79,8 @@ function ProfilePage() {
                     setSpecialization(tp?.specialization ?? "");
                     setExperience(tp?.experience ?? "");
                     setBio(tp?.bio ?? "");
+                    setYearsExperience(tp?.years_experience != null ? String(tp.years_experience) : "");
+                    setPartnershipsCount(tp?.partnerships_count != null ? String(tp.partnerships_count) : "");
                 } else if (data.role === "student") {
                     const sp = data.profile as StudentProfile;
                     setDateOfBirth(sp?.date_of_birth ?? "");
@@ -92,11 +98,15 @@ function ProfilePage() {
         setSocialLinks(socialFromUser(user));
         setAvatarFile(null);
         setAvatarPreview(null);
+        setSignatureFile(null);
+        setSignaturePreview(null);
         if (user.role === "teacher") {
             const tp = user.profile as TeacherProfile;
             setSpecialization(tp?.specialization ?? "");
             setExperience(tp?.experience ?? "");
             setBio(tp?.bio ?? "");
+            setYearsExperience(tp?.years_experience != null ? String(tp.years_experience) : "");
+            setPartnershipsCount(tp?.partnerships_count != null ? String(tp.partnerships_count) : "");
         } else if (user.role === "student") {
             const sp = user.profile as StudentProfile;
             setDateOfBirth(sp?.date_of_birth ?? "");
@@ -116,6 +126,8 @@ function ProfilePage() {
                 setSpecialization(tp?.specialization ?? "");
                 setExperience(tp?.experience ?? "");
                 setBio(tp?.bio ?? "");
+                setYearsExperience(tp?.years_experience != null ? String(tp.years_experience) : "");
+                setPartnershipsCount(tp?.partnerships_count != null ? String(tp.partnerships_count) : "");
             } else if (user.role === "student") {
                 const sp = user.profile as StudentProfile;
                 setDateOfBirth(sp?.date_of_birth ?? "");
@@ -124,6 +136,8 @@ function ProfilePage() {
         }
         setAvatarFile(null);
         setAvatarPreview(null);
+        setSignatureFile(null);
+        setSignaturePreview(null);
         setEditing(false);
     }
 
@@ -138,6 +152,11 @@ function ProfilePage() {
     function handleAvatarChange(file: File) {
         setAvatarFile(file);
         setAvatarPreview(URL.createObjectURL(file));
+    }
+
+    function handleSignatureChange(file: File) {
+        setSignatureFile(file);
+        setSignaturePreview(URL.createObjectURL(file));
     }
 
     async function handleSave() {
@@ -157,7 +176,16 @@ function ProfilePage() {
             });
 
             if (user?.role === "teacher") {
-                const profile = await updateTeacherProfile({ specialization, experience, bio });
+                let profile = await updateTeacherProfile({
+                    specialization,
+                    experience,
+                    bio,
+                    years_experience: yearsExperience.trim() ? parseInt(yearsExperience, 10) : null,
+                    partnerships_count: partnershipsCount.trim() ? parseInt(partnershipsCount, 10) : null,
+                });
+                if (signatureFile) {
+                    profile = await uploadTeacherSignature(signatureFile);
+                }
                 updated = { ...updated, profile };
             } else if (user?.role === "student") {
                 const profile = await updateStudentProfile({
@@ -175,6 +203,8 @@ function ProfilePage() {
             setSocialLinks(socialFromUser(updated));
             setAvatarFile(null);
             setAvatarPreview(null);
+            setSignatureFile(null);
+            setSignaturePreview(null);
             setEditing(false);
         } finally {
             setSaving(false);
@@ -251,10 +281,16 @@ function ProfilePage() {
                                 specialization={specialization}
                                 experience={experience}
                                 bio={bio}
+                                yearsExperience={yearsExperience}
+                                partnershipsCount={partnershipsCount}
+                                signaturePreview={signaturePreview}
+                                onSignatureChange={handleSignatureChange}
                                 onFirstNameChange={setFirstName}
                                 onLastNameChange={setLastName}
                                 onLanguageChange={handleLanguageChange}
                                 onInstructionLanguageChange={setInstructionLanguage}
+                                onYearsExperienceChange={setYearsExperience}
+                                onPartnershipsCountChange={setPartnershipsCount}
                                 onSpecializationChange={setSpecialization}
                                 onExperienceChange={setExperience}
                                 onBioChange={setBio}

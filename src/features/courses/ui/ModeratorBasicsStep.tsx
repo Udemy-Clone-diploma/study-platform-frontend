@@ -30,21 +30,21 @@ function FieldRow({ fieldKey, label, children, itemStatuses, onItemStatusToggle,
 
 /** Step 1: course basics fields review with per-field status badges. */
 export function ModeratorBasicsStep(props: StepProps) {
-  const { course, pendingEdit, lockedKeys, action, comment, submitting, error, step, hasAnyFlagged, itemStatuses,
+  const { course, draftCourse, lockedKeys, action, comment, submitting, error, step, hasAnyFlagged, itemStatuses,
           onActionChange, onCommentChange, onItemStatusToggle, basicsAction, onBasicsActionChange,
           onNext, onBack, onSubmit, router } = props;
   void onActionChange; void onCommentChange;
 
   // For pending edits, show proposed values for changed fields
-  const pe = pendingEdit;
-  const displayTitle     = (!lockedKeys.has("field-title")             && pe?.title)             || course?.title             || "—";
-  const displayShortDesc = (!lockedKeys.has("field-short-description") && pe?.short_description) || course?.short_description || "—";
-  const displayFullDesc  = (!lockedKeys.has("field-full-description")  && pe?.full_description)  || course?.full_description  || "—";
-  const displayImage    = (!lockedKeys.has("field-icon")        && pe?.image)             ?? course?.image ?? null;
-  const displayCategory = !lockedKeys.has("field-category") && pe
-    ? (pe.category_id != null ? `Category #${pe.category_id}` : "—")
+  const draft = draftCourse;
+  const displayTitle     = (!lockedKeys.has("field-title")             && draft?.title)             || course?.title             || "—";
+  const displayShortDesc = (!lockedKeys.has("field-short-description") && draft?.short_description) || course?.short_description || "—";
+  const displayFullDesc  = (!lockedKeys.has("field-full-description")  && draft?.full_description)  || course?.full_description  || "—";
+  const displayImage    = (!lockedKeys.has("field-icon")        && draft?.image)             || course?.image             || null;
+  const displayCategory = !lockedKeys.has("field-category") && draft
+    ? (draft.category?.name ?? "—")
     : (course?.category?.name ?? "—");
-  const displayLevel    = (!lockedKeys.has("field-level") && pe?.level) ?? course?.level ?? "";
+  const displayLevel    = (!lockedKeys.has("field-level") && draft?.level) || course?.level || "";
 
   const levelLabel   = displayLevel ? displayLevel.charAt(0).toUpperCase() + displayLevel.slice(1) : "—";
 

@@ -1215,7 +1215,6 @@ function EventDetailPanel({
     role === "teacher" &&
     !isPersonal &&
     !isProcessed &&
-    !isReplacement &&
     !isPastEvent &&
     !isFreeSlot;
 
@@ -2985,59 +2984,6 @@ function EventDetailPanel({
           </div>
         )}
 
-        {/* ── Reschedule + Cancel for replacement events ── */}
-        {role === "teacher" &&
-          !isPersonal &&
-          isReplacement &&
-          !isProcessed &&
-          !isPastEvent &&
-          mode === "view" && (
-            <div style={{ display: "flex", gap: 16, marginTop: 4 }}>
-              <button
-                type="button"
-                onClick={() => setMode("reschedule")}
-                style={{
-                  alignSelf: "flex-start",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 5,
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  fontFamily: "var(--font-base)",
-                  fontWeight: 600,
-                  fontSize: SMALL,
-                  color: "var(--color-text-primary)",
-                  padding: 0,
-                }}
-              >
-                <RotateCcw size={13} />
-                Reschedule
-              </button>
-              <button
-                type="button"
-                onClick={() => setMode("confirm_cancel")}
-                style={{
-                  alignSelf: "flex-start",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 5,
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  fontFamily: "var(--font-base)",
-                  fontWeight: 600,
-                  fontSize: SMALL,
-                  color: "var(--color-danger)",
-                  opacity: 0.8,
-                  padding: 0,
-                }}
-              >
-                <X size={13} />
-                Cancel session
-              </button>
-            </div>
-          )}
       </div>
       {/* end collapsible body */}
 

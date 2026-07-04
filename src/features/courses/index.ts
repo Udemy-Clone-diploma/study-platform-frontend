@@ -37,6 +37,7 @@ export * from "./ui/CourseCard";
 export * from "./ui/CourseSearch";
 export * from "./ui/EnrollButton";
 export * from "./ui/SortDropdown";
+export * from "./ui/CertificateCard";
 export * from "./ui/CompletedCourseCard";
 export * from "./ui/CompletionResultModal";
 export * from "./ui/StudentCourseCard";

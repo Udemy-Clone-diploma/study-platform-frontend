@@ -21,10 +21,18 @@ const OPTIONS: sanitizeHtml.IOptions = {
     "pre",
     "hr",
     "img",
+    "table",
+    "thead",
+    "tbody",
+    "tr",
+    "th",
+    "td",
   ],
   allowedAttributes: {
     a: ["href", "title", "target", "rel"],
     img: ["src", "alt", "title", "width", "height"],
+    th: ["colspan", "rowspan"],
+    td: ["colspan", "rowspan"],
   },
   allowedSchemes: ["http", "https", "mailto"],
   transformTags: {

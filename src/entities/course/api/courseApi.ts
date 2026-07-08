@@ -7,7 +7,7 @@ import type { CohortMember, EnrolledStudent } from "../model/cohortGroup";
 import type { CourseLesson } from "../model/module";
 import type { DeliveryFormatType } from "../model/delivery-format";
 import type { PricingPlan } from "../model/pricing";
-import type { CourseReview } from "../model/review";
+import type { CourseReview, TopReview } from "../model/review";
 import type { CourseCompletion } from "../model/completion";
 import type { Enrollment } from "../model/enrollment";
 import type {
@@ -130,6 +130,14 @@ export async function getCourseReviews(
     `${COURSES}${slug}/reviews/`,
     { params: { page } },
   );
+  return data;
+}
+
+/** Highest-rated reviews with written feedback, across all courses (used on the homepage). */
+export async function getTopReviews(limit = 4): Promise<TopReview[]> {
+  const { data } = await api.get<TopReview[]>("reviews/top-reviews/", {
+    params: { limit },
+  });
   return data;
 }
 

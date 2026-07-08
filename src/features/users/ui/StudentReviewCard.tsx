@@ -21,15 +21,15 @@ export function StudentReviewCard({ review, style }: Props) {
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "space-between",
+                height: "11.46vw",
                 padding: "1.46vw 1.25vw 1.67vw",
                 background: "var(--color-bg)",
                 boxShadow: "var(--shadow-testimonial)",
                 borderRadius: "1.04vw",
-                minHeight: "15.1vw",
                 ...style,
             }}
         >
-            {/* Quote */}
+            {/* Quote: clamped to 4 lines so a long review can't grow the card. */}
             <p
                 style={{
                     fontFamily: "var(--font-base)",
@@ -38,6 +38,10 @@ export function StudentReviewCard({ review, style }: Props) {
                     lineHeight: "1.3vw",
                     color: "var(--color-text-secondary)",
                     margin: 0,
+                    display: "-webkit-box",
+                    WebkitBoxOrient: "vertical",
+                    WebkitLineClamp: 4,
+                    overflow: "hidden",
                 }}
             >
                 {review.text}

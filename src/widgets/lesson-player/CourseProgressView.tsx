@@ -8,6 +8,7 @@ import type { ApiError } from "@/shared/api/base";
 import { GradientButton } from "@/shared/ui/GradientButton";
 import type { CourseDetail, CourseProgress } from "@/entities/course";
 import { byOrder, completeCourse, useCompletionRedirect, useCourseProgress } from "@/entities/course";
+import { CompleteCourseReviewModal } from "@/features/courses";
 import { LearnPageDecor } from "./LearnPageDecor";
 import { LearnTabs } from "./LearnTabs";
 
@@ -41,10 +42,12 @@ export function CourseProgressView({ course, initialProgress = null, isMock = fa
   const detailRef = useRef<HTMLDivElement>(null);
   const [completing, setCompleting] = useState(false);
   const [completionError, setCompletionError] = useState<string | null>(null);
+  const [showReviewPrompt, setShowReviewPrompt] = useState(false);
 
   useCompletionRedirect(progress?.is_course_completed);
 
-  async function handleCompleteCourse() {
+  async function finishCompletion() {
+    setShowReviewPrompt(false);
     setCompleting(true);
     setCompletionError(null);
     try {
@@ -140,10 +143,14 @@ export function CourseProgressView({ course, initialProgress = null, isMock = fa
             <CompleteCourseCta
               loading={completing}
               error={completionError}
-              onComplete={handleCompleteCourse}
+              onComplete={() => setShowReviewPrompt(true)}
             />
           ) : (
             <PassingAlert passing={passingScore} />
+          )}
+
+          {showReviewPrompt && (
+            <CompleteCourseReviewModal slug={course.slug} onDone={finishCompletion} />
           )}
 
           <div className="mt-auto flex justify-center">

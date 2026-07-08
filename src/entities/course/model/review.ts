@@ -16,3 +16,8 @@ export type CourseReview = {
   text: string;
   created_at: string;
 };
+
+/** Cross-course review returned by the platform-wide "top reviews" endpoint (e.g. the homepage). */
+export type TopReview = CourseReview & {
+  course: { slug: string; title: string };
+};

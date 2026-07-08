@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   getCalendarEvents,
   getIncomingInvitations,
@@ -307,9 +308,10 @@ export function ScheduleRail() {
   const todayDate  = useMemo(() => new Date(), []);
   const todayISO   = useMemo(() => toISO(todayDate), [todayDate]);
 
+  const searchParams   = useSearchParams();
   const [viewMonth,    setViewMonth]    = useState(() => new Date(todayDate.getFullYear(), todayDate.getMonth(), 1));
   const [selectedISO,  setSelectedISO]  = useState(todayISO);
-  const [tab,          setTab]          = useState<Tab>("day");
+  const [tab,          setTab]          = useState<Tab>(() => (searchParams.get("tab") === "invitations" ? "invitations" : "day"));
   const [eventMap,     setEventMap]     = useState<Record<string, CalendarEvent[]>>({});
   const [loading,      setLoading]      = useState(false);
   const [invitations,  setInvitations]  = useState<IncomingInvitation[]>([]);

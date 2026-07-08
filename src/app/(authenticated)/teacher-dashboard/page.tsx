@@ -1,5 +1,10 @@
+import { Suspense } from "react";
 import { DashboardOverview } from "@/widgets/dashboard/DashboardOverview";
 
 export default function TeacherDashboardPage() {
-  return <DashboardOverview role="teacher" />;
+  return (
+    <Suspense>
+      <DashboardOverview role="teacher" />
+    </Suspense>
+  );
 }

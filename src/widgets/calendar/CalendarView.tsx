@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   Link2,
   Plus,
@@ -55,10 +56,22 @@ import type { CourseListItem } from "@/entities/course/model/types";
 import type { CourseCohort } from "@/entities/course/model/cohort";
 
 function currentWeekSundayISO(): string {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  today.setDate(today.getDate() - today.getDay());
-  return toISO(today);
+  return weekSundayISOFor(new Date());
+}
+
+function weekSundayISOFor(date: Date): string {
+  const start = new Date(date);
+  start.setHours(0, 0, 0, 0);
+  start.setDate(start.getDate() - start.getDay());
+  return toISO(start);
+}
+
+function initialWeekStart(dateParam: string | null): string {
+  if (dateParam) {
+    const parsed = new Date(dateParam);
+    if (!Number.isNaN(parsed.getTime())) return weekSundayISOFor(parsed);
+  }
+  return currentWeekSundayISO();
 }
 
 type DrawerState =
@@ -3268,7 +3281,8 @@ export function CalendarView({ role }: CalendarViewProps) {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [unavailability, setUnavailability] = useState<TeacherUnavailability[]>([]);
   const [drawer, setDrawer] = useState<DrawerState>(null);
-  const [weekStart, setWeekStart] = useState<string>(() => currentWeekSundayISO());
+  const searchParams = useSearchParams();
+  const [weekStart, setWeekStart] = useState<string>(() => initialWeekStart(searchParams.get("date")));
   const [refreshTick, setRefreshTick] = useState(0);
 
   useEffect(() => {

@@ -67,7 +67,7 @@ function computeLockedContentKeys(course: CourseDetail | null, draft: CourseDeta
         itemsUnchanged = false;
       } else {
         const liveById = new Map(liveItems.map((i) => [i.id, i]));
-        itemsUnchanged = draftItems.every((di) => {
+        const contentUnchanged = draftItems.every((di) => {
           if (di.source_lesson_item_id == null) return false;
           const li = liveById.get(di.source_lesson_item_id);
           if (li === undefined) return false;
@@ -83,6 +83,11 @@ function computeLockedContentKeys(course: CourseDetail | null, draft: CourseDeta
             : (di.video_url ?? null) === (li.video_url ?? null);
           return (di.body_html ?? "") === (li.body_html ?? "") && videoUnchanged;
         });
+        // Both arrays come back ordered by `order` (model default ordering) --
+        // a same-position source-id match confirms the display sequence, not
+        // just the per-item content, is unchanged.
+        const orderUnchanged = draftItems.every((di, idx) => di.source_lesson_item_id === liveItems[idx]?.id);
+        itemsUnchanged = contentUnchanged && orderUnchanged;
       }
       if (metaUnchanged && itemsUnchanged) locked.add(`lesson-${dl.id}`);
     }

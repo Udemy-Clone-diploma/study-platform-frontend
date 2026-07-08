@@ -21,3 +21,21 @@ export type CourseReview = {
 export type TopReview = CourseReview & {
   course: { slug: string; title: string };
 };
+
+export type ReviewReportItem = {
+  reporter_name: string;
+  reporter_avatar: string | null;
+  reason: string;
+  created_at: string;
+};
+
+export type ReviewModerationStatus = "" | "pending" | "approved" | "rejected";
+
+/** Review with its report/moderation info, for the moderator "flagged reviews" queue. */
+export type ModeratorReview = CourseReview & {
+  course: { slug: string; title: string };
+  report_count: number;
+  reports: ReviewReportItem[];
+  moderation_status: ReviewModerationStatus;
+  moderator_id: number | null;
+};

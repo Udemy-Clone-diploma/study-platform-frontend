@@ -1,5 +1,10 @@
+"use client";
+
 import Image from "next/image";
-import type { CSSProperties } from "react";
+import { useState, type CSSProperties } from "react";
+import { Flag } from "lucide-react";
+import { ReportReviewModal } from "@/shared/ui/ReportReviewModal";
+import { reportReview } from "@/entities/course";
 
 export type StudentReview = {
     id: number;
@@ -15,9 +20,12 @@ type Props = {
 };
 
 export function StudentReviewCard({ review, style }: Props) {
+    const [reporting, setReporting] = useState(false);
+
     return (
         <div
             style={{
+                position: "relative",
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "space-between",
@@ -29,6 +37,31 @@ export function StudentReviewCard({ review, style }: Props) {
                 ...style,
             }}
         >
+            <button
+                type="button"
+                onClick={() => setReporting(true)}
+                aria-label="Report review"
+                title="Report review"
+                style={{
+                    position: "absolute",
+                    top: "0.83vw",
+                    right: "0.83vw",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: "1.67vw",
+                    height: "1.67vw",
+                    minWidth: 22,
+                    minHeight: 22,
+                    border: "none",
+                    background: "transparent",
+                    color: "var(--color-text-secondary)",
+                    cursor: "pointer",
+                }}
+            >
+                <Flag size={14} />
+            </button>
+
             {/* Quote: clamped to 4 lines so a long review can't grow the card. */}
             <p
                 style={{
@@ -103,6 +136,13 @@ export function StudentReviewCard({ review, style }: Props) {
                     </span>
                 </div>
             </div>
+
+            {reporting && (
+                <ReportReviewModal
+                    onClose={() => setReporting(false)}
+                    onSubmit={(reason) => reportReview(review.id, reason)}
+                />
+            )}
         </div>
     );
 }

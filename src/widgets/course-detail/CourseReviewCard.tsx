@@ -1,6 +1,10 @@
+"use client";
+
 import Image from "next/image";
-import { Star } from "lucide-react";
-import type { CourseReview } from "@/entities/course";
+import { useState } from "react";
+import { Flag, Star } from "lucide-react";
+import { reportReview, type CourseReview } from "@/entities/course";
+import { ReportReviewModal } from "@/shared/ui/ReportReviewModal";
 
 type Props = {
   review: CourseReview;
@@ -10,9 +14,21 @@ type Props = {
 /** White card with a review quote and the author (avatar + name + role), with an optional star rating. */
 export function CourseReviewCard({ review, showRating = true }: Props) {
   const initial = review.student.name.charAt(0);
+  const [reporting, setReporting] = useState(false);
 
   return (
-    <article className="flex h-full flex-col gap-2.5 rounded-[20px] bg-(--color-bg) px-5 pt-6 pb-6 shadow-(--shadow-testimonial) sm:px-6 sm:pt-7 sm:pb-8">
+    <article className="relative flex h-full flex-col gap-2.5 rounded-[20px] bg-(--color-bg) px-5 pt-6 pb-6 shadow-(--shadow-testimonial) sm:px-6 sm:pt-7 sm:pb-8">
+      <button
+        type="button"
+        onClick={() => setReporting(true)}
+        aria-label="Report review"
+        title="Report review"
+        className="absolute top-3 right-3 flex items-center justify-center text-(--color-text-secondary) hover:text-(--color-text-primary)"
+        style={{ border: "none", background: "transparent", cursor: "pointer" }}
+      >
+        <Flag size={16} />
+      </button>
+
       <p className="flex-1 text-base text-(--color-text-secondary) sm:text-lg lg:text-xl">
         {review.text}
       </p>
@@ -66,6 +82,13 @@ export function CourseReviewCard({ review, showRating = true }: Props) {
           </div>
         )}
       </div>
+
+      {reporting && (
+        <ReportReviewModal
+          onClose={() => setReporting(false)}
+          onSubmit={(reason) => reportReview(review.id, reason)}
+        />
+      )}
     </article>
   );
 }

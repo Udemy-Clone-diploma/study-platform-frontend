@@ -7,7 +7,7 @@ import type { CohortMember, EnrolledStudent } from "../model/cohortGroup";
 import type { CourseLesson } from "../model/module";
 import type { DeliveryFormatType } from "../model/delivery-format";
 import type { PricingPlan } from "../model/pricing";
-import type { CourseReview, TopReview } from "../model/review";
+import type { CourseReview, ModeratorReview, TopReview } from "../model/review";
 import type { CourseCompletion } from "../model/completion";
 import type { Enrollment } from "../model/enrollment";
 import type {
@@ -139,6 +139,42 @@ export async function getTopReviews(limit = 4): Promise<TopReview[]> {
     params: { limit },
   });
   return data;
+}
+
+/** Flag a review for moderator attention. 403 if it's the caller's own review, 409 if already reported. */
+export async function reportReview(reviewId: number, reason: string): Promise<void> {
+  await api.post(`reviews/${reviewId}/report/`, { reason });
+}
+
+/** Reported reviews (2+ reports) no moderator has claimed yet -- the shared queue. */
+export async function getUnassignedReportedReviews(page = 1): Promise<Paginated<ModeratorReview>> {
+  const { data } = await api.get<Paginated<ModeratorReview>>("reviews/moderation/unassigned/", {
+    params: { page },
+  });
+  return data;
+}
+
+/** Reported reviews the current moderator has claimed, at any resolution status. */
+export async function getMyReportedReviews(page = 1): Promise<Paginated<ModeratorReview>> {
+  const { data } = await api.get<Paginated<ModeratorReview>>("reviews/moderation/mine/", {
+    params: { page },
+  });
+  return data;
+}
+
+/** Claim a reported review for moderation. 409 if another moderator already has. */
+export async function assignReviewModeratorSelf(reviewId: number): Promise<void> {
+  await api.post(`reviews/${reviewId}/assign-moderator/`);
+}
+
+/** Dismiss the reports on a claimed review -- it stays live. */
+export async function approveReportedReview(reviewId: number): Promise<void> {
+  await api.post(`reviews/${reviewId}/approve/`);
+}
+
+/** Uphold the reports on a claimed review -- it's hidden from public view. */
+export async function rejectReportedReview(reviewId: number): Promise<void> {
+  await api.post(`reviews/${reviewId}/reject/`);
 }
 
 export type PricingPlanInput = Omit<PricingPlan, "id">;

@@ -87,6 +87,7 @@ export const mockCourseDetail: CourseDetail = {
       unlock_mode: "sequential",
       max_students: null,
       enrolled_count: 0,
+      completed_count: 0,
       pricing: {
         id: 1,
         price: "599.00",
@@ -106,6 +107,7 @@ export const mockCourseDetail: CourseDetail = {
       unlock_mode: null,
       max_students: 5,
       enrolled_count: 0,
+      completed_count: 0,
       pricing: {
         id: 2,
         price: "899.00",

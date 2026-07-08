@@ -17,6 +17,7 @@ import {
   IndividualStudentsList,
   SimpleStudentsList,
 } from "@/features/courses";
+import { CourseManagementReviewsTab } from "@/widgets/course-detail";
 import { AccentButton } from "@/shared/ui/AccentButton";
 import { PageShell } from "@/shared/ui/PageShell";
 import { WhiteButton } from "@/shared/ui/WhiteButton";
@@ -36,13 +37,14 @@ const LEVEL_LABEL: Record<string, string> = {
 };
 
 // ── Tab types ──────────────────────────────────────────────────────────────────
-type MainTab   = "info" | "content" | "pricing";
+type MainTab   = "info" | "content" | "reviews" | "pricing";
 type FormatTab = "individual" | "group" | "scheduled" | "self_paced";
 type Tab = MainTab | FormatTab;
 
 const MAIN_TABS: { id: MainTab; label: string }[] = [
   { id: "info",    label: "Info" },
   { id: "content", label: "Content" },
+  { id: "reviews", label: "Reviews" },
   { id: "pricing", label: "Format & Price" },
 ];
 const FORMAT_TAB_LABEL: Record<FormatTab, string> = {
@@ -86,7 +88,10 @@ function FormatStatsBar({ fmt, slug, course, slotsKey }: {
   type Stat = { label: string; value: string };
   const extras: Stat[] = [];
   const enrolled = fmt.enrolled_count ?? 0;
-  const enrolledValue = fmt.max_students != null ? `${enrolled} / ${fmt.max_students}` : String(enrolled);
+  const completed = fmt.completed_count ?? 0;
+  const studying = Math.max(enrolled - completed, 0);
+  // "still studying / already completed the course"
+  const enrolledValue = `${studying} / ${completed}`;
 
   if (fmt.start_date)          extras.push({ label: "Starts",    value: fmtDate(fmt.start_date) });
   if (fmt.course_start_date)   extras.push({ label: "Starts",    value: fmtDate(fmt.course_start_date) });
@@ -404,6 +409,9 @@ export default function CourseManagementPage() {
             })
           }
         />
+      )}
+      {tab === "reviews" && (
+        <CourseManagementReviewsTab slug={slug} />
       )}
       {tab === "pricing" && (
         <CourseManagementPricingTab

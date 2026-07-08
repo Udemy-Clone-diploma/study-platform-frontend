@@ -24,6 +24,8 @@ export type CourseDeliveryFormat = {
   // individual
   max_students: number | null;
   enrolled_count: number;
+  /** How many of the enrolled students have a CourseCompletion record for this course. */
+  completed_count: number;
   // nested pricing (null when no pricing plan set yet)
   pricing: DeliveryFormatPricing | null;
 };

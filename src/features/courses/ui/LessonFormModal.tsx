@@ -10,6 +10,7 @@ import {
   createLessonItem,
   updateLessonItem,
   deleteLessonItem,
+  reorderLessonItems,
   createTest,
   updateTest,
   createQuestion,
@@ -211,18 +212,11 @@ function ContentBlocksEditor({
 
   async function moveUp(index: number) {
     if (index === 0) return;
-    const a = items[index - 1];
-    const b = items[index];
-    await Promise.all([
-      updateLessonItem(courseSlug, moduleId, lessonId, a.id, { order: b.order }),
-      updateLessonItem(courseSlug, moduleId, lessonId, b.id, { order: a.order }),
-    ]);
     const next = [...items];
-    next[index - 1] = { ...b, order: a.order };
-    next[index] = { ...a, order: b.order };
-    const sorted = next.sort((x, y) => x.order - y.order);
-    setItems(sorted);
-    onItemsChange?.(sorted);
+    [next[index - 1], next[index]] = [next[index], next[index - 1]];
+    const reordered = await reorderLessonItems(courseSlug, moduleId, lessonId, next.map((it) => it.id));
+    setItems(reordered);
+    onItemsChange?.(reordered);
   }
 
   async function handleSaveText(itemId: number, bodyHtml: string, durationMinutes?: number | null) {

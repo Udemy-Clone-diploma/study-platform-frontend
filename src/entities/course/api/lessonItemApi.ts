@@ -83,3 +83,16 @@ export async function deleteLessonItem(
 ): Promise<void> {
   await api.delete(`${itemsBase(courseSlug, moduleId, lessonId)}${itemId}/`);
 }
+
+export async function reorderLessonItems(
+  courseSlug: string,
+  moduleId: number,
+  lessonId: number,
+  itemIds: number[],
+): Promise<LessonItem[]> {
+  const { data } = await api.post<LessonItem[]>(
+    `${itemsBase(courseSlug, moduleId, lessonId)}reorder/`,
+    { item_ids: itemIds },
+  );
+  return data;
+}

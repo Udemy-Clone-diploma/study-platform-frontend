@@ -3411,11 +3411,6 @@ export function CalendarView({ role }: CalendarViewProps) {
                   ? `Deadlines — ${drawer.date}`
                   : ""
         }
-        top={0}
-        right={0}
-        bottom={0}
-        borderRadius={0}
-        borderLeft="1px solid var(--color-calendar-border)"
       >
         {drawer?.type === "new" && (
           <NewEventPanel

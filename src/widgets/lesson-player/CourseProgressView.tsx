@@ -145,6 +145,8 @@ export function CourseProgressView({ course, initialProgress = null, isMock = fa
               error={completionError}
               onComplete={() => setShowReviewPrompt(true)}
             />
+          ) : progress?.is_with_teacher ? (
+            <TeacherCompletionAlert />
           ) : (
             <PassingAlert passing={passingScore} />
           )}
@@ -330,6 +332,18 @@ function ScoreBar({ percent, passing }: { percent: number; passing: number }) {
           </span>
         </div>
       </div>
+    </div>
+  );
+}
+
+/** Glass alert shown for group/individual enrollments: completion is the teacher's call, not a self-service action. */
+function TeacherCompletionAlert() {
+  return (
+    <div className="mx-auto flex w-fit items-center gap-2 rounded-[20px] bg-(--color-white-20) px-6 py-4 shadow-[inset_0_2px_4px_0_var(--color-white-85)] backdrop-blur-sm">
+      <TriangleAlert aria-hidden="true" className="h-6 w-6 shrink-0 text-(--color-text-primary)" />
+      <p className="font-(family-name:--font-base) text-base uppercase text-(--color-text-primary)">
+        Your teacher will mark this course as completed
+      </p>
     </div>
   );
 }

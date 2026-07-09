@@ -11,6 +11,7 @@ import {
 } from "@/entities/course";
 import type { CourseDetail, EnrolledStudent, ScheduleSlot } from "@/entities/course";
 import type { ApiError } from "@/shared/api/base";
+import { CourseConfirmModal } from "./CourseConfirmModal";
 
 const DAY_SHORT: Record<number, string> = {
   0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri", 5: "Sat", 6: "Sun",
@@ -84,7 +85,7 @@ function ListWrap({ children }: { children: React.ReactNode }) {
 
 // ── CompletionBadge ────────────────────────────────────────────────────────────
 
-function CompletionBadge({ completed }: { completed: boolean }) {
+export function CompletionBadge({ completed }: { completed: boolean }) {
   return (
     <span
       style={{
@@ -109,13 +110,14 @@ function StudentRow({ name, email, meta, badge, completed, onComplete }: {
 }) {
   const [completing, setCompleting] = useState(false);
   const [completeError, setCompleteError] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState(false);
 
   async function handleComplete() {
-    if (!window.confirm(`Mark ${name || email} as completed?`)) return;
     setCompleting(true);
     setCompleteError(null);
     try {
       await onComplete?.();
+      setConfirming(false);
     } catch (err) {
       setCompleteError((err as ApiError).message ?? "Failed to mark as completed.");
     } finally {
@@ -133,7 +135,7 @@ function StudentRow({ name, email, meta, badge, completed, onComplete }: {
         {meta && <span style={META_STYLE}>{meta}</span>}
         {completed != null && <CompletionBadge completed={completed} />}
         {completed === false && onComplete && (
-          <button type="button" onClick={handleComplete} disabled={completing} style={ICON_BTN} title="Mark as completed">
+          <button type="button" onClick={() => setConfirming(true)} disabled={completing} style={ICON_BTN} title="Mark as completed">
             <Award size={14} />
           </button>
         )}
@@ -144,6 +146,16 @@ function StudentRow({ name, email, meta, badge, completed, onComplete }: {
         )}
       </div>
       {completeError && <p style={ERROR_STYLE}>{completeError}</p>}
+      {confirming && (
+        <CourseConfirmModal
+          title="Mark as completed"
+          description={`Mark ${name || email} as completed?`}
+          confirmLabel="Complete"
+          loading={completing}
+          onConfirm={handleComplete}
+          onCancel={() => setConfirming(false)}
+        />
+      )}
     </div>
   );
 }
@@ -165,14 +177,15 @@ function IndividualStudentRow({
   const [saving, setSaving]   = useState(false);
   const [completing, setCompleting] = useState(false);
   const [completeError, setCompleteError] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState(false);
 
   async function handleComplete() {
-    if (!window.confirm(`Mark ${student.student_name || student.student_email} as completed?`)) return;
     setCompleting(true);
     setCompleteError(null);
     try {
       await completeStudentEnrollment(slug, student.enrollment_id);
       onUpdated({ ...student, is_completed: true });
+      setConfirming(false);
     } catch (err) {
       setCompleteError((err as ApiError).message ?? "Failed to mark as completed.");
     } finally {
@@ -240,7 +253,7 @@ function IndividualStudentRow({
         {meta && <span style={META_STYLE}>{meta}</span>}
         <CompletionBadge completed={student.is_completed} />
         {!student.is_completed && (
-          <button type="button" onClick={handleComplete} disabled={completing} style={ICON_BTN} title="Mark as completed">
+          <button type="button" onClick={() => setConfirming(true)} disabled={completing} style={ICON_BTN} title="Mark as completed">
             <Award size={14} />
           </button>
         )}
@@ -249,6 +262,16 @@ function IndividualStudentRow({
         </button>
       </div>
       {completeError && <p style={ERROR_STYLE}>{completeError}</p>}
+      {confirming && (
+        <CourseConfirmModal
+          title="Mark as completed"
+          description={`Mark ${student.student_name || student.student_email} as completed?`}
+          confirmLabel="Complete"
+          loading={completing}
+          onConfirm={handleComplete}
+          onCancel={() => setConfirming(false)}
+        />
+      )}
     </div>
   );
 }

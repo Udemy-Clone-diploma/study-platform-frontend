@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
-import { Search } from "lucide-react";
+import { Award, Search } from "lucide-react";
 import { PageShell } from "@/shared/ui/PageShell";
 import { PillSelect } from "@/shared/ui/PillSelect";
 import {
@@ -9,6 +9,7 @@ import {
   getCourseEnrolledStudents,
   getCohorts,
   getDeliveryFormats,
+  completeStudentEnrollment,
 } from "@/entities/course";
 import type {
   CourseListItem,
@@ -18,6 +19,9 @@ import type {
 } from "@/entities/course";
 import { DataTable } from "@/shared/ui/DataTable";
 import type { DataTableColumn } from "@/shared/ui/DataTable";
+import { CompletionBadge } from "@/features/courses/ui/CourseManagementStudentsBlock";
+import { CourseConfirmModal } from "@/features/courses/ui/CourseConfirmModal";
+import type { ApiError } from "@/shared/api/base";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -95,6 +99,9 @@ export default function TeacherStudentsPage() {
   const [search, setSearch]                 = useState("");
   const [loadingCourses, setLoadingCourses] = useState(true);
   const [loadingStudents, setLoadingStudents] = useState(false);
+  const [confirmingId, setConfirmingId]     = useState<number | null>(null);
+  const [completing, setCompleting]         = useState(false);
+  const [completeError, setCompleteError]   = useState<string | null>(null);
 
   // Tracks the last course for which formats + cohorts were fetched, to avoid
   // re-fetching them when only the format selection changes.
@@ -207,6 +214,22 @@ export default function TeacherStudentsPage() {
     setSelectedFormat(fmtId);
   }
 
+  async function handleComplete(enrollmentId: number) {
+    setCompleting(true);
+    setCompleteError(null);
+    try {
+      await completeStudentEnrollment(selectedCourse, enrollmentId);
+      setStudents((prev) =>
+        prev.map((s) => (s.enrollment_id === enrollmentId ? { ...s, is_completed: true } : s)),
+      );
+      setConfirmingId(null);
+    } catch (err) {
+      setCompleteError((err as ApiError).message ?? "Failed to mark as completed.");
+    } finally {
+      setCompleting(false);
+    }
+  }
+
   // ── Derived ──────────────────────────────────────────────────────────────────
 
   const filtered = students.filter((s) => {
@@ -247,6 +270,36 @@ export default function TeacherStudentsPage() {
             ?? (row.format_type ? (FORMAT_LABELS[row.format_type] ?? row.format_type) : "—")}
         </span>
       ),
+    },
+    {
+      key: "status",
+      label: "Status",
+      flex: 1.4,
+      cellAlign: "center",
+      headerAlign: "center",
+      render: (row) => <CompletionBadge completed={row.is_completed} />,
+    },
+    {
+      key: "complete_action",
+      label: "",
+      flex: 0.6,
+      cellAlign: "center",
+      headerAlign: "center",
+      render: (row) =>
+        !row.is_completed && (row.format_type === "individual" || row.format_type === "group") ? (
+          <button
+            type="button"
+            onClick={() => { setCompleteError(null); setConfirmingId(row.enrollment_id); }}
+            title="Mark as completed"
+            style={{
+              background: "none", border: "none", cursor: "pointer",
+              padding: 4, display: "inline-flex", alignItems: "center",
+              color: "var(--color-text-secondary)",
+            }}
+          >
+            <Award size={14} />
+          </button>
+        ) : null,
     },
     {
       key: "performance",
@@ -383,6 +436,17 @@ export default function TeacherStudentsPage() {
           </label>
         </div>
 
+        {completeError && (
+          <p
+            style={{
+              fontFamily: "var(--font-base)", fontSize: "clamp(12px, 0.83vw, 14px)",
+              color: "var(--color-danger)", margin: "0 0 8px",
+            }}
+          >
+            {completeError}
+          </p>
+        )}
+
         {/* Table */}
         <DataTable<EnrolledStudent>
           columns={columns}
@@ -392,6 +456,19 @@ export default function TeacherStudentsPage() {
           scrollable
         />
       </div>
+
+      {confirmingId !== null && (
+        <CourseConfirmModal
+          title="Mark as completed"
+          description={`Mark ${
+            students.find((s) => s.enrollment_id === confirmingId)?.student_name ?? "this student"
+          } as completed?`}
+          confirmLabel="Complete"
+          loading={completing}
+          onConfirm={() => handleComplete(confirmingId)}
+          onCancel={() => setConfirmingId(null)}
+        />
+      )}
     </PageShell>
   );
 }

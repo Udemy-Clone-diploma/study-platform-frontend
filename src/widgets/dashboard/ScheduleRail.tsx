@@ -7,7 +7,7 @@ import {
   getIncomingInvitations,
   respondToInvitation,
 } from "@/entities/course";
-import type { CalendarEvent } from "@/entities/course/model/calendar";
+import type { CalendarDeadline, CalendarEvent } from "@/entities/course/model/calendar";
 import type { IncomingInvitation, InvitationConflict } from "@/entities/course/api/calendarApi";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -74,14 +74,32 @@ function ChevRight() {
 
 // ── Day cell ──────────────────────────────────────────────────────────────────
 
+function DeadlineDot() {
+  return (
+    <span
+      aria-hidden
+      className="absolute rounded-full"
+      style={{
+        top: -2,
+        right: -2,
+        width: 8,
+        height: 8,
+        background: "var(--color-blue)",
+        border: "1.5px solid white",
+      }}
+    />
+  );
+}
+
 function DayCell({
-  day, inMonth, isSelected, isToday, hasEvent, onClick,
+  day, inMonth, isSelected, isToday, hasEvent, hasDeadline, onClick,
 }: {
   day: number;
   inMonth: boolean;
   isSelected: boolean;
   isToday: boolean;
   hasEvent: boolean;
+  hasDeadline: boolean;
   onClick: () => void;
 }) {
   if (!inMonth) {
@@ -95,8 +113,9 @@ function DayCell({
     );
   }
 
+  let inner: React.ReactNode;
   if (isToday || isSelected) {
-    return (
+    inner = (
       <button
         type="button"
         onClick={onClick}
@@ -106,10 +125,8 @@ function DayCell({
         {day}
       </button>
     );
-  }
-
-  if (hasEvent) {
-    return (
+  } else if (hasEvent) {
+    inner = (
       <button
         type="button"
         onClick={onClick}
@@ -124,17 +141,26 @@ function DayCell({
         </span>
       </button>
     );
+  } else {
+    inner = (
+      <button
+        type="button"
+        onClick={onClick}
+        className="mx-auto flex items-center justify-center rounded-full text-black transition-colors hover:bg-black/5"
+        style={{ height: CELL_SIZE, width: CELL_SIZE, fontSize: CALENDAR_TEXT_SIZE }}
+      >
+        {day}
+      </button>
+    );
   }
 
+  if (!hasDeadline) return inner;
+
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="mx-auto flex items-center justify-center rounded-full text-black transition-colors hover:bg-black/5"
-      style={{ height: CELL_SIZE, width: CELL_SIZE, fontSize: CALENDAR_TEXT_SIZE }}
-    >
-      {day}
-    </button>
+    <div className="relative mx-auto" style={{ width: CELL_SIZE, height: CELL_SIZE }}>
+      {inner}
+      <DeadlineDot />
+    </div>
   );
 }
 
@@ -231,6 +257,25 @@ function EventCard({ event, badge }: { event: CalendarEvent; badge?: string }) {
   );
 }
 
+// ── Deadline card ─────────────────────────────────────────────────────────────
+
+function DeadlineCard({ deadline, badge }: { deadline: CalendarDeadline; badge?: string }) {
+  return (
+    <div
+      className="flex items-start gap-2 rounded-md bg-white/70 px-3 py-3 shadow-sm"
+      style={{ border: "1px solid var(--color-blue)" }}
+    >
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-semibold text-black">{deadline.title}</p>
+        <p className="mt-1 text-xs text-black/70">{deadline.course_title}</p>
+      </div>
+      <span className="shrink-0 whitespace-nowrap text-[10px] font-bold uppercase tracking-wide text-[#003aff]">
+        {badge ?? "Deadline"}
+      </span>
+    </div>
+  );
+}
+
 // ── Invitation card ───────────────────────────────────────────────────────────
 
 function conflictLabel(c: InvitationConflict): string {
@@ -313,6 +358,7 @@ export function ScheduleRail() {
   const [selectedISO,  setSelectedISO]  = useState(todayISO);
   const [tab,          setTab]          = useState<Tab>(() => (searchParams.get("tab") === "invitations" ? "invitations" : "day"));
   const [eventMap,     setEventMap]     = useState<Record<string, CalendarEvent[]>>({});
+  const [deadlineMap,  setDeadlineMap]  = useState<Record<string, CalendarDeadline[]>>({});
   const [loading,      setLoading]      = useState(false);
   const [invitations,  setInvitations]  = useState<IncomingInvitation[]>([]);
 
@@ -337,14 +383,19 @@ export function ScheduleRail() {
     try {
       const results = await Promise.all(weekStarts.map(ws => getCalendarEvents(ws).catch(() => null)));
       const merged: Record<string, CalendarEvent[]> = {};
+      const mergedDeadlines: Record<string, CalendarDeadline[]> = {};
       for (const res of results) {
         if (!res) continue;
         for (const ev of res.events) {
           if (ev.is_available === true) continue;
           (merged[ev.date] ??= []).push(ev);
         }
+        for (const dl of res.deadlines) {
+          (mergedDeadlines[dl.date] ??= []).push(dl);
+        }
       }
       setEventMap(prev => ({ ...prev, ...merged }));
+      setDeadlineMap(prev => ({ ...prev, ...mergedDeadlines }));
     } finally {
       setLoading(false);
     }
@@ -357,14 +408,19 @@ export function ScheduleRail() {
     const weekStarts = upcomingWeekStarts(12);
     Promise.all(weekStarts.map(ws => getCalendarEvents(ws).catch(() => null))).then(results => {
       const merged: Record<string, CalendarEvent[]> = {};
+      const mergedDeadlines: Record<string, CalendarDeadline[]> = {};
       for (const res of results) {
         if (!res) continue;
         for (const ev of res.events) {
           if (ev.is_available === true) continue;
           (merged[ev.date] ??= []).push(ev);
         }
+        for (const dl of res.deadlines) {
+          (mergedDeadlines[dl.date] ??= []).push(dl);
+        }
       }
       setEventMap(prev => ({ ...prev, ...merged }));
+      setDeadlineMap(prev => ({ ...prev, ...mergedDeadlines }));
     });
   }, []); // once on mount
 
@@ -385,6 +441,7 @@ export function ScheduleRail() {
       .map(e => e.id),
   );
   const selectedEvents = allSelectedEvs.filter(e => !hiddenProcessedIds.has(e.id));
+  const selectedDeadlines = deadlineMap[selectedISO] ?? [];
   const isSelectedToday = selectedISO === todayISO;
   const dayLabel = isSelectedToday ? "Today" : fmtShort(selectedISO);
 
@@ -395,6 +452,14 @@ export function ScheduleRail() {
       .flatMap(([iso, evs]) => evs.filter(e => !e.event_status).map(e => ({ event: e, iso })))
       .slice(0, 10);
   }, [eventMap, todayISO]);
+
+  const upcomingDeadlines = useMemo(() => {
+    return Object.entries(deadlineMap)
+      .filter(([iso]) => iso > todayISO)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .flatMap(([, dls]) => dls)
+      .slice(0, 10);
+  }, [deadlineMap, todayISO]);
 
   function selectDate(iso: string) {
     setSelectedISO(iso);
@@ -446,7 +511,8 @@ export function ScheduleRail() {
             const inMonth    = day.getMonth() === viewMonth.getMonth();
             const isSelected = iso === selectedISO;
             const isTodayDay = iso === todayISO;
-            const hasEvent   = inMonth && (eventMap[iso]?.some(e => !e.event_status) ?? false);
+            const hasEvent    = inMonth && (eventMap[iso]?.some(e => !e.event_status) ?? false);
+            const hasDeadline = inMonth && (deadlineMap[iso]?.length ?? 0) > 0;
             return (
               <DayCell
                 key={`${iso}-${i}`}
@@ -455,6 +521,7 @@ export function ScheduleRail() {
                 isSelected={isSelected}
                 isToday={isTodayDay}
                 hasEvent={hasEvent}
+                hasDeadline={hasDeadline}
                 onClick={() => selectDate(iso)}
               />
             );
@@ -489,18 +556,26 @@ export function ScheduleRail() {
         style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(255,255,255,0.5) transparent" }}
       >
         {tab === "day" && (
-          selectedEvents.length > 0
-            ? selectedEvents.map((e, i) => <EventCard key={i} event={e} />)
+          selectedEvents.length > 0 || selectedDeadlines.length > 0
+            ? <>
+                {selectedEvents.map((e, i) => <EventCard key={`ev-${i}`} event={e} />)}
+                {selectedDeadlines.map(dl => <DeadlineCard key={`dl-${dl.assignment_id}`} deadline={dl} />)}
+              </>
             : <p className="py-2 text-center text-[11px] text-black/50">
                 {isSelectedToday ? "No events today" : "No events on this date"}
               </p>
         )}
 
         {tab === "upcoming" && (
-          upcomingEvents.length > 0
-            ? upcomingEvents.map(({ event, iso }, i) => (
-                <EventCard key={i} event={event} badge={fmtShort(iso)} />
-              ))
+          upcomingEvents.length > 0 || upcomingDeadlines.length > 0
+            ? <>
+                {upcomingEvents.map(({ event, iso }, i) => (
+                  <EventCard key={`ev-${i}`} event={event} badge={fmtShort(iso)} />
+                ))}
+                {upcomingDeadlines.map(dl => (
+                  <DeadlineCard key={`dl-${dl.assignment_id}`} deadline={dl} badge={fmtShort(dl.date)} />
+                ))}
+              </>
             : <p className="py-2 text-center text-[11px] text-black/50">No upcoming events</p>
         )}
 

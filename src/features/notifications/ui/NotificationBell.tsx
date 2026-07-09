@@ -22,6 +22,8 @@ export function NotificationBell() {
     loadList,
     loadMore,
     markRead,
+    markUnread,
+    remove,
     markAllRead,
   } = useNotifications();
   const {
@@ -33,7 +35,9 @@ export function NotificationBell() {
 
   useEffect(() => {
     function onOutsideClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      const target = e.target as HTMLElement;
+      if (target.closest?.("[data-notif-menu]")) return;
+      if (ref.current && !ref.current.contains(target)) setOpen(false);
     }
     document.addEventListener("mousedown", onOutsideClick);
     return () => document.removeEventListener("mousedown", onOutsideClick);
@@ -51,6 +55,11 @@ export function NotificationBell() {
     markRead(notification.id);
     setOpen(false);
     setDrawerOpen(false);
+  }
+
+  function handleToggleRead(notification: Notification) {
+    if (notification.is_read) markUnread(notification.id);
+    else markRead(notification.id);
   }
 
   function openDrawer() {
@@ -100,9 +109,15 @@ export function NotificationBell() {
               <p className="py-6 text-(--color-text-secondary)">You have no new messages</p>
             ) : (
               <>
-                <div className="-mx-3 -my-2 flex max-h-[60vh] flex-col gap-3 overflow-y-auto px-3 py-2">
+                <div className="-mx-3 -my-4 flex max-h-[60vh] flex-col gap-3 overflow-y-auto px-3 py-4">
                   {notifications.slice(0, 5).map((n) => (
-                    <NotificationItem key={n.id} notification={n} onSelect={handleSelect} />
+                    <NotificationItem
+                      key={n.id}
+                      notification={n}
+                      onSelect={handleSelect}
+                      onToggleRead={handleToggleRead}
+                      onDelete={remove}
+                    />
                   ))}
                 </div>
                 <button
@@ -128,6 +143,8 @@ export function NotificationBell() {
         emailSaving={emailSaving}
         onClose={() => setDrawerOpen(false)}
         onSelect={handleSelect}
+        onToggleRead={handleToggleRead}
+        onDelete={remove}
         onMarkAllRead={markAllRead}
         onLoadMore={loadMore}
         onToggleEmail={toggleEmail}

@@ -83,3 +83,15 @@ export type HomeworkAssignmentInput = {
   due_at?: string;
   max_score?: number;
 };
+
+export type GrowthPeriod = "weekly" | "yearly";
+
+export type GrowthPoint = { label: string; value: number };
+
+export type GrowthCourseOption = { slug: string; title: string };
+
+export type GrowthData = {
+  average: number;
+  points: GrowthPoint[];
+  courses: GrowthCourseOption[];
+};

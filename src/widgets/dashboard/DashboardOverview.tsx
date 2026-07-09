@@ -176,7 +176,7 @@ function TeacherDashboard() {
         >
           <div className="flex min-w-0 flex-col" style={{ gap: "clamp(12px, 1.04vw, 20px)" }}>
             <MyCoursesDashboardWidget role="teacher" />
-            <GrowthCard />
+            <GrowthCard metric="enrollments" />
             <TodoPanel title="Check" secondaryLabel="Verified" items={teacherChecks} teacher />
           </div>
 

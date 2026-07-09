@@ -10,6 +10,7 @@ import type { PricingPlan } from "../model/pricing";
 import type { CourseReview, ModeratorReview, TopReview } from "../model/review";
 import type { CourseCompletion } from "../model/completion";
 import type { Enrollment } from "../model/enrollment";
+import type { EnrollmentGrowthData, GrowthPeriod } from "../model/growth";
 import type {
   ApprovedCourseRecord,
   CourseDeliveryType,
@@ -264,9 +265,31 @@ export async function removeCohortMember(
 export async function getCourseEnrolledStudents(
   slug: string,
   formatId?: number,
+  status?: "active" | "completed",
 ): Promise<EnrolledStudent[]> {
-  const params = formatId ? `?format_id=${formatId}` : "";
-  const { data } = await api.get<EnrolledStudent[]>(`${COURSES}${slug}/enrolled-students/${params}`);
+  const params: Record<string, string | number> = {};
+  if (formatId) params.format_id = formatId;
+  if (status) params.status = status;
+  const { data } = await api.get<EnrolledStudent[]>(`${COURSES}${slug}/enrolled-students/`, { params });
+  return data;
+}
+
+/** Teacher/admin action: mark a student's enrollment as finished (group/individual formats without curriculum lessons, where the student-facing complete flow can never be eligible). */
+export async function completeStudentEnrollment(
+  slug: string,
+  enrollmentId: number,
+): Promise<CourseCompletion> {
+  const { data } = await api.post<CourseCompletion>(
+    `${COURSES}${slug}/students/${enrollmentId}/complete/`,
+  );
+  return data;
+}
+
+/** New-enrollment count over time for the teacher's courses (teacher dashboard "Growth" widget). */
+export async function getEnrollmentGrowth(
+  params: { course?: string; period: GrowthPeriod },
+): Promise<EnrollmentGrowthData> {
+  const { data } = await api.get<EnrollmentGrowthData>("enrollments/growth/", { params });
   return data;
 }
 

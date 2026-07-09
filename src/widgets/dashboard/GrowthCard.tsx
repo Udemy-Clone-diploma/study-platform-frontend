@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { getGrowth } from "@/entities/homework";
-import type { GrowthData, GrowthPeriod } from "@/entities/homework";
+import type { GrowthPeriod } from "@/entities/homework";
+import { getEnrollmentGrowth } from "@/entities/course";
 import { Card } from "./DashboardOverview";
 
 const CHART_X0 = 36;
@@ -11,8 +12,20 @@ const CHART_X1 = 628;
 const CHART_Y_TOP = 18;
 const CHART_Y_BASE = 114;
 
-function yFor(value: number): number {
-  return CHART_Y_BASE - ((value - 1) / 4) * (CHART_Y_BASE - CHART_Y_TOP);
+type Metric = "score" | "enrollments";
+
+/** Unified shape both growth endpoints (average score / enrollment count) normalize into. */
+type NormalizedGrowth = {
+  summaryLabel: string;
+  summaryValue: number;
+  points: { label: string; value: number }[];
+  courses: { slug: string; title: string }[];
+  scaleMin: number;
+  scaleMax: number;
+};
+
+function yFor(value: number, min: number, max: number): number {
+  return CHART_Y_BASE - ((value - min) / (max - min || 1)) * (CHART_Y_BASE - CHART_Y_TOP);
 }
 
 function xFor(index: number, count: number): number {
@@ -56,48 +69,81 @@ function Dropdown({ value, options, onChange }: {
       </button>
 
       {open && (
-        <ul
-          role="listbox"
-          className="absolute right-0 z-20 mt-1 flex max-h-56 w-48 flex-col overflow-y-auto rounded-xl bg-white p-2 shadow-[0_6px_18px_rgba(0,0,0,0.16)]"
-        >
-          {options.map((option) => {
-            const selected = option.value === value;
-            return (
-              <li key={option.value} role="option" aria-selected={selected}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    onChange(option.value);
-                    setOpen(false);
-                  }}
-                  className={`w-full rounded-lg px-3 py-2 text-left text-xs transition-colors ${
-                    selected ? "bg-[#edf1ff] text-[#003aff]" : "text-black hover:bg-[#fafafa]"
-                  }`}
-                >
-                  {option.label}
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+        <div className="absolute right-0 z-20 mt-1 w-48 overflow-hidden rounded-xl bg-white shadow-[0_6px_18px_rgba(0,0,0,0.16)]">
+          <ul role="listbox" className="flex max-h-56 flex-col overflow-y-auto p-2">
+            {options.map((option) => {
+              const selected = option.value === value;
+              return (
+                <li key={option.value} role="option" aria-selected={selected}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onChange(option.value);
+                      setOpen(false);
+                    }}
+                    className={`w-full rounded-lg px-3 py-2 text-left text-xs transition-colors ${
+                      selected ? "bg-[#edf1ff] text-[#003aff]" : "text-black hover:bg-[#fafafa]"
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
       )}
     </div>
   );
 }
 
-/** Real-data "Growth" widget: average reviewed-homework score over time, filterable by course and period. */
-export function GrowthCard() {
+/**
+ * Real-data "Growth" widget: for students, average reviewed-homework score over
+ * time; for teachers (`metric="enrollments"`), new-student-enrollment count over
+ * time. Filterable by course and period.
+ */
+export function GrowthCard({ metric = "score" }: { metric?: Metric }) {
   const [period, setPeriod] = useState<GrowthPeriod>("weekly");
   const [courseSlug, setCourseSlug] = useState<string>("");
-  const [data, setData] = useState<GrowthData | null>(null);
+  const [data, setData] = useState<NormalizedGrowth | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    getGrowth({ course: courseSlug || undefined, period })
+    const request: Promise<NormalizedGrowth> =
+      metric === "enrollments"
+        ? getEnrollmentGrowth({ course: courseSlug || undefined, period }).then((res) => ({
+            summaryLabel: "New students",
+            summaryValue: res.total,
+            points: res.points,
+            courses: res.courses,
+            scaleMin: 0,
+            scaleMax: Math.max(1, ...res.points.map((p) => p.value)),
+          }))
+        : getGrowth({ course: courseSlug || undefined, period }).then((res) => ({
+            summaryLabel: "Average score",
+            summaryValue: res.average,
+            points: res.points,
+            courses: res.courses,
+            scaleMin: 1,
+            scaleMax: 5,
+          }));
+
+    request
       .then((res) => { if (!cancelled) setData(res); })
-      .catch(() => { if (!cancelled) setData({ average: 0, points: [], courses: [] }); });
+      .catch(() => {
+        if (!cancelled) {
+          setData({
+            summaryLabel: metric === "enrollments" ? "New students" : "Average score",
+            summaryValue: 0,
+            points: [],
+            courses: [],
+            scaleMin: metric === "enrollments" ? 0 : 1,
+            scaleMax: metric === "enrollments" ? 1 : 5,
+          });
+        }
+      });
     return () => { cancelled = true; };
-  }, [period, courseSlug]);
+  }, [period, courseSlug, metric]);
 
   const courseOptions: Option[] = [
     { value: "", label: "All courses" },
@@ -109,11 +155,21 @@ export function GrowthCard() {
   ];
 
   const points = data?.points ?? [];
-  const lineD = points.map((p, i) => `${i === 0 ? "M" : "L"}${xFor(i, points.length)} ${yFor(p.value)}`).join(" ");
+  const scaleMin = data?.scaleMin ?? (metric === "enrollments" ? 0 : 1);
+  const scaleMax = data?.scaleMax ?? (metric === "enrollments" ? 1 : 5);
+  const isIntegerScale = Number.isInteger(scaleMin) && Number.isInteger(scaleMax);
+  const lineD = points
+    .map((p, i) => `${i === 0 ? "M" : "L"}${xFor(i, points.length)} ${yFor(p.value, scaleMin, scaleMax)}`)
+    .join(" ");
   const areaD = points.length > 0
     ? `${lineD} L${xFor(points.length - 1, points.length)} ${CHART_Y_BASE} L${xFor(0, points.length)} ${CHART_Y_BASE} Z`
     : "";
   const labelFontSize = points.length > 6 ? 8 : 10;
+  const summaryLabel = data?.summaryLabel ?? (metric === "enrollments" ? "New students" : "Average score");
+  const yAxisSteps = [4, 3, 2, 1, 0].map((step) => {
+    const value = scaleMin + ((scaleMax - scaleMin) * step) / 4;
+    return isIntegerScale ? Math.round(value) : Number(value.toFixed(1));
+  });
 
   return (
     <Card className="p-5">
@@ -126,7 +182,7 @@ export function GrowthCard() {
       </div>
 
       <div className="mb-2 rounded bg-[#edf1ff] px-2 py-1.5 text-xs font-bold text-[#003aff]">
-        Average score: {data ? data.average : "—"}
+        {summaryLabel}: {data ? data.summaryValue : "—"}
       </div>
 
       <div className="relative h-[116px]">
@@ -145,8 +201,8 @@ export function GrowthCard() {
             <line x1="36" x2="628" y1="114" y2="114" stroke="#a7bafa" strokeDasharray="2 2" />
             <path d={areaD} fill="url(#growthFill)" />
             <path d={lineD} fill="none" stroke="#a7bafa" strokeWidth="2" />
-            {[5, 4, 3, 2, 1].map((value, index) => (
-              <text key={value} x="8" y={22 + index * 24} fill="#5e5e5e" fontSize="11">
+            {yAxisSteps.map((value, index) => (
+              <text key={index} x="8" y={22 + index * 24} fill="#5e5e5e" fontSize="11">
                 {value}
               </text>
             ))}

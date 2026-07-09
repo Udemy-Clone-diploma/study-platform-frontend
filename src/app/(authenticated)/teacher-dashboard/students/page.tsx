@@ -75,6 +75,13 @@ function StudentAvatar({ name, avatar }: { name: string; avatar?: string | null 
 const ALL_COURSES = "__all__";
 const ALL_FORMATS = "__all__";
 const ALL_GROUPS  = "__all__";
+const ALL_STATUSES = "__all__";
+
+const STATUS_OPTIONS = [
+  { value: ALL_STATUSES, label: "All" },
+  { value: "active",     label: "Studying" },
+  { value: "completed",  label: "Completed" },
+];
 
 export default function TeacherStudentsPage() {
   const [courses, setCourses]               = useState<CourseListItem[]>([]);
@@ -84,6 +91,7 @@ export default function TeacherStudentsPage() {
   const [students, setStudents]             = useState<EnrolledStudent[]>([]);
   const [cohorts, setCohorts]               = useState<CourseCohort[]>([]);
   const [selectedGroup, setSelectedGroup]   = useState<string>(ALL_GROUPS);
+  const [selectedStatus, setSelectedStatus] = useState<string>(ALL_STATUSES);
   const [search, setSearch]                 = useState("");
   const [loadingCourses, setLoadingCourses] = useState(true);
   const [loadingStudents, setLoadingStudents] = useState(false);
@@ -119,8 +127,9 @@ export default function TeacherStudentsPage() {
     setLoadingStudents(true);
 
     const formatId = selectedFormat !== ALL_FORMATS ? Number(selectedFormat) : undefined;
+    const status = selectedStatus !== ALL_STATUSES ? (selectedStatus as "active" | "completed") : undefined;
 
-    const loadStudents = getCourseEnrolledStudents(selectedCourse, formatId)
+    const loadStudents = getCourseEnrolledStudents(selectedCourse, formatId, status)
       .then(enrolled  => { if (!cancelled) setStudents(enrolled); })
       .catch(()       => { if (!cancelled) setStudents([]); })
       .finally(()     => { if (!cancelled) setLoadingStudents(false); });
@@ -138,7 +147,7 @@ export default function TeacherStudentsPage() {
 
     void loadStudents;
     return () => { cancelled = true; };
-  }, [selectedCourse, selectedFormat]);
+  }, [selectedCourse, selectedFormat, selectedStatus]);
 
   // Which delivery format type is currently active (null when "All formats")
   const selectedFormatType =
@@ -326,6 +335,15 @@ export default function TeacherStudentsPage() {
                 options={groupOptions}
                 onChange={setSelectedGroup}
                 disabled={loadingStudents || cohorts.length === 0}
+              />
+            )}
+
+            {/* Status — shown only when a specific course is selected */}
+            {selectedCourse !== ALL_COURSES && (
+              <PillSelect
+                value={selectedStatus}
+                options={STATUS_OPTIONS}
+                onChange={setSelectedStatus}
               />
             )}
           </div>

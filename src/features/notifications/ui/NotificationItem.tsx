@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Bell, BookOpen, Bookmark, ClipboardList, MessageSquare } from "lucide-react";
 import type { Notification, NotificationType } from "@/entities/notification";
 import { formatRelativeTime } from "@/shared/lib/time";
@@ -21,14 +22,12 @@ export function NotificationItem({
   const Icon = ICONS[notification.type] ?? Bell;
   const isRead = notification.is_read;
 
-  return (
-    <button
-      type="button"
-      onClick={() => onSelect(notification)}
-      className={`flex w-full items-center gap-4 rounded-3xl p-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-(--shadow-card) active:translate-y-0 ${
-        isRead ? "bg-(--color-bg)/40 hover:bg-(--color-bg)/70" : "bg-(--color-bg)"
-      }`}
-    >
+  const className = `flex w-full items-center gap-4 rounded-3xl p-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-(--shadow-card) active:translate-y-0 ${
+    isRead ? "bg-(--color-bg)/40 hover:bg-(--color-bg)/70" : "bg-(--color-bg)"
+  }`;
+
+  const content = (
+    <>
       <span
         className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full transition-opacity ${
           isRead ? "opacity-60" : "opacity-100"
@@ -64,6 +63,24 @@ export function NotificationItem({
           </time>
         </span>
       </span>
+    </>
+  );
+
+  if (notification.link_url) {
+    return (
+      <Link
+        href={notification.link_url}
+        onClick={() => onSelect(notification)}
+        className={className}
+      >
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <button type="button" onClick={() => onSelect(notification)} className={className}>
+      {content}
     </button>
   );
 }

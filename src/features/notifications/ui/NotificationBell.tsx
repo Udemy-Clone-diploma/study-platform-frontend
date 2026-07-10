@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
 import type { Notification } from "@/entities/notification";
 import { useNotifications } from "../lib/useNotifications";
@@ -14,7 +13,6 @@ export function NotificationBell() {
   const [open, setOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const router = useRouter();
   const {
     unreadCount,
     notifications,
@@ -51,11 +49,8 @@ export function NotificationBell() {
 
   function handleSelect(notification: Notification) {
     markRead(notification.id);
-    if (notification.link_url) {
-      setOpen(false);
-      setDrawerOpen(false);
-      router.push(notification.link_url);
-    }
+    setOpen(false);
+    setDrawerOpen(false);
   }
 
   function openDrawer() {

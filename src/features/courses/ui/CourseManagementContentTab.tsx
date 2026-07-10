@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Astroid, ChevronDown, X } from "lucide-react";
+import { useRef, useState, useEffect } from "react";
+import { Astroid, ChevronDown, FileText, Upload, X } from "lucide-react";
 import type {
-  CourseDetail, CourseLesson, CourseModule, CourseTest, LessonItem,
+  CourseDetail, CourseLesson, CourseModule, CourseTest, LessonDocument, LessonItem,
 } from "@/entities/course";
-import { getLessonDetail, updateLesson } from "@/entities/course";
+import { deleteLessonDocument, getLessonDetail, updateLesson, uploadLessonDocument } from "@/entities/course";
 import { SectionCard } from "@/shared/ui/SectionCard";
 import { GradientButton } from "@/shared/ui/GradientButton";
+import { MaterialPreviewModal } from "@/shared/ui/MaterialPreviewModal";
 
 const F  = "var(--font-base)";
 const FA = "var(--font-accent)";
@@ -243,6 +244,109 @@ function ItemRow({ item, onOpen }: { item: LessonItem; onOpen: () => void }) {
   );
 }
 
+// ── Materials (additional documents) section — manages the live lesson directly, no moderation ──
+
+function MaterialsSection({
+  documents, slug, moduleId, lessonId, onChange,
+}: {
+  documents: LessonDocument[];
+  slug: string;
+  moduleId: number;
+  lessonId: number;
+  onChange: (documents: LessonDocument[]) => void;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const [preview, setPreview] = useState<LessonDocument | null>(null);
+  const docInputRef = useRef<HTMLInputElement>(null);
+
+  async function handleUpload(files: File[]) {
+    if (files.length === 0) return;
+    setUploading(true);
+    try {
+      const uploaded = await Promise.all(files.map(f => uploadLessonDocument(slug, moduleId, lessonId, f)));
+      onChange([...documents, ...uploaded]);
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function handleDelete(docId: number) {
+    const prev = documents;
+    onChange(documents.filter(d => d.id !== docId));
+    try {
+      await deleteLessonDocument(slug, moduleId, lessonId, docId);
+    } catch {
+      onChange(prev);
+    }
+  }
+
+  return (
+    <div style={{ paddingLeft: "clamp(20px, 1.67vw, 24px)", paddingTop: 6, paddingBottom: 4, display: "flex", flexDirection: "column", gap: 6 }}>
+      <span style={{ fontFamily: FA, fontWeight: 600, fontSize: "clamp(10px, 0.63vw, 12px)", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+        Materials
+      </span>
+
+      {documents.map(doc => (
+        <div key={doc.id} className="flex items-center justify-between" style={{ gap: 8, padding: "2px 0" }}>
+          <button
+            type="button"
+            onClick={() => setPreview(doc)}
+            className="flex items-center transition hover:opacity-70"
+            style={{ gap: 8, minWidth: 0, background: "none", border: "none", cursor: "pointer", padding: 0, textAlign: "left" }}
+          >
+            <FileText size={16} style={{ flexShrink: 0, color: "var(--color-text-secondary)" }} />
+            <span style={{ fontFamily: F, fontSize: "clamp(12px, 0.83vw, 15px)", color: "var(--color-blue)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {doc.original_name}
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => handleDelete(doc.id)}
+            className="flex shrink-0 items-center justify-center rounded-full transition hover:bg-red-50"
+            style={{ width: 24, height: 24, border: "none", background: "transparent", cursor: "pointer" }}
+            aria-label="Remove material"
+          >
+            <X size={14} style={{ color: "var(--color-text-secondary)" }} />
+          </button>
+        </div>
+      ))}
+
+      {documents.length === 0 && (
+        <p style={{ fontFamily: F, fontSize: "clamp(12px, 0.73vw, 14px)", color: "var(--color-text-muted)", margin: 0 }}>
+          No additional materials.
+        </p>
+      )}
+
+      <button
+        type="button"
+        disabled={uploading}
+        onClick={() => docInputRef.current?.click()}
+        className="inline-flex items-center self-start transition hover:opacity-80"
+        style={{ gap: 6, height: "clamp(28px, 2.22vw, 32px)", background: "var(--color-bg)", border: "1px solid var(--color-draft)", borderRadius: 20, fontFamily: FA, fontWeight: 500, fontSize: "clamp(11px, 0.73vw, 13px)", color: "var(--color-text-primary)", cursor: uploading ? "default" : "pointer", opacity: uploading ? 0.6 : 1, padding: "0 clamp(10px, 0.83vw, 14px)" }}
+      >
+        <Upload size={14} />
+        {uploading ? "Uploading…" : "Add Material"}
+      </button>
+      <input
+        ref={docInputRef}
+        type="file"
+        multiple
+        style={{ display: "none" }}
+        onChange={(e) => { const files = Array.from(e.target.files ?? []); e.target.value = ""; void handleUpload(files); }}
+      />
+
+      {preview && (
+        <MaterialPreviewModal
+          key={preview.id}
+          title={preview.original_name}
+          url={preview.url}
+          onClose={() => setPreview(null)}
+        />
+      )}
+    </div>
+  );
+}
+
 // ── Lesson row (expandable, lazy-loads items) ─────────────────────────────────
 
 function LessonAccordion({
@@ -256,6 +360,7 @@ function LessonAccordion({
 }) {
   const [expanded, setExpanded] = useState(false);
   const [items, setItems]       = useState<LessonItem[] | null>(lesson.items !== undefined ? lesson.items : null);
+  const [documents, setDocuments] = useState<LessonDocument[]>(lesson.documents ?? []);
   const [loading, setLoading]   = useState(false);
   const [savingMandatory, setSavingMandatory] = useState(false);
 
@@ -263,7 +368,7 @@ function LessonAccordion({
     if (!expanded && items === null) {
       setLoading(true);
       getLessonDetail(slug, lesson.id)
-        .then(full => setItems(full.items ?? []))
+        .then(full => { setItems(full.items ?? []); setDocuments(full.documents ?? []); })
         .catch(() => setItems([]))
         .finally(() => setLoading(false));
     }
@@ -338,6 +443,16 @@ function LessonAccordion({
             ))
           )}
         </div>
+      )}
+
+      {expanded && !loading && (
+        <MaterialsSection
+          documents={documents}
+          slug={slug}
+          moduleId={moduleId}
+          lessonId={lesson.id}
+          onChange={setDocuments}
+        />
       )}
     </div>
   );

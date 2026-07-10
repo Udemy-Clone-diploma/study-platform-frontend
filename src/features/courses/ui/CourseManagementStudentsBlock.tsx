@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Award, Check, Pencil, X } from "lucide-react";
+import { Award, Check, Pencil, RotateCcw, X } from "lucide-react";
 import { DatePicker } from "@/shared/ui/DatePicker";
 import {
   completeStudentEnrollment,
   getCourseEnrolledStudents,
   getScheduleSlots,
+  uncompleteStudentEnrollment,
   updateEnrollmentPeriod,
 } from "@/entities/course";
 import type { CourseDetail, EnrolledStudent, ScheduleSlot } from "@/entities/course";
@@ -104,24 +105,26 @@ export function CompletionBadge({ completed }: { completed: boolean }) {
 
 // ── StudentRow (generic) ───────────────────────────────────────────────────────
 
-function StudentRow({ name, email, meta, badge, completed, onComplete }: {
+function StudentRow({ name, email, meta, badge, completed, onComplete, onUncomplete }: {
   name?: string | null; email: string; meta?: string; badge?: string; completed?: boolean;
   onComplete?: () => Promise<void>;
+  onUncomplete?: () => Promise<void>;
 }) {
-  const [completing, setCompleting] = useState(false);
-  const [completeError, setCompleteError] = useState<string | null>(null);
-  const [confirming, setConfirming] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [action, setAction] = useState<"complete" | "uncomplete" | null>(null);
 
-  async function handleComplete() {
-    setCompleting(true);
-    setCompleteError(null);
+  async function handleConfirm() {
+    setPending(true);
+    setError(null);
     try {
-      await onComplete?.();
-      setConfirming(false);
+      if (action === "complete") await onComplete?.();
+      else if (action === "uncomplete") await onUncomplete?.();
+      setAction(null);
     } catch (err) {
-      setCompleteError((err as ApiError).message ?? "Failed to mark as completed.");
+      setError((err as ApiError).message ?? "Something went wrong.");
     } finally {
-      setCompleting(false);
+      setPending(false);
     }
   }
 
@@ -135,8 +138,13 @@ function StudentRow({ name, email, meta, badge, completed, onComplete }: {
         {meta && <span style={META_STYLE}>{meta}</span>}
         {completed != null && <CompletionBadge completed={completed} />}
         {completed === false && onComplete && (
-          <button type="button" onClick={() => setConfirming(true)} disabled={completing} style={ICON_BTN} title="Mark as completed">
+          <button type="button" onClick={() => setAction("complete")} disabled={pending} style={ICON_BTN} title="Mark as completed">
             <Award size={14} />
+          </button>
+        )}
+        {completed === true && onUncomplete && (
+          <button type="button" onClick={() => setAction("uncomplete")} disabled={pending} style={ICON_BTN} title="Return to course">
+            <RotateCcw size={14} />
           </button>
         )}
         {badge && (
@@ -145,15 +153,19 @@ function StudentRow({ name, email, meta, badge, completed, onComplete }: {
           </span>
         )}
       </div>
-      {completeError && <p style={ERROR_STYLE}>{completeError}</p>}
-      {confirming && (
+      {error && <p style={ERROR_STYLE}>{error}</p>}
+      {action && (
         <CourseConfirmModal
-          title="Mark as completed"
-          description={`Mark ${name || email} as completed?`}
-          confirmLabel="Complete"
-          loading={completing}
-          onConfirm={handleComplete}
-          onCancel={() => setConfirming(false)}
+          title={action === "complete" ? "Mark as completed" : "Return to course"}
+          description={
+            action === "complete"
+              ? `Mark ${name || email} as completed?`
+              : `Return ${name || email} to active studying? This removes their completion (and certificate, if any).`
+          }
+          confirmLabel={action === "complete" ? "Complete" : "Return"}
+          loading={pending}
+          onConfirm={handleConfirm}
+          onCancel={() => setAction(null)}
         />
       )}
     </div>
@@ -177,17 +189,22 @@ function IndividualStudentRow({
   const [saving, setSaving]   = useState(false);
   const [completing, setCompleting] = useState(false);
   const [completeError, setCompleteError] = useState<string | null>(null);
-  const [confirming, setConfirming] = useState(false);
+  const [action, setAction] = useState<"complete" | "uncomplete" | null>(null);
 
-  async function handleComplete() {
+  async function handleConfirm() {
     setCompleting(true);
     setCompleteError(null);
     try {
-      await completeStudentEnrollment(slug, student.enrollment_id);
-      onUpdated({ ...student, is_completed: true });
-      setConfirming(false);
+      if (action === "complete") {
+        await completeStudentEnrollment(slug, student.enrollment_id);
+        onUpdated({ ...student, is_completed: true });
+      } else if (action === "uncomplete") {
+        await uncompleteStudentEnrollment(slug, student.enrollment_id);
+        onUpdated({ ...student, is_completed: false });
+      }
+      setAction(null);
     } catch (err) {
-      setCompleteError((err as ApiError).message ?? "Failed to mark as completed.");
+      setCompleteError((err as ApiError).message ?? "Something went wrong.");
     } finally {
       setCompleting(false);
     }
@@ -252,9 +269,13 @@ function IndividualStudentRow({
         </div>
         {meta && <span style={META_STYLE}>{meta}</span>}
         <CompletionBadge completed={student.is_completed} />
-        {!student.is_completed && (
-          <button type="button" onClick={() => setConfirming(true)} disabled={completing} style={ICON_BTN} title="Mark as completed">
+        {!student.is_completed ? (
+          <button type="button" onClick={() => setAction("complete")} disabled={completing} style={ICON_BTN} title="Mark as completed">
             <Award size={14} />
+          </button>
+        ) : (
+          <button type="button" onClick={() => setAction("uncomplete")} disabled={completing} style={ICON_BTN} title="Return to course">
+            <RotateCcw size={14} />
           </button>
         )}
         <button type="button" onClick={() => setEditing(true)} style={ICON_BTN} title="Edit period">
@@ -262,14 +283,18 @@ function IndividualStudentRow({
         </button>
       </div>
       {completeError && <p style={ERROR_STYLE}>{completeError}</p>}
-      {confirming && (
+      {action && (
         <CourseConfirmModal
-          title="Mark as completed"
-          description={`Mark ${student.student_name || student.student_email} as completed?`}
-          confirmLabel="Complete"
+          title={action === "complete" ? "Mark as completed" : "Return to course"}
+          description={
+            action === "complete"
+              ? `Mark ${student.student_name || student.student_email} as completed?`
+              : `Return ${student.student_name || student.student_email} to active studying? This removes their completion (and certificate, if any).`
+          }
+          confirmLabel={action === "complete" ? "Complete" : "Return"}
           loading={completing}
-          onConfirm={handleComplete}
-          onCancel={() => setConfirming(false)}
+          onConfirm={handleConfirm}
+          onCancel={() => setAction(null)}
         />
       )}
     </div>
@@ -339,10 +364,11 @@ export function IndividualStudentsList({ slug, fmtId, refreshKey }: {
 // ── Group: students with their cohort name ─────────────────────────────────────
 
 /** List content for the Group format — shows each student with their cohort badge. */
-export function GroupStudentsList({ course, slug, onMemberCompleted }: {
+export function GroupStudentsList({ course, slug, onMemberCompleted, onMemberUncompleted }: {
   course: CourseDetail;
   slug: string;
   onMemberCompleted?: (enrollmentId: number) => void;
+  onMemberUncompleted?: (enrollmentId: number) => void;
 }) {
   const rows = useMemo(() =>
     (course.cohorts ?? []).flatMap(c =>
@@ -365,6 +391,10 @@ export function GroupStudentsList({ course, slug, onMemberCompleted }: {
           onComplete={r.is_completed ? undefined : async () => {
             await completeStudentEnrollment(slug, r.enrollment_id);
             onMemberCompleted?.(r.enrollment_id);
+          }}
+          onUncomplete={!r.is_completed ? undefined : async () => {
+            await uncompleteStudentEnrollment(slug, r.enrollment_id);
+            onMemberUncompleted?.(r.enrollment_id);
           }}
         />
       ))}

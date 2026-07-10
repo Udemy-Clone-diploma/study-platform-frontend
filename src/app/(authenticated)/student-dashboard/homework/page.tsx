@@ -933,7 +933,10 @@ export default function StudentHomeworkPage() {
         <div className="mt-14 space-y-11">
           {groupedAssignments.map((group) => (
             <section key={group.key}>
-              <h2 className="mb-6 text-[28px] leading-none font-normal text-[#121212]">
+              <h2
+                className="font-normal text-[#121212]"
+                style={{ fontSize: "clamp(16px, 1.67vw, 24px)", marginBottom: "clamp(8px, 1.11vw, 16px)" }}
+              >
                 {group.label}
               </h2>
               <div className="grid gap-x-5 gap-y-6 2xl:grid-cols-[minmax(0,722px)_minmax(0,722px)]">

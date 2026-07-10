@@ -285,6 +285,14 @@ export async function completeStudentEnrollment(
   return data;
 }
 
+/** Teacher/admin action: undo a completion, returning the student to active study. */
+export async function uncompleteStudentEnrollment(
+  slug: string,
+  enrollmentId: number,
+): Promise<void> {
+  await api.delete(`${COURSES}${slug}/students/${enrollmentId}/complete/`);
+}
+
 /** New-enrollment count over time for the teacher's courses (teacher dashboard "Growth" widget). */
 export async function getEnrollmentGrowth(
   params: { course?: string; period: GrowthPeriod },

@@ -433,6 +433,7 @@ export default function CourseContentPage() {
           courseSlug={lessonModal.mode === "edit" ? (contentSlug ?? undefined) : undefined}
           moduleId={lessonModal.mode === "edit" ? lessonModal.moduleId : undefined}
           lessonId={lessonModal.mode === "edit" ? lessonModal.lesson.id : undefined}
+          hideDocuments={isPendingEditMode}
           onClose={closeLessonModal}
           onSave={handleSaveLesson}
           onItemsChange={lessonModal.mode === "edit" ? (items) => {

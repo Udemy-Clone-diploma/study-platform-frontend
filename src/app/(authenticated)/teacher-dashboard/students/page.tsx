@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
-import { Award, Search } from "lucide-react";
+import { Award, RotateCcw, Search } from "lucide-react";
 import { PageShell } from "@/shared/ui/PageShell";
 import { PillSelect } from "@/shared/ui/PillSelect";
 import {
@@ -10,6 +10,7 @@ import {
   getCohorts,
   getDeliveryFormats,
   completeStudentEnrollment,
+  uncompleteStudentEnrollment,
 } from "@/entities/course";
 import type {
   CourseListItem,
@@ -99,7 +100,7 @@ export default function TeacherStudentsPage() {
   const [search, setSearch]                 = useState("");
   const [loadingCourses, setLoadingCourses] = useState(true);
   const [loadingStudents, setLoadingStudents] = useState(false);
-  const [confirmingId, setConfirmingId]     = useState<number | null>(null);
+  const [pendingAction, setPendingAction]   = useState<{ enrollmentId: number; kind: "complete" | "uncomplete" } | null>(null);
   const [completing, setCompleting]         = useState(false);
   const [completeError, setCompleteError]   = useState<string | null>(null);
 
@@ -214,17 +215,26 @@ export default function TeacherStudentsPage() {
     setSelectedFormat(fmtId);
   }
 
-  async function handleComplete(enrollmentId: number) {
+  async function handleConfirmAction() {
+    if (!pendingAction) return;
+    const { enrollmentId, kind } = pendingAction;
     setCompleting(true);
     setCompleteError(null);
     try {
-      await completeStudentEnrollment(selectedCourse, enrollmentId);
-      setStudents((prev) =>
-        prev.map((s) => (s.enrollment_id === enrollmentId ? { ...s, is_completed: true } : s)),
-      );
-      setConfirmingId(null);
+      if (kind === "complete") {
+        await completeStudentEnrollment(selectedCourse, enrollmentId);
+        setStudents((prev) =>
+          prev.map((s) => (s.enrollment_id === enrollmentId ? { ...s, is_completed: true } : s)),
+        );
+      } else {
+        await uncompleteStudentEnrollment(selectedCourse, enrollmentId);
+        setStudents((prev) =>
+          prev.map((s) => (s.enrollment_id === enrollmentId ? { ...s, is_completed: false } : s)),
+        );
+      }
+      setPendingAction(null);
     } catch (err) {
-      setCompleteError((err as ApiError).message ?? "Failed to mark as completed.");
+      setCompleteError((err as ApiError).message ?? "Something went wrong.");
     } finally {
       setCompleting(false);
     }
@@ -285,21 +295,24 @@ export default function TeacherStudentsPage() {
       flex: 0.6,
       cellAlign: "center",
       headerAlign: "center",
-      render: (row) =>
-        !row.is_completed && (row.format_type === "individual" || row.format_type === "group") ? (
+      render: (row) => {
+        if (row.format_type !== "individual" && row.format_type !== "group") return null;
+        const kind = row.is_completed ? "uncomplete" : "complete";
+        return (
           <button
             type="button"
-            onClick={() => { setCompleteError(null); setConfirmingId(row.enrollment_id); }}
-            title="Mark as completed"
+            onClick={() => { setCompleteError(null); setPendingAction({ enrollmentId: row.enrollment_id, kind }); }}
+            title={row.is_completed ? "Return to course" : "Mark as completed"}
             style={{
               background: "none", border: "none", cursor: "pointer",
               padding: 4, display: "inline-flex", alignItems: "center",
               color: "var(--color-text-secondary)",
             }}
           >
-            <Award size={14} />
+            {row.is_completed ? <RotateCcw size={14} /> : <Award size={14} />}
           </button>
-        ) : null,
+        );
+      },
     },
     {
       key: "performance",
@@ -457,16 +470,22 @@ export default function TeacherStudentsPage() {
         />
       </div>
 
-      {confirmingId !== null && (
+      {pendingAction && (
         <CourseConfirmModal
-          title="Mark as completed"
-          description={`Mark ${
-            students.find((s) => s.enrollment_id === confirmingId)?.student_name ?? "this student"
-          } as completed?`}
-          confirmLabel="Complete"
+          title={pendingAction.kind === "complete" ? "Mark as completed" : "Return to course"}
+          description={
+            pendingAction.kind === "complete"
+              ? `Mark ${
+                  students.find((s) => s.enrollment_id === pendingAction.enrollmentId)?.student_name ?? "this student"
+                } as completed?`
+              : `Return ${
+                  students.find((s) => s.enrollment_id === pendingAction.enrollmentId)?.student_name ?? "this student"
+                } to active studying? This removes their completion (and certificate, if any).`
+          }
+          confirmLabel={pendingAction.kind === "complete" ? "Complete" : "Return"}
           loading={completing}
-          onConfirm={() => handleComplete(confirmingId)}
-          onCancel={() => setConfirmingId(null)}
+          onConfirm={handleConfirmAction}
+          onCancel={() => setPendingAction(null)}
         />
       )}
     </PageShell>

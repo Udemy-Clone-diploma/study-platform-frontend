@@ -605,10 +605,13 @@ type Props = {
   moduleId?: number;
   lessonId?: number;
   onItemsChange?: (items: LessonItem[]) => void;
+  /** When true (editing a published course's pending changes), additional materials
+   *  can't be managed here — they're edited directly on the live course instead. */
+  hideDocuments?: boolean;
 };
 
 /** Modal dialog for creating, editing, or viewing a course lesson, including its content blocks. */
-export function LessonFormModal({ mode, initialValues = {}, onClose, onSave, courseSlug, moduleId, lessonId, onItemsChange }: Props) {
+export function LessonFormModal({ mode, initialValues = {}, onClose, onSave, courseSlug, moduleId, lessonId, onItemsChange, hideDocuments }: Props) {
   const readOnly = mode === "view";
   const showItems = (mode === "edit" || mode === "view") && !!courseSlug && !!moduleId && !!lessonId;
 
@@ -699,6 +702,12 @@ export function LessonFormModal({ mode, initialValues = {}, onClose, onSave, cou
 
           <div>
             <label style={labelSt}>Documents</label>
+            {hideDocuments ? (
+              <p style={{ ...hintSt, marginTop: 0 }}>
+                This lesson is already published. To add, replace, or remove additional materials, use{" "}
+                <strong>Course Management → Content</strong> — those changes apply immediately, without moderation.
+              </p>
+            ) : (
             <div
               style={{
                 border: "2px dashed var(--color-draft)",
@@ -759,7 +768,8 @@ export function LessonFormModal({ mode, initialValues = {}, onClose, onSave, cou
                 />
               )}
             </div>
-            {!readOnly && <p style={hintSt}>PDF, DOCX, XLSX and other files</p>}
+            )}
+            {!hideDocuments && !readOnly && <p style={hintSt}>PDF, DOCX, XLSX and other files</p>}
           </div>
 
           <div className="grid grid-cols-2" style={{ gap: "clamp(16px, 2.78vw, 40px)" }}>

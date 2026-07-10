@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { getRoleHome, type UserRole } from "@/entities/user";
+import { getRoleCourses, getRoleHome, type UserRole } from "@/entities/user";
 import { logout } from "@/features/auth/actions/logout";
 
 const itemStyle: React.CSSProperties = {
@@ -14,13 +14,6 @@ const itemStyle: React.CSSProperties = {
     textTransform: "uppercase",
     lineHeight: "20px",
     whiteSpace: "nowrap",
-};
-
-const ROLE_COURSES: Record<UserRole, string> = {
-    administrator: "/admin",
-    moderator: "/admin",
-    teacher: "/teacher-dashboard/courses",
-    student: "/student-dashboard/courses",
 };
 
 export function UserDropdown({ firstName, role, avatar }: { firstName: string | null; role: UserRole | null; avatar: string | null }) {
@@ -108,7 +101,7 @@ export function UserDropdown({ firstName, role, avatar }: { firstName: string | 
                         <Link href={getRoleHome(role)} onClick={() => setOpen(false)} className="dropdown-link" style={itemStyle}>
                             My Office
                         </Link>
-                        <Link href={role ? ROLE_COURSES[role] : "/student-dashboard/courses"} onClick={() => setOpen(false)} className="dropdown-link" style={itemStyle}>
+                        <Link href={getRoleCourses(role)} onClick={() => setOpen(false)} className="dropdown-link" style={itemStyle}>
                             My Courses
                         </Link>
                         <button

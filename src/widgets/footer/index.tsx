@@ -24,32 +24,18 @@ export function Footer() {
             }}
         >
             <div
-                className="w-full max-w-[1420px] mx-auto px-4 md:px-6 xl:px-8"
-                style={{
-                    paddingTop: 40,
-                    paddingBottom: 40,
-                    display: "flex",
-                    flexDirection: "row",
-                    alignItems: "flex-end",
-                }}
+                className="flex w-full max-w-[1420px] mx-auto flex-col items-center gap-8 px-4 pt-5 pb-5 md:px-6 xl:px-8 lg:flex-row lg:items-end lg:gap-0 lg:pt-10 lg:pb-10"
             >
                 {/* Left */}
                 <div
-                    style={{
-                        flexBasis: "23.94%",
-                        flexShrink: 0,
-                        flexGrow: 0,
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "center",
-                        gap: "clamp(12px, 1.67vw, 32px)",
-                    }}
+                    className="flex w-full flex-col items-center gap-8 lg:w-auto lg:items-stretch lg:justify-center lg:gap-[clamp(12px,1.67vw,32px)]"
+                    style={{ flexBasis: "23.94%", flexShrink: 0, flexGrow: 0 }}
                 >
-                    <div style={{ width: "100%", aspectRatio: "340 / 114", position: "relative" }}>
-                        <Image src="/logo/Nexo4u_logo3.svg" alt="Nexo4you" fill className="object-contain object-left" />
+                    <div className="w-full max-w-[340px] lg:max-w-none" style={{ aspectRatio: "340 / 114", position: "relative" }}>
+                        <Image src="/logo/Nexo4u_logo3.svg" alt="Nexo4you" fill className="object-contain lg:object-left" />
                     </div>
 
-                    <div style={{ display: "flex", alignItems: "center", gap: "clamp(16px, 1.875vw, 36px)" }}>
+                    <div className="flex w-full items-center justify-center gap-8 lg:w-auto lg:gap-[clamp(16px,1.875vw,36px)]">
                         {SOCIAL.map((s) => (
                             <a
                                 key={s.name}
@@ -64,43 +50,36 @@ export function Footer() {
                                     alt={s.name}
                                     width={40}
                                     height={40}
-                                    className="block object-contain"
-                                    style={{ width: "clamp(20px, 2.08vw, 40px)", height: "clamp(20px, 2.08vw, 40px)" }}
+                                    className="block h-10 w-10 object-contain lg:h-[clamp(20px,2.08vw,40px)] lg:w-[clamp(20px,2.08vw,40px)]"
                                 />
                             </a>
                         ))}
                     </div>
                 </div>
 
-                <div style={{ flexBasis: "9.86%", flexShrink: 0 }} />
+                <div className="hidden lg:block" style={{ flexBasis: "9.86%", flexShrink: 0 }} />
 
                 {/* Right */}
                 <div
-                    style={{
-                        flex: "1 1 0",
-                        minWidth: 0,
-                        display: "flex",
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: "8%",
-                    }}
+                    className="flex w-full flex-col items-center gap-8 lg:w-auto lg:flex-1 lg:flex-row lg:items-center lg:gap-[8%]"
+                    style={{ minWidth: 0 }}
                 >
-                    <div className="flex-1 min-w-0 flex flex-col" style={{ gap: 12 }}>
+                    <div className="flex w-full flex-col items-center gap-3 text-center lg:w-auto lg:flex-1 lg:min-w-0 lg:items-start lg:text-left">
                         {LINKS_LEFT.map((label) => (
-                            <span key={label} style={textStyle}>{label}</span>
+                            <span key={label} className={textSizeClassName} style={textStyle}>{label}</span>
                         ))}
                     </div>
 
-                    <div className="flex-1 min-w-0 flex flex-col" style={{ gap: 12 }}>
+                    <div className="flex w-full flex-col items-center gap-3 text-center lg:w-auto lg:flex-1 lg:min-w-0 lg:items-start lg:text-left">
                         {LINKS_RIGHT.map((label) => (
-                            <span key={label} style={textStyle}>{label}</span>
+                            <span key={label} className={textSizeClassName} style={textStyle}>{label}</span>
                         ))}
                     </div>
 
-                    <div className="flex-1 min-w-0 flex flex-col" style={{ gap: 12 }}>
+                    <div className="flex w-full flex-col items-center gap-3 text-center lg:w-auto lg:flex-1 lg:min-w-0 lg:items-start lg:text-left">
                         <FooterLink href="mailto:hello@gmail.com">hello@gmail.com</FooterLink>
-                        <span style={textStyle}>24 New, Brooklyn, USA</span>
-                        <span style={textStyle}>+34 875 328 58 47</span>
+                        <span className={textSizeClassName} style={textStyle}>24 New, Brooklyn, USA</span>
+                        <span className={textSizeClassName} style={textStyle}>+34 875 328 58 47</span>
                     </div>
                 </div>
             </div>
@@ -108,9 +87,10 @@ export function Footer() {
     );
 }
 
+const textSizeClassName = "text-[20px] lg:text-[clamp(13px,1.25vw,24px)]";
+
 const textStyle: React.CSSProperties = {
     fontFamily: "var(--font-base)",
-    fontSize: "clamp(13px, 1.25vw, 24px)",
     fontWeight: 400,
     lineHeight: 1.25,
     color: "var(--color-text-primary)",
@@ -119,7 +99,7 @@ const textStyle: React.CSSProperties = {
 
 function FooterLink({ href, children }: { href: string; children: React.ReactNode }) {
     return (
-        <a href={href} className="transition-opacity hover:opacity-70" style={textStyle}>
+        <a href={href} className={`transition-opacity hover:opacity-70 ${textSizeClassName}`} style={textStyle}>
             {children}
         </a>
     );

@@ -9,7 +9,7 @@ import { useEmailPreference } from "../lib/useEmailPreference";
 import { NotificationItem } from "./NotificationItem";
 import { NotificationDrawer } from "./NotificationDrawer";
 
-export function NotificationBell() {
+export function NotificationBell({ iconSize = 24 }: { iconSize?: number } = {}) {
   const [open, setOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -78,7 +78,7 @@ export function NotificationBell() {
           onClick={toggle}
           className="relative flex h-10 w-10 items-center justify-center transition-opacity hover:opacity-70"
         >
-          <Image src="/layout/notifications-icon.png" alt="" width={24} height={24} />
+          <Image src="/layout/notifications-icon.png" alt="" width={iconSize} height={iconSize} />
           {unreadCount > 0 && (
             <span className="absolute -top-0.5 right-0 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-(--color-danger) px-1 text-[10px] font-bold text-(--color-bg)">
               {unreadCount > 9 ? "9+" : unreadCount}

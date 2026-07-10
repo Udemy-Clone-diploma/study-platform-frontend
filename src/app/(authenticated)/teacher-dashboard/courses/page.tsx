@@ -8,6 +8,7 @@ import { MoreVertical, RotateCcw } from "lucide-react";
 import { useAutoRefresh } from "@/shared/lib/useAutoRefresh";
 import { ModalShell } from "@/shared/ui/ModalShell";
 import { AccentButton } from "@/shared/ui/AccentButton";
+import { PageShell } from "@/shared/ui/PageShell";
 import { TeacherCourseCard, type TeacherCourseStatus } from "@/features/courses";
 import { RejectionDetailModal } from "@/features/courses/ui/RejectionDetailModal";
 import {
@@ -307,10 +308,7 @@ export default function TeacherCoursesPage() {
   }
 
   return (
-    <main
-      className="bg-my-courses min-h-[calc(100vh-76px)]"
-      style={{ paddingInline: "clamp(16px, 2.78vw, 40px)", paddingBlock: "clamp(16px, 2.22vw, 32px)" }}
-    >
+    <PageShell className="bg-my-courses">
       <div style={{ maxWidth: "1648px", margin: "0 auto" }}>
         {/* Tabs + Add Course button */}
         <div
@@ -456,6 +454,6 @@ export default function TeacherCoursesPage() {
           </div>
         </ModalShell>
       )}
-    </main>
+    </PageShell>
   );
 }

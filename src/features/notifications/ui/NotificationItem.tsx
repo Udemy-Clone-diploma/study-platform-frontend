@@ -22,7 +22,7 @@ export function NotificationItem({
   const Icon = ICONS[notification.type] ?? Bell;
   const isRead = notification.is_read;
 
-  const className = `flex w-full items-center gap-4 rounded-3xl p-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-(--shadow-card) active:translate-y-0 ${
+  const className = `flex w-full items-start gap-4 rounded-3xl p-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-(--shadow-card) active:translate-y-0 ${
     isRead ? "bg-(--color-bg)/40 hover:bg-(--color-bg)/70" : "bg-(--color-bg)"
   }`;
 
@@ -36,10 +36,10 @@ export function NotificationItem({
       >
         <Icon className="h-5 w-5 text-(--color-text-primary)" strokeWidth={2} aria-hidden />
       </span>
-      <span className="flex min-w-0 flex-1 flex-col">
-        <span className="flex items-center gap-2">
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5 py-1">
+        <span className="flex items-start gap-2">
           <span
-            className={`min-w-0 flex-1 truncate ${
+            className={`min-w-0 flex-1 break-words ${
               isRead
                 ? "font-medium text-(--color-text-secondary)"
                 : "font-bold text-(--color-text-primary)"
@@ -48,20 +48,18 @@ export function NotificationItem({
             {notification.title}
           </span>
           {!isRead && (
-            <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-(--color-danger)" aria-hidden />
+            <span className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full bg-(--color-danger)" aria-hidden />
           )}
         </span>
-        <span className="flex items-center gap-2">
-          <span className="min-w-0 flex-1 truncate text-sm text-(--color-text-secondary)">
-            {notification.body}
-          </span>
-          <time
-            dateTime={notification.created_at}
-            className="shrink-0 text-xs text-(--color-text-secondary)"
-          >
-            {formatRelativeTime(notification.created_at)}
-          </time>
+        <span className="break-words text-sm text-(--color-text-secondary)">
+          {notification.body}
         </span>
+        <time
+          dateTime={notification.created_at}
+          className="text-xs text-(--color-text-secondary)"
+        >
+          {formatRelativeTime(notification.created_at)}
+        </time>
       </span>
     </>
   );

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { GradientButton } from "@/shared/ui/GradientButton";
 import type { CourseTest, TestAnswerInput, TestAttemptResult } from "@/entities/course";
 import {
@@ -13,12 +12,16 @@ import {
 } from "@/entities/course";
 import type { ApiError } from "@/shared/api/base";
 import { QuizQuestionCard, type AnswerState } from "./QuizQuestionCard";
+import { QuizWindow } from "./QuizWindow";
 
 type Props = {
   slug: string;
   test: CourseTest;
   isMock?: boolean;
   onPassed?: () => void;
+  /** Present when this test is the lesson's last content block and there's a lesson
+   *  after it — shows a "Next lesson" CTA on the results screen alongside Retake. */
+  nextLessonHref?: string;
 };
 
 const emptyAnswer = (): AnswerState => ({ selected: [], bool: null, text: "" });
@@ -31,7 +34,7 @@ function toAnswerInput(questionId: number, questionType: string, a: AnswerState)
   return { question_id: questionId, answer_text: a.text };
 }
 
-export function QuizPlayer({ slug, test, isMock = false, onPassed }: Props) {
+export function QuizPlayer({ slug, test, isMock = false, onPassed, nextLessonHref }: Props) {
   const ordered = byOrder(test.questions);
   const [answers, setAnswers] = useState<Record<number, AnswerState>>(() =>
     Object.fromEntries(ordered.map((q) => [q.id, emptyAnswer()])),
@@ -91,85 +94,61 @@ export function QuizPlayer({ slug, test, isMock = false, onPassed }: Props) {
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-[1380px] flex-col gap-5">
-      <QuizHeader test={test} />
-
-      <div>
-        {loading ? (
-          <p role="status" className="py-8 text-center text-(--color-text-secondary)">
-            Loading your test...
-          </p>
-        ) : (
-          <div className="mx-auto flex max-w-[1280px] flex-col gap-5">
-            <div className="flex flex-col gap-10">
-              {result
-                ? byOrder(result.questions).map((g, i) => (
-                    <QuizQuestionCard key={g.id} mode="review" index={i} graded={g} />
-                  ))
-                : ordered.map((q, i) => (
-                    <QuizQuestionCard
-                      key={q.id}
-                      mode="answer"
-                      index={i}
-                      questionType={q.question_type}
-                      text={q.text}
-                      options={q.options}
-                      value={answers[q.id]}
-                      onChange={(next) => setAnswers((prev) => ({ ...prev, [q.id]: next }))}
-                    />
-                  ))}
-            </div>
-
-            {error && (
-              <p role="alert" className="text-center text-base text-(--color-danger)">
-                {error}
-              </p>
-            )}
-
-            {result ? (
-              <ResultsFooter slug={slug} result={result} onRetake={restart} />
-            ) : (
-              <div className="flex justify-center pt-4">
-                <QuizButton onClick={handleSubmit} disabled={submitting}>
-                  {submitting ? "Submitting..." : "To the results"}
-                </QuizButton>
-              </div>
-            )}
+    <QuizWindow title={test.title} description={test.description} passingScore={test.passing_score}>
+      {loading ? (
+        <p role="status" className="py-8 text-center text-(--color-text-secondary)">
+          Loading your test...
+        </p>
+      ) : (
+        <div className="mx-auto flex max-w-[1280px] flex-col gap-5">
+          <div className="flex flex-col gap-5">
+            {result
+              ? byOrder(result.questions).map((g, i) => (
+                  <QuizQuestionCard key={g.id} mode="review" index={i} graded={g} />
+                ))
+              : ordered.map((q, i) => (
+                  <QuizQuestionCard
+                    key={q.id}
+                    mode="answer"
+                    index={i}
+                    questionType={q.question_type}
+                    text={q.text}
+                    options={q.options}
+                    value={answers[q.id]}
+                    onChange={(next) => setAnswers((prev) => ({ ...prev, [q.id]: next }))}
+                  />
+                ))}
           </div>
-        )}
-      </div>
-    </div>
-  );
-}
 
-function QuizHeader({ test }: { test: CourseTest }) {
-  return (
-    <div className="flex flex-col gap-2">
-      <h2 className="font-(family-name:--font-base) text-[2rem] leading-10 text-(--color-black)">
-        {test.title}
-      </h2>
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:gap-5">
-        {test.description && (
-          <p className="flex-1 font-(family-name:--font-base) text-xl leading-[25px] text-(--color-black)">
-            {test.description}
-          </p>
-        )}
-        <span className="shrink-0 font-(family-name:--font-accent) text-base font-semibold leading-5 text-(--color-text-primary)">
-          Passing Score: {test.passing_score}%
-        </span>
-      </div>
-    </div>
+          {error && (
+            <p role="alert" className="text-center text-base text-(--color-danger)">
+              {error}
+            </p>
+          )}
+
+          {result ? (
+            <ResultsFooter result={result} onRetake={restart} nextLessonHref={nextLessonHref} />
+          ) : (
+            <div className="flex flex-wrap items-center justify-center gap-5 pt-1">
+              <QuizButton onClick={handleSubmit} disabled={submitting} size="lg">
+                {submitting ? "Submitting..." : "To the results"}
+              </QuizButton>
+            </div>
+          )}
+        </div>
+      )}
+    </QuizWindow>
   );
 }
 
 function ResultsFooter({
-  slug,
   result,
   onRetake,
+  nextLessonHref,
 }: {
-  slug: string;
   result: TestAttemptResult;
   onRetake: () => void;
+  nextLessonHref?: string;
 }) {
   const answered = result.questions.filter(
     (q) =>
@@ -216,7 +195,7 @@ function ResultsFooter({
           </span>
         )}
         {result.can_retake && <GradientButton onClick={onRetake}>Retake</GradientButton>}
-        <QuizButton href={`/learn/${slug}`}>Back to course</QuizButton>
+        {nextLessonHref && <GradientButton href={nextLessonHref}>Next lesson</GradientButton>}
       </div>
     </div>
   );
@@ -224,21 +203,28 @@ function ResultsFooter({
 
 type QuizButtonProps = {
   children: React.ReactNode;
-  href?: string;
   onClick?: () => void;
   disabled?: boolean;
+  size?: "sm" | "lg";
+  variant?: "solid" | "outline";
 };
 
-function QuizButton({ children, href, onClick, disabled }: QuizButtonProps) {
-  const classes =
-    "inline-flex h-[52px] min-w-[200px] items-center justify-center rounded-full bg-(--color-text-primary) px-7 font-(family-name:--font-accent) text-xl font-medium leading-[30px] text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60";
-  if (href) {
-    return (
-      <Link href={href} className={classes}>
-        {children}
-      </Link>
-    );
-  }
+function QuizButton({
+  children,
+  onClick,
+  disabled,
+  size = "sm",
+  variant = "solid",
+}: QuizButtonProps) {
+  const sizeClasses =
+    size === "lg"
+      ? "h-[52px] min-w-[200px] px-8 text-base"
+      : "h-[30px] min-w-[124px] px-5 text-xs";
+  const variantClasses =
+    variant === "outline"
+      ? "border border-(--color-text-primary) text-(--color-text-primary)"
+      : "bg-(--color-text-primary) text-white";
+  const classes = `inline-flex items-center justify-center rounded-full font-(family-name:--font-accent) font-medium leading-none transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 ${sizeClasses} ${variantClasses}`;
   return (
     <button type="button" onClick={onClick} disabled={disabled} className={classes}>
       {children}

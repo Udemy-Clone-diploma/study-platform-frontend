@@ -8,6 +8,7 @@ export const MOCK_COURSE_DETAIL_SLUG = "ux-ui-design-mastery";
 export const mockCourseDetail: CourseDetail = {
   id: 1,
   image: "/mocks/courses/ux-ui-design-mastery.png",
+  image_hash: "mock-image-hash",
   title: "UX/UI Design Mastery",
   subtitle: "From Logic to Visual Excellence",
   quote:
@@ -44,7 +45,10 @@ export const mockCourseDetail: CourseDetail = {
   total_duration_minutes: 64 * 60,
   lessons_count: 10,
   with_certificate: true,
+  certificate_description:
+    "The student mastered end-to-end UX/UI design: research, wireframes, prototyping, and usability testing.",
   is_on_sale: false,
+  passing_score: 80,
   rating_avg: "4.9",
   rating_count: 1850,
   students_count: 1850,
@@ -83,6 +87,7 @@ export const mockCourseDetail: CourseDetail = {
       unlock_mode: "sequential",
       max_students: null,
       enrolled_count: 0,
+      completed_count: 0,
       pricing: {
         id: 1,
         price: "599.00",
@@ -102,6 +107,7 @@ export const mockCourseDetail: CourseDetail = {
       unlock_mode: null,
       max_students: 5,
       enrolled_count: 0,
+      completed_count: 0,
       pricing: {
         id: 2,
         price: "899.00",
@@ -282,6 +288,18 @@ export const mockCourseProgress: CourseProgress = {
   completed_lesson_ids: [1, 2, 3],
   last_lesson_id: 4,
   last_opened_at: "2026-05-29T12:30:00Z",
+  test_average: 72,
+  tests_passed: 2,
+  tests_failed: 1,
+  tests_skipped: 1,
+  tests_total: 4,
+  is_with_teacher: true,
+  homework_average: 85,
+  homework_graded: 2,
+  homework_ungraded: 1,
+  homework_total: 3,
+  can_complete_course: false,
+  is_course_completed: false,
 };
 
 const SAMPLE_BODY_HTML = `

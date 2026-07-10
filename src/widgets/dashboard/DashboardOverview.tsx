@@ -1,6 +1,14 @@
 import Image from "next/image";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
+import {
+  HomeworkQueuePanel,
+  HomeworkReviewPanel,
+  StudentHomeworkProvider,
+} from "./StudentHomeworkDashboardPanels";
 import { MyCoursesDashboardWidget } from "./MyCoursesDashboardWidget";
+import { ScheduleRail } from "./ScheduleRail";
+import { StudentNotesPanel } from "./StudentNotesPanel";
+import { PAGE_PADDING_TOP, SIDEBAR_GAP } from "@/shared/ui/PageShell";
 
 type DashboardRole = "student" | "teacher";
 
@@ -22,86 +30,10 @@ type ProgressItem = {
   value: number;
 };
 
-const studentTasks: DashboardListItem[] = [
-  {
-    course: "UX/UI Design",
-    meta: "Task",
-    title: "Landing",
-    icon: "/icons/world.png",
-    accent: "from-[#fff0df] to-[#ffeab2]",
-    date: "20.04",
-    badge: "5+",
-  },
-  {
-    course: "Marketing",
-    meta: "Test",
-    title: "Research",
-    icon: "/icons/statistics.svg",
-    accent: "from-[#dbe4ff] to-[#a7bafa]",
-    date: "23.04",
-    badge: "4+",
-  },
-  {
-    course: "Business analytics",
-    meta: "Task",
-    title: "Risk analysis",
-    icon: "/icons/curses.svg",
-    accent: "from-[#fff0df] to-[#ffeab2]",
-    date: "30.04",
-    badge: "5+",
-  },
-  {
-    course: "UX research",
-    meta: "Workshop",
-    title: "Persona notes",
-    icon: "/icons/diary.svg",
-    accent: "from-[#e7f7ff] to-[#d7ddff]",
-    date: "02.05",
-  },
-];
-
-const studentNotes: DashboardListItem[] = [
-  {
-    course: "UX/UI Design",
-    meta: "Lesson 4",
-    title: "Landing",
-    icon: "/icons/world.png",
-    accent: "from-[#fff3dc] to-[#ffe7ef]",
-    date: "20.04",
-  },
-  {
-    course: "Marketing",
-    meta: "Lesson 3",
-    title: "Research",
-    icon: "/icons/statistics.svg",
-    accent: "from-[#ffe7ef] to-[#dfd7ff]",
-    date: "19.04",
-  },
-  {
-    course: "Business analytics",
-    meta: "Lesson 1",
-    title: "Risk analysis",
-    icon: "/icons/curses.svg",
-    accent: "from-[#e0fbf5] to-[#d8ddff]",
-    date: "17.04",
-  },
-  {
-    course: "Marketing",
-    meta: "Lesson 2",
-    title: "Competitor Analysis",
-    icon: "/icons/pie chart.png",
-    accent: "from-[#ffe7ef] to-[#dfd7ff]",
-    date: "15.04",
-  },
-  {
-    course: "UX/UI Design",
-    meta: "Lesson 4",
-    title: "Design critique",
-    icon: "/icons/world.png",
-    accent: "from-[#fff3dc] to-[#ffe7ef]",
-    date: "12.04",
-  },
-];
+const scheduleRailStyle = {
+  marginRight: "clamp(16px, calc(-11.43px + 2.68vw), 40px)",
+  "--schedule-height": "calc(100vh - 76px - clamp(16px, 2.22vw, 32px))",
+} as CSSProperties;
 
 const teacherChecks: DashboardListItem[] = [
   {
@@ -171,14 +103,6 @@ const progressItems: ProgressItem[] = [
   },
 ];
 
-const calendarWeeks = [
-  ["30", "31", "1", "2", "3", "4", "5"],
-  ["6", "7", "8", "9", "10", "11", "12"],
-  ["13", "14", "15", "16", "17", "18", "19"],
-  ["20", "21", "22", "23", "24", "25", "26"],
-  ["27", "28", "29", "30", "1", "2", "3"],
-];
-
 export function DashboardOverview({ role }: { role: DashboardRole }) {
   if (role === "teacher") {
     return <TeacherDashboard />;
@@ -190,33 +114,41 @@ export function DashboardOverview({ role }: { role: DashboardRole }) {
 function StudentDashboard() {
   return (
     <section className="min-h-[calc(100vh-76px)] bg-white">
-      <div
-        className="grid min-h-[calc(100vh-76px)]"
-        style={{ gridTemplateColumns: "1fr clamp(200px, 17.19vw, 330px)" }}
-      >
+      <StudentHomeworkProvider>
         <div
-          className="grid"
+          className="grid min-h-[calc(100vh-76px)]"
           style={{
-            gridTemplateColumns: "clamp(400px, 42.71vw, 820px) clamp(280px, 24.48vw, 470px)",
-            gap: "clamp(12px, 1.25vw, 24px)",
-            paddingInline: "clamp(16px, 2.08vw, 40px)",
-            paddingBlock: "clamp(16px, 1.67vw, 32px)",
+            gridTemplateColumns: "1fr clamp(240px, calc(100.53px + 13.62vw), 362px)",
+            gap: SIDEBAR_GAP,
+            paddingTop: PAGE_PADDING_TOP,
+            paddingLeft: SIDEBAR_GAP,
           }}
         >
-          <div className="flex min-w-0 flex-col" style={{ gap: "clamp(12px, 1.04vw, 20px)" }}>
-            <MyCoursesDashboardWidget role="student" />
-            <GrowthCard score="4.9" />
-            <TodoPanel title="To Do" secondaryLabel="Overdue" items={studentTasks.slice(0, 3)} />
+          <div
+            className="grid"
+            style={{
+              gridTemplateColumns:
+                "clamp(390px, calc(-101.4px + 47.99vw), 820px) clamp(225px, calc(-55.04px + 27.34vw), 470px)",
+              gap: "clamp(12px, calc(-1.71px + 1.34vw), 24px)",
+            }}
+          >
+            <div className="flex min-w-0 flex-col" style={{ gap: "clamp(12px, 1.04vw, 20px)" }}>
+              <MyCoursesDashboardWidget role="student" />
+              <GrowthCard score="4.9" />
+              <HomeworkQueuePanel />
+            </div>
+
+            <div className="flex min-w-0 flex-col" style={{ gap: "clamp(12px, 1.04vw, 20px)" }}>
+              <HomeworkReviewPanel />
+              <StudentNotesPanel />
+            </div>
           </div>
 
-          <div className="flex min-w-0 flex-col" style={{ gap: "clamp(12px, 1.04vw, 20px)" }}>
-            <CompactTaskPanel items={studentTasks} />
-            <NotesPanel items={studentNotes} />
+          <div style={scheduleRailStyle}>
+            <ScheduleRail />
           </div>
         </div>
-
-        <ScheduleRail />
-      </div>
+      </StudentHomeworkProvider>
     </section>
   );
 }
@@ -226,15 +158,19 @@ function TeacherDashboard() {
     <section className="min-h-[calc(100vh-76px)] bg-white">
       <div
         className="grid min-h-[calc(100vh-76px)]"
-        style={{ gridTemplateColumns: "1fr clamp(200px, 17.19vw, 330px)" }}
+        style={{
+          gridTemplateColumns: "1fr clamp(240px, calc(100.53px + 13.62vw), 362px)",
+          gap: SIDEBAR_GAP,
+          paddingTop: PAGE_PADDING_TOP,
+          paddingLeft: SIDEBAR_GAP,
+        }}
       >
         <div
           className="grid"
           style={{
-            gridTemplateColumns: "clamp(400px, 42.71vw, 820px) clamp(280px, 24.48vw, 470px)",
-            gap: "clamp(12px, 1.25vw, 24px)",
-            paddingInline: "clamp(16px, 2.08vw, 40px)",
-            paddingBlock: "clamp(16px, 1.67vw, 32px)",
+            gridTemplateColumns:
+              "clamp(390px, calc(-101.4px + 47.99vw), 820px) clamp(225px, calc(-55.04px + 27.34vw), 470px)",
+            gap: "clamp(12px, calc(-1.71px + 1.34vw), 24px)",
           }}
         >
           <div className="flex min-w-0 flex-col" style={{ gap: "clamp(12px, 1.04vw, 20px)" }}>
@@ -255,7 +191,9 @@ function TeacherDashboard() {
           </div>
         </div>
 
-        <ScheduleRail />
+        <div style={scheduleRailStyle}>
+          <ScheduleRail />
+        </div>
       </div>
     </section>
   );
@@ -315,31 +253,6 @@ function GrowthCard({ score }: { score: string }) {
   );
 }
 
-function CompactTaskPanel({ items }: { items: DashboardListItem[] }) {
-  return (
-    <Card className="max-h-[300px] overflow-hidden p-4">
-      <ScrollableList>
-        {items.map((item) => (
-          <ListRow key={`${item.title}-${item.date}`} item={item} compact />
-        ))}
-      </ScrollableList>
-    </Card>
-  );
-}
-
-function NotesPanel({ items }: { items: DashboardListItem[] }) {
-  return (
-    <Card className="max-h-[300px] overflow-hidden p-4">
-      <h2 className="mb-2 text-base font-bold text-black">My Notes</h2>
-      <ScrollableList>
-        {items.map((item) => (
-          <ListRow key={`${item.title}-${item.date}`} item={item} compact />
-        ))}
-      </ScrollableList>
-    </Card>
-  );
-}
-
 function TodoPanel({
   title,
   secondaryLabel,
@@ -363,7 +276,11 @@ function TodoPanel({
       </div>
       <ScrollableList>
         {items.map((item) => (
-          <ListRow key={`${item.title}-${item.author ?? item.badge}`} item={item} teacher={teacher} />
+          <ListRow
+            key={`${item.title}-${item.author ?? item.badge}`}
+            item={item}
+            teacher={teacher}
+          />
         ))}
       </ScrollableList>
     </Card>
@@ -404,65 +321,6 @@ function CourseProgressPanel({ items }: { items: ProgressItem[] }) {
   );
 }
 
-function ScheduleRail() {
-  return (
-    <aside className="bg-[linear-gradient(180deg,#fff4da_0%,#fcc4c3_45%,#a7bafa_100%)] px-4 py-8">
-      <CalendarCard />
-      <div className="mt-4">
-        <h2 className="mb-3 text-base font-bold text-black">Today&apos;s schedule</h2>
-        <div className="flex flex-col gap-2">
-          {[1, 2].map((item) => (
-            <div key={item} className="rounded-md bg-white/70 px-3 py-3">
-              <p className="text-sm font-semibold text-black">Course</p>
-              <p className="mt-2 text-xs text-black">Lesson&nbsp;&nbsp;|&nbsp;&nbsp;16:30</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </aside>
-  );
-}
-
-function CalendarCard() {
-  return (
-    <Card className="p-4">
-      <div className="mb-4 flex items-center justify-between text-black">
-        <button aria-label="Previous month" className="text-lg leading-none">
-          {"<"}
-        </button>
-        <h2 className="text-xs font-semibold">April 2026</h2>
-        <button aria-label="Next month" className="text-lg leading-none">
-          {">"}
-        </button>
-      </div>
-      <div className="grid grid-cols-7 gap-y-3 text-center text-[11px] text-[#5e5e5e]">
-        {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day, index) => (
-          <span key={`${day}-${index}`}>{day}</span>
-        ))}
-        {calendarWeeks.flat().map((day, index) => {
-          const muted = index < 2 || index > 32;
-          const active = day === "18";
-          const outlined = day === "21" || (day === "30" && index > 28);
-
-          return (
-            <span
-              key={`${day}-${index}`}
-              className={[
-                "mx-auto flex h-7 w-7 items-center justify-center rounded-full",
-                muted ? "text-black/15" : "text-black",
-                active ? "bg-[#fcc4c3] text-white" : "",
-                outlined ? "border border-[#fcc4c3]" : "",
-              ].join(" ")}
-            >
-              {day}
-            </span>
-          );
-        })}
-      </div>
-    </Card>
-  );
-}
-
 function ListRow({
   item,
   compact = false,
@@ -496,7 +354,9 @@ function ListRow({
           From: <span className="text-[#003aff]">{item.author}</span>
         </span>
       ) : null}
-      {item.date && !teacher ? <span className="whitespace-nowrap text-xs text-[#003aff]">{item.date}</span> : null}
+      {item.date && !teacher ? (
+        <span className="whitespace-nowrap text-xs text-[#003aff]">{item.date}</span>
+      ) : null}
     </div>
   );
 }

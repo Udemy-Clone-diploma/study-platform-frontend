@@ -131,6 +131,68 @@ export async function deleteCohortSchedule(
   );
 }
 
+export type ScheduleConflictPersonalEvent = {
+  id: number;
+  title: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+  is_owner: boolean;
+  invitation_id: number | null;
+};
+
+export type ScheduleConflicts = {
+  group: Array<{ id: number; course_title: string; cohort_name: string | null; start_time: string; end_time: string }>;
+  individual: Array<{ id: number; course_title: string; start_time: string; end_time: string }>;
+  personal: Array<{ id: number; reason: string; start_time: string; end_time: string }>;
+  personal_events: ScheduleConflictPersonalEvent[];
+};
+
+export type SlotPersonalConflict = {
+  id: number;
+  title: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+  is_owner: boolean;
+  invitation_id: number | null;
+};
+
+export async function checkSlotPersonalConflicts(
+  slug: string,
+  formatId: number,
+  slotId: number,
+): Promise<SlotPersonalConflict[]> {
+  const res = await api.get<SlotPersonalConflict[]>(
+    `/courses/${slug}/delivery-formats/${formatId}/schedule-slots/${slotId}/personal-conflicts/`,
+  );
+  return res.data;
+}
+
+export async function checkCohortScheduleConflicts(
+  slug: string,
+  cohortId: number,
+  params: { day_of_week: number; start_time: string; end_time: string; schedule_id?: number },
+): Promise<ScheduleConflicts> {
+  const res = await api.get<ScheduleConflicts>(
+    `/courses/${slug}/cohorts/${cohortId}/schedules/conflicts/`,
+    { params },
+  );
+  return res.data;
+}
+
+export async function checkSlotRescheduleConflicts(
+  slug: string,
+  formatId: number,
+  params: { day_of_week: number; start_time: string; end_time: string; slot_id?: number },
+): Promise<ScheduleConflicts> {
+  const res = await api.get<ScheduleConflicts>(
+    `/courses/${slug}/delivery-formats/${formatId}/schedule-slots/reschedule-conflicts/`,
+    { params },
+  );
+  return res.data;
+}
+
 // ── Teacher unavailability ────────────────────────────────────────────────────
 
 export async function getTeacherUnavailabilities(): Promise<TeacherUnavailability[]> {

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { getCategories } from "@/entities/course";
 import { getMe } from "@/entities/user";
@@ -55,7 +56,9 @@ export async function Header({ borderRadius = "0px 0px 20px 20px" }: HeaderProps
                         className="flex items-center shrink-0 h-full"
                         style={{ gap: isLoggedIn ? 48 : 60 }}
                     >
-                        <Link href="/" style={{ display: "block", width: 180, height: 60, background: "var(--color-placeholder)", flexShrink: 0 }} aria-label="Home" />
+                        <Link href="/" style={{ display: "block", width: 180, height: 60, flexShrink: 0, position: "relative" }} aria-label="Home">
+                            <Image src="/logo/Nexo4u_logo3.svg" alt="Nexo4you" fill className="object-contain object-left" priority />
+                        </Link>
 
                         <nav className="flex items-center gap-8 h-full">
                             <CatalogDropdown categories={categories} />

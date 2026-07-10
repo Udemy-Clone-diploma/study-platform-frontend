@@ -9,7 +9,9 @@ export function CourseCreationLayout({ children }: Props) {
       style={{
         backgroundColor: "var(--color-bg-creation)",
         minHeight: "100dvh",
-        padding: "clamp(20px, 3.23vw, 62px) clamp(16px, 2.22vw, 40px)",
+        paddingBlock: "clamp(16px, 2.22vw, 32px)",
+        paddingLeft: "clamp(40px, calc(-110px + 10.42vw), 90px)",
+        paddingRight: "clamp(40px, calc(-110px + 10.42vw), 90px)",
       }}
     >
       <div style={{ maxWidth: "clamp(640px, 71.875vw, 1380px)", margin: "0 auto" }}>

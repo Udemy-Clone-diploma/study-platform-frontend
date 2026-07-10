@@ -71,10 +71,29 @@ function ListWrap({ children }: { children: React.ReactNode }) {
   return <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>{children}</div>;
 }
 
+// ── CompletionBadge ────────────────────────────────────────────────────────────
+
+function CompletionBadge({ completed }: { completed: boolean }) {
+  return (
+    <span
+      style={{
+        fontFamily: "var(--font-base)", fontWeight: 600,
+        fontSize: "clamp(10px, 0.63vw, 12px)",
+        borderRadius: 999, padding: "2px 10px", flexShrink: 0, whiteSpace: "nowrap",
+        color: completed ? "var(--color-success)" : "var(--color-text-secondary)",
+        border: `1px solid ${completed ? "var(--color-success)" : "var(--color-border-light)"}`,
+        background: "white",
+      }}
+    >
+      {completed ? "Completed" : "Studying"}
+    </span>
+  );
+}
+
 // ── StudentRow (generic) ───────────────────────────────────────────────────────
 
-function StudentRow({ name, email, meta, badge }: {
-  name?: string | null; email: string; meta?: string; badge?: string;
+function StudentRow({ name, email, meta, badge, completed }: {
+  name?: string | null; email: string; meta?: string; badge?: string; completed?: boolean;
 }) {
   return (
     <div style={ROW}>
@@ -83,6 +102,7 @@ function StudentRow({ name, email, meta, badge }: {
         {name && <p style={SUB_STYLE}>{email}</p>}
       </div>
       {meta && <span style={META_STYLE}>{meta}</span>}
+      {completed != null && <CompletionBadge completed={completed} />}
       {badge && (
         <span style={{ fontFamily: "var(--font-base)", fontSize: "clamp(10px, 0.63vw, 12px)", background: "var(--color-bg)", border: "1px solid var(--color-border-light)", borderRadius: 999, padding: "2px 10px", color: "var(--color-text-secondary)", flexShrink: 0, whiteSpace: "nowrap" }}>
           {badge}
@@ -165,6 +185,7 @@ function IndividualStudentRow({
         </p>
       </div>
       {meta && <span style={META_STYLE}>{meta}</span>}
+      <CompletionBadge completed={student.is_completed} />
       <button type="button" onClick={() => setEditing(true)} style={ICON_BTN} title="Edit period">
         <Pencil size={14} />
       </button>
@@ -248,7 +269,7 @@ export function GroupStudentsList({ course }: { course: CourseDetail }) {
   return (
     <ListWrap>
       {rows.map(r => (
-        <StudentRow key={r.enrollment_id} name={r.student_name} email={r.student_email} badge={r.cohortName} />
+        <StudentRow key={r.enrollment_id} name={r.student_name} email={r.student_email} badge={r.cohortName} completed={r.is_completed} />
       ))}
     </ListWrap>
   );
@@ -274,7 +295,7 @@ export function SimpleStudentsList({ slug, fmtId }: { slug: string; fmtId: numbe
   return (
     <ListWrap>
       {students.map(s => (
-        <StudentRow key={s.enrollment_id} name={s.student_name} email={s.student_email} />
+        <StudentRow key={s.enrollment_id} name={s.student_name} email={s.student_email} completed={s.is_completed} />
       ))}
     </ListWrap>
   );

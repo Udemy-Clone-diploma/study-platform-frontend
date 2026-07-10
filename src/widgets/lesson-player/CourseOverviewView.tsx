@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Image from "next/image";
 import { ArrowUpRight } from "lucide-react";
 import type { CourseDetail, CourseProgress } from "@/entities/course";
-import { byOrder, useCourseProgress } from "@/entities/course";
+import { byOrder, useCompletionRedirect, useCourseProgress } from "@/entities/course";
 import { sanitizeCourseHtml } from "@/shared/lib/sanitizeCourseHtml";
 import { StartCourseButton } from "@/features/learning";
 import { GradientButton } from "@/shared/ui/GradientButton";
@@ -34,6 +34,8 @@ export function CourseOverviewView({ course, initialProgress = null, isMock = fa
   );
   // Progress is incidental here, so its load error is ignored.
   const { progress } = useCourseProgress(course.slug, initialProgress, isMock);
+
+  useCompletionRedirect(progress?.is_course_completed);
 
   const allOpen = openModuleIds.size === sortedModules.length && sortedModules.length > 0;
 

@@ -18,7 +18,7 @@ import type { TeacherProfile } from "@/entities/user";
 import type { ApiError } from "@/shared/api/base";
 import { mapApiFieldErrors } from "@/shared/lib/apiErrors";
 
-const EMPTY_FORM: CourseBasicsFormValues = { title: "", short_description: "", full_description: "", category_id: "", level: "", price: "" };
+const EMPTY_FORM: CourseBasicsFormValues = { title: "", short_description: "", full_description: "", category_id: "", level: "" };
 
 export default function NewCoursePage() {
   const router = useRouter();
@@ -50,7 +50,6 @@ export default function NewCoursePage() {
   }
 
   function buildPayload(fallback = false): Record<string, unknown> {
-    const priceNum = parseFloat(form.price);
     const payload: Record<string, unknown> = {
       teacher_profile: teacherProfileId,
       title: fallback ? form.title || "Untitled Course" : form.title,
@@ -61,8 +60,7 @@ export default function NewCoursePage() {
       mode: "self_learning",
       delivery_type: "self_paced",
       course_type: "knowledge",
-      pricing_type: !isNaN(priceNum) && priceNum > 0 ? "full_payment" : "free",
-      price: form.price || "0",
+      pricing_type: "free",
       duration_hours: 1,
       status: "draft",
     };

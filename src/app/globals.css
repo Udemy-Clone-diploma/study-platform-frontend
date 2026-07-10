@@ -18,6 +18,18 @@
   --color-bg: #ffffff;
   --color-text-primary: #121212;
   --color-text-secondary: #5e5e5e;
+  --gradient-sidebar-item-expanded: linear-gradient(
+    90deg,
+    #FFF4DA 0%,
+    #FCC4C3 49%,
+    rgb(167 186 250 / 0) 100%
+  );
+  --gradient-sidebar-item-collapsed: linear-gradient(
+    90deg,
+    #FFF4DA 0%,
+    #FCC4C3 49%,
+    #FCC4C3 100%
+  );
 
   --color-calendar-bg: #d6e0ff;
   --color-calendar-today: #a7bafa;
@@ -99,6 +111,19 @@
     rgba(167, 186, 250, 0) 72%
   );
 
+  /* Hero ellipses only (course-detail teacher photo) — same brand cream/pink/lavender
+     sequence as --gradient-ellipse but semi-transparent with a soft fade to fully
+     transparent at the edge, so the two overlapping circles blend into each other
+     instead of the top one opaquely covering the bottom one. Kept separate from
+     --gradient-ellipse (used elsewhere) so tuning this doesn't affect those. */
+  --gradient-hero-ellipse: radial-gradient(
+    circle,
+    rgba(255, 244, 218, 0.85) 0%,
+    rgba(252, 196, 195, 0.75) 45%,
+    rgba(167, 186, 250, 0.90) 70%,
+    rgba(167, 186, 250, 0) 100%
+  );
+
   --gradient-profile-line: linear-gradient(
     180deg,
     var(--color-brand-lavender) 0%,
@@ -111,6 +136,19 @@
     var(--color-brand-lavender) 0%,
     var(--color-brand-pink) 50.96%,
     var(--color-brand-cream) 100%
+  );
+
+  --gradient-sidebar-item-expanded: linear-gradient(
+    90deg,
+    #FFF4DA 0%,
+    #FCC4C3 49%,
+    rgb(167 186 250 / 0) 100%
+  );
+  --gradient-sidebar-item-collapsed: linear-gradient(
+    90deg,
+    #FFF4DA 0%,
+    #FCC4C3 49%,
+    #FCC4C3 100%
   );
 
   --gradient-feedback: linear-gradient(
@@ -242,6 +280,16 @@ body {
   color: var(--color-blue);
 }
 
+.sidebar-nav-gradient-expanded:hover,
+.sidebar-nav-gradient-expanded[aria-current="page"] {
+  background-image: var(--gradient-sidebar-item-expanded);
+}
+
+.sidebar-nav-gradient-collapsed:hover,
+.sidebar-nav-gradient-collapsed[aria-current="page"] {
+  background-image: var(--gradient-sidebar-item-collapsed);
+}
+
 .gradient-border {
   background:
     linear-gradient(#fff, #fff) padding-box,
@@ -306,6 +354,41 @@ body {
 .course-card:active {
   box-shadow:
     0px 0px 30px rgba(0, 0, 0, 0.16),
+    0 0 0 2px var(--card-border-color);
+}
+
+.mini-course-card {
+  background: var(--card-bg);
+  box-shadow: var(--shadow-my-courses-card);
+  cursor: pointer;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  transition: box-shadow 0.35s ease;
+}
+.mini-course-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--color-bg);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+  z-index: -1;
+}
+.mini-course-card:hover::before {
+  opacity: 1;
+}
+.mini-course-card:hover {
+  box-shadow: 0px 0px 40px rgba(0, 0, 0, 0.22);
+}
+.mini-course-card:active::before {
+  opacity: 0;
+}
+.mini-course-card:active {
+  box-shadow:
+    var(--shadow-my-courses-card),
     0 0 0 2px var(--card-border-color);
 }
 

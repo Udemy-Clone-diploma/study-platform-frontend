@@ -1,41 +1,34 @@
 import { SectionContainer } from "@/shared/ui/SectionContainer";
 import { StudentReviewCard, type StudentReview } from "@/features/users";
+import type { TopReview } from "@/entities/course";
 
-const ROW1: StudentReview[] = [
-    {
-        id: 1,
-        text: "I never thought I could master UX/UI from scratch. Thanks to Sarah Jenkins, I landed my first job offer before even finishing the course! The platform is incredibly intuitive; everything is in one tab.",
-        authorName: "Emily Watson",
-        authorRole: "Junior Product Designer",
-        authorAvatar: null,
-    },
-    {
-        id: 2,
-        text: "I chose the self-paced format due to my busy schedule. The fact that progress is auto-saved and videos work on any device is a lifesaver. David Chen explains code like he's just talking to a friend.",
-        authorName: "Marcus Nilsson",
-        authorRole: "Python Developer",
-        authorAvatar: null,
-    },
-];
+type Props = { reviews: TopReview[] };
 
-const ROW2: StudentReview[] = [
-    {
-        id: 3,
-        text: "The community is the biggest asset. We had a group chat with the mentor where any question was answered within minutes. You never feel alone with the theory; you're part of a team.",
-        authorName: "Amara Okafor",
-        authorRole: "Performance Marketer",
-        authorAvatar: null,
-    },
-    {
-        id: 4,
-        text: "Took a management course and loved the interactive quizzes after each module. Downloaded my PDF certificate, added it to LinkedIn, and got several interview invites within a week.",
-        authorName: "Lucas Wójcik",
-        authorRole: "Project Manager",
-        authorAvatar: null,
-    },
-];
+function toStudentReview(review: TopReview): StudentReview {
+    return {
+        id: review.id,
+        text: review.text,
+        authorName: review.student.name,
+        authorRole: `Studied ${review.course.title}`,
+        authorAvatar: review.student.avatar,
+    };
+}
 
-export function StudentReviewsSection() {
+function chunkPairs<T>(items: T[]): T[][] {
+    const pairs: T[][] = [];
+    for (let i = 0; i < items.length; i += 2) pairs.push(items.slice(i, i + 2));
+    return pairs;
+}
+
+// Narrow/wide flex ratio for a two-card row, alternating per row so the layout
+// zigzags (row 0: narrow+wide, row 1: wide+narrow, ...) instead of a plain grid.
+const NARROW = 580;
+const WIDE = 820;
+
+export function StudentReviewsSection({ reviews }: Props) {
+    if (reviews.length === 0) return null;
+    const cards = reviews.map(toStudentReview);
+
     return (
         <section style={{ background: "var(--gradient-feedback)" }}>
             <SectionContainer>
@@ -110,18 +103,33 @@ export function StudentReviewsSection() {
                         </div>
                     </div>
 
-                    {/* Cards grid */}
+                    {/* Zigzag rows of 2: narrow+wide, then wide+narrow, alternating.
+                        Card size stays constant regardless of how much text a review
+                        has (StudentReviewCard clamps text to a fixed height); only the
+                        column widths alternate per row. */}
                     <div style={{ display: "flex", flexDirection: "column", gap: "1.04vw" }}>
-                        {/* Row 1: narrow (580) + wide (820) */}
-                        <div style={{ display: "flex", gap: "1.04vw" }}>
-                            <StudentReviewCard review={ROW1[0]} style={{ flex: 580 }} />
-                            <StudentReviewCard review={ROW1[1]} style={{ flex: 820 }} />
-                        </div>
-                        {/* Row 2: equal halves */}
-                        <div style={{ display: "flex", gap: "1.04vw" }}>
-                            <StudentReviewCard review={ROW2[0]} style={{ flex: 1 }} />
-                            <StudentReviewCard review={ROW2[1]} style={{ flex: 1 }} />
-                        </div>
+                        {chunkPairs(cards).map((pair, rowIndex) => {
+                            const narrowFirst = rowIndex % 2 === 0;
+                            return (
+                                <div key={rowIndex} style={{ display: "flex", gap: "1.04vw" }}>
+                                    {pair.map((review, colIndex) => {
+                                        const flex =
+                                            pair.length === 1
+                                                ? 1
+                                                : (colIndex === 0) === narrowFirst
+                                                    ? NARROW
+                                                    : WIDE;
+                                        return (
+                                            <StudentReviewCard
+                                                key={review.id}
+                                                review={review}
+                                                style={{ flex }}
+                                            />
+                                        );
+                                    })}
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
             </SectionContainer>

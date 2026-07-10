@@ -1,9 +1,10 @@
 import { api } from "@/shared/api/base";
 import type { CourseDeliveryFormat, CourseDeliveryFormatPayload } from "../model/delivery-format";
+import type { Paginated } from "../model/types";
 
 export async function getDeliveryFormats(slug: string): Promise<CourseDeliveryFormat[]> {
-  const res = await api.get<CourseDeliveryFormat[]>(`/courses/${slug}/delivery-formats/`);
-  return res.data;
+  const res = await api.get<CourseDeliveryFormat[] | Paginated<CourseDeliveryFormat>>(`/courses/${slug}/delivery-formats/`);
+  return Array.isArray(res.data) ? res.data : res.data.results;
 }
 
 export async function createDeliveryFormat(

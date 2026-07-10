@@ -22,6 +22,15 @@ export async function markNotificationRead(id: number): Promise<Notification> {
   return data;
 }
 
+export async function markNotificationUnread(id: number): Promise<Notification> {
+  const { data } = await api.patch<Notification>(`/notifications/${id}/`, { is_read: false });
+  return data;
+}
+
+export async function deleteNotification(id: number): Promise<void> {
+  await api.delete(`/notifications/${id}/`);
+}
+
 export async function markAllNotificationsRead(): Promise<number> {
   const { data } = await api.post<{ updated: number }>("/notifications/mark-all-read/");
   return data.updated;

@@ -5,7 +5,9 @@ import {
   getNotifications,
   getUnreadCount,
   markNotificationRead,
+  markNotificationUnread,
   markAllNotificationsRead,
+  deleteNotification,
   type Notification,
 } from "@/entities/notification";
 
@@ -92,6 +94,28 @@ export function useNotifications() {
     [notifications],
   );
 
+  const markUnread = useCallback(
+    async (id: number) => {
+      const target = notifications.find((n) => n.id === id);
+      if (!target || !target.is_read) return;
+      setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, is_read: false } : n)));
+      setUnreadCount((prev) => prev + 1);
+      await markNotificationUnread(id).catch(() => null);
+    },
+    [notifications],
+  );
+
+  const remove = useCallback(
+    async (id: number) => {
+      const target = notifications.find((n) => n.id === id);
+      if (!target) return;
+      setNotifications((prev) => prev.filter((n) => n.id !== id));
+      if (!target.is_read) setUnreadCount((prev) => Math.max(0, prev - 1));
+      await deleteNotification(id).catch(() => null);
+    },
+    [notifications],
+  );
+
   const markAllRead = useCallback(async () => {
     setNotifications((prev) => prev.map((n) => (n.is_read ? n : { ...n, is_read: true })));
     setUnreadCount(0);
@@ -107,6 +131,8 @@ export function useNotifications() {
     loadList,
     loadMore,
     markRead,
+    markUnread,
+    remove,
     markAllRead,
   };
 }

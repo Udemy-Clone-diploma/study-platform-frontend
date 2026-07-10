@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Bell, BookOpen, Bookmark, ClipboardList, MessageSquare } from "lucide-react";
 import type { Notification, NotificationType } from "@/entities/notification";
 import { formatRelativeTime } from "@/shared/lib/time";
+import { NotificationItemMenu } from "./NotificationItemMenu";
 
 const ICONS: Record<NotificationType, typeof Bell> = {
   new_message: MessageSquare,
@@ -15,15 +16,19 @@ const ICONS: Record<NotificationType, typeof Bell> = {
 export function NotificationItem({
   notification,
   onSelect,
+  onToggleRead,
+  onDelete,
 }: {
   notification: Notification;
   onSelect: (notification: Notification) => void;
+  onToggleRead: (notification: Notification) => void;
+  onDelete: (id: number) => void;
 }) {
   const Icon = ICONS[notification.type] ?? Bell;
   const isRead = notification.is_read;
 
-  const className = `flex w-full items-start gap-4 rounded-3xl p-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-(--shadow-card) active:translate-y-0 ${
-    isRead ? "bg-(--color-bg)/40 hover:bg-(--color-bg)/70" : "bg-(--color-bg)"
+  const cardClass = `flex w-full items-start gap-4 rounded-3xl p-3 text-left transition-colors ${
+    isRead ? "bg-(--color-bg)/40 group-hover:bg-(--color-bg)/70" : "bg-(--color-bg)"
   }`;
 
   const content = (
@@ -37,7 +42,13 @@ export function NotificationItem({
         <Icon className="h-5 w-5 text-(--color-text-primary)" strokeWidth={2} aria-hidden />
       </span>
       <span className="flex min-w-0 flex-1 flex-col gap-0.5 py-1">
-        <span className="flex items-start gap-2">
+        <span className="flex items-start gap-2 pr-7">
+          {!isRead && (
+            <span
+              className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-(--color-danger)"
+              aria-hidden
+            />
+          )}
           <span
             className={`min-w-0 flex-1 break-words ${
               isRead
@@ -47,38 +58,37 @@ export function NotificationItem({
           >
             {notification.title}
           </span>
-          {!isRead && (
-            <span className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full bg-(--color-danger)" aria-hidden />
-          )}
         </span>
         <span className="break-words text-sm text-(--color-text-secondary)">
           {notification.body}
         </span>
-        <time
-          dateTime={notification.created_at}
-          className="text-xs text-(--color-text-secondary)"
-        >
+        <time dateTime={notification.created_at} className="text-xs text-(--color-text-secondary)">
           {formatRelativeTime(notification.created_at)}
         </time>
       </span>
     </>
   );
 
-  if (notification.link_url) {
-    return (
-      <Link
-        href={notification.link_url}
-        onClick={() => onSelect(notification)}
-        className={className}
-      >
-        {content}
-      </Link>
-    );
-  }
-
   return (
-    <button type="button" onClick={() => onSelect(notification)} className={className}>
-      {content}
-    </button>
+    <div className="group relative rounded-3xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-(--shadow-card) active:translate-y-0">
+      {notification.link_url ? (
+        <Link
+          href={notification.link_url}
+          onClick={() => onSelect(notification)}
+          className={cardClass}
+        >
+          {content}
+        </Link>
+      ) : (
+        <button type="button" onClick={() => onSelect(notification)} className={cardClass}>
+          {content}
+        </button>
+      )}
+      <NotificationItemMenu
+        isRead={isRead}
+        onToggleRead={() => onToggleRead(notification)}
+        onDelete={() => onDelete(notification.id)}
+      />
+    </div>
   );
 }

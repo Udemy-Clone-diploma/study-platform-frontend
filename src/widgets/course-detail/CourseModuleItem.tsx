@@ -64,6 +64,11 @@ export function CourseModuleItem({ courseModule, slug, hasPricing }: Props) {
                     Free preview
                   </span>
                 )}
+                {lesson.is_mandatory && (
+                  <span className="flex-shrink-0 rounded-full bg-(--color-brand-yellow) px-3 py-0.5 font-(family-name:--font-accent) text-xs uppercase text-(--color-text-primary) sm:text-sm">
+                    Mandatory
+                  </span>
+                )}
               </>
             );
             const row =

@@ -5,6 +5,7 @@ import { StudentCourseCard, CompletedCourseCard, CompletionResultModal } from "@
 import { getEnrolledCourses, getStudentCompletions } from "@/entities/course";
 import type { CourseListItem, CourseLevel, CourseCompletion } from "@/entities/course";
 import type { ApiError } from "@/shared/api/base";
+import { PageShell } from "@/shared/ui/PageShell";
 
 const TABS = ["All", "Current", "Completed"] as const;
 type Tab = (typeof TABS)[number];
@@ -57,14 +58,22 @@ export default function StudentCoursesPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  // A completed course keeps its (unrevoked) enrollment, so it would otherwise
+  // show up as both an active card and a completed card — keep only the
+  // completed one once a course has been finished.
+  const completedCourseIds = new Set(
+    completions.map((c) => c.course).filter((id): id is number => id != null),
+  );
+  const activeCourses = courses.filter((c) => !completedCourseIds.has(c.id));
+
   const allItems: AllItem[] = [
-    ...courses.map((item): AllItem => ({ kind: "active", item })),
+    ...activeCourses.map((item): AllItem => ({ kind: "active", item })),
     ...completions.map((item): AllItem => ({ kind: "completed", item })),
   ].sort((a, b) => itemDate(b) - itemDate(a));
 
   const displayItems: AllItem[] =
     activeTab === "Current"
-      ? courses
+      ? activeCourses
           .sort((a, b) =>
             new Date(b.enrolled_at ?? b.created_at).getTime() -
             new Date(a.enrolled_at ?? a.created_at).getTime(),
@@ -87,10 +96,7 @@ export default function StudentCoursesPage() {
   }
 
   return (
-    <main
-      className="bg-my-courses min-h-[calc(100vh-76px)]"
-      style={{ paddingInline: "clamp(16px, 2.78vw, 40px)", paddingBlock: "clamp(16px, 2.22vw, 32px)" }}
-    >
+    <PageShell className="bg-my-courses">
       <div style={{ maxWidth: "1648px", margin: "0 auto" }}>
         <nav
           aria-label="Course filter"
@@ -142,7 +148,7 @@ export default function StudentCoursesPage() {
                         key={`active-${entry.item.id}`}
                         title={entry.item.title}
                         teacherName={entry.item.teacher_name}
-                        progressPercent={0}
+                        progressPercent={entry.item.progress_percent ?? 0}
                         imageSrc={entry.item.image}
                         iconSrc={LEVEL_ICON[entry.item.level] ?? "/icons/curses.svg"}
                         level={entry.item.level}
@@ -173,6 +179,6 @@ export default function StudentCoursesPage() {
           onClose={() => setSelectedCompletion(null)}
         />
       )}
-    </main>
+    </PageShell>
   );
 }

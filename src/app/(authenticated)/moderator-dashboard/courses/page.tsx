@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useAutoRefresh } from "@/shared/lib/useAutoRefresh";
+import { PageShell } from "@/shared/ui/PageShell";
 import {
   getUnassignedModerationCourses,
   getMyModerationCourses,
@@ -43,6 +44,12 @@ const LEVEL_GRADIENT: Record<CourseLevel, string> = {
   advanced:     "var(--gradient-card-pink)",
 };
 
+const LEVEL_BORDER: Record<CourseLevel, string> = {
+  beginner:     "var(--color-brand-lavender)",
+  intermediate: "var(--color-brand-yellow)",
+  advanced:     "var(--color-brand-pink)",
+};
+
 const TAB_STATUS_ICON: Record<TabKey, string | null> = {
   unassigned:     null,
   review:         "/icons/clock.svg",
@@ -64,18 +71,20 @@ function ModeratorCourseCard({ course, tab, onClick, href }: {
   href?: string;
 }) {
   const gradient   = LEVEL_GRADIENT[course.level] ?? "var(--gradient-card-blue)";
+  const border     = LEVEL_BORDER[course.level]   ?? "var(--color-brand-lavender)";
   const fallback   = LEVEL_FALLBACK[course.level] ?? "/icons/curses.svg";
   const statusIcon = TAB_STATUS_ICON[tab];
   const thumbSize  = "clamp(36px, 4.17vw, 60px)";
   const iconSize   = "clamp(16px, 1.67vw, 24px)";
 
-  const cardClass = "flex items-center shadow-(--shadow-my-courses-card) transition-[box-shadow,filter] hover:shadow-[0px_0px_40px_rgba(0,0,0,0.22)] focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-blue)";
+  const cardClass = "mini-course-card flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-blue)";
   const cardStyle = {
-    background: gradient,
+    "--card-bg": gradient,
+    "--card-border-color": border,
     borderRadius: "clamp(12px, 1.39vw, 20px)",
     padding: "clamp(10px, 2.09vw, 40px) clamp(8px, 0.83vw, 12px)",
     gap: "clamp(4px, 0.56vw, 8px)",
-  };
+  } as React.CSSProperties;
 
   const body = (
     <>
@@ -152,6 +161,7 @@ function ModeratorRecordCard({ title, image, level, statusIcon, statusAlt, onCli
   onClick: () => void;
 }) {
   const gradient  = LEVEL_GRADIENT[level] ?? "var(--gradient-card-blue)";
+  const border    = LEVEL_BORDER[level]   ?? "var(--color-brand-lavender)";
   const fallback  = LEVEL_FALLBACK[level]  ?? "/icons/curses.svg";
   const thumbSize = "clamp(36px, 4.17vw, 60px)";
   const iconSize  = "clamp(16px, 1.67vw, 24px)";
@@ -160,8 +170,8 @@ function ModeratorRecordCard({ title, image, level, statusIcon, statusAlt, onCli
       <button
         type="button"
         onClick={onClick}
-        className="flex w-full items-center text-left shadow-(--shadow-my-courses-card) transition-[box-shadow,filter] hover:shadow-[0px_0px_40px_rgba(0,0,0,0.22)] focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-blue)"
-        style={{ background: gradient, borderRadius: "clamp(12px, 1.39vw, 20px)", padding: "clamp(10px, 2.09vw, 40px) clamp(8px, 0.83vw, 12px)", gap: "clamp(4px, 0.56vw, 8px)" }}
+        className="mini-course-card flex w-full items-center text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-blue)"
+        style={{ "--card-bg": gradient, "--card-border-color": border, borderRadius: "clamp(12px, 1.39vw, 20px)", padding: "clamp(10px, 2.09vw, 40px) clamp(8px, 0.83vw, 12px)", gap: "clamp(4px, 0.56vw, 8px)" } as React.CSSProperties}
       >
         <Image src={image ?? fallback} alt="" width={60} height={60} unoptimized={!!image} className="shrink-0 object-contain" style={{ width: thumbSize, height: thumbSize }} />
         <div className="flex min-w-0 flex-1 flex-col justify-center" style={{ gap: "clamp(4px, 0.56vw, 8px)" }}>
@@ -325,10 +335,7 @@ export default function ModeratorCoursesPage() {
   const visible = getVisible();
 
   return (
-    <main
-      className="bg-my-courses min-h-[calc(100vh-76px)]"
-      style={{ paddingInline: "clamp(16px, 2.78vw, 40px)", paddingBlock: "clamp(16px, 2.22vw, 32px)" }}
-    >
+    <PageShell className="bg-my-courses">
       <div style={{ maxWidth: "1648px", margin: "0 auto" }}>
 
         {/* Tabs */}
@@ -440,6 +447,6 @@ export default function ModeratorCoursesPage() {
           onCancel={() => { setPendingSlug(null); setAssignError(""); }}
         />
       )}
-    </main>
+    </PageShell>
   );
 }

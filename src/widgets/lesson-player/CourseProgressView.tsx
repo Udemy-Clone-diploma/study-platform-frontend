@@ -1,10 +1,14 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Check, ChevronDown, TriangleAlert } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Check, ChevronDown, PartyPopper, TriangleAlert } from "lucide-react";
+import type { ApiError } from "@/shared/api/base";
+import { GradientButton } from "@/shared/ui/GradientButton";
 import type { CourseDetail, CourseProgress } from "@/entities/course";
-import { byOrder, useCourseProgress } from "@/entities/course";
+import { byOrder, completeCourse, useCompletionRedirect, useCourseProgress } from "@/entities/course";
+import { CompleteCourseReviewModal } from "@/features/courses";
 import { LearnPageDecor } from "./LearnPageDecor";
 import { LearnTabs } from "./LearnTabs";
 
@@ -14,9 +18,6 @@ type Props = {
   /** Dev-mock course: progress comes from localStorage instead of the API. */
   isMock?: boolean;
 };
-
-/** Required passing grade. Hardcoded until the backend exposes it (see BACKEND_CHANGES.md). */
-const PASSING_SCORE = 80;
 
 /** Nearest scrollable ancestor (the app-shell content scroller), falling back to the document. */
 function getScrollParent(node: HTMLElement | null): HTMLElement {
@@ -34,11 +35,30 @@ function getScrollParent(node: HTMLElement | null): HTMLElement {
 /**
  * Progress tab of the lesson player. Hero shows the completion donut, score bar
  * and certificate/ratings cards; a down arrow scrolls to the per-module list.
- * Only the completion percentage is live data; the rest is placeholder copy.
  */
 export function CourseProgressView({ course, initialProgress = null, isMock = false }: Props) {
+  const router = useRouter();
   const { progress, error } = useCourseProgress(course.slug, initialProgress, isMock);
   const detailRef = useRef<HTMLDivElement>(null);
+  const [completing, setCompleting] = useState(false);
+  const [completionError, setCompletionError] = useState<string | null>(null);
+  const [showReviewPrompt, setShowReviewPrompt] = useState(false);
+
+  useCompletionRedirect(progress?.is_course_completed);
+
+  async function finishCompletion() {
+    setShowReviewPrompt(false);
+    setCompleting(true);
+    setCompletionError(null);
+    try {
+      await completeCourse(course.slug);
+      router.replace("/student-dashboard/courses");
+    } catch (err) {
+      const apiError = err as Partial<ApiError>;
+      setCompletionError(apiError.message ?? "Could not complete the course.");
+      setCompleting(false);
+    }
+  }
 
   // Scope vertical scroll-snap to this view: the hero fills the screen and a
   // scroll past it lands on the lesson-completion section. The app shell scrolls
@@ -58,6 +78,7 @@ export function CourseProgressView({ course, initialProgress = null, isMock = fa
   const completedCount = progress?.lessons_completed_count ?? 0;
   const lessonsTotal = progress?.lessons_count ?? course.lessons_count;
   const percent = progress ? Math.round((completedCount * 100) / total) : 0;
+  const passingScore = course.passing_score;
 
   // overflow-clip (not overflow-hidden) clips the decor without becoming a scroll
   // container, so the document stays the scroll-snap container.
@@ -90,7 +111,7 @@ export function CourseProgressView({ course, initialProgress = null, isMock = fa
                 <ProgressDonut percent={percent} />
               </div>
 
-              <ScoreBar percent={percent} passing={PASSING_SCORE} />
+              <ScoreBar percent={percent} passing={passingScore} />
               {error && (
                 <p role="status" className="text-(--color-pink-dark)">
                   {error}
@@ -99,12 +120,38 @@ export function CourseProgressView({ course, initialProgress = null, isMock = fa
             </div>
 
             <div className="flex flex-col gap-6">
-              <CertificateCard />
-              <RatingsCard />
+              <CertificateCard passing={passingScore} />
+              <TestsStatsCard
+                average={progress?.test_average ?? null}
+                passed={progress?.tests_passed ?? 0}
+                failed={progress?.tests_failed ?? 0}
+                skipped={progress?.tests_skipped ?? 0}
+                total={progress?.tests_total ?? 0}
+              />
+              {progress?.is_with_teacher && (
+                <HomeworkStatsCard
+                  average={progress?.homework_average ?? null}
+                  graded={progress?.homework_graded ?? 0}
+                  ungraded={progress?.homework_ungraded ?? 0}
+                  total={progress?.homework_total ?? 0}
+                />
+              )}
             </div>
           </div>
 
-          <PassingAlert passing={PASSING_SCORE} />
+          {progress?.can_complete_course ? (
+            <CompleteCourseCta
+              loading={completing}
+              error={completionError}
+              onComplete={() => setShowReviewPrompt(true)}
+            />
+          ) : (
+            <PassingAlert passing={passingScore} />
+          )}
+
+          {showReviewPrompt && (
+            <CompleteCourseReviewModal slug={course.slug} onDone={finishCompletion} />
+          )}
 
           <div className="mt-auto flex justify-center">
             <button
@@ -157,7 +204,7 @@ export function CourseProgressView({ course, initialProgress = null, isMock = fa
                       <li key={l.id}>
                         <Link
                           href={`/learn/${course.slug}/${l.id}`}
-                          className="group flex items-center gap-3 rounded-md px-2 py-1 hover:bg-(--color-brand-lavender)/15"
+                          className="group flex flex-wrap items-center gap-x-3 gap-y-1 rounded-md px-2 py-1 hover:bg-(--color-brand-lavender)/15"
                         >
                           <span
                             className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
@@ -172,6 +219,11 @@ export function CourseProgressView({ course, initialProgress = null, isMock = fa
                           <span className="text-(--color-text-primary) group-hover:underline">
                             Lesson {l.order}: {l.title}
                           </span>
+                          {l.is_mandatory && (
+                            <span className="flex-shrink-0 rounded-full bg-(--color-brand-yellow) px-3 py-0.5 font-(family-name:--font-accent) text-xs uppercase text-(--color-text-primary)">
+                              Mandatory
+                            </span>
+                          )}
                           {isDone && <span className="sr-only">Completed</span>}
                         </Link>
                       </li>
@@ -226,7 +278,7 @@ function ProgressDonut({ percent }: { percent: number }) {
   );
 }
 
-/** 980px score bar: yellow current-score marker, black passing-score marker, and a passing-threshold tick inside the bar. */
+/** 980px score bar: yellow current-score marker (lesson-completion %), black passing-score marker, and a passing-threshold tick inside the bar. */
 function ScoreBar({ percent, passing }: { percent: number; passing: number }) {
   return (
     <div className="relative w-full max-w-[980px] py-16">
@@ -288,37 +340,159 @@ function PassingAlert({ passing }: { passing: number }) {
     <div className="mx-auto flex w-fit items-center gap-2 rounded-[20px] bg-(--color-white-20) px-6 py-4 shadow-[inset_0_2px_4px_0_var(--color-white-85)] backdrop-blur-sm">
       <TriangleAlert aria-hidden="true" className="h-6 w-6 shrink-0 text-(--color-text-primary)" />
       <p className="font-(family-name:--font-base) text-base uppercase text-(--color-text-primary)">
-        A passing grade of {passing}% is required to complete this course
+        A passing grade of {passing}% and all mandatory lessons completed are required to
+        complete this course
       </p>
     </div>
   );
 }
 
+/** Glass alert shown once the passing score is reached and all mandatory lessons are done. */
+function CompleteCourseCta({
+  loading,
+  error,
+  onComplete,
+}: {
+  loading: boolean;
+  error: string | null;
+  onComplete: () => void;
+}) {
+  return (
+    <div className="mx-auto flex w-fit flex-col items-center gap-3 rounded-[20px] bg-(--color-white-20) px-6 py-4 shadow-[inset_0_2px_4px_0_var(--color-white-85)] backdrop-blur-sm">
+      <div className="flex items-center gap-2">
+        <PartyPopper aria-hidden="true" className="h-6 w-6 shrink-0 text-(--color-text-primary)" />
+        <p className="font-(family-name:--font-base) text-base uppercase text-(--color-text-primary)">
+          You have met this course&apos;s completion requirements
+        </p>
+      </div>
+      <GradientButton type="button" onClick={onComplete} disabled={loading}>
+        {loading ? "Completing…" : "Complete course"}
+      </GradientButton>
+      {error && (
+        <p role="status" className="text-sm text-(--color-pink-dark)">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
 /** White "Certificate status" card with a lavender glow. */
-function CertificateCard() {
+function CertificateCard({ passing }: { passing: number }) {
   return (
     <div className="flex flex-col items-center gap-2 rounded-[20px] bg-white p-8 text-center shadow-[0_0_11px_var(--color-brand-lavender)] lg:p-10">
       <h2 className="font-(family-name:--font-base) text-2xl font-medium text-(--color-text-primary) lg:text-4xl">
         Certificate status
       </h2>
       <p className="font-(family-name:--font-base) text-base text-(--color-text-primary)">
-        To receive a certificate for this course, you must achieve a passing grade
+        To receive a certificate for this course, you must achieve a passing grade of {passing}%
+        and complete all mandatory lessons
       </p>
     </div>
   );
 }
 
-/** Pink "Ratings" card. */
-function RatingsCard() {
+type StatsRowProps = {
+  average: number | null;
+  /** "percent" for tests (e.g. "72%"); "raw" for homework, on its own grading scale (e.g. "4.3"). */
+  averageFormat: "percent" | "raw";
+  stats: { label: string; value: number }[];
+};
+
+/** Shared "average + counts" body used by the tests and homework cards. */
+function StatsRow({ average, averageFormat, stats }: StatsRowProps) {
+  const averageLabel =
+    average == null ? "—" : averageFormat === "percent" ? `${average}%` : average.toFixed(1);
+  return (
+    <>
+      <p className="font-(family-name:--font-base) text-base text-(--color-text-primary) lg:text-2xl">
+        Average score: {averageLabel}
+      </p>
+      <ul className="flex flex-wrap gap-x-6 gap-y-1">
+        {stats.map((s) => (
+          <li
+            key={s.label}
+            className="font-(family-name:--font-base) text-sm text-(--color-text-primary)"
+          >
+            {s.label}: {s.value}
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+}
+
+/** Pink "Tests" card. Informational only — doesn't affect course completion. */
+function TestsStatsCard({
+  average,
+  passed,
+  failed,
+  skipped,
+  total,
+}: {
+  average: number | null;
+  passed: number;
+  failed: number;
+  skipped: number;
+  total: number;
+}) {
   return (
     <div className="flex flex-col gap-2 rounded-[20px] bg-(--color-brand-pink) p-5">
       <h2 className="font-(family-name:--font-base) text-2xl text-(--color-text-primary) lg:text-4xl">
-        Ratings
+        Tests
       </h2>
-      <p className="font-(family-name:--font-base) text-base text-(--color-text-primary) lg:text-2xl">
-        This corresponds to your weighted average grade compared to the grade required to pass this
-        course.
-      </p>
+      {total === 0 ? (
+        <p className="font-(family-name:--font-base) text-base text-(--color-text-primary) lg:text-2xl">
+          This course has no tests yet.
+        </p>
+      ) : (
+        <StatsRow
+          average={average}
+          averageFormat="percent"
+          stats={[
+            { label: "Passed", value: passed },
+            { label: "Failed", value: failed },
+            { label: "Not taken", value: skipped },
+            { label: "Total", value: total },
+          ]}
+        />
+      )}
+    </div>
+  );
+}
+
+/** Lavender "Homework" card — shown only for courses taught with a teacher. Informational only. */
+function HomeworkStatsCard({
+  average,
+  graded,
+  ungraded,
+  total,
+}: {
+  average: number | null;
+  graded: number;
+  ungraded: number;
+  total: number;
+}) {
+  return (
+    <div className="flex flex-col gap-2 rounded-[20px] bg-(--color-brand-lavender-soft) p-5">
+      <h2 className="font-(family-name:--font-base) text-2xl text-(--color-text-primary) lg:text-4xl">
+        Homework
+      </h2>
+      {total === 0 ? (
+        <p className="font-(family-name:--font-base) text-base text-(--color-text-primary) lg:text-2xl">
+          No homework assigned yet.
+        </p>
+      ) : (
+        <StatsRow
+          average={average}
+          averageFormat="raw"
+          stats={[
+            { label: "Graded", value: graded },
+            { label: "Not graded", value: ungraded },
+            { label: "Total", value: total },
+          ]}
+        />
+      )}
     </div>
   );
 }

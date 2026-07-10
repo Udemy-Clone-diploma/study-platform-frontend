@@ -21,6 +21,37 @@ export type CourseProgress = {
    */
   last_lesson_id: number | null;
   last_opened_at: string | null;
+  /**
+   * Informational test/homework stats — do NOT drive course completion,
+   * which is based solely on `Course.passing_score` vs the lesson-completion
+   * percentage above. `test_average`/`homework_average` are null until the
+   * student has at least one graded test/homework respectively.
+   */
+  test_average: number | null;
+  tests_passed: number;
+  tests_failed: number;
+  tests_skipped: number;
+  tests_total: number;
+  /**
+   * Whether THIS student's enrollment is taught with a teacher (group or
+   * individual delivery format) — a course can offer several delivery formats
+   * at once, so this reflects the specific enrollment, not `Course.mode`.
+   * Decides whether the homework block below should be shown at all.
+   */
+  is_with_teacher: boolean;
+  /** Homework is only assigned on courses taught with a teacher (group/individual). */
+  homework_average: number | null;
+  homework_graded: number;
+  homework_ungraded: number;
+  homework_total: number;
+  /**
+   * Whether the "Complete course" action should be offered right now — reached
+   * `Course.passing_score` on lesson completion AND finished every lesson
+   * flagged `is_mandatory`. False once the course has already been completed.
+   */
+  can_complete_course: boolean;
+  /** Whether a `CourseCompletion` record already exists for this enrollment. */
+  is_course_completed: boolean;
 };
 
 /**

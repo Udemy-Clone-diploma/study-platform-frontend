@@ -51,7 +51,7 @@ export function CategoriesSection() {
 
             {/* left sphere */}
             <Image
-                src="/backgrounds/00 3.png"
+                src="/backgrounds/00 3.svg"
                 alt=""
                 width={476}
                 height={402}
@@ -70,7 +70,7 @@ export function CategoriesSection() {
 
             {/* right sphere */}
             <Image
-                src="/backgrounds/00 2.png"
+                src="/backgrounds/00 2.svg"
                 alt=""
                 width={476}
                 height={402}

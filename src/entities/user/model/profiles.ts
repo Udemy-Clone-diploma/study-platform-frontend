@@ -10,6 +10,9 @@ export interface TeacherProfile {
   experience: string;
   specialization: string;
   rating: string;
+  years_experience: number | null;
+  partnerships_count: number | null;
+  signature: string | null;
 }
 
 export interface ModeratorProfile {

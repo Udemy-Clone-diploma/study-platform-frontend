@@ -7,6 +7,7 @@ import { StudentCourseCard, TeacherCourseCard, type TeacherCourseStatus } from "
 import {
   getEnrolledCourses,
   getTeacherCourses,
+  getStudentCompletions,
   deleteCourse,
   archiveCourse,
   withdrawCourseFromReview,
@@ -46,11 +47,27 @@ export function MyCoursesDashboardWidget({ role }: Props) {
   const [loading, setLoading] = useState(true);
 
   function fetchCourses() {
-    const fetchFn = role === "teacher" ? getTeacherCourses : getEnrolledCourses;
-    fetchFn()
-      .then((data) => {
-        setTotal(data.count);
-        setCourses(data.results.slice(0, 2));
+    if (role === "teacher") {
+      getTeacherCourses()
+        .then((data) => {
+          setTotal(data.count);
+          setCourses(data.results.slice(0, 2));
+        })
+        .catch(() => {})
+        .finally(() => setLoading(false));
+      return;
+    }
+    // A completed course keeps its (unrevoked) enrollment, so it would
+    // otherwise still show up here as "in progress" -- exclude it, matching
+    // the same dedup the full My Courses page applies.
+    Promise.all([getEnrolledCourses(), getStudentCompletions()])
+      .then(([enrolled, completed]) => {
+        const completedIds = new Set(
+          completed.results.map((c) => c.course).filter((id): id is number => id != null),
+        );
+        const active = enrolled.results.filter((c) => !completedIds.has(c.id));
+        setTotal(active.length);
+        setCourses(active.slice(0, 2));
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -114,7 +131,7 @@ export function MyCoursesDashboardWidget({ role }: Props) {
         </GradientButton>
       </div>
 
-      {!loading && courses.length > 0 && (
+      {!loading && (courses.length > 0 ? (
         <div className="grid grid-cols-2" style={{ gap: "clamp(8px, 0.83vw, 16px)" }}>
           {courses.map((course) =>
             role === "teacher" ? (
@@ -139,7 +156,7 @@ export function MyCoursesDashboardWidget({ role }: Props) {
                 key={course.id}
                 title={course.title}
                 teacherName={course.teacher_name}
-                progressPercent={0}
+                progressPercent={course.progress_percent ?? 0}
                 imageSrc={course.image}
                 iconSrc={LEVEL_ICON[course.level] ?? "/icons/curses.svg"}
                 level={course.level}
@@ -148,7 +165,14 @@ export function MyCoursesDashboardWidget({ role }: Props) {
             )
           )}
         </div>
-      )}
+      ) : (
+        <div
+          className="flex items-center justify-center text-(--color-text-secondary)"
+          style={{ minHeight: "clamp(100px, 7.29vw, 140px)" }}
+        >
+          {role === "teacher" ? "No active courses yet." : "No active courses right now."}
+        </div>
+      ))}
     </div>
   );
 }

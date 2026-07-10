@@ -34,6 +34,5 @@ export default async function AuthenticatedLayout({
     redirect("/login");
   }
 
-  const fullBleed = currentPath.includes("/schedule");
-  return <AppShell sidebarItems={getSidebarItems(user.role)} fullBleed={fullBleed}>{children}</AppShell>;
+  return <AppShell sidebarItems={getSidebarItems(user.role)}>{children}</AppShell>;
 }

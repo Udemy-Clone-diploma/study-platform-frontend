@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Download } from "lucide-react";
 import { ModalShell } from "@/shared/ui/ModalShell";
 import { getCourseBySlug } from "@/entities/course";
 import type { CourseCompletion, CourseDetail } from "@/entities/course";
@@ -59,18 +60,24 @@ type Props = {
 /** Modal showing course completion results for a student. */
 export function CompletionResultModal({ completion, onClose }: Props) {
   const [detail, setDetail] = useState<CourseDetail | null>(null);
+  const [detailLoading, setDetailLoading] = useState(!!completion.slug);
 
   useEffect(() => {
-    if (completion.slug) {
-      getCourseBySlug(completion.slug).then(setDetail).catch(() => {});
-    }
+    if (!completion.slug) return;
+    setDetailLoading(true);
+    getCourseBySlug(completion.slug)
+      .then(setDetail)
+      .catch(() => {})
+      .finally(() => setDetailLoading(false));
   }, [completion.slug]);
 
   const level = (detail?.level ?? completion.level ?? "").replace(/^\w/, (c) => c.toUpperCase());
   const category = detail?.category?.name ?? completion.category ?? null;
   const shortDesc = detail?.short_description ?? completion.short_description ?? null;
   const fullDesc  = detail?.full_description ?? null;
-  const price     = (() => { const p = detail?.delivery_formats?.find(f => f.pricing)?.pricing; return p ? `€${p.price}` : "Free"; })();
+  const pricePaid = completion.paid_amount
+    ? `${completion.paid_currency.toUpperCase()} ${completion.paid_amount}`
+    : "Free";
   const modules   = detail?.modules ?? [];
   const totalLessons = modules.reduce((s, m) => s + m.lessons.length, 0);
   const totalTests   = modules.reduce((s, m) => s + (m.tests?.length ?? 0), 0);
@@ -117,64 +124,86 @@ export function CompletionResultModal({ completion, onClose }: Props) {
 
         {/* ── Course info ───────────────────────────────────────── */}
         <Section title="Course">
-          {shortDesc && (
-            <div style={{ padding: "10px 0", borderBottom: "1px solid var(--color-border-light)" }}>
-              <span style={{ fontFamily: bf, fontWeight: 600, fontSize: 13, color: "var(--color-text-secondary)", display: "block", marginBottom: 4 }}>
-                Short Description
-              </span>
-              <p style={{ fontFamily: bf, fontSize: 14, color: "var(--color-text-primary)", margin: 0, lineHeight: "20px" }}>
-                {shortDesc}
-              </p>
-            </div>
+          {detailLoading ? (
+            <p style={{ fontFamily: bf, fontSize: 13, color: "var(--color-text-secondary)", padding: "10px 0", margin: 0 }}>
+              Loading course details…
+            </p>
+          ) : (
+            <>
+              {shortDesc && (
+                <div style={{ padding: "10px 0", borderBottom: "1px solid var(--color-border-light)" }}>
+                  <span style={{ fontFamily: bf, fontWeight: 600, fontSize: 13, color: "var(--color-text-secondary)", display: "block", marginBottom: 4 }}>
+                    Short Description
+                  </span>
+                  <p style={{ fontFamily: bf, fontSize: 14, color: "var(--color-text-primary)", margin: 0, lineHeight: "20px" }}>
+                    {shortDesc}
+                  </p>
+                </div>
+              )}
+              {fullDesc && (
+                <div style={{ padding: "10px 0", borderBottom: "1px solid var(--color-border-light)" }}>
+                  <span style={{ fontFamily: bf, fontWeight: 600, fontSize: 13, color: "var(--color-text-secondary)", display: "block", marginBottom: 4 }}>
+                    Full Description
+                  </span>
+                  <p style={{ fontFamily: bf, fontSize: 14, color: "var(--color-text-primary)", margin: 0, lineHeight: "20px", whiteSpace: "pre-wrap" }}>
+                    {fullDesc}
+                  </p>
+                </div>
+              )}
+              {category && <FieldRow label="Category" value={category} />}
+              <FieldRow label="Level" value={level || "—"} last={!detail} />
+              {detail && (
+                <FieldRow
+                  label="Content"
+                  last
+                  value={`${modules.length} modules · ${totalLessons} lessons · ${totalTests} tests`}
+                />
+              )}
+            </>
           )}
-          {fullDesc && (
-            <div style={{ padding: "10px 0", borderBottom: "1px solid var(--color-border-light)" }}>
-              <span style={{ fontFamily: bf, fontWeight: 600, fontSize: 13, color: "var(--color-text-secondary)", display: "block", marginBottom: 4 }}>
-                Full Description
-              </span>
-              <p style={{ fontFamily: bf, fontSize: 14, color: "var(--color-text-primary)", margin: 0, lineHeight: "20px", whiteSpace: "pre-wrap" }}>
-                {fullDesc}
-              </p>
-            </div>
-          )}
-          {category && <FieldRow label="Category" value={category} />}
-          <FieldRow label="Level" value={level || "—"} />
-          {detail && <FieldRow label="Price" value={price} />}
-          {detail && (
-            <FieldRow
-              label="Content"
-              value={`${modules.length} modules · ${totalLessons} lessons · ${totalTests} tests`}
-            />
-          )}
+        </Section>
+
+        {/* ── Purchase ──────────────────────────────────────────── */}
+        <Section title="Purchase">
+          <FieldRow label="Price paid" value={pricePaid} />
+          <FieldRow
+            label="Purchased"
+            last
+            value={completion.purchased_at ? fmt(completion.purchased_at) : "—"}
+          />
         </Section>
 
         {/* ── Results ───────────────────────────────────────────── */}
         <Section title="Results">
           <FieldRow label="Progress"    value={`${completion.progress_percent}%`} />
+          <FieldRow label="Final score" value={completion.final_score ?? "—"} />
           <FieldRow
-            label="Final score"
-            value={completion.final_score ?? "—"}
-            last={!completion.certificate_url}
-          />
-          {completion.certificate_url && (
-            <FieldRow
-              label="Certificate"
-              last
-              value={
+            label="Certificate"
+            last
+            value={
+              completion.certificate_url ? (
                 <a
                   href={completion.certificate_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{
-                    fontFamily: af, fontWeight: 600, fontSize: 14,
-                    color: "var(--color-blue)", textDecoration: "underline",
+                    display: "inline-flex", alignItems: "center", gap: 6,
+                    fontFamily: af, fontWeight: 600, fontSize: 12,
+                    color: "white", textTransform: "uppercase", letterSpacing: "0.04em",
+                    background: "var(--color-text-primary)", borderRadius: 999,
+                    padding: "6px 14px", textDecoration: "none",
                   }}
                 >
+                  <Download size={14} />
                   Download
                 </a>
-              }
-            />
-          )}
+              ) : (
+                <span style={{ fontFamily: bf, fontSize: 13, color: "var(--color-text-muted)" }}>
+                  Not available for this course
+                </span>
+              )
+            }
+          />
         </Section>
 
       </div>

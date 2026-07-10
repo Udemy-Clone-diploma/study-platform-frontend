@@ -15,4 +15,8 @@ export type CourseCompletion = {
   completed_at: string;
   final_score: string | null;
   certificate_url: string | null;
+  certificate_thumbnail_url: string | null;
+  paid_amount: string | null;
+  paid_currency: string;
+  purchased_at: string | null;
 };

@@ -23,7 +23,7 @@ const ITEM_META: Record<
 /** Whether a lesson item has something to render (and therefore earns a tab). */
 function isRenderable(item: LessonItem): boolean {
   if (item.item_type === "video") return !!item.video_url;
-  if (item.item_type === "text") return !!(item.body_html ?? item.content);
+  if (item.item_type === "text") return !!item.body_html;
   return !!item.test;
 }
 

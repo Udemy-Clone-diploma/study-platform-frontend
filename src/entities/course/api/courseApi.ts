@@ -7,8 +7,9 @@ import type { CohortMember, EnrolledStudent } from "../model/cohortGroup";
 import type { CourseLesson } from "../model/module";
 import type { DeliveryFormatType } from "../model/delivery-format";
 import type { PricingPlan } from "../model/pricing";
-import type { CourseReview } from "../model/review";
+import type { CourseReview, ModeratorReview, TopReview } from "../model/review";
 import type { CourseCompletion } from "../model/completion";
+import type { Enrollment } from "../model/enrollment";
 import type {
   ApprovedCourseRecord,
   CourseDeliveryType,
@@ -26,7 +27,6 @@ import type {
 
 const COURSES = "courses/";
 const CATEGORIES = "categories/";
-const ENROLLMENTS = "enrollments/";
 
 /**
  * Backend accepts these enum-like filters as comma-separated values
@@ -133,6 +133,50 @@ export async function getCourseReviews(
   return data;
 }
 
+/** Highest-rated reviews with written feedback, across all courses (used on the homepage). */
+export async function getTopReviews(limit = 4): Promise<TopReview[]> {
+  const { data } = await api.get<TopReview[]>("reviews/top-reviews/", {
+    params: { limit },
+  });
+  return data;
+}
+
+/** Flag a review for moderator attention. 403 if it's the caller's own review, 409 if already reported. */
+export async function reportReview(reviewId: number, reason: string): Promise<void> {
+  await api.post(`reviews/${reviewId}/report/`, { reason });
+}
+
+/** Reported reviews (2+ reports) no moderator has claimed yet -- the shared queue. */
+export async function getUnassignedReportedReviews(page = 1): Promise<Paginated<ModeratorReview>> {
+  const { data } = await api.get<Paginated<ModeratorReview>>("reviews/moderation/unassigned/", {
+    params: { page },
+  });
+  return data;
+}
+
+/** Reported reviews the current moderator has claimed, at any resolution status. */
+export async function getMyReportedReviews(page = 1): Promise<Paginated<ModeratorReview>> {
+  const { data } = await api.get<Paginated<ModeratorReview>>("reviews/moderation/mine/", {
+    params: { page },
+  });
+  return data;
+}
+
+/** Claim a reported review for moderation. 409 if another moderator already has. */
+export async function assignReviewModeratorSelf(reviewId: number): Promise<void> {
+  await api.post(`reviews/${reviewId}/assign-moderator/`);
+}
+
+/** Dismiss the reports on a claimed review -- it stays live. */
+export async function approveReportedReview(reviewId: number): Promise<void> {
+  await api.post(`reviews/${reviewId}/approve/`);
+}
+
+/** Uphold the reports on a claimed review -- it's hidden from public view. */
+export async function rejectReportedReview(reviewId: number): Promise<void> {
+  await api.post(`reviews/${reviewId}/reject/`);
+}
+
 export type PricingPlanInput = Omit<PricingPlan, "id">;
 
 /**
@@ -171,8 +215,8 @@ export async function deletePricingPlan(slug: string, id: number): Promise<void>
 export type CohortInput = Omit<CourseCohort, "id" | "members_count" | "members">;
 
 export async function getCohorts(slug: string): Promise<CourseCohort[]> {
-  const { data } = await api.get<CourseCohort[]>(`${COURSES}${slug}/cohorts/`);
-  return data;
+  const { data } = await api.get<CourseCohort[] | Paginated<CourseCohort>>(`${COURSES}${slug}/cohorts/`);
+  return Array.isArray(data) ? data : data.results;
 }
 
 /** Create a cohort on a course. Course-owner or admin only. */
@@ -248,16 +292,13 @@ export async function submitCourseReview(
   return data;
 }
 
-export type EnrollResult = { status: "enrolled" };
-
 /**
- * Enroll the authenticated user in a course.
- * Throws a normalized ApiError on failure: status 401 (not authenticated),
- * 400 (invalid course or duplicate enrollment).
+ * Enroll the authenticated student in a course that has a zero-price plan.
+ * The backend validates the price again and rejects paid courses.
  */
-export async function enrollInCourse(courseId: number): Promise<EnrollResult> {
-  await api.post(ENROLLMENTS, { course_id: courseId });
-  return { status: "enrolled" };
+export async function enrollInFreeCourse(slug: string): Promise<Enrollment> {
+  const { data } = await api.post<Enrollment>(`${COURSES}${slug}/enroll-free/`);
+  return data;
 }
 
 export async function getEnrolledCourses(
@@ -271,8 +312,12 @@ export async function getEnrolledCourses(
   return data;
 }
 
-export async function getStudentCompletions(): Promise<Paginated<CourseCompletion>> {
-  const { data } = await api.get<Paginated<CourseCompletion>>(`${COURSES}completions/`);
+export async function getStudentCompletions(params?: {
+  page?: number;
+  page_size?: number;
+  with_certificate?: boolean;
+}): Promise<Paginated<CourseCompletion>> {
+  const { data } = await api.get<Paginated<CourseCompletion>>(`${COURSES}completions/`, { params });
   return data;
 }
 
@@ -390,6 +435,13 @@ export async function updateCourse(slug: string, data: Record<string, unknown>):
   return result;
 }
 
+export async function downloadCertificatePreview(slug: string): Promise<Blob> {
+  const { data } = await api.get<Blob>(`${COURSES}${slug}/certificate-preview/`, {
+    responseType: "blob",
+  });
+  return data;
+}
+
 export async function submitCourseForReview(slug: string): Promise<void> {
   await api.patch(`${COURSES}${slug}/`, { status: "review" });
 }
@@ -477,7 +529,8 @@ export async function uploadCourseIcon(slug: string, iconSrc: string, iconName: 
     const res = await fetch(iconSrc);
     if (!res.ok) return;
     const blob = await res.blob();
-    await uploadCourseImage(slug, new File([blob], `${iconName}-pic.png`, { type: "image/png" }));
+    const extension = iconSrc.split(".").pop() || "png";
+    await uploadCourseImage(slug, new File([blob], `${iconName}-pic.${extension}`, { type: blob.type }));
   } catch { /* best-effort */ }
 }
 

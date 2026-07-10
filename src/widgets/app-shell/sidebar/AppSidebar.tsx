@@ -20,7 +20,7 @@ export function AppSidebar({
   return (
     <aside
       className={[
-        "z-30 shrink-0 overflow-y-auto overflow-x-hidden [background-image:var(--gradient-brand)] [background-size:100vw_100%] [background-position:0_0] bg-no-repeat px-[clamp(10px,0.85vw,16px)] pt-[clamp(16px,1.5vw,28px)] transition-[width] duration-200",
+        "absolute inset-y-0 left-0 z-30 overflow-y-auto overflow-x-hidden [background-image:var(--gradient-brand)] [background-size:100vw_100%] [background-position:0_0] bg-no-repeat px-[clamp(10px,0.85vw,16px)] pt-[clamp(16px,1.5vw,28px)] transition-[width] duration-200",
         isExpanded
           ? "w-[clamp(240px,15.2vw,292px)]"
           : "w-[clamp(60px,4.5vw,80px)]",
@@ -39,9 +39,10 @@ export function AppSidebar({
           }
           className={[
             "flex h-[clamp(36px,2.5vw,48px)] w-full items-center overflow-hidden rounded-sm text-[#092878] transition-[background-color,background-image,margin,padding,width] duration-200",
+            isExpanded ? "sidebar-nav-gradient-expanded" : "sidebar-nav-gradient-collapsed",
             isExpanded
-              ? "-mx-[clamp(10px,0.85vw,16px)] w-[calc(100%_+_clamp(20px,1.7vw,32px))] pl-[clamp(10px,0.85vw,16px)] hover:bg-[linear-gradient(90deg,#fff4da_0%,#fcc4c3_49%,#a7bafa_100%)]"
-              : "hover:bg-[linear-gradient(90deg,#fff4da_0%,#fcc4c3_49%,#fcc4c3_100%)]",
+              ? "-mx-[clamp(10px,0.85vw,16px)] w-[calc(100%_+_clamp(20px,1.7vw,32px))] pl-[clamp(10px,0.85vw,16px)]"
+              : "",
           ].join(" ")}
         >
           <span className="flex h-[clamp(36px,2.5vw,48px)] w-[clamp(36px,2.5vw,48px)] shrink-0 items-center justify-center">

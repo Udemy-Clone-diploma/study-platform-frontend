@@ -97,22 +97,45 @@ export function CourseHero({ course }: Props) {
           courseId={course.id}
           slug={course.slug}
           isEnrolled={course.is_enrolled}
-          defaultPricingPlanId={course.delivery_formats.find(f => f.pricing)?.pricing?.id ?? null}
+          defaultPricingPlan={course.delivery_formats.find((format) => format.pricing)?.pricing ?? null}
         />
       </div>
 
       <div className="relative mx-auto w-full max-w-[600px] lg:mx-0">
-        {/* Decorative ellipses behind the image. Resize with w-/h-, reposition with top-/left-/right-. */}
-        <HeroEllipse className="top-[-16%] right-[-35%] h-[650px] w-[650px]" />
-        <HeroEllipse className="top-[-7%] left-[-10%] h-[540px] w-[540px]" />
+        {/* Decorative blobs behind the image — same recipe as the homepage hero
+            (gradient-blob + blur(90px)). Resize with w-/h-, reposition with top-/left-/right-. */}
+        <HeroEllipse className="top-[-25%] right-[-35%] h-[650px] w-[650px]" />
+        <HeroEllipse className="top-[-7%] left-[-20%] h-[440px] w-[440px]" />
+        {/* Glitter texture overlay, same blend approach as the homepage hero. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -z-10"
+          style={{
+            left: "50%",
+            top: "50%",
+            width: "180%",
+            height: "180%",
+            transform: "translate(-50%, -50%)",
+            backgroundImage: "url('/main/glitter-bg.png')",
+            backgroundRepeat: "no-repeat",
+            backgroundPosition: "center",
+            backgroundSize: "contain",
+            mixBlendMode: "lighten",
+          }}
+        />
         {course.image ? (
           <Image
             src={course.image}
             alt={course.title}
-            width={600}
-            height={596}
+            width={500}
+            height={496}
             priority
             className="h-auto w-full object-contain"
+            style={{
+              transform: "translate(60px, -50px)",
+              maskImage: "linear-gradient(to bottom, black 75%, transparent 100%)",
+              WebkitMaskImage: "linear-gradient(to bottom, black 75%, transparent 100%)",
+            }}
             sizes="(min-width: 1024px) 600px, 90vw"
           />
         ) : (
@@ -145,15 +168,16 @@ function MetaPill({ children }: { children: React.ReactNode }) {
 }
 
 /**
- * Soft brand-gradient ellipse behind the hero image. One shared gradient
- * (--gradient-ellipse); pass size + position via className (w-/h-/top-/left-/right-).
+ * Soft brand-gradient ellipse behind the hero image. Uses --gradient-hero-ellipse
+ * (semi-transparent, fades to nothing at the edge) so the two overlapping circles
+ * blend together; pass size + position via className (w-/h-/top-/left-/right-).
  */
 function HeroEllipse({ className }: { className: string }) {
   return (
     <div
       aria-hidden="true"
       className={`pointer-events-none absolute -z-10 rounded-full blur-[70px] ${className}`}
-      style={{ background: "var(--gradient-ellipse)" }}
+      style={{ background: "var(--gradient-hero-ellipse)" }}
     />
   );
 }

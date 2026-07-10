@@ -32,13 +32,21 @@ export function useNotifications() {
 
   useEffect(() => {
     mounted.current = true;
-    pollCount();
-    const id = setInterval(pollCount, POLL_INTERVAL_MS);
-    document.addEventListener("visibilitychange", pollCount);
+    const initialPollId = window.setTimeout(() => {
+      void pollCount();
+    }, 0);
+    const intervalId = window.setInterval(() => {
+      void pollCount();
+    }, POLL_INTERVAL_MS);
+    const handleVisibilityChange = () => {
+      void pollCount();
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => {
       mounted.current = false;
-      clearInterval(id);
-      document.removeEventListener("visibilitychange", pollCount);
+      window.clearTimeout(initialPollId);
+      window.clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [pollCount]);
 

@@ -10,7 +10,6 @@ function itemsBase(courseSlug: string, moduleId: number, lessonId: number) {
 export type LessonItemPayload = {
   item_type: "text" | "video" | "test";
   order?: number;
-  content?: string;
   body_html?: string;
   video?: File | null;
   video_url?: string;
@@ -22,7 +21,6 @@ function buildCreateBody(data: LessonItemPayload): FormData | Record<string, unk
   if (!data.video) {
     const body: Record<string, unknown> = { item_type: data.item_type };
     if (data.order != null) body.order = data.order;
-    if (data.content != null) body.content = data.content;
     if (data.body_html != null) body.body_html = data.body_html;
     if (data.video_url != null) body.video_url = data.video_url;
     if (data.duration_minutes != null) body.duration_minutes = data.duration_minutes;
@@ -31,7 +29,6 @@ function buildCreateBody(data: LessonItemPayload): FormData | Record<string, unk
   }
   const fd = new FormData();
   fd.append("item_type", data.item_type);
-  if (data.content) fd.append("content", data.content);
   fd.append("video", data.video);
   if (data.duration_minutes != null) fd.append("duration_minutes", String(data.duration_minutes));
   return fd;
@@ -42,7 +39,6 @@ function buildPatchBody(data: Partial<LessonItemPayload>): FormData | Record<str
     const body: Record<string, unknown> = {};
     if (data.item_type != null) body.item_type = data.item_type;
     if (data.order != null) body.order = data.order;
-    if (data.content != null) body.content = data.content;
     if (data.body_html != null) body.body_html = data.body_html;
     if (data.video_url != null) body.video_url = data.video_url;
     if (data.duration_minutes != null) body.duration_minutes = data.duration_minutes;
@@ -51,7 +47,6 @@ function buildPatchBody(data: Partial<LessonItemPayload>): FormData | Record<str
   }
   const fd = new FormData();
   fd.append("video", data.video);
-  if (data.content) fd.append("content", data.content);
   if (data.duration_minutes != null) fd.append("duration_minutes", String(data.duration_minutes));
   return fd;
 }
@@ -87,4 +82,17 @@ export async function deleteLessonItem(
   itemId: number,
 ): Promise<void> {
   await api.delete(`${itemsBase(courseSlug, moduleId, lessonId)}${itemId}/`);
+}
+
+export async function reorderLessonItems(
+  courseSlug: string,
+  moduleId: number,
+  lessonId: number,
+  itemIds: number[],
+): Promise<LessonItem[]> {
+  const { data } = await api.post<LessonItem[]>(
+    `${itemsBase(courseSlug, moduleId, lessonId)}reorder/`,
+    { item_ids: itemIds },
+  );
+  return data;
 }

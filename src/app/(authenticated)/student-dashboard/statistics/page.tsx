@@ -96,32 +96,36 @@ export default function StudentStatisticsPage() {
 
   return (
     <PageShell className="bg-wishlist">
-      <Image
-        src="/backgrounds/cube.svg"
-        alt=""
-        aria-hidden="true"
-        width={360}
-        height={376}
-        className="pointer-events-none absolute hidden select-none lg:block"
-        style={{ left: "clamp(20px, 5vw, 120px)", bottom: "-40px", width: "clamp(200px, 18vw, 360px)", height: "auto", transform: "rotate(-29.44deg)", zIndex: 0 }}
-      />
-      <Image
-        src="/backgrounds/crystal.png"
-        alt=""
-        aria-hidden="true"
-        width={500}
-        height={518}
-        className="pointer-events-none absolute hidden select-none xl:block"
-        style={{ right: "clamp(20px, 6vw, 140px)", bottom: "0px", width: "clamp(260px, 24vw, 500px)", height: "auto", transform: "rotate(31.1deg)", zIndex: 0 }}
-      />
-
-      <div style={{ maxWidth: "1648px", margin: "0 auto", position: "relative", zIndex: 1 }}>
+      <div style={{ maxWidth: "1648px", margin: "0 auto" }}>
         <h1 className="mb-6 text-[28px] leading-none font-normal text-(--color-text-primary)">Statistics</h1>
 
         {loading ? (
           <p className="text-center text-lg text-(--color-text-secondary)">Loading...</p>
         ) : (
-          <div className="grid" style={{ gridTemplateColumns: "minmax(360px, 1fr) minmax(320px, 1fr)", gap: "clamp(12px, 1.11vw, 20px)", alignItems: "start" }}>
+          <div style={{ position: "relative" }}>
+            {/* Decorative crystals -- anchored to this content block (not the
+                full page), so they scale/reposition with the actual card
+                layout instead of drifting to the bottom of the viewport. */}
+            <Image
+              src="/backgrounds/cube.svg"
+              alt=""
+              aria-hidden="true"
+              width={499}
+              height={505}
+              className="pointer-events-none absolute hidden select-none lg:block"
+              style={{ left: "clamp(-80px, -4vw, -20px)", bottom: "clamp(-120px, -11vw, -60px)", width: "clamp(280px, 26vw, 500px)", height: "auto", transform: "rotate(-29.44deg)", zIndex: 1 }}
+            />
+            <Image
+              src="/backgrounds/crystal.svg"
+              alt=""
+              aria-hidden="true"
+              width={696}
+              height={702}
+              className="pointer-events-none absolute hidden select-none lg:block"
+              style={{ right: "clamp(-70px, -1vw, 10px)", bottom: "clamp(-160px, -14vw, -100px)", width: "clamp(300px, 28vw, 560px)", height: "auto", transform: "rotate(31.1deg)", zIndex: 1 }}
+            />
+
+          <div className="grid" style={{ position: "relative", zIndex: 3, gridTemplateColumns: "minmax(360px, 1fr) minmax(320px, 1fr)", gap: "clamp(12px, 1.11vw, 20px)", alignItems: "start" }}>
             {/* Left: 2x2 stat blocks, with the average-score chart below them */}
             <div className="flex flex-col" style={{ gap: "clamp(12px, 1.11vw, 20px)" }}>
               <div className="grid grid-cols-2" style={{ gap: "clamp(12px, 1.11vw, 20px)" }}>
@@ -156,7 +160,7 @@ export default function StudentStatisticsPage() {
 
             {/* Right: Active / Completed course lists, stacked */}
             <div className="flex flex-col" style={{ gap: "clamp(12px, 1.11vw, 20px)" }}>
-              <CourseListPanel title="Active courses" emptyText="No active courses.">
+              <CourseListPanel title="Active courses" count={activeCourses.length} emptyText="No active courses.">
                 {activeCourses.map((course) => {
                   const percent = course.progress_percent ?? 0;
                   const hoursDone = Math.round(((percent / 100) * course.duration_hours) * 10) / 10;
@@ -175,6 +179,7 @@ export default function StudentStatisticsPage() {
 
               <CourseListPanel
                 title="Completed courses"
+                count={completions.length}
                 subtitle={completions.length > 0 ? `${certificatesCount} with certificate` : undefined}
                 emptyText="No completed courses yet."
               >
@@ -190,6 +195,7 @@ export default function StudentStatisticsPage() {
                 ))}
               </CourseListPanel>
             </div>
+          </div>
           </div>
         )}
       </div>
@@ -240,8 +246,9 @@ function StatCard({
   );
 }
 
-function CourseListPanel({ title, subtitle, emptyText, children }: {
+function CourseListPanel({ title, count, subtitle, emptyText, children }: {
   title: string;
+  count: number;
   subtitle?: string;
   emptyText: string;
   children: React.ReactNode;
@@ -253,8 +260,14 @@ function CourseListPanel({ title, subtitle, emptyText, children }: {
       style={{ boxShadow: "var(--shadow-dashboard-card)", gap: "clamp(12px, 1.11vw, 16px)", height: "clamp(240px, 22vw, 300px)" }}
     >
       <div className="flex shrink-0 items-center justify-between gap-2">
-        <span className="font-(family-name:--font-base) text-(--color-text-primary)" style={{ fontSize: "clamp(14px, 1.11vw, 20px)" }}>
+        <span className="flex items-center gap-2 font-(family-name:--font-base) text-(--color-text-primary)" style={{ fontSize: "clamp(14px, 1.11vw, 20px)" }}>
           {title}
+          <span
+            className="inline-flex items-center justify-center rounded-full font-(family-name:--font-base) font-semibold text-(--color-blue)"
+            style={{ background: "rgba(167, 186, 250, 0.32)", minWidth: "1.6em", height: "1.6em", padding: "0 6px", fontSize: "clamp(11px, 0.83vw, 13px)" }}
+          >
+            {count}
+          </span>
         </span>
         {subtitle && (
           <span className="font-(family-name:--font-base) text-(--color-text-secondary)" style={{ fontSize: "clamp(11px, 0.83vw, 13px)" }}>

@@ -327,8 +327,16 @@ export async function submitCourseReview(
  * Enroll the authenticated student in a course that has a zero-price plan.
  * The backend validates the price again and rejects paid courses.
  */
-export async function enrollInFreeCourse(slug: string): Promise<Enrollment> {
-  const { data } = await api.post<Enrollment>(`${COURSES}${slug}/enroll-free/`);
+export async function enrollInFreeCourse(
+  slug: string,
+  params?: {
+    delivery_format_id?: number;
+    pricing_plan_id?: number;
+    cohort_id?: number;
+    schedule_slot_ids?: number[];
+  },
+): Promise<Enrollment> {
+  const { data } = await api.post<Enrollment>(`${COURSES}${slug}/enroll-free/`, params);
   return data;
 }
 

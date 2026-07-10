@@ -4,6 +4,8 @@
 :root {
   --font-base: var(--font-mulish), sans-serif;
   --font-accent: var(--font-source-code-pro), monospace;
+    --font-base: var(--font-mulish), sans-serif;
+  --font-accent: var(--font-source-code-pro), monospace;
 
   --color-brand-lavender: #a7bafa;
   --color-brand-lavender-soft: #d6e0ff;
@@ -34,7 +36,7 @@
   --color-calendar-weekend: #fafafa;
   --color-calendar-border: #e0e0e0;
 }
- 
+
 @theme {
   /* ── Brand palette ── */
   --color-brand-lavender: #a7bafa;

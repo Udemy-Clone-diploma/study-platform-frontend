@@ -1,5 +1,7 @@
 import { api } from "@/shared/api/base";
 import type {
+  GrowthData,
+  GrowthPeriod,
   HomeworkAssignment,
   HomeworkAssignmentInput,
   HomeworkAvailableRecipient,
@@ -9,6 +11,11 @@ import type {
 
 export async function getHomeworkAssignments(courseSlug: string): Promise<HomeworkAssignment[]> {
   const { data } = await api.get<HomeworkAssignment[]>(`courses/${courseSlug}/homework/`);
+  return data;
+}
+
+export async function getGrowth(params: { course?: string; period: GrowthPeriod }): Promise<GrowthData> {
+  const { data } = await api.get<GrowthData>("homework/growth/", { params });
   return data;
 }
 

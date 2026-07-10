@@ -44,7 +44,7 @@ import {
 } from "@/entities/course/api/calendarApi";
 import type { PersonalEventConflicts } from "@/entities/course/api/calendarApi";
 import type { EnrolledStudent } from "@/entities/course/model/cohortGroup";
-import type { CalendarEvent } from "@/entities/course/model/calendar";
+import type { CalendarDeadline, CalendarEvent } from "@/entities/course/model/calendar";
 import type { TeacherUnavailability } from "@/entities/course/model/schedule";
 import type { CourseLesson } from "@/entities/course/model/module";
 import type {
@@ -78,6 +78,7 @@ type DrawerState =
   | { type: "new"; date: string; hour: number; isUnavailable?: boolean }
   | { type: "view"; event: CalendarEvent; initialMode?: "view" | "reschedule" }
   | { type: "block" }
+  | { type: "deadlines"; date: string }
   | null;
 
 const DRAWER_LABEL: React.CSSProperties = {
@@ -3280,6 +3281,7 @@ export type CalendarViewProps = {
 export function CalendarView({ role }: CalendarViewProps) {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [unavailability, setUnavailability] = useState<TeacherUnavailability[]>([]);
+  const [deadlines, setDeadlines] = useState<CalendarDeadline[]>([]);
   const [drawer, setDrawer] = useState<DrawerState>(null);
   const searchParams = useSearchParams();
   const [weekStart, setWeekStart] = useState<string>(() => initialWeekStart(searchParams.get("date")));
@@ -3295,6 +3297,7 @@ export function CalendarView({ role }: CalendarViewProps) {
       const allEvents = apiData.events;
       setEvents(allEvents);
       setUnavailability(apiData.unavailability);
+      setDeadlines(apiData.deadlines);
 
       // Keep drawer.event in sync so reopening the panel shows fresh data
       setDrawer((prev) => {
@@ -3339,6 +3342,10 @@ export function CalendarView({ role }: CalendarViewProps) {
     setDrawer({ type: "view", event });
   }
 
+  function openDayDeadlines(date: string) {
+    setDrawer({ type: "deadlines", date });
+  }
+
   function toggleBlock() {
     setDrawer((d) => (d?.type === "block" ? null : { type: "block" }));
   }
@@ -3379,10 +3386,12 @@ export function CalendarView({ role }: CalendarViewProps) {
       <WeekCalendar
         events={events}
         unavailability={role === "teacher" ? unavailability : []}
+        deadlines={deadlines}
         onWeekChange={setWeekStart}
         role={role}
         onSlotClick={openNewEvent}
         onEventClick={openEventView}
+        onDayHeaderClick={openDayDeadlines}
         activeSlot={drawer?.type === "new" ? { date: drawer.date, hour: drawer.hour } : null}
         actions={calendarActions}
       />
@@ -3398,13 +3407,10 @@ export function CalendarView({ role }: CalendarViewProps) {
               ? "Event details"
               : drawer?.type === "block"
                 ? "My unavailability"
-                : ""
+                : drawer?.type === "deadlines"
+                  ? `Deadlines — ${drawer.date}`
+                  : ""
         }
-        top={0}
-        right={0}
-        bottom={0}
-        borderRadius={0}
-        borderLeft="1px solid var(--color-calendar-border)"
       >
         {drawer?.type === "new" && (
           <NewEventPanel
@@ -3443,6 +3449,41 @@ export function CalendarView({ role }: CalendarViewProps) {
           />
         )}
         {drawer?.type === "block" && <UnavailabilitySection />}
+        {drawer?.type === "deadlines" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: "clamp(10px, 0.83vw, 14px)" }}>
+            {deadlines
+              .filter((dl) => dl.date === drawer.date)
+              .map((dl) => (
+                <div
+                  key={dl.assignment_id}
+                  style={{
+                    padding: "clamp(10px, 0.83vw, 14px)",
+                    borderRadius: "clamp(8px, 0.7vw, 12px)",
+                    border: "1px solid var(--color-calendar-border)",
+                    background: "#fff",
+                  }}
+                >
+                  <p style={{
+                    fontFamily: "var(--font-base)",
+                    fontWeight: 700,
+                    fontSize: "clamp(13px, 0.9vw, 15px)",
+                    color: "var(--color-text-primary)",
+                    margin: "0 0 4px",
+                  }}>
+                    {dl.title}
+                  </p>
+                  <p style={{
+                    fontFamily: "var(--font-base)",
+                    fontSize: "clamp(12px, 0.8vw, 13px)",
+                    color: "var(--color-text-secondary)",
+                    margin: 0,
+                  }}>
+                    {dl.course_title}
+                  </p>
+                </div>
+              ))}
+          </div>
+        )}
       </SidePanel>
     </div>
   );

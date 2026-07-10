@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
-import { Search } from "lucide-react";
+import { Award, RotateCcw, Search } from "lucide-react";
 import { PageShell } from "@/shared/ui/PageShell";
 import { PillSelect } from "@/shared/ui/PillSelect";
 import {
@@ -9,6 +9,8 @@ import {
   getCourseEnrolledStudents,
   getCohorts,
   getDeliveryFormats,
+  completeStudentEnrollment,
+  uncompleteStudentEnrollment,
 } from "@/entities/course";
 import type {
   CourseListItem,
@@ -18,6 +20,9 @@ import type {
 } from "@/entities/course";
 import { DataTable } from "@/shared/ui/DataTable";
 import type { DataTableColumn } from "@/shared/ui/DataTable";
+import { CompletionBadge } from "@/features/courses/ui/CourseManagementStudentsBlock";
+import { CourseConfirmModal } from "@/features/courses/ui/CourseConfirmModal";
+import type { ApiError } from "@/shared/api/base";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -75,6 +80,13 @@ function StudentAvatar({ name, avatar }: { name: string; avatar?: string | null 
 const ALL_COURSES = "__all__";
 const ALL_FORMATS = "__all__";
 const ALL_GROUPS  = "__all__";
+const ALL_STATUSES = "__all__";
+
+const STATUS_OPTIONS = [
+  { value: ALL_STATUSES, label: "All" },
+  { value: "active",     label: "Studying" },
+  { value: "completed",  label: "Completed" },
+];
 
 export default function TeacherStudentsPage() {
   const [courses, setCourses]               = useState<CourseListItem[]>([]);
@@ -84,9 +96,13 @@ export default function TeacherStudentsPage() {
   const [students, setStudents]             = useState<EnrolledStudent[]>([]);
   const [cohorts, setCohorts]               = useState<CourseCohort[]>([]);
   const [selectedGroup, setSelectedGroup]   = useState<string>(ALL_GROUPS);
+  const [selectedStatus, setSelectedStatus] = useState<string>(ALL_STATUSES);
   const [search, setSearch]                 = useState("");
   const [loadingCourses, setLoadingCourses] = useState(true);
   const [loadingStudents, setLoadingStudents] = useState(false);
+  const [pendingAction, setPendingAction]   = useState<{ enrollmentId: number; kind: "complete" | "uncomplete" } | null>(null);
+  const [completing, setCompleting]         = useState(false);
+  const [completeError, setCompleteError]   = useState<string | null>(null);
 
   // Tracks the last course for which formats + cohorts were fetched, to avoid
   // re-fetching them when only the format selection changes.
@@ -119,8 +135,9 @@ export default function TeacherStudentsPage() {
     setLoadingStudents(true);
 
     const formatId = selectedFormat !== ALL_FORMATS ? Number(selectedFormat) : undefined;
+    const status = selectedStatus !== ALL_STATUSES ? (selectedStatus as "active" | "completed") : undefined;
 
-    const loadStudents = getCourseEnrolledStudents(selectedCourse, formatId)
+    const loadStudents = getCourseEnrolledStudents(selectedCourse, formatId, status)
       .then(enrolled  => { if (!cancelled) setStudents(enrolled); })
       .catch(()       => { if (!cancelled) setStudents([]); })
       .finally(()     => { if (!cancelled) setLoadingStudents(false); });
@@ -138,7 +155,7 @@ export default function TeacherStudentsPage() {
 
     void loadStudents;
     return () => { cancelled = true; };
-  }, [selectedCourse, selectedFormat]);
+  }, [selectedCourse, selectedFormat, selectedStatus]);
 
   // Which delivery format type is currently active (null when "All formats")
   const selectedFormatType =
@@ -198,6 +215,31 @@ export default function TeacherStudentsPage() {
     setSelectedFormat(fmtId);
   }
 
+  async function handleConfirmAction() {
+    if (!pendingAction) return;
+    const { enrollmentId, kind } = pendingAction;
+    setCompleting(true);
+    setCompleteError(null);
+    try {
+      if (kind === "complete") {
+        await completeStudentEnrollment(selectedCourse, enrollmentId);
+        setStudents((prev) =>
+          prev.map((s) => (s.enrollment_id === enrollmentId ? { ...s, is_completed: true } : s)),
+        );
+      } else {
+        await uncompleteStudentEnrollment(selectedCourse, enrollmentId);
+        setStudents((prev) =>
+          prev.map((s) => (s.enrollment_id === enrollmentId ? { ...s, is_completed: false } : s)),
+        );
+      }
+      setPendingAction(null);
+    } catch (err) {
+      setCompleteError((err as ApiError).message ?? "Something went wrong.");
+    } finally {
+      setCompleting(false);
+    }
+  }
+
   // ── Derived ──────────────────────────────────────────────────────────────────
 
   const filtered = students.filter((s) => {
@@ -238,6 +280,39 @@ export default function TeacherStudentsPage() {
             ?? (row.format_type ? (FORMAT_LABELS[row.format_type] ?? row.format_type) : "—")}
         </span>
       ),
+    },
+    {
+      key: "status",
+      label: "Status",
+      flex: 1.4,
+      cellAlign: "center",
+      headerAlign: "center",
+      render: (row) => <CompletionBadge completed={row.is_completed} />,
+    },
+    {
+      key: "complete_action",
+      label: "",
+      flex: 0.6,
+      cellAlign: "center",
+      headerAlign: "center",
+      render: (row) => {
+        if (row.format_type !== "individual" && row.format_type !== "group") return null;
+        const kind = row.is_completed ? "uncomplete" : "complete";
+        return (
+          <button
+            type="button"
+            onClick={() => { setCompleteError(null); setPendingAction({ enrollmentId: row.enrollment_id, kind }); }}
+            title={row.is_completed ? "Return to course" : "Mark as completed"}
+            style={{
+              background: "none", border: "none", cursor: "pointer",
+              padding: 4, display: "inline-flex", alignItems: "center",
+              color: "var(--color-text-secondary)",
+            }}
+          >
+            {row.is_completed ? <RotateCcw size={14} /> : <Award size={14} />}
+          </button>
+        );
+      },
     },
     {
       key: "performance",
@@ -328,6 +403,15 @@ export default function TeacherStudentsPage() {
                 disabled={loadingStudents || cohorts.length === 0}
               />
             )}
+
+            {/* Status — shown only when a specific course is selected */}
+            {selectedCourse !== ALL_COURSES && (
+              <PillSelect
+                value={selectedStatus}
+                options={STATUS_OPTIONS}
+                onChange={setSelectedStatus}
+              />
+            )}
           </div>
 
           {/* Right: search */}
@@ -365,6 +449,17 @@ export default function TeacherStudentsPage() {
           </label>
         </div>
 
+        {completeError && (
+          <p
+            style={{
+              fontFamily: "var(--font-base)", fontSize: "clamp(12px, 0.83vw, 14px)",
+              color: "var(--color-danger)", margin: "0 0 8px",
+            }}
+          >
+            {completeError}
+          </p>
+        )}
+
         {/* Table */}
         <DataTable<EnrolledStudent>
           columns={columns}
@@ -374,6 +469,25 @@ export default function TeacherStudentsPage() {
           scrollable
         />
       </div>
+
+      {pendingAction && (
+        <CourseConfirmModal
+          title={pendingAction.kind === "complete" ? "Mark as completed" : "Return to course"}
+          description={
+            pendingAction.kind === "complete"
+              ? `Mark ${
+                  students.find((s) => s.enrollment_id === pendingAction.enrollmentId)?.student_name ?? "this student"
+                } as completed?`
+              : `Return ${
+                  students.find((s) => s.enrollment_id === pendingAction.enrollmentId)?.student_name ?? "this student"
+                } to active studying? This removes their completion (and certificate, if any).`
+          }
+          confirmLabel={pendingAction.kind === "complete" ? "Complete" : "Return"}
+          loading={completing}
+          onConfirm={handleConfirmAction}
+          onCancel={() => setPendingAction(null)}
+        />
+      )}
     </PageShell>
   );
 }

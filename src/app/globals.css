@@ -137,6 +137,12 @@
     var(--color-brand-pink) 50.96%,
     var(--color-brand-cream) 100%
   );
+  --gradient-lavender: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--color-bg) 40%,
+    var(--color-brand-lavender) 100%
+  );
 
   --gradient-sidebar-item-expanded: linear-gradient(
     90deg,

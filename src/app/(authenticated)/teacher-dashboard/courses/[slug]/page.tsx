@@ -73,8 +73,10 @@ function TabBtn({ active, onClick, children }: {
 }
 
 // ── FormatStatsBar ─────────────────────────────────────────────────────────────
-function FormatStatsBar({ fmt, slug, course, slotsKey }: {
+function FormatStatsBar({ fmt, slug, course, slotsKey, onMemberCompleted, onMemberUncompleted }: {
   fmt: CourseDeliveryFormat; slug?: string; course?: CourseDetail; slotsKey?: number;
+  onMemberCompleted?: (enrollmentId: number) => void;
+  onMemberUncompleted?: (enrollmentId: number) => void;
 }) {
   const [studentsOpen, setStudentsOpen] = useState(false);
 
@@ -155,8 +157,8 @@ function FormatStatsBar({ fmt, slug, course, slotsKey }: {
           {fmt.format_type === "individual" && (
             <IndividualStudentsList slug={slug} fmtId={fmt.id} refreshKey={slotsKey} />
           )}
-          {fmt.format_type === "group" && course && (
-            <GroupStudentsList course={course} />
+          {fmt.format_type === "group" && course && slug && (
+            <GroupStudentsList course={course} slug={slug} onMemberCompleted={onMemberCompleted} onMemberUncompleted={onMemberUncompleted} />
           )}
           {(fmt.format_type === "scheduled" || fmt.format_type === "self_paced") && (
             <SimpleStudentsList slug={slug} fmtId={fmt.id} />
@@ -219,6 +221,30 @@ export default function CourseManagementPage() {
 
   function handleCourseUpdated(updates: Partial<CourseDetail>) {
     setCourse(prev => prev ? { ...prev, ...updates } : prev);
+  }
+
+  function handleMemberCompleted(enrollmentId: number) {
+    setCourse(prev => prev ? {
+      ...prev,
+      cohorts: (prev.cohorts ?? []).map(c => ({
+        ...c,
+        members: (c.members ?? []).map(m =>
+          m.enrollment_id === enrollmentId ? { ...m, is_completed: true } : m,
+        ),
+      })),
+    } : prev);
+  }
+
+  function handleMemberUncompleted(enrollmentId: number) {
+    setCourse(prev => prev ? {
+      ...prev,
+      cohorts: (prev.cohorts ?? []).map(c => ({
+        ...c,
+        members: (c.members ?? []).map(m =>
+          m.enrollment_id === enrollmentId ? { ...m, is_completed: false } : m,
+        ),
+      })),
+    } : prev);
   }
 
   // Map format_type → CourseDeliveryFormat for O(1) lookup
@@ -430,7 +456,7 @@ export default function CourseManagementPage() {
       )}
       {tab === "group" && fmtByType.group && (
         <div style={{ display: "flex", flexDirection: "column", gap: "clamp(16px, 1.39vw, 24px)" }}>
-          <FormatStatsBar fmt={fmtByType.group} slug={slug} course={course} />
+          <FormatStatsBar fmt={fmtByType.group} slug={slug} course={course} onMemberCompleted={handleMemberCompleted} onMemberUncompleted={handleMemberUncompleted} />
           <CourseManagementGroupTab
             course={course}
             slug={slug}

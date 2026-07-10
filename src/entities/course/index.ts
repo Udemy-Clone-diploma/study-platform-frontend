@@ -25,6 +25,7 @@ export * from "./model/cohort";
 export * from "./model/cohortGroup";
 export * from "./model/delivery-format";
 export * from "./model/enrollment";
+export * from "./model/growth";
 export * from "./model/module";
 export * from "./model/attempt";
 export * from "./model/pending-edit";

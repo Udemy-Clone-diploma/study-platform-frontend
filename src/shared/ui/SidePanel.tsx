@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { X } from "lucide-react";
 
 type Props = {
@@ -7,53 +8,38 @@ type Props = {
   onClose: () => void;
   title: string;
   width?: string;
-  /** Distance from top edge of nearest `position: relative` ancestor. */
-  top?: string | number;
-  /** Distance from right edge. Defaults to match typical page inline padding. */
-  right?: string | number;
-  /** Distance from bottom edge. */
-  bottom?: string | number;
-  borderRadius?: string | number;
-  borderLeft?: string;
-  zIndex?: number;
   children: React.ReactNode;
 };
 
-/** Sliding overlay panel that animates in from the right.
- *  Requires a `position: relative` ancestor to scope the absolute positioning. */
+/**
+ * Sliding drawer panel from the right -- same fixed idiom as the homework and
+ * notes detail drawers (fixed below the header, rounded left corners, shadow,
+ * translate-x transition, Escape-to-close).
+ */
 export function SidePanel({
   open,
   onClose,
   title,
   width = "clamp(280px, 24vw, 400px)",
-  top = "clamp(12px, 1.25vw, 20px)",
-  right = "clamp(12px, 1.25vw, 20px)",
-  bottom = "clamp(12px, 1.25vw, 20px)",
-  borderRadius = "clamp(12px, 1vw, 20px)",
-  borderLeft,
-  zIndex = 20,
   children,
 }: Props) {
+  useEffect(() => {
+    if (!open) return;
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onClose, open]);
+
   return (
-    <div
+    <aside
       aria-hidden={!open}
-      style={{
-        position: "absolute",
-        top,
-        right,
-        bottom,
-        width,
-        background: "var(--color-bg)",
-        borderRadius,
-        borderLeft,
-        boxShadow: "0 4px 32px rgba(0,0,0,0.12)",
-        overflow: "hidden",
-        zIndex,
-        pointerEvents: open ? "auto" : "none",
-        opacity: open ? 1 : 0,
-        transform: open ? "translateX(0)" : "translateX(20px)",
-        transition: "opacity 0.2s ease, transform 0.2s ease",
-      }}
+      className={[
+        "fixed top-[76px] right-0 bottom-0 z-40 overflow-hidden rounded-tl-[20px] rounded-bl-[20px] bg-white shadow-[0_0_30px_rgba(0,0,0,0.16)] transition-transform duration-300 ease-out",
+        open ? "translate-x-0" : "translate-x-full",
+      ].join(" ")}
+      style={{ width: `min(${width}, calc(100vw - 24px))` }}
     >
       <div style={{
         height: "100%",
@@ -104,6 +90,6 @@ export function SidePanel({
           {children}
         </div>
       </div>
-    </div>
+    </aside>
   );
 }

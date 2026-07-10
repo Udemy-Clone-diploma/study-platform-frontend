@@ -7,7 +7,7 @@ import { BookOpen, Check, ChevronDown, Clock, User, Users } from "lucide-react";
 import { addCartItem } from "@/entities/cart";
 import type { CourseCohort } from "@/entities/course/model/cohort";
 import type { CourseDeliveryFormat, DeliveryFormatType } from "@/entities/course";
-import { DAY_LABELS, getScheduleSlots } from "@/entities/course";
+import { DAY_LABELS, enrollInFreeCourse, getScheduleSlots } from "@/entities/course";
 import type { ScheduleSlot } from "@/entities/course";
 import type { ApiError } from "@/shared/api/base";
 import { AUTH_COOKIE_NAMES } from "@/shared/api/config/authCookies";
@@ -112,7 +112,7 @@ function CohortPicker({
                 className="flex items-start justify-between gap-3 rounded-xl border px-4 py-3 text-left transition-colors"
                 style={{
                   borderColor: isSelected ? "var(--color-blue)" : "var(--color-border-light)",
-                  background: isSelected ? "color-mix(in srgb, var(--color-blue) 8%, transparent)" : "transparent",
+                  background: isSelected ? "color-mix(in srgb, var(--color-blue) 8%, transparent)" : "rgba(255, 255, 255, 0.52)",
                 }}
               >
                 <div className="flex flex-col gap-0.5 min-w-0">
@@ -329,9 +329,22 @@ export function CoursePricingBlock({ courseId, formats, slug, cohorts = [] }: Pr
     setPendingPlanId(planId);
     clearCardNotice(formatId);
 
+    const cohortId = formatType === "group" ? selectedCohort[formatId] : undefined;
+    const scheduleSlotIds = formatType === "individual" ? selectedSlots[formatId] : undefined;
+    const isFree = Number(formats.find(f => f.id === formatId)?.pricing?.price ?? -1) === 0;
+
     try {
-      const cohortId = formatType === "group" ? selectedCohort[formatId] : undefined;
-      const scheduleSlotIds = formatType === "individual" ? selectedSlots[formatId] : undefined;
+      if (isFree) {
+        // Zero-price plan: enroll directly (still applying this format's
+        // cohort/slot setup), skipping cart/checkout entirely.
+        await enrollInFreeCourse(slug, {
+          delivery_format_id: formatId,
+          cohort_id: cohortId,
+          schedule_slot_ids: scheduleSlotIds,
+        });
+        router.push(`/learn/${slug}`);
+        return;
+      }
       await addCartItem(courseId, planId, cohortId, scheduleSlotIds);
       router.push(CART_URL);
     } catch (error) {
@@ -452,12 +465,15 @@ export function CoursePricingBlock({ courseId, formats, slug, cohorts = [] }: Pr
                   pendingPlanId !== null ||
                   (isGroup && availableCohorts.length === 0)
                 }
+                style={{ boxShadow: "0 10px 30px rgba(0, 58, 255, 0.22)" }}
               >
                 {pendingPlanId === plan.id
                   ? "Processing..."
                   : isGroup && availableCohorts.length === 0
                     ? "No spots available"
-                    : "Buy now"}
+                    : Number(plan.price) === 0
+                      ? "Enroll for free"
+                      : "Buy now"}
               </GradientButton>
             </article>
           );

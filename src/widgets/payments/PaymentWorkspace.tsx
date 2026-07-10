@@ -899,7 +899,13 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
 
       if (freeCartItems.length > 0) {
         await Promise.all(
-          freeCartItems.map((item) => enrollInFreeCourse(item.course.slug)),
+          freeCartItems.map((item) =>
+            enrollInFreeCourse(item.course.slug, {
+              pricing_plan_id: item.pricing_plan_id ?? undefined,
+              cohort_id: item.cohort?.id,
+              schedule_slot_ids: item.schedule_slots.map((slot) => slot.id),
+            }),
+          ),
         );
         const refreshedCart = await getCart();
         setCart(refreshedCart);

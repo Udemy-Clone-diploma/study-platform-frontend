@@ -33,9 +33,11 @@ function xFor(index: number, count: number): number {
   return CHART_X0 + (index * (CHART_X1 - CHART_X0)) / (count - 1);
 }
 
-type Option = { value: string; label: string };
+export type Option = { value: string; label: string };
 
-function Dropdown({ value, options, onChange }: {
+/** Compact text-and-chevron dropdown shared by stat/growth widgets — lighter
+ *  weight than the full pill `PillSelect`, meant to sit inside a card header. */
+export function Dropdown({ value, options, onChange }: {
   value: string;
   options: Option[];
   onChange: (value: string) => void;
@@ -102,7 +104,17 @@ function Dropdown({ value, options, onChange }: {
  * time; for teachers (`metric="enrollments"`), new-student-enrollment count over
  * time. Filterable by course and period.
  */
-export function GrowthCard({ metric = "score" }: { metric?: Metric }) {
+export function GrowthCard({
+  metric = "score",
+  cardClassName = "p-5",
+  chartHeightClassName = "h-[116px]",
+}: {
+  metric?: Metric;
+  /** Overrides the card's default padding (`p-5`) — e.g. drop the horizontal padding for an edge-to-edge chart. */
+  cardClassName?: string;
+  /** Overrides the chart area's default height (`h-[116px]`). */
+  chartHeightClassName?: string;
+}) {
   const [period, setPeriod] = useState<GrowthPeriod>("weekly");
   const [courseSlug, setCourseSlug] = useState<string>("");
   const [data, setData] = useState<NormalizedGrowth | null>(null);
@@ -172,7 +184,7 @@ export function GrowthCard({ metric = "score" }: { metric?: Metric }) {
   });
 
   return (
-    <Card className="p-5">
+    <Card className={cardClassName}>
       <div className="mb-4 flex items-center justify-between gap-4">
         <h2 className="text-base font-bold text-black">Growth</h2>
         <div className="flex items-center gap-3">
@@ -185,7 +197,7 @@ export function GrowthCard({ metric = "score" }: { metric?: Metric }) {
         {summaryLabel}: {data ? data.summaryValue : "—"}
       </div>
 
-      <div className="relative h-[116px]">
+      <div className={`relative ${chartHeightClassName}`}>
         {data && points.length > 0 && (
           <svg className="h-full w-full" viewBox="0 0 640 130" role="img" aria-label="Growth chart">
             <defs>

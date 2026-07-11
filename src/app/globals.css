@@ -28,11 +28,27 @@
     #FCC4C3 49%,
     #FCC4C3 100%
   );
+  --gradient-bottom-nav-active: linear-gradient(
+    90deg,
+    #FFF4DA 0%,
+    #FCC4C3 49.04%
+  );
 
   --color-calendar-bg: #d6e0ff;
   --color-calendar-today: #a7bafa;
   --color-calendar-weekend: #fafafa;
   --color-calendar-border: #e0e0e0;
+
+  /* PageShell's own wrapper padding — flat mobile values, fluid clamp() on desktop (see PageShell.tsx). */
+  --page-padding-x: 16px;
+  --page-padding-y: 45px;
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --page-padding-x: clamp(40px, calc(-110px + 10.42vw), 90px);
+    --page-padding-y: clamp(16px, 3.06vw, 44px);
+  }
 }
 
 @theme {
@@ -153,6 +169,11 @@
     #FFF4DA 0%,
     #FCC4C3 49%,
     #FCC4C3 100%
+  );
+  --gradient-bottom-nav-active: linear-gradient(
+    90deg,
+    #FFF4DA 0%,
+    #FCC4C3 49.04%
   );
 
   --gradient-feedback: linear-gradient(
@@ -416,14 +437,14 @@ body {
 .bg-wishlist::before {
   content: "";
   position: fixed;
-  top: 20vh;
-  left: 60vh;
+  top: 50%;
+  left: 50%;
   width: 40vw;
   height: 60vh;
   background: #fcc4c3;
-  opacity: 0.5;
+  opacity: 0.65;
   filter: blur(130px);
-  transform: rotate(45deg) scale(1.4);
+  transform: translate(-50%, -50%) rotate(45deg) scale(1.4);
   pointer-events: none;
   z-index: -1;
 }
@@ -435,14 +456,14 @@ body {
 .bg-my-courses::before {
   content: "";
   position: fixed;
-  top: 20vh;
-  left: 60vh;
+  top: 50%;
+  left: 50%;
   width: 40vw;
   height: 60vh;
   background: #fcc4c3;
-  opacity: 0.5;
+  opacity: 0.65;
   filter: blur(130px);
-  transform: rotate(33.8deg) scale(1.4);
+  transform: translate(-50%, -50%) rotate(33.8deg) scale(1.4);
   pointer-events: none;
   z-index: -1;
 }

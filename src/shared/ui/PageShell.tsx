@@ -22,10 +22,10 @@ export function PageShell({ children, className = "", fixedHeight = false, style
       className={`${fixedHeight ? "flex flex-col" : "min-h-[calc(100vh-76px)]"} ${className}`.trim()}
       style={{
         ...(fixedHeight ? { height: "calc(100vh - 76px)", overflow: "hidden" } : {}),
-        paddingLeft: SIDEBAR_GAP,
-        paddingRight: SIDEBAR_GAP,
-        paddingTop: PAGE_PADDING_TOP,
-        paddingBottom: PAGE_PADDING_BOTTOM,
+        paddingLeft: "var(--page-padding-x)",
+        paddingRight: "var(--page-padding-x)",
+        paddingTop: "var(--page-padding-y)",
+        paddingBottom: "var(--page-padding-y)",
         ...style,
       }}
     >

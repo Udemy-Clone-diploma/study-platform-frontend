@@ -88,7 +88,7 @@ export function NotificationBell({ iconSize = 24 }: { iconSize?: number } = {}) 
 
         {open && (
           <div
-            className="absolute right-0 z-50 flex w-[380px] flex-col gap-4 rounded-3xl p-5 shadow-(--shadow-card)"
+            className="absolute right-0 z-50 flex w-[min(380px,calc(100vw-2rem))] flex-col gap-4 rounded-3xl p-5 shadow-(--shadow-card)"
             style={{ top: "calc(100% + 8px)", background: "var(--gradient-notification)" }}
           >
             <div className="flex items-center justify-between">

@@ -37,7 +37,7 @@ export async function Header({ borderRadius = "0px 0px 20px 20px" }: HeaderProps
 
     return (
         <header
-            className="relative z-10 w-full shrink-0 h-auto rounded-t-none rounded-b-[20px] lg:h-[76px] lg:rounded-[var(--header-radius)]"
+            className="fixed inset-x-0 top-0 z-50 w-full shrink-0 h-auto rounded-t-none rounded-b-[20px] lg:relative lg:z-10 lg:h-[76px] lg:rounded-[var(--header-radius)]"
             style={{
                 background: "var(--gradient-brand)",
                 "--header-radius": borderRadius,

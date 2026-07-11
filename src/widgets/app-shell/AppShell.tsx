@@ -21,7 +21,7 @@ export function AppShell({ children, sidebarItems, role, fullBleed = false }: Ap
 
         <AppSidebar items={sidebarItems} />
 
-        <div className="flex min-w-0 flex-1 flex-col overflow-y-auto overflow-x-hidden pb-[calc(103px+env(safe-area-inset-bottom))] lg:pb-0">
+        <div className="flex min-w-0 flex-1 flex-col overflow-y-auto overflow-x-hidden pt-16 pb-[calc(103px+env(safe-area-inset-bottom))] lg:pt-0 lg:pb-0">
           <main className={fullBleed ? "min-h-full" : "flex-1"}>{children}</main>
         </div>
       </div>

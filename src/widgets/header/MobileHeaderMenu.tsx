@@ -84,7 +84,13 @@ export function MobileHeaderMenu({ isLoggedIn, categories, role }: Props) {
         </button>
 
         <Link href="/" className="relative h-10 w-[120px] shrink-0" aria-label="Home">
-          <Image src="/logo/Nexo4u_logo3.svg" alt="Nexo4you" fill className="object-contain" priority />
+          <Image
+            src="/logo/Nexo4u_logo3.svg"
+            alt="Nexo4you"
+            fill
+            className="object-contain"
+            priority
+          />
         </Link>
 
         <div className="flex shrink-0 items-center gap-3">
@@ -101,76 +107,128 @@ export function MobileHeaderMenu({ isLoggedIn, categories, role }: Props) {
         </div>
       </div>
 
-      <CollapseRows open={searchOpen}>
-        <div className="px-4 pb-4">
-          <SearchBar />
-        </div>
-      </CollapseRows>
+      <div className="max-h-[calc(100dvh-4rem)] overflow-y-auto">
+        <CollapseRows open={searchOpen}>
+          <div className="px-4 pb-4">
+            <SearchBar />
+          </div>
+        </CollapseRows>
 
-      <CollapseRows open={menuOpen}>
-        <div className="flex flex-col items-center gap-6 px-4 pb-8 pt-2 text-center">
-          {!isLoggedIn && (
-            <AccentButton
-              href="/login"
-              size="sm"
-              style={{ width: 160, height: 40, minWidth: "unset", fontSize: 16, letterSpacing: "normal", padding: 0, whiteSpace: "nowrap" }}
-            >
-              Get Started
-            </AccentButton>
-          )}
-
-          {isLoggedIn && (
-            <AccordionSection label="Profile" open={profileOpen} onToggle={() => setProfileOpen((v) => !v)}>
-              <Link href="/profile" onClick={closeAll} className="dropdown-link" style={subItemStyle}>
-                My Profile
-              </Link>
-              <Link href={getRoleHome(role)} onClick={closeAll} className="dropdown-link" style={subItemStyle}>
-                My Office
-              </Link>
-              <Link href={getRoleCourses(role)} onClick={closeAll} className="dropdown-link" style={subItemStyle}>
-                My Courses
-              </Link>
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="dropdown-link"
-                style={{ ...subItemStyle, background: "none", border: "none", cursor: "pointer", padding: 0, color: "var(--color-pink-dark)" }}
+        <CollapseRows open={menuOpen}>
+          <div className="flex flex-col items-center gap-6 px-4 pb-8 pt-2 text-center">
+            {!isLoggedIn && (
+              <AccentButton
+                href="/login"
+                size="sm"
+                style={{
+                  width: 160,
+                  height: 40,
+                  minWidth: "unset",
+                  fontSize: 16,
+                  letterSpacing: "normal",
+                  padding: 0,
+                  whiteSpace: "nowrap",
+                }}
               >
-                Exit
-              </button>
-            </AccordionSection>
-          )}
+                Get Started
+              </AccentButton>
+            )}
 
-          <AccordionSection label="Catalog" open={catalogOpen} onToggle={() => setCatalogOpen((v) => !v)}>
-            <Link href="/catalog" onClick={closeAll} className="dropdown-link" style={subItemStyle}>
-              All Courses
-            </Link>
-            <div className="h-px w-full bg-white" />
-            {categories.map((cat) => (
+            {isLoggedIn && (
+              <AccordionSection
+                label="Profile"
+                open={profileOpen}
+                onToggle={() => setProfileOpen((v) => !v)}
+              >
+                <Link
+                  href="/profile"
+                  onClick={closeAll}
+                  className="dropdown-link"
+                  style={subItemStyle}
+                >
+                  My Profile
+                </Link>
+                <Link
+                  href={getRoleHome(role)}
+                  onClick={closeAll}
+                  className="dropdown-link"
+                  style={subItemStyle}
+                >
+                  My Office
+                </Link>
+                <Link
+                  href={getRoleCourses(role)}
+                  onClick={closeAll}
+                  className="dropdown-link"
+                  style={subItemStyle}
+                >
+                  My Courses
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="dropdown-link"
+                  style={{
+                    ...subItemStyle,
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    padding: 0,
+                    color: "var(--color-pink-dark)",
+                  }}
+                >
+                  Exit
+                </button>
+              </AccordionSection>
+            )}
+
+            <AccordionSection
+              label="Catalog"
+              open={catalogOpen}
+              onToggle={() => setCatalogOpen((v) => !v)}
+            >
               <Link
-                key={cat.id}
-                href={`/catalog?category=${cat.slug}`}
+                href="/catalog"
                 onClick={closeAll}
                 className="dropdown-link"
                 style={subItemStyle}
               >
-                {cat.name}
+                All Courses
               </Link>
-            ))}
-          </AccordionSection>
+              <div className="h-px w-full bg-white" />
+              {categories.map((cat) => (
+                <Link
+                  key={cat.id}
+                  href={`/catalog?category=${cat.slug}`}
+                  onClick={closeAll}
+                  className="dropdown-link"
+                  style={subItemStyle}
+                >
+                  {cat.name}
+                </Link>
+              ))}
+            </AccordionSection>
 
-          <Link href="/coming-soon?page=Blog" onClick={closeAll} className="transition-opacity hover:opacity-70" style={topLevelStyle}>
-            Blog
-          </Link>
-        </div>
-      </CollapseRows>
+            <Link
+              href="/coming-soon?page=Blog"
+              onClick={closeAll}
+              className="transition-opacity hover:opacity-70"
+              style={topLevelStyle}
+            >
+              Blog
+            </Link>
+          </div>
+        </CollapseRows>
+      </div>
     </div>
   );
 }
 
 function CollapseRows({ open, children }: { open: boolean; children: ReactNode }) {
   return (
-    <div className={`grid transition-[grid-template-rows] duration-300 ${open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
+    <div
+      className={`grid transition-[grid-template-rows] duration-300 ${open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
+    >
       <div className="min-h-0 overflow-hidden">{children}</div>
     </div>
   );
@@ -194,10 +252,19 @@ function AccordionSection({
         onClick={onToggle}
         aria-expanded={open}
         className="flex items-center justify-center gap-2 transition-opacity hover:opacity-70"
-        style={{ ...topLevelStyle, background: "none", border: "none", cursor: "pointer", padding: 0 }}
+        style={{
+          ...topLevelStyle,
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          padding: 0,
+        }}
       >
         {label}
-        <ChevronDown aria-hidden="true" className={`h-7 w-7 shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
+        <ChevronDown
+          aria-hidden="true"
+          className={`h-7 w-7 shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
+        />
       </button>
       <CollapseRows open={open}>
         <div className="flex w-full flex-col items-center gap-4">{children}</div>

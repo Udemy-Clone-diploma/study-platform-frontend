@@ -5,9 +5,11 @@ import {
   HomeworkReviewPanel,
   StudentHomeworkProvider,
 } from "./StudentHomeworkDashboardPanels";
+import { GrowthCard } from "./GrowthCard";
 import { MyCoursesDashboardWidget } from "./MyCoursesDashboardWidget";
 import { ScheduleRail } from "./ScheduleRail";
 import { StudentNotesPanel } from "./StudentNotesPanel";
+import { PAGE_PADDING_TOP, SIDEBAR_GAP } from "@/shared/ui/PageShell";
 
 type DashboardRole = "student" | "teacher";
 
@@ -30,9 +32,8 @@ type ProgressItem = {
 };
 
 const scheduleRailStyle = {
-  marginTop: "clamp(16px, 1.67vw, 32px)",
-  marginRight: "clamp(16px, 1.67vw, 32px)",
-  "--schedule-height": "calc(100vh - 76px - clamp(16px, 1.67vw, 32px))",
+  marginRight: "clamp(16px, calc(-11.43px + 2.68vw), 40px)",
+  "--schedule-height": "calc(100vh - 76px - clamp(16px, 2.22vw, 32px))",
 } as CSSProperties;
 
 const teacherChecks: DashboardListItem[] = [
@@ -117,20 +118,24 @@ function StudentDashboard() {
       <StudentHomeworkProvider>
         <div
           className="grid min-h-[calc(100vh-76px)]"
-          style={{ gridTemplateColumns: "1fr clamp(270px, 22vw, 362px)" }}
+          style={{
+            gridTemplateColumns: "1fr clamp(240px, calc(100.53px + 13.62vw), 362px)",
+            gap: SIDEBAR_GAP,
+            paddingTop: PAGE_PADDING_TOP,
+            paddingLeft: SIDEBAR_GAP,
+          }}
         >
           <div
             className="grid"
             style={{
-              gridTemplateColumns: "clamp(400px, 42.71vw, 820px) clamp(280px, 24.48vw, 470px)",
-              gap: "clamp(12px, 1.25vw, 24px)",
-              paddingInline: "clamp(16px, 2.08vw, 40px)",
-              paddingBlock: "clamp(16px, 1.67vw, 32px)",
+              gridTemplateColumns:
+                "clamp(390px, calc(-101.4px + 47.99vw), 820px) clamp(225px, calc(-55.04px + 27.34vw), 470px)",
+              gap: "clamp(12px, calc(-1.71px + 1.34vw), 24px)",
             }}
           >
             <div className="flex min-w-0 flex-col" style={{ gap: "clamp(12px, 1.04vw, 20px)" }}>
               <MyCoursesDashboardWidget role="student" />
-              <GrowthCard score="4.9" />
+              <GrowthCard />
               <HomeworkQueuePanel />
             </div>
 
@@ -154,20 +159,24 @@ function TeacherDashboard() {
     <section className="min-h-[calc(100vh-76px)] bg-white">
       <div
         className="grid min-h-[calc(100vh-76px)]"
-        style={{ gridTemplateColumns: "1fr clamp(270px, 22vw, 362px)" }}
+        style={{
+          gridTemplateColumns: "1fr clamp(240px, calc(100.53px + 13.62vw), 362px)",
+          gap: SIDEBAR_GAP,
+          paddingTop: PAGE_PADDING_TOP,
+          paddingLeft: SIDEBAR_GAP,
+        }}
       >
         <div
           className="grid"
           style={{
-            gridTemplateColumns: "clamp(400px, 42.71vw, 820px) clamp(280px, 24.48vw, 470px)",
-            gap: "clamp(12px, 1.25vw, 24px)",
-            paddingInline: "clamp(16px, 2.08vw, 40px)",
-            paddingBlock: "clamp(16px, 1.67vw, 32px)",
+            gridTemplateColumns:
+              "clamp(390px, calc(-101.4px + 47.99vw), 820px) clamp(225px, calc(-55.04px + 27.34vw), 470px)",
+            gap: "clamp(12px, calc(-1.71px + 1.34vw), 24px)",
           }}
         >
           <div className="flex min-w-0 flex-col" style={{ gap: "clamp(12px, 1.04vw, 20px)" }}>
             <MyCoursesDashboardWidget role="teacher" />
-            <GrowthCard score="4.0" />
+            <GrowthCard metric="enrollments" />
             <TodoPanel title="Check" secondaryLabel="Verified" items={teacherChecks} teacher />
           </div>
 
@@ -188,60 +197,6 @@ function TeacherDashboard() {
         </div>
       </div>
     </section>
-  );
-}
-
-function GrowthCard({ score }: { score: string }) {
-  return (
-    <Card className="p-5">
-      <div className="mb-4 flex items-center justify-between gap-4">
-        <h2 className="text-base font-bold text-black">Growth</h2>
-        <div className="flex gap-5 text-[10px] text-black">
-          <span>Course v</span>
-          <span>Yearly v</span>
-        </div>
-      </div>
-
-      <div className="mb-2 rounded bg-[#edf1ff] px-2 py-1.5 text-xs font-bold text-[#003aff]">
-        Average score: {score}
-      </div>
-
-      <div className="relative h-[116px]">
-        <svg className="h-full w-full" viewBox="0 0 640 130" role="img" aria-label="Growth chart">
-          <defs>
-            <linearGradient id="growthFill" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor="#a7bafa" stopOpacity="0.7" />
-              <stop offset="52%" stopColor="#fcc4c3" stopOpacity="0.7" />
-              <stop offset="100%" stopColor="#fff4da" stopOpacity="0.45" />
-            </linearGradient>
-          </defs>
-          {[18, 42, 66, 90, 114].map((y) => (
-            <line key={y} x1="36" x2="628" y1={y} y2={y} stroke="#e3e7f8" strokeWidth="1" />
-          ))}
-          <line x1="36" x2="628" y1="114" y2="114" stroke="#a7bafa" strokeDasharray="2 2" />
-          <path
-            d="M36 92 L120 84 L220 50 L340 34 L420 92 L520 72 L628 40 L628 114 L36 114 Z"
-            fill="url(#growthFill)"
-          />
-          <path
-            d="M36 92 L120 84 L220 50 L340 34 L420 92 L520 72 L628 40"
-            fill="none"
-            stroke="#a7bafa"
-            strokeWidth="2"
-          />
-          {[5, 4, 3, 2, 1].map((value, index) => (
-            <text key={value} x="8" y={22 + index * 24} fill="#5e5e5e" fontSize="11">
-              {value}
-            </text>
-          ))}
-          {["Week 1", "Week 2", "Week 3", "Week 4", "Week 5", "Week 6"].map((label, index) => (
-            <text key={label} x={36 + index * 116} y="128" fill="#5e5e5e" fontSize="10">
-              {label}
-            </text>
-          ))}
-        </svg>
-      </div>
-    </Card>
   );
 }
 
@@ -400,7 +355,7 @@ function ScrollableList({ children }: { children: ReactNode }) {
   return <div className="max-h-full overflow-y-auto pr-1">{children}</div>;
 }
 
-function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
+export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
     <div className={`rounded-lg bg-white shadow-[0_0_16px_rgba(0,0,0,0.14)] ${className}`}>
       {children}

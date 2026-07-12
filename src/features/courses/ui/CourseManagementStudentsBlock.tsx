@@ -1,10 +1,18 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Check, Pencil, X } from "lucide-react";
+import { Award, Check, Pencil, RotateCcw, X } from "lucide-react";
 import { DatePicker } from "@/shared/ui/DatePicker";
-import { getCourseEnrolledStudents, getScheduleSlots, updateEnrollmentPeriod } from "@/entities/course";
+import {
+  completeStudentEnrollment,
+  getCourseEnrolledStudents,
+  getScheduleSlots,
+  uncompleteStudentEnrollment,
+  updateEnrollmentPeriod,
+} from "@/entities/course";
 import type { CourseDetail, EnrolledStudent, ScheduleSlot } from "@/entities/course";
+import type { ApiError } from "@/shared/api/base";
+import { CourseConfirmModal } from "./CourseConfirmModal";
 
 const DAY_SHORT: Record<number, string> = {
   0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri", 5: "Sat", 6: "Sun",
@@ -39,6 +47,11 @@ const ICON_BTN: React.CSSProperties = {
   color: "var(--color-text-secondary)", flexShrink: 0,
 };
 
+const ERROR_STYLE: React.CSSProperties = {
+  fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.69vw, 12px)",
+  color: "var(--color-danger)", margin: "0 0 0 12px",
+};
+
 const SAVE_BTN: React.CSSProperties = {
   fontFamily: "var(--font-base)", fontWeight: 600,
   fontSize: "clamp(11px, 0.72vw, 12px)", color: "#fff",
@@ -71,22 +84,89 @@ function ListWrap({ children }: { children: React.ReactNode }) {
   return <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>{children}</div>;
 }
 
+// ── CompletionBadge ────────────────────────────────────────────────────────────
+
+export function CompletionBadge({ completed }: { completed: boolean }) {
+  return (
+    <span
+      style={{
+        fontFamily: "var(--font-base)", fontWeight: 600,
+        fontSize: "clamp(10px, 0.63vw, 12px)",
+        borderRadius: 999, padding: "2px 10px", flexShrink: 0, whiteSpace: "nowrap",
+        color: completed ? "var(--color-success)" : "var(--color-text-secondary)",
+        border: `1px solid ${completed ? "var(--color-success)" : "var(--color-border-light)"}`,
+        background: "white",
+      }}
+    >
+      {completed ? "Completed" : "Studying"}
+    </span>
+  );
+}
+
 // ── StudentRow (generic) ───────────────────────────────────────────────────────
 
-function StudentRow({ name, email, meta, badge }: {
-  name?: string | null; email: string; meta?: string; badge?: string;
+function StudentRow({ name, email, meta, badge, completed, onComplete, onUncomplete }: {
+  name?: string | null; email: string; meta?: string; badge?: string; completed?: boolean;
+  onComplete?: () => Promise<void>;
+  onUncomplete?: () => Promise<void>;
 }) {
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [action, setAction] = useState<"complete" | "uncomplete" | null>(null);
+
+  async function handleConfirm() {
+    setPending(true);
+    setError(null);
+    try {
+      if (action === "complete") await onComplete?.();
+      else if (action === "uncomplete") await onUncomplete?.();
+      setAction(null);
+    } catch (err) {
+      setError((err as ApiError).message ?? "Something went wrong.");
+    } finally {
+      setPending(false);
+    }
+  }
+
   return (
-    <div style={ROW}>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={NAME_STYLE}>{name || email}</p>
-        {name && <p style={SUB_STYLE}>{email}</p>}
+    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+      <div style={ROW}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={NAME_STYLE}>{name || email}</p>
+          {name && <p style={SUB_STYLE}>{email}</p>}
+        </div>
+        {meta && <span style={META_STYLE}>{meta}</span>}
+        {completed != null && <CompletionBadge completed={completed} />}
+        {completed === false && onComplete && (
+          <button type="button" onClick={() => setAction("complete")} disabled={pending} style={ICON_BTN} title="Mark as completed">
+            <Award size={14} />
+          </button>
+        )}
+        {completed === true && onUncomplete && (
+          <button type="button" onClick={() => setAction("uncomplete")} disabled={pending} style={ICON_BTN} title="Return to course">
+            <RotateCcw size={14} />
+          </button>
+        )}
+        {badge && (
+          <span style={{ fontFamily: "var(--font-base)", fontSize: "clamp(10px, 0.63vw, 12px)", background: "var(--color-bg)", border: "1px solid var(--color-border-light)", borderRadius: 999, padding: "2px 10px", color: "var(--color-text-secondary)", flexShrink: 0, whiteSpace: "nowrap" }}>
+            {badge}
+          </span>
+        )}
       </div>
-      {meta && <span style={META_STYLE}>{meta}</span>}
-      {badge && (
-        <span style={{ fontFamily: "var(--font-base)", fontSize: "clamp(10px, 0.63vw, 12px)", background: "var(--color-bg)", border: "1px solid var(--color-border-light)", borderRadius: 999, padding: "2px 10px", color: "var(--color-text-secondary)", flexShrink: 0, whiteSpace: "nowrap" }}>
-          {badge}
-        </span>
+      {error && <p style={ERROR_STYLE}>{error}</p>}
+      {action && (
+        <CourseConfirmModal
+          title={action === "complete" ? "Mark as completed" : "Return to course"}
+          description={
+            action === "complete"
+              ? `Mark ${name || email} as completed?`
+              : `Return ${name || email} to active studying? This removes their completion (and certificate, if any).`
+          }
+          confirmLabel={action === "complete" ? "Complete" : "Return"}
+          loading={pending}
+          onConfirm={handleConfirm}
+          onCancel={() => setAction(null)}
+        />
       )}
     </div>
   );
@@ -107,6 +187,28 @@ function IndividualStudentRow({
   const [start, setStart]     = useState(toDateStr(student.access_granted_at));
   const [end, setEnd]         = useState(toDateStr(student.access_until));
   const [saving, setSaving]   = useState(false);
+  const [completing, setCompleting] = useState(false);
+  const [completeError, setCompleteError] = useState<string | null>(null);
+  const [action, setAction] = useState<"complete" | "uncomplete" | null>(null);
+
+  async function handleConfirm() {
+    setCompleting(true);
+    setCompleteError(null);
+    try {
+      if (action === "complete") {
+        await completeStudentEnrollment(slug, student.enrollment_id);
+        onUpdated({ ...student, is_completed: true });
+      } else if (action === "uncomplete") {
+        await uncompleteStudentEnrollment(slug, student.enrollment_id);
+        onUpdated({ ...student, is_completed: false });
+      }
+      setAction(null);
+    } catch (err) {
+      setCompleteError((err as ApiError).message ?? "Something went wrong.");
+    } finally {
+      setCompleting(false);
+    }
+  }
 
   async function save() {
     setSaving(true);
@@ -156,18 +258,45 @@ function IndividualStudentRow({
   }
 
   return (
-    <div style={ROW}>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={NAME_STYLE}>{student.student_name || student.student_email}</p>
-        <p style={SUB_STYLE}>
-          {student.student_name ? student.student_email : ""}
-          {periodLabel && (student.student_name ? "  ·  " : "")}{periodLabel}
-        </p>
+    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+      <div style={ROW}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={NAME_STYLE}>{student.student_name || student.student_email}</p>
+          <p style={SUB_STYLE}>
+            {student.student_name ? student.student_email : ""}
+            {periodLabel && (student.student_name ? "  ·  " : "")}{periodLabel}
+          </p>
+        </div>
+        {meta && <span style={META_STYLE}>{meta}</span>}
+        <CompletionBadge completed={student.is_completed} />
+        {!student.is_completed ? (
+          <button type="button" onClick={() => setAction("complete")} disabled={completing} style={ICON_BTN} title="Mark as completed">
+            <Award size={14} />
+          </button>
+        ) : (
+          <button type="button" onClick={() => setAction("uncomplete")} disabled={completing} style={ICON_BTN} title="Return to course">
+            <RotateCcw size={14} />
+          </button>
+        )}
+        <button type="button" onClick={() => setEditing(true)} style={ICON_BTN} title="Edit period">
+          <Pencil size={14} />
+        </button>
       </div>
-      {meta && <span style={META_STYLE}>{meta}</span>}
-      <button type="button" onClick={() => setEditing(true)} style={ICON_BTN} title="Edit period">
-        <Pencil size={14} />
-      </button>
+      {completeError && <p style={ERROR_STYLE}>{completeError}</p>}
+      {action && (
+        <CourseConfirmModal
+          title={action === "complete" ? "Mark as completed" : "Return to course"}
+          description={
+            action === "complete"
+              ? `Mark ${student.student_name || student.student_email} as completed?`
+              : `Return ${student.student_name || student.student_email} to active studying? This removes their completion (and certificate, if any).`
+          }
+          confirmLabel={action === "complete" ? "Complete" : "Return"}
+          loading={completing}
+          onConfirm={handleConfirm}
+          onCancel={() => setAction(null)}
+        />
+      )}
     </div>
   );
 }
@@ -235,7 +364,12 @@ export function IndividualStudentsList({ slug, fmtId, refreshKey }: {
 // ── Group: students with their cohort name ─────────────────────────────────────
 
 /** List content for the Group format — shows each student with their cohort badge. */
-export function GroupStudentsList({ course }: { course: CourseDetail }) {
+export function GroupStudentsList({ course, slug, onMemberCompleted, onMemberUncompleted }: {
+  course: CourseDetail;
+  slug: string;
+  onMemberCompleted?: (enrollmentId: number) => void;
+  onMemberUncompleted?: (enrollmentId: number) => void;
+}) {
   const rows = useMemo(() =>
     (course.cohorts ?? []).flatMap(c =>
       (c.members ?? []).map(m => ({ ...m, cohortName: c.name ?? "Unnamed cohort" }))
@@ -248,7 +382,21 @@ export function GroupStudentsList({ course }: { course: CourseDetail }) {
   return (
     <ListWrap>
       {rows.map(r => (
-        <StudentRow key={r.enrollment_id} name={r.student_name} email={r.student_email} badge={r.cohortName} />
+        <StudentRow
+          key={r.enrollment_id}
+          name={r.student_name}
+          email={r.student_email}
+          badge={r.cohortName}
+          completed={r.is_completed}
+          onComplete={r.is_completed ? undefined : async () => {
+            await completeStudentEnrollment(slug, r.enrollment_id);
+            onMemberCompleted?.(r.enrollment_id);
+          }}
+          onUncomplete={!r.is_completed ? undefined : async () => {
+            await uncompleteStudentEnrollment(slug, r.enrollment_id);
+            onMemberUncompleted?.(r.enrollment_id);
+          }}
+        />
       ))}
     </ListWrap>
   );
@@ -274,7 +422,7 @@ export function SimpleStudentsList({ slug, fmtId }: { slug: string; fmtId: numbe
   return (
     <ListWrap>
       {students.map(s => (
-        <StudentRow key={s.enrollment_id} name={s.student_name} email={s.student_email} />
+        <StudentRow key={s.enrollment_id} name={s.student_name} email={s.student_email} completed={s.is_completed} />
       ))}
     </ListWrap>
   );

@@ -1,12 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   getCalendarEvents,
   getIncomingInvitations,
   respondToInvitation,
 } from "@/entities/course";
-import type { CalendarEvent } from "@/entities/course/model/calendar";
+import type { CalendarDeadline, CalendarEvent } from "@/entities/course/model/calendar";
 import type { IncomingInvitation, InvitationConflict } from "@/entities/course/api/calendarApi";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -46,6 +47,11 @@ function upcomingWeekStarts(n: number): string[] {
 // ── Visuals ───────────────────────────────────────────────────────────────────
 
 const GRADIENT = "linear-gradient(135deg, #a7bafa 0%, #fcc4c3 55%, #fff4da 100%)";
+// Fits 7 day-cells inside the dashboard's calendar column down to a 1024px viewport, unchanged above ~1259px.
+const CELL_SIZE = "clamp(28px, calc(23.43px + 0.45vw), 32px)";
+const CARD_PADDING = "clamp(10px, calc(3.14px + 0.67vw), 16px)";
+const MONTH_TITLE_SIZE = "clamp(13px, calc(9.57px + 0.34vw), 16px)";
+const CALENDAR_TEXT_SIZE = "clamp(11px, calc(7.57px + 0.34vw), 14px)";
 
 function ChevLeft() {
   return (
@@ -68,60 +74,93 @@ function ChevRight() {
 
 // ── Day cell ──────────────────────────────────────────────────────────────────
 
+function DeadlineDot() {
+  return (
+    <span
+      aria-hidden
+      className="absolute rounded-full"
+      style={{
+        top: -2,
+        right: -2,
+        width: 8,
+        height: 8,
+        background: "var(--color-blue)",
+        border: "1.5px solid white",
+      }}
+    />
+  );
+}
+
 function DayCell({
-  day, inMonth, isSelected, isToday, hasEvent, onClick,
+  day, inMonth, isSelected, isToday, hasEvent, hasDeadline, onClick,
 }: {
   day: number;
   inMonth: boolean;
   isSelected: boolean;
   isToday: boolean;
   hasEvent: boolean;
+  hasDeadline: boolean;
   onClick: () => void;
 }) {
   if (!inMonth) {
     return (
-      <div className="mx-auto flex h-9 w-9 items-center justify-center text-sm text-black/15">
+      <div
+        className="mx-auto flex items-center justify-center text-black/15"
+        style={{ height: CELL_SIZE, width: CELL_SIZE, fontSize: CALENDAR_TEXT_SIZE }}
+      >
         {day}
       </div>
     );
   }
 
+  let inner: React.ReactNode;
   if (isToday || isSelected) {
-    return (
+    inner = (
       <button
         type="button"
         onClick={onClick}
-        className="mx-auto flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold text-white"
-        style={{ background: GRADIENT }}
+        className="mx-auto flex items-center justify-center rounded-full font-semibold text-white"
+        style={{ height: CELL_SIZE, width: CELL_SIZE, fontSize: CALENDAR_TEXT_SIZE, background: GRADIENT }}
+      >
+        {day}
+      </button>
+    );
+  } else if (hasEvent) {
+    inner = (
+      <button
+        type="button"
+        onClick={onClick}
+        className="mx-auto block rounded-full p-[1.5px] transition-opacity hover:opacity-70"
+        style={{ height: CELL_SIZE, width: CELL_SIZE, background: GRADIENT }}
+      >
+        <span
+          className="flex h-full w-full items-center justify-center rounded-full bg-white text-black"
+          style={{ fontSize: CALENDAR_TEXT_SIZE }}
+        >
+          {day}
+        </span>
+      </button>
+    );
+  } else {
+    inner = (
+      <button
+        type="button"
+        onClick={onClick}
+        className="mx-auto flex items-center justify-center rounded-full text-black transition-colors hover:bg-black/5"
+        style={{ height: CELL_SIZE, width: CELL_SIZE, fontSize: CALENDAR_TEXT_SIZE }}
       >
         {day}
       </button>
     );
   }
 
-  if (hasEvent) {
-    return (
-      <button
-        type="button"
-        onClick={onClick}
-        className="mx-auto block h-9 w-9 rounded-full p-[1.5px] transition-opacity hover:opacity-70"
-        style={{ background: GRADIENT }}
-      >
-        <span className="flex h-full w-full items-center justify-center rounded-full bg-white text-sm text-black">
-          {day}
-        </span>
-      </button>
-    );
-  }
+  if (!hasDeadline) return inner;
 
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="mx-auto flex h-9 w-9 items-center justify-center rounded-full text-sm text-black transition-colors hover:bg-black/5"
-    >
-      {day}
-    </button>
+    <div className="relative mx-auto" style={{ width: CELL_SIZE, height: CELL_SIZE }}>
+      {inner}
+      <DeadlineDot />
+    </div>
   );
 }
 
@@ -218,6 +257,25 @@ function EventCard({ event, badge }: { event: CalendarEvent; badge?: string }) {
   );
 }
 
+// ── Deadline card ─────────────────────────────────────────────────────────────
+
+function DeadlineCard({ deadline, badge }: { deadline: CalendarDeadline; badge?: string }) {
+  return (
+    <div
+      className="flex items-start gap-2 rounded-md bg-white/70 px-3 py-3 shadow-sm"
+      style={{ border: "1px solid var(--color-blue)" }}
+    >
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-semibold text-black">{deadline.title}</p>
+        <p className="mt-1 text-xs text-black/70">{deadline.course_title}</p>
+      </div>
+      <span className="shrink-0 whitespace-nowrap text-[10px] font-bold uppercase tracking-wide text-[#003aff]">
+        {badge ?? "Deadline"}
+      </span>
+    </div>
+  );
+}
+
 // ── Invitation card ───────────────────────────────────────────────────────────
 
 function conflictLabel(c: InvitationConflict): string {
@@ -295,10 +353,12 @@ export function ScheduleRail() {
   const todayDate  = useMemo(() => new Date(), []);
   const todayISO   = useMemo(() => toISO(todayDate), [todayDate]);
 
+  const searchParams   = useSearchParams();
   const [viewMonth,    setViewMonth]    = useState(() => new Date(todayDate.getFullYear(), todayDate.getMonth(), 1));
   const [selectedISO,  setSelectedISO]  = useState(todayISO);
-  const [tab,          setTab]          = useState<Tab>("day");
+  const [tab,          setTab]          = useState<Tab>(() => (searchParams.get("tab") === "invitations" ? "invitations" : "day"));
   const [eventMap,     setEventMap]     = useState<Record<string, CalendarEvent[]>>({});
+  const [deadlineMap,  setDeadlineMap]  = useState<Record<string, CalendarDeadline[]>>({});
   const [loading,      setLoading]      = useState(false);
   const [invitations,  setInvitations]  = useState<IncomingInvitation[]>([]);
 
@@ -323,14 +383,19 @@ export function ScheduleRail() {
     try {
       const results = await Promise.all(weekStarts.map(ws => getCalendarEvents(ws).catch(() => null)));
       const merged: Record<string, CalendarEvent[]> = {};
+      const mergedDeadlines: Record<string, CalendarDeadline[]> = {};
       for (const res of results) {
         if (!res) continue;
         for (const ev of res.events) {
           if (ev.is_available === true) continue;
           (merged[ev.date] ??= []).push(ev);
         }
+        for (const dl of res.deadlines) {
+          (mergedDeadlines[dl.date] ??= []).push(dl);
+        }
       }
       setEventMap(prev => ({ ...prev, ...merged }));
+      setDeadlineMap(prev => ({ ...prev, ...mergedDeadlines }));
     } finally {
       setLoading(false);
     }
@@ -343,14 +408,19 @@ export function ScheduleRail() {
     const weekStarts = upcomingWeekStarts(12);
     Promise.all(weekStarts.map(ws => getCalendarEvents(ws).catch(() => null))).then(results => {
       const merged: Record<string, CalendarEvent[]> = {};
+      const mergedDeadlines: Record<string, CalendarDeadline[]> = {};
       for (const res of results) {
         if (!res) continue;
         for (const ev of res.events) {
           if (ev.is_available === true) continue;
           (merged[ev.date] ??= []).push(ev);
         }
+        for (const dl of res.deadlines) {
+          (mergedDeadlines[dl.date] ??= []).push(dl);
+        }
       }
       setEventMap(prev => ({ ...prev, ...merged }));
+      setDeadlineMap(prev => ({ ...prev, ...mergedDeadlines }));
     });
   }, []); // once on mount
 
@@ -371,6 +441,7 @@ export function ScheduleRail() {
       .map(e => e.id),
   );
   const selectedEvents = allSelectedEvs.filter(e => !hiddenProcessedIds.has(e.id));
+  const selectedDeadlines = deadlineMap[selectedISO] ?? [];
   const isSelectedToday = selectedISO === todayISO;
   const dayLabel = isSelectedToday ? "Today" : fmtShort(selectedISO);
 
@@ -381,6 +452,14 @@ export function ScheduleRail() {
       .flatMap(([iso, evs]) => evs.filter(e => !e.event_status).map(e => ({ event: e, iso })))
       .slice(0, 10);
   }, [eventMap, todayISO]);
+
+  const upcomingDeadlines = useMemo(() => {
+    return Object.entries(deadlineMap)
+      .filter(([iso]) => iso > todayISO)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .flatMap(([, dls]) => dls)
+      .slice(0, 10);
+  }, [deadlineMap, todayISO]);
 
   function selectDate(iso: string) {
     setSelectedISO(iso);
@@ -394,7 +473,10 @@ export function ScheduleRail() {
     >
 
       {/* ── Calendar card ── */}
-      <div className="shrink-0 rounded-xl bg-[#fafafa] p-4 shadow-[0px_0px_17px_rgba(0,0,0,0.16)]">
+      <div
+        className="shrink-0 rounded-xl bg-[#fafafa] shadow-[0px_0px_17px_rgba(0,0,0,0.16)]"
+        style={{ padding: CARD_PADDING }}
+      >
 
         {/* Month nav */}
         <div className="mb-4 flex items-center justify-between">
@@ -406,7 +488,9 @@ export function ScheduleRail() {
           >
             <ChevLeft />
           </button>
-          <h2 className="text-base font-semibold text-black">{MONTH_FMT.format(viewMonth)}</h2>
+          <h2 className="font-semibold text-black" style={{ fontSize: MONTH_TITLE_SIZE }}>
+            {MONTH_FMT.format(viewMonth)}
+          </h2>
           <button
             type="button"
             aria-label="Next month"
@@ -420,14 +504,15 @@ export function ScheduleRail() {
         {/* Day grid */}
         <div className="grid grid-cols-7 gap-y-3 text-center">
           {WEEK_DAYS.map(d => (
-            <span key={d} className="text-sm font-medium text-[#5e5e5e]">{d}</span>
+            <span key={d} className="font-medium text-[#5e5e5e]" style={{ fontSize: CALENDAR_TEXT_SIZE }}>{d}</span>
           ))}
           {days.map((day, i) => {
             const iso        = toISO(day);
             const inMonth    = day.getMonth() === viewMonth.getMonth();
             const isSelected = iso === selectedISO;
             const isTodayDay = iso === todayISO;
-            const hasEvent   = inMonth && (eventMap[iso]?.some(e => !e.event_status) ?? false);
+            const hasEvent    = inMonth && (eventMap[iso]?.some(e => !e.event_status) ?? false);
+            const hasDeadline = inMonth && (deadlineMap[iso]?.length ?? 0) > 0;
             return (
               <DayCell
                 key={`${iso}-${i}`}
@@ -436,6 +521,7 @@ export function ScheduleRail() {
                 isSelected={isSelected}
                 isToday={isTodayDay}
                 hasEvent={hasEvent}
+                hasDeadline={hasDeadline}
                 onClick={() => selectDate(iso)}
               />
             );
@@ -470,18 +556,26 @@ export function ScheduleRail() {
         style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(255,255,255,0.5) transparent" }}
       >
         {tab === "day" && (
-          selectedEvents.length > 0
-            ? selectedEvents.map((e, i) => <EventCard key={i} event={e} />)
+          selectedEvents.length > 0 || selectedDeadlines.length > 0
+            ? <>
+                {selectedEvents.map((e, i) => <EventCard key={`ev-${i}`} event={e} />)}
+                {selectedDeadlines.map(dl => <DeadlineCard key={`dl-${dl.assignment_id}`} deadline={dl} />)}
+              </>
             : <p className="py-2 text-center text-[11px] text-black/50">
                 {isSelectedToday ? "No events today" : "No events on this date"}
               </p>
         )}
 
         {tab === "upcoming" && (
-          upcomingEvents.length > 0
-            ? upcomingEvents.map(({ event, iso }, i) => (
-                <EventCard key={i} event={event} badge={fmtShort(iso)} />
-              ))
+          upcomingEvents.length > 0 || upcomingDeadlines.length > 0
+            ? <>
+                {upcomingEvents.map(({ event, iso }, i) => (
+                  <EventCard key={`ev-${i}`} event={event} badge={fmtShort(iso)} />
+                ))}
+                {upcomingDeadlines.map(dl => (
+                  <DeadlineCard key={`dl-${dl.assignment_id}`} deadline={dl} badge={fmtShort(dl.date)} />
+                ))}
+              </>
             : <p className="py-2 text-center text-[11px] text-black/50">No upcoming events</p>
         )}
 

@@ -4,8 +4,9 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { getCart, type Cart, type CartItem } from "@/entities/cart";
-import { enrollInFreeCourse } from "@/entities/course";
+import { X } from "lucide-react";
+import { getCart, removeCartItem, type Cart, type CartItem } from "@/entities/cart";
+import { DAY_LABELS, enrollInFreeCourse, type DayOfWeek } from "@/entities/course";
 import {
   createInstallmentPaymentIntent,
   createPaymentIntent,
@@ -57,6 +58,24 @@ function formatMoney(amount: string, currency: string | null): string {
     currency,
     maximumFractionDigits: 2,
   }).format(Number(amount));
+}
+
+/** Group name / chosen weekly slots + start date, shown under the course title in the cart. */
+function getCartItemMeta(item: CartItem): string | null {
+  if (item.pricing_plan_kind === "group" && item.cohort) {
+    const parts = [`Group: ${item.cohort.name ?? "Group"}`];
+    if (item.cohort.start_date) parts.push(`Starts ${formatDate(item.cohort.start_date)}`);
+    return parts.join(" · ");
+  }
+
+  if (item.pricing_plan_kind === "individual" && item.schedule_slots.length > 0) {
+    const slots = item.schedule_slots
+      .map((s) => `${DAY_LABELS[s.day_of_week as DayOfWeek]} ${s.start_time}–${s.end_time}`)
+      .join(", ");
+    return `Sessions: ${slots}`;
+  }
+
+  return null;
 }
 
 function formatMoneyValue(amount: number, currency: string | null): string {
@@ -315,7 +334,9 @@ function CartPaymentPanel({
   selectedItemIds,
   checkoutLoading,
   checkoutError,
+  removingItemId,
   onToggleItem,
+  onRemoveItem,
   onPay,
 }: {
   cart: Cart | null;
@@ -324,7 +345,9 @@ function CartPaymentPanel({
   selectedItemIds: number[];
   checkoutLoading: boolean;
   checkoutError: string;
+  removingItemId: number | null;
   onToggleItem: (itemId: number) => void;
+  onRemoveItem: (itemId: number, courseId: number) => void;
   onPay: () => void;
 }) {
   if (loading) {
@@ -365,6 +388,9 @@ function CartPaymentPanel({
             const isSelected = selectedItemIds.includes(item.id);
             const gradient = CART_CARD_GRADIENT[item.course.level] ?? CART_CARD_GRADIENT.beginner;
 
+            const isRemoving = removingItemId === item.id;
+            const meta = getCartItemMeta(item);
+
             return (
               <label
                 key={item.id}
@@ -386,7 +412,7 @@ function CartPaymentPanel({
                   {isSelected ? "✓" : null}
                 </span>
                 <div
-                  className="flex min-h-[58px] min-w-0 flex-1 items-center gap-3 rounded-[14px] border border-[#E7E7E7] px-5 py-2 shadow-[0_0_8px_rgba(0,0,0,0.1)]"
+                  className="relative flex min-h-[58px] min-w-0 flex-1 items-start gap-3 rounded-[14px] border border-[#E7E7E7] py-2 pl-5 pr-9 shadow-[0_0_8px_rgba(0,0,0,0.1)]"
                   style={{ background: gradient }}
                 >
                   {item.course.image ? (
@@ -398,12 +424,34 @@ function CartPaymentPanel({
                   ) : (
                     <div className="h-10 w-10 shrink-0 rounded-full bg-[#FDD3D0]" />
                   )}
-                  <p className="line-clamp-2 min-w-0 flex-1 font-(family-name:--font-base) text-[14px] leading-4 font-semibold uppercase text-[#121212]">
-                    {item.course.title}
-                  </p>
-                  <span className="shrink-0 font-(family-name:--font-base) text-[20px] leading-6 text-[#121212]">
-                    {formatMoney(item.subtotal, item.currency)}
-                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="line-clamp-2 font-(family-name:--font-base) text-[14px] leading-4 font-semibold uppercase text-[#121212]">
+                        {item.course.title}
+                      </p>
+                      <span className="shrink-0 font-(family-name:--font-base) text-[20px] leading-6 text-[#121212]">
+                        {formatMoney(item.subtotal, item.currency)}
+                      </span>
+                    </div>
+                    {meta ? (
+                      <p className="mt-1 text-[11px] normal-case leading-tight text-[#5E5E5E]">
+                        {meta}
+                      </p>
+                    ) : null}
+                  </div>
+                  <button
+                    type="button"
+                    aria-label="Remove from cart"
+                    disabled={isRemoving}
+                    onClick={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      onRemoveItem(item.id, item.course_id);
+                    }}
+                    className="absolute right-2 top-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[#6A6A6A] transition-colors hover:bg-black/10 hover:text-[#B42318] disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
                 </div>
               </label>
             );
@@ -569,6 +617,7 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
   const [cartLoading, setCartLoading] = useState(false);
   const [cartError, setCartError] = useState("");
   const [selectedCartItemIds, setSelectedCartItemIds] = useState<number[]>([]);
+  const [removingItemId, setRemovingItemId] = useState<number | null>(null);
   const [checkoutMode, setCheckoutMode] = useState<PaymentType>("full");
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
@@ -815,6 +864,23 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
     );
   }
 
+  async function handleRemoveItem(itemId: number, courseId: number) {
+    setCartCheckoutIntent(null);
+    setIsCartPaymentDrawerOpen(false);
+    setCheckoutError("");
+    setRemovingItemId(itemId);
+
+    try {
+      const updatedCart = await removeCartItem(courseId);
+      setCart(updatedCart);
+      setSelectedCartItemIds((ids) => ids.filter((id) => id !== itemId));
+    } catch {
+      setCartError("Could not remove item from cart.");
+    } finally {
+      setRemovingItemId(null);
+    }
+  }
+
   async function startCartCheckout(paymentType: PaymentType) {
     if (!cart || selectedCartItems.length === 0 || checkoutLoading) {
       setCheckoutError("Select at least one course to pay.");
@@ -833,7 +899,13 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
 
       if (freeCartItems.length > 0) {
         await Promise.all(
-          freeCartItems.map((item) => enrollInFreeCourse(item.course.slug)),
+          freeCartItems.map((item) =>
+            enrollInFreeCourse(item.course.slug, {
+              pricing_plan_id: item.pricing_plan_id ?? undefined,
+              cohort_id: item.cohort?.id,
+              schedule_slot_ids: item.schedule_slots.map((slot) => slot.id),
+            }),
+          ),
         );
         const refreshedCart = await getCart();
         setCart(refreshedCart);
@@ -973,7 +1045,9 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
               selectedItemIds={selectedCartItemIds}
               checkoutLoading={checkoutLoading}
               checkoutError={checkoutError}
+              removingItemId={removingItemId}
               onToggleItem={handleToggleItem}
+              onRemoveItem={handleRemoveItem}
               onPay={handlePay}
             />
           ) : null}

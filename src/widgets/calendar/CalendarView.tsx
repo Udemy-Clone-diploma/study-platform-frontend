@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   Link2,
   Plus,
@@ -43,7 +44,7 @@ import {
 } from "@/entities/course/api/calendarApi";
 import type { PersonalEventConflicts } from "@/entities/course/api/calendarApi";
 import type { EnrolledStudent } from "@/entities/course/model/cohortGroup";
-import type { CalendarEvent } from "@/entities/course/model/calendar";
+import type { CalendarDeadline, CalendarEvent } from "@/entities/course/model/calendar";
 import type { TeacherUnavailability } from "@/entities/course/model/schedule";
 import type { CourseLesson } from "@/entities/course/model/module";
 import type {
@@ -55,16 +56,29 @@ import type { CourseListItem } from "@/entities/course/model/types";
 import type { CourseCohort } from "@/entities/course/model/cohort";
 
 function currentWeekSundayISO(): string {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  today.setDate(today.getDate() - today.getDay());
-  return toISO(today);
+  return weekSundayISOFor(new Date());
+}
+
+function weekSundayISOFor(date: Date): string {
+  const start = new Date(date);
+  start.setHours(0, 0, 0, 0);
+  start.setDate(start.getDate() - start.getDay());
+  return toISO(start);
+}
+
+function initialWeekStart(dateParam: string | null): string {
+  if (dateParam) {
+    const parsed = new Date(dateParam);
+    if (!Number.isNaN(parsed.getTime())) return weekSundayISOFor(parsed);
+  }
+  return currentWeekSundayISO();
 }
 
 type DrawerState =
   | { type: "new"; date: string; hour: number; isUnavailable?: boolean }
   | { type: "view"; event: CalendarEvent; initialMode?: "view" | "reschedule" }
   | { type: "block" }
+  | { type: "deadlines"; date: string }
   | null;
 
 const DRAWER_LABEL: React.CSSProperties = {
@@ -1215,7 +1229,6 @@ function EventDetailPanel({
     role === "teacher" &&
     !isPersonal &&
     !isProcessed &&
-    !isReplacement &&
     !isPastEvent &&
     !isFreeSlot;
 
@@ -2985,59 +2998,6 @@ function EventDetailPanel({
           </div>
         )}
 
-        {/* ── Reschedule + Cancel for replacement events ── */}
-        {role === "teacher" &&
-          !isPersonal &&
-          isReplacement &&
-          !isProcessed &&
-          !isPastEvent &&
-          mode === "view" && (
-            <div style={{ display: "flex", gap: 16, marginTop: 4 }}>
-              <button
-                type="button"
-                onClick={() => setMode("reschedule")}
-                style={{
-                  alignSelf: "flex-start",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 5,
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  fontFamily: "var(--font-base)",
-                  fontWeight: 600,
-                  fontSize: SMALL,
-                  color: "var(--color-text-primary)",
-                  padding: 0,
-                }}
-              >
-                <RotateCcw size={13} />
-                Reschedule
-              </button>
-              <button
-                type="button"
-                onClick={() => setMode("confirm_cancel")}
-                style={{
-                  alignSelf: "flex-start",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 5,
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  fontFamily: "var(--font-base)",
-                  fontWeight: 600,
-                  fontSize: SMALL,
-                  color: "var(--color-danger)",
-                  opacity: 0.8,
-                  padding: 0,
-                }}
-              >
-                <X size={13} />
-                Cancel session
-              </button>
-            </div>
-          )}
       </div>
       {/* end collapsible body */}
 
@@ -3321,8 +3281,10 @@ export type CalendarViewProps = {
 export function CalendarView({ role }: CalendarViewProps) {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [unavailability, setUnavailability] = useState<TeacherUnavailability[]>([]);
+  const [deadlines, setDeadlines] = useState<CalendarDeadline[]>([]);
   const [drawer, setDrawer] = useState<DrawerState>(null);
-  const [weekStart, setWeekStart] = useState<string>(() => currentWeekSundayISO());
+  const searchParams = useSearchParams();
+  const [weekStart, setWeekStart] = useState<string>(() => initialWeekStart(searchParams.get("date")));
   const [refreshTick, setRefreshTick] = useState(0);
 
   useEffect(() => {
@@ -3335,6 +3297,7 @@ export function CalendarView({ role }: CalendarViewProps) {
       const allEvents = apiData.events;
       setEvents(allEvents);
       setUnavailability(apiData.unavailability);
+      setDeadlines(apiData.deadlines);
 
       // Keep drawer.event in sync so reopening the panel shows fresh data
       setDrawer((prev) => {
@@ -3379,6 +3342,10 @@ export function CalendarView({ role }: CalendarViewProps) {
     setDrawer({ type: "view", event });
   }
 
+  function openDayDeadlines(date: string) {
+    setDrawer({ type: "deadlines", date });
+  }
+
   function toggleBlock() {
     setDrawer((d) => (d?.type === "block" ? null : { type: "block" }));
   }
@@ -3419,10 +3386,12 @@ export function CalendarView({ role }: CalendarViewProps) {
       <WeekCalendar
         events={events}
         unavailability={role === "teacher" ? unavailability : []}
+        deadlines={deadlines}
         onWeekChange={setWeekStart}
         role={role}
         onSlotClick={openNewEvent}
         onEventClick={openEventView}
+        onDayHeaderClick={openDayDeadlines}
         activeSlot={drawer?.type === "new" ? { date: drawer.date, hour: drawer.hour } : null}
         actions={calendarActions}
       />
@@ -3438,13 +3407,10 @@ export function CalendarView({ role }: CalendarViewProps) {
               ? "Event details"
               : drawer?.type === "block"
                 ? "My unavailability"
-                : ""
+                : drawer?.type === "deadlines"
+                  ? `Deadlines — ${drawer.date}`
+                  : ""
         }
-        top={0}
-        right={0}
-        bottom={0}
-        borderRadius={0}
-        borderLeft="1px solid var(--color-calendar-border)"
       >
         {drawer?.type === "new" && (
           <NewEventPanel
@@ -3483,6 +3449,41 @@ export function CalendarView({ role }: CalendarViewProps) {
           />
         )}
         {drawer?.type === "block" && <UnavailabilitySection />}
+        {drawer?.type === "deadlines" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: "clamp(10px, 0.83vw, 14px)" }}>
+            {deadlines
+              .filter((dl) => dl.date === drawer.date)
+              .map((dl) => (
+                <div
+                  key={dl.assignment_id}
+                  style={{
+                    padding: "clamp(10px, 0.83vw, 14px)",
+                    borderRadius: "clamp(8px, 0.7vw, 12px)",
+                    border: "1px solid var(--color-calendar-border)",
+                    background: "#fff",
+                  }}
+                >
+                  <p style={{
+                    fontFamily: "var(--font-base)",
+                    fontWeight: 700,
+                    fontSize: "clamp(13px, 0.9vw, 15px)",
+                    color: "var(--color-text-primary)",
+                    margin: "0 0 4px",
+                  }}>
+                    {dl.title}
+                  </p>
+                  <p style={{
+                    fontFamily: "var(--font-base)",
+                    fontSize: "clamp(12px, 0.8vw, 13px)",
+                    color: "var(--color-text-secondary)",
+                    margin: 0,
+                  }}>
+                    {dl.course_title}
+                  </p>
+                </div>
+              ))}
+          </div>
+        )}
       </SidePanel>
     </div>
   );

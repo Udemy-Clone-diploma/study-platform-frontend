@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Astroid, ChevronDown, X } from "lucide-react";
+import { useRef, useState, useEffect } from "react";
+import { Astroid, ChevronDown, FileText, Upload, X } from "lucide-react";
 import type {
-  CourseDetail, CourseLesson, CourseModule, CourseTest, LessonItem,
+  CourseDetail, CourseLesson, CourseModule, CourseTest, LessonDocument, LessonItem,
 } from "@/entities/course";
-import { getLessonDetail } from "@/entities/course";
+import { deleteLessonDocument, getLessonDetail, updateLesson, uploadLessonDocument } from "@/entities/course";
 import { SectionCard } from "@/shared/ui/SectionCard";
 import { GradientButton } from "@/shared/ui/GradientButton";
+import { MaterialPreviewModal } from "@/shared/ui/MaterialPreviewModal";
 
 const F  = "var(--font-base)";
 const FA = "var(--font-accent)";
@@ -90,8 +91,6 @@ function TextModal({ item, onClose }: { item: LessonItem; onClose: () => void })
       <ItemMeta item={item} />
       {item.body_html ? (
         <div style={{ fontFamily: F, fontSize: "clamp(13px, 0.9vw, 16px)", color: "var(--color-text-primary)", lineHeight: 1.75 }} dangerouslySetInnerHTML={{ __html: item.body_html }} />
-      ) : item.content ? (
-        <p style={{ fontFamily: F, fontSize: "clamp(13px, 0.9vw, 16px)", color: "var(--color-text-primary)", lineHeight: 1.75, margin: 0 }}>{item.content}</p>
       ) : (
         <p style={{ fontFamily: F, color: "var(--color-text-muted)" }}>No content.</p>
       )}
@@ -245,45 +244,192 @@ function ItemRow({ item, onOpen }: { item: LessonItem; onOpen: () => void }) {
   );
 }
 
+// ── Materials (additional documents) section — manages the live lesson directly, no moderation ──
+
+function MaterialsSection({
+  documents, slug, moduleId, lessonId, onChange,
+}: {
+  documents: LessonDocument[];
+  slug: string;
+  moduleId: number;
+  lessonId: number;
+  onChange: (documents: LessonDocument[]) => void;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const [preview, setPreview] = useState<LessonDocument | null>(null);
+  const docInputRef = useRef<HTMLInputElement>(null);
+
+  async function handleUpload(files: File[]) {
+    if (files.length === 0) return;
+    setUploading(true);
+    try {
+      const uploaded = await Promise.all(files.map(f => uploadLessonDocument(slug, moduleId, lessonId, f)));
+      onChange([...documents, ...uploaded]);
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function handleDelete(docId: number) {
+    const prev = documents;
+    onChange(documents.filter(d => d.id !== docId));
+    try {
+      await deleteLessonDocument(slug, moduleId, lessonId, docId);
+    } catch {
+      onChange(prev);
+    }
+  }
+
+  return (
+    <div style={{ paddingLeft: "clamp(20px, 1.67vw, 24px)", paddingTop: 6, paddingBottom: 4, display: "flex", flexDirection: "column", gap: 6 }}>
+      <span style={{ fontFamily: FA, fontWeight: 600, fontSize: "clamp(10px, 0.63vw, 12px)", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+        Materials
+      </span>
+
+      {documents.map(doc => (
+        <div key={doc.id} className="flex items-center justify-between" style={{ gap: 8, padding: "2px 0" }}>
+          <button
+            type="button"
+            onClick={() => setPreview(doc)}
+            className="flex items-center transition hover:opacity-70"
+            style={{ gap: 8, minWidth: 0, background: "none", border: "none", cursor: "pointer", padding: 0, textAlign: "left" }}
+          >
+            <FileText size={16} style={{ flexShrink: 0, color: "var(--color-text-secondary)" }} />
+            <span style={{ fontFamily: F, fontSize: "clamp(12px, 0.83vw, 15px)", color: "var(--color-blue)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {doc.original_name}
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => handleDelete(doc.id)}
+            className="flex shrink-0 items-center justify-center rounded-full transition hover:bg-red-50"
+            style={{ width: 24, height: 24, border: "none", background: "transparent", cursor: "pointer" }}
+            aria-label="Remove material"
+          >
+            <X size={14} style={{ color: "var(--color-text-secondary)" }} />
+          </button>
+        </div>
+      ))}
+
+      {documents.length === 0 && (
+        <p style={{ fontFamily: F, fontSize: "clamp(12px, 0.73vw, 14px)", color: "var(--color-text-muted)", margin: 0 }}>
+          No additional materials.
+        </p>
+      )}
+
+      <button
+        type="button"
+        disabled={uploading}
+        onClick={() => docInputRef.current?.click()}
+        className="inline-flex items-center self-start transition hover:opacity-80"
+        style={{ gap: 6, height: "clamp(28px, 2.22vw, 32px)", background: "var(--color-bg)", border: "1px solid var(--color-draft)", borderRadius: 20, fontFamily: FA, fontWeight: 500, fontSize: "clamp(11px, 0.73vw, 13px)", color: "var(--color-text-primary)", cursor: uploading ? "default" : "pointer", opacity: uploading ? 0.6 : 1, padding: "0 clamp(10px, 0.83vw, 14px)" }}
+      >
+        <Upload size={14} />
+        {uploading ? "Uploading…" : "Add Material"}
+      </button>
+      <input
+        ref={docInputRef}
+        type="file"
+        multiple
+        style={{ display: "none" }}
+        onChange={(e) => { const files = Array.from(e.target.files ?? []); e.target.value = ""; void handleUpload(files); }}
+      />
+
+      {preview && (
+        <MaterialPreviewModal
+          key={preview.id}
+          title={preview.original_name}
+          url={preview.url}
+          onClose={() => setPreview(null)}
+        />
+      )}
+    </div>
+  );
+}
+
 // ── Lesson row (expandable, lazy-loads items) ─────────────────────────────────
 
-function LessonAccordion({ lesson, slug, onOpen }: { lesson: CourseLesson; slug: string; onOpen: (item: LessonItem) => void }) {
+function LessonAccordion({
+  lesson, slug, moduleId, onOpen, onUpdated,
+}: {
+  lesson: CourseLesson;
+  slug: string;
+  moduleId: number;
+  onOpen: (item: LessonItem) => void;
+  onUpdated: (lesson: CourseLesson) => void;
+}) {
   const [expanded, setExpanded] = useState(false);
   const [items, setItems]       = useState<LessonItem[] | null>(lesson.items !== undefined ? lesson.items : null);
+  const [documents, setDocuments] = useState<LessonDocument[]>(lesson.documents ?? []);
   const [loading, setLoading]   = useState(false);
+  const [savingMandatory, setSavingMandatory] = useState(false);
 
   function toggle() {
     if (!expanded && items === null) {
       setLoading(true);
       getLessonDetail(slug, lesson.id)
-        .then(full => setItems(full.items ?? []))
+        .then(full => { setItems(full.items ?? []); setDocuments(full.documents ?? []); })
         .catch(() => setItems([]))
         .finally(() => setLoading(false));
     }
     setExpanded(v => !v);
   }
 
+  async function handleMandatoryChange() {
+    setSavingMandatory(true);
+    try {
+      const updated = await updateLesson(slug, moduleId, lesson.id, { is_mandatory: !lesson.is_mandatory });
+      onUpdated(updated);
+    } finally {
+      setSavingMandatory(false);
+    }
+  }
+
   return (
     <div>
-      <button
-        type="button"
-        onClick={toggle}
-        style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "4px 12px", width: "100%", padding: "clamp(4px, 0.28vw, 5px) 0", background: "none", border: "none", cursor: "pointer", textAlign: "left" }}
-      >
-        <Astroid aria-hidden size={12} style={{ color: "var(--color-text-primary)", flexShrink: 0 }} fill="currentColor" />
+      <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "4px 12px", width: "100%", padding: "clamp(4px, 0.28vw, 5px) 0" }}>
+        <button
+          type="button"
+          onClick={toggle}
+          style={{ display: "flex", alignItems: "center", gap: 12, flex: 1, minWidth: 0, background: "none", border: "none", cursor: "pointer", textAlign: "left", padding: 0 }}
+        >
+          <Astroid aria-hidden size={12} style={{ color: "var(--color-text-primary)", flexShrink: 0 }} fill="currentColor" />
 
-        <span style={{ fontFamily: F, fontWeight: 400, fontSize: "clamp(14px, 1.39vw, 20px)", color: "var(--color-text-primary)", flex: 1 }}>
-          {lesson.title}
-        </span>
-
-        {lesson.duration_minutes ? (
-          <span style={{ fontFamily: F, fontSize: "clamp(11px, 0.73vw, 13px)", color: "var(--color-text-muted)", flexShrink: 0 }}>
-            {lesson.duration_minutes} min
+          <span style={{ fontFamily: F, fontWeight: 400, fontSize: "clamp(14px, 1.39vw, 20px)", color: "var(--color-text-primary)", flex: 1, minWidth: 0 }}>
+            {lesson.title}
           </span>
-        ) : null}
 
-        <ChevronDown size={16} style={{ color: "var(--color-text-muted)", flexShrink: 0, transform: expanded ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
-      </button>
+          {lesson.duration_minutes ? (
+            <span style={{ fontFamily: F, fontSize: "clamp(11px, 0.73vw, 13px)", color: "var(--color-text-muted)", flexShrink: 0 }}>
+              {lesson.duration_minutes} min
+            </span>
+          ) : null}
+        </button>
+
+        <label
+          title="Required to complete the course"
+          style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0, cursor: savingMandatory ? "default" : "pointer", opacity: savingMandatory ? 0.6 : 1 }}
+        >
+          <input
+            type="checkbox"
+            checked={!!lesson.is_mandatory}
+            disabled={savingMandatory}
+            onChange={handleMandatoryChange}
+          />
+          <span style={{ fontFamily: F, fontSize: "clamp(11px, 0.73vw, 13px)", color: "var(--color-text-secondary)" }}>
+            Mandatory
+          </span>
+        </label>
+
+        <button
+          type="button"
+          onClick={toggle}
+          aria-label={expanded ? "Collapse lesson" : "Expand lesson"}
+          style={{ display: "flex", flexShrink: 0, background: "none", border: "none", cursor: "pointer", padding: 0 }}
+        >
+          <ChevronDown size={16} style={{ color: "var(--color-text-muted)", transform: expanded ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
+        </button>
+      </div>
 
       {expanded && (
         <div style={{ paddingLeft: "clamp(20px, 1.67vw, 24px)", paddingTop: 4, display: "flex", flexDirection: "column", gap: 2 }}>
@@ -298,6 +444,16 @@ function LessonAccordion({ lesson, slug, onOpen }: { lesson: CourseLesson; slug:
           )}
         </div>
       )}
+
+      {expanded && !loading && (
+        <MaterialsSection
+          documents={documents}
+          slug={slug}
+          moduleId={moduleId}
+          lessonId={lesson.id}
+          onChange={setDocuments}
+        />
+      )}
     </div>
   );
 }
@@ -305,7 +461,7 @@ function LessonAccordion({ lesson, slug, onOpen }: { lesson: CourseLesson; slug:
 // ── Module row (expandable, public-detail style) ──────────────────────────────
 
 function ModuleAccordion({
-  module, index, isOpen, onToggle, slug, onOpen,
+  module, index, isOpen, onToggle, slug, onOpen, onLessonUpdated,
 }: {
   module: CourseModule;
   index: number;
@@ -313,6 +469,7 @@ function ModuleAccordion({
   onToggle: () => void;
   slug: string;
   onOpen: (modal: ModalState) => void;
+  onLessonUpdated: (moduleId: number, lesson: CourseLesson) => void;
 }) {
   function openItem(item: LessonItem) {
     if (item.item_type === "text")  onOpen({ kind: "text",  item });
@@ -341,7 +498,14 @@ function ModuleAccordion({
       {isOpen && (
         <div style={{ marginTop: "clamp(12px, 1.39vw, 20px)", display: "flex", flexDirection: "column", gap: 4 }}>
           {module.lessons.map(lesson => (
-            <LessonAccordion key={lesson.id} lesson={lesson} slug={slug} onOpen={openItem} />
+            <LessonAccordion
+              key={lesson.id}
+              lesson={lesson}
+              slug={slug}
+              moduleId={module.id}
+              onOpen={openItem}
+              onUpdated={updated => onLessonUpdated(module.id, updated)}
+            />
           ))}
 
           {module.lessons.length === 0 && (
@@ -357,10 +521,14 @@ function ModuleAccordion({
 
 // ── Main component ─────────────────────────────────────────────────────────────
 
-type Props = { course: CourseDetail; slug: string };
+type Props = {
+  course: CourseDetail;
+  slug: string;
+  onLessonUpdated: (moduleId: number, lesson: CourseLesson) => void;
+};
 
 /** Module accordion with expandable lessons, per-item modals (text / video / test). */
-export function CourseManagementContentTab({ course, slug }: Props) {
+export function CourseManagementContentTab({ course, slug, onLessonUpdated }: Props) {
   const allIds = course.modules.map(m => m.id);
   const [openModules, setOpenModules] = useState<Set<number>>(new Set());
   const [modal, setModal]             = useState<ModalState>(null);
@@ -410,6 +578,7 @@ export function CourseManagementContentTab({ course, slug }: Props) {
               onToggle={() => toggleModule(m.id)}
               slug={slug}
               onOpen={setModal}
+              onLessonUpdated={onLessonUpdated}
             />
           ))}
         </div>

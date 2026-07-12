@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
 import type { Notification } from "@/entities/notification";
 import { useNotifications } from "../lib/useNotifications";
@@ -10,11 +9,10 @@ import { useEmailPreference } from "../lib/useEmailPreference";
 import { NotificationItem } from "./NotificationItem";
 import { NotificationDrawer } from "./NotificationDrawer";
 
-export function NotificationBell() {
+export function NotificationBell({ iconSize = 24 }: { iconSize?: number } = {}) {
   const [open, setOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const router = useRouter();
   const {
     unreadCount,
     notifications,
@@ -24,6 +22,8 @@ export function NotificationBell() {
     loadList,
     loadMore,
     markRead,
+    markUnread,
+    remove,
     markAllRead,
   } = useNotifications();
   const {
@@ -35,7 +35,9 @@ export function NotificationBell() {
 
   useEffect(() => {
     function onOutsideClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      const target = e.target as HTMLElement;
+      if (target.closest?.("[data-notif-menu]")) return;
+      if (ref.current && !ref.current.contains(target)) setOpen(false);
     }
     document.addEventListener("mousedown", onOutsideClick);
     return () => document.removeEventListener("mousedown", onOutsideClick);
@@ -51,11 +53,13 @@ export function NotificationBell() {
 
   function handleSelect(notification: Notification) {
     markRead(notification.id);
-    if (notification.link_url) {
-      setOpen(false);
-      setDrawerOpen(false);
-      router.push(notification.link_url);
-    }
+    setOpen(false);
+    setDrawerOpen(false);
+  }
+
+  function handleToggleRead(notification: Notification) {
+    if (notification.is_read) markUnread(notification.id);
+    else markRead(notification.id);
   }
 
   function openDrawer() {
@@ -74,7 +78,7 @@ export function NotificationBell() {
           onClick={toggle}
           className="relative flex h-10 w-10 items-center justify-center transition-opacity hover:opacity-70"
         >
-          <Image src="/layout/notifications-icon.png" alt="" width={24} height={24} />
+          <Image src="/layout/notifications-icon.png" alt="" width={iconSize} height={iconSize} />
           {unreadCount > 0 && (
             <span className="absolute -top-0.5 right-0 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-(--color-danger) px-1 text-[10px] font-bold text-(--color-bg)">
               {unreadCount > 9 ? "9+" : unreadCount}
@@ -84,7 +88,7 @@ export function NotificationBell() {
 
         {open && (
           <div
-            className="absolute right-0 z-50 flex w-[380px] flex-col gap-4 rounded-3xl p-5 shadow-(--shadow-card)"
+            className="absolute right-0 z-50 flex w-[min(380px,calc(100vw-2rem))] flex-col gap-4 rounded-3xl p-5 shadow-(--shadow-card)"
             style={{ top: "calc(100% + 8px)", background: "var(--gradient-notification)" }}
           >
             <div className="flex items-center justify-between">
@@ -105,9 +109,15 @@ export function NotificationBell() {
               <p className="py-6 text-(--color-text-secondary)">You have no new messages</p>
             ) : (
               <>
-                <div className="-mx-3 -my-2 flex max-h-[60vh] flex-col gap-3 overflow-y-auto px-3 py-2">
+                <div className="-mx-3 -my-4 flex max-h-[60vh] flex-col gap-3 overflow-y-auto px-3 py-4">
                   {notifications.slice(0, 5).map((n) => (
-                    <NotificationItem key={n.id} notification={n} onSelect={handleSelect} />
+                    <NotificationItem
+                      key={n.id}
+                      notification={n}
+                      onSelect={handleSelect}
+                      onToggleRead={handleToggleRead}
+                      onDelete={remove}
+                    />
                   ))}
                 </div>
                 <button
@@ -133,6 +143,8 @@ export function NotificationBell() {
         emailSaving={emailSaving}
         onClose={() => setDrawerOpen(false)}
         onSelect={handleSelect}
+        onToggleRead={handleToggleRead}
+        onDelete={remove}
         onMarkAllRead={markAllRead}
         onLoadMore={loadMore}
         onToggleEmail={toggleEmail}

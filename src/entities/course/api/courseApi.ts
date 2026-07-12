@@ -7,9 +7,10 @@ import type { CohortMember, EnrolledStudent } from "../model/cohortGroup";
 import type { CourseLesson } from "../model/module";
 import type { DeliveryFormatType } from "../model/delivery-format";
 import type { PricingPlan } from "../model/pricing";
-import type { CourseReview } from "../model/review";
+import type { CourseReview, ModeratorReview, TopReview } from "../model/review";
 import type { CourseCompletion } from "../model/completion";
 import type { Enrollment } from "../model/enrollment";
+import type { EnrollmentGrowthData, GrowthPeriod } from "../model/growth";
 import type {
   ApprovedCourseRecord,
   CourseDeliveryType,
@@ -133,6 +134,50 @@ export async function getCourseReviews(
   return data;
 }
 
+/** Highest-rated reviews with written feedback, across all courses (used on the homepage). */
+export async function getTopReviews(limit = 4): Promise<TopReview[]> {
+  const { data } = await api.get<TopReview[]>("reviews/top-reviews/", {
+    params: { limit },
+  });
+  return data;
+}
+
+/** Flag a review for moderator attention. 403 if it's the caller's own review, 409 if already reported. */
+export async function reportReview(reviewId: number, reason: string): Promise<void> {
+  await api.post(`reviews/${reviewId}/report/`, { reason });
+}
+
+/** Reported reviews (2+ reports) no moderator has claimed yet -- the shared queue. */
+export async function getUnassignedReportedReviews(page = 1): Promise<Paginated<ModeratorReview>> {
+  const { data } = await api.get<Paginated<ModeratorReview>>("reviews/moderation/unassigned/", {
+    params: { page },
+  });
+  return data;
+}
+
+/** Reported reviews the current moderator has claimed, at any resolution status. */
+export async function getMyReportedReviews(page = 1): Promise<Paginated<ModeratorReview>> {
+  const { data } = await api.get<Paginated<ModeratorReview>>("reviews/moderation/mine/", {
+    params: { page },
+  });
+  return data;
+}
+
+/** Claim a reported review for moderation. 409 if another moderator already has. */
+export async function assignReviewModeratorSelf(reviewId: number): Promise<void> {
+  await api.post(`reviews/${reviewId}/assign-moderator/`);
+}
+
+/** Dismiss the reports on a claimed review -- it stays live. */
+export async function approveReportedReview(reviewId: number): Promise<void> {
+  await api.post(`reviews/${reviewId}/approve/`);
+}
+
+/** Uphold the reports on a claimed review -- it's hidden from public view. */
+export async function rejectReportedReview(reviewId: number): Promise<void> {
+  await api.post(`reviews/${reviewId}/reject/`);
+}
+
 export type PricingPlanInput = Omit<PricingPlan, "id">;
 
 /**
@@ -220,9 +265,39 @@ export async function removeCohortMember(
 export async function getCourseEnrolledStudents(
   slug: string,
   formatId?: number,
+  status?: "active" | "completed",
 ): Promise<EnrolledStudent[]> {
-  const params = formatId ? `?format_id=${formatId}` : "";
-  const { data } = await api.get<EnrolledStudent[]>(`${COURSES}${slug}/enrolled-students/${params}`);
+  const params: Record<string, string | number> = {};
+  if (formatId) params.format_id = formatId;
+  if (status) params.status = status;
+  const { data } = await api.get<EnrolledStudent[]>(`${COURSES}${slug}/enrolled-students/`, { params });
+  return data;
+}
+
+/** Teacher/admin action: mark a student's enrollment as finished (group/individual formats without curriculum lessons, where the student-facing complete flow can never be eligible). */
+export async function completeStudentEnrollment(
+  slug: string,
+  enrollmentId: number,
+): Promise<CourseCompletion> {
+  const { data } = await api.post<CourseCompletion>(
+    `${COURSES}${slug}/students/${enrollmentId}/complete/`,
+  );
+  return data;
+}
+
+/** Teacher/admin action: undo a completion, returning the student to active study. */
+export async function uncompleteStudentEnrollment(
+  slug: string,
+  enrollmentId: number,
+): Promise<void> {
+  await api.delete(`${COURSES}${slug}/students/${enrollmentId}/complete/`);
+}
+
+/** New-enrollment count over time for the teacher's courses (teacher dashboard "Growth" widget). */
+export async function getEnrollmentGrowth(
+  params: { course?: string; period: GrowthPeriod },
+): Promise<EnrollmentGrowthData> {
+  const { data } = await api.get<EnrollmentGrowthData>("enrollments/growth/", { params });
   return data;
 }
 
@@ -252,8 +327,16 @@ export async function submitCourseReview(
  * Enroll the authenticated student in a course that has a zero-price plan.
  * The backend validates the price again and rejects paid courses.
  */
-export async function enrollInFreeCourse(slug: string): Promise<Enrollment> {
-  const { data } = await api.post<Enrollment>(`${COURSES}${slug}/enroll-free/`);
+export async function enrollInFreeCourse(
+  slug: string,
+  params?: {
+    delivery_format_id?: number;
+    pricing_plan_id?: number;
+    cohort_id?: number;
+    schedule_slot_ids?: number[];
+  },
+): Promise<Enrollment> {
+  const { data } = await api.post<Enrollment>(`${COURSES}${slug}/enroll-free/`, params);
   return data;
 }
 
@@ -268,8 +351,12 @@ export async function getEnrolledCourses(
   return data;
 }
 
-export async function getStudentCompletions(): Promise<Paginated<CourseCompletion>> {
-  const { data } = await api.get<Paginated<CourseCompletion>>(`${COURSES}completions/`);
+export async function getStudentCompletions(params?: {
+  page?: number;
+  page_size?: number;
+  with_certificate?: boolean;
+}): Promise<Paginated<CourseCompletion>> {
+  const { data } = await api.get<Paginated<CourseCompletion>>(`${COURSES}completions/`, { params });
   return data;
 }
 
@@ -387,6 +474,13 @@ export async function updateCourse(slug: string, data: Record<string, unknown>):
   return result;
 }
 
+export async function downloadCertificatePreview(slug: string): Promise<Blob> {
+  const { data } = await api.get<Blob>(`${COURSES}${slug}/certificate-preview/`, {
+    responseType: "blob",
+  });
+  return data;
+}
+
 export async function submitCourseForReview(slug: string): Promise<void> {
   await api.patch(`${COURSES}${slug}/`, { status: "review" });
 }
@@ -474,7 +568,8 @@ export async function uploadCourseIcon(slug: string, iconSrc: string, iconName: 
     const res = await fetch(iconSrc);
     if (!res.ok) return;
     const blob = await res.blob();
-    await uploadCourseImage(slug, new File([blob], `${iconName}-pic.png`, { type: "image/png" }));
+    const extension = iconSrc.split(".").pop() || "png";
+    await uploadCourseImage(slug, new File([blob], `${iconName}-pic.${extension}`, { type: blob.type }));
   } catch { /* best-effort */ }
 }
 

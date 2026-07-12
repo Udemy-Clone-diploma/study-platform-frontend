@@ -4,8 +4,6 @@
 :root {
   --font-base: var(--font-mulish), sans-serif;
   --font-accent: var(--font-source-code-pro), monospace;
-  --font-base: var(--font-mulish), sans-serif;
-  --font-accent: var(--font-source-code-pro), monospace;
 
   --color-brand-lavender: #a7bafa;
   --color-brand-lavender-soft: #d6e0ff;
@@ -24,12 +22,33 @@
     #fcc4c3 49%,
     rgb(167 186 250 / 0) 100%
   );
-  --gradient-sidebar-item-collapsed: linear-gradient(90deg, #fff4da 0%, #fcc4c3 49%, #fcc4c3 100%);
+  --gradient-sidebar-item-collapsed: linear-gradient(
+    90deg,
+    #FFF4DA 0%,
+    #FCC4C3 49%,
+    #FCC4C3 100%
+  );
+  --gradient-bottom-nav-active: linear-gradient(
+    90deg,
+    #FFF4DA 0%,
+    #FCC4C3 49.04%
+  );
 
   --color-calendar-bg: #d6e0ff;
   --color-calendar-today: #a7bafa;
   --color-calendar-weekend: #fafafa;
   --color-calendar-border: #e0e0e0;
+
+  /* PageShell's own wrapper padding — flat mobile values, fluid clamp() on desktop (see PageShell.tsx). */
+  --page-padding-x: 16px;
+  --page-padding-y: 45px;
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --page-padding-x: clamp(40px, calc(-110px + 10.42vw), 90px);
+    --page-padding-y: clamp(16px, 3.06vw, 44px);
+  }
 }
 
 @theme {
@@ -106,6 +125,19 @@
     rgba(167, 186, 250, 0) 72%
   );
 
+  /* Hero ellipses only (course-detail teacher photo) — same brand cream/pink/lavender
+     sequence as --gradient-ellipse but semi-transparent with a soft fade to fully
+     transparent at the edge, so the two overlapping circles blend into each other
+     instead of the top one opaquely covering the bottom one. Kept separate from
+     --gradient-ellipse (used elsewhere) so tuning this doesn't affect those. */
+  --gradient-hero-ellipse: radial-gradient(
+    circle,
+    rgba(255, 244, 218, 0.85) 0%,
+    rgba(252, 196, 195, 0.75) 45%,
+    rgba(167, 186, 250, 0.90) 70%,
+    rgba(167, 186, 250, 0) 100%
+  );
+
   --gradient-profile-line: linear-gradient(
     180deg,
     var(--color-brand-lavender) 0%,
@@ -119,6 +151,12 @@
     var(--color-brand-pink) 50.96%,
     var(--color-brand-cream) 100%
   );
+  --gradient-lavender: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--color-bg) 40%,
+    var(--color-brand-lavender) 100%
+  );
 
   --gradient-sidebar-item-expanded: linear-gradient(
     90deg,
@@ -126,7 +164,21 @@
     #fcc4c3 49%,
     rgb(167 186 250 / 0) 100%
   );
+<<<<<<< HEAD
   --gradient-sidebar-item-collapsed: linear-gradient(90deg, #fff4da 0%, #fcc4c3 49%, #fcc4c3 100%);
+=======
+  --gradient-sidebar-item-collapsed: linear-gradient(
+    90deg,
+    #FFF4DA 0%,
+    #FCC4C3 49%,
+    #FCC4C3 100%
+  );
+  --gradient-bottom-nav-active: linear-gradient(
+    90deg,
+    #FFF4DA 0%,
+    #FCC4C3 49.04%
+  );
+>>>>>>> origin/develop
 
   --gradient-feedback: linear-gradient(
     70.58deg,
@@ -341,6 +393,41 @@ body {
     0 0 0 2px var(--card-border-color);
 }
 
+.mini-course-card {
+  background: var(--card-bg);
+  box-shadow: var(--shadow-my-courses-card);
+  cursor: pointer;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  transition: box-shadow 0.35s ease;
+}
+.mini-course-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--color-bg);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+  z-index: -1;
+}
+.mini-course-card:hover::before {
+  opacity: 1;
+}
+.mini-course-card:hover {
+  box-shadow: 0px 0px 40px rgba(0, 0, 0, 0.22);
+}
+.mini-course-card:active::before {
+  opacity: 0;
+}
+.mini-course-card:active {
+  box-shadow:
+    var(--shadow-my-courses-card),
+    0 0 0 2px var(--card-border-color);
+}
+
 .category-card-item:hover {
   transform: translateY(-4px);
 }
@@ -361,14 +448,14 @@ body {
 .bg-wishlist::before {
   content: "";
   position: fixed;
-  top: 20vh;
-  left: 60vh;
+  top: 50%;
+  left: 50%;
   width: 40vw;
   height: 60vh;
   background: #fcc4c3;
-  opacity: 0.5;
+  opacity: 0.65;
   filter: blur(130px);
-  transform: rotate(45deg) scale(1.4);
+  transform: translate(-50%, -50%) rotate(45deg) scale(1.4);
   pointer-events: none;
   z-index: -1;
 }
@@ -380,14 +467,14 @@ body {
 .bg-my-courses::before {
   content: "";
   position: fixed;
-  top: 20vh;
-  left: 60vh;
+  top: 50%;
+  left: 50%;
   width: 40vw;
   height: 60vh;
   background: #fcc4c3;
-  opacity: 0.5;
+  opacity: 0.65;
   filter: blur(130px);
-  transform: rotate(33.8deg) scale(1.4);
+  transform: translate(-50%, -50%) rotate(33.8deg) scale(1.4);
   pointer-events: none;
   z-index: -1;
 }
@@ -450,5 +537,17 @@ body {
   }
   50% {
     transform: translate3d(0, -18px, 0) scale(1.04);
+  }
+}
+
+@keyframes logo-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.55;
+    transform: scale(0.94);
   }
 }

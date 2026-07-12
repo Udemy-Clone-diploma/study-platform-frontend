@@ -15,6 +15,8 @@ export function NotificationDrawer({
   emailSaving,
   onClose,
   onSelect,
+  onToggleRead,
+  onDelete,
   onMarkAllRead,
   onLoadMore,
   onToggleEmail,
@@ -28,6 +30,8 @@ export function NotificationDrawer({
   emailSaving: boolean;
   onClose: () => void;
   onSelect: (notification: Notification) => void;
+  onToggleRead: (notification: Notification) => void;
+  onDelete: (id: number) => void;
   onMarkAllRead: () => void;
   onLoadMore: () => void;
   onToggleEmail: () => void;
@@ -109,10 +113,16 @@ export function NotificationDrawer({
         ) : (
           <div
             ref={scrollRef}
-            className="-mx-3 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-3 py-2"
+            className="-mx-3 -my-2 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-3 py-4"
           >
             {notifications.map((n) => (
-              <NotificationItem key={n.id} notification={n} onSelect={onSelect} />
+              <NotificationItem
+                key={n.id}
+                notification={n}
+                onSelect={onSelect}
+                onToggleRead={onToggleRead}
+                onDelete={onDelete}
+              />
             ))}
             {hasMore && (
               <div ref={sentinelRef} className="flex h-10 shrink-0 items-center justify-center">

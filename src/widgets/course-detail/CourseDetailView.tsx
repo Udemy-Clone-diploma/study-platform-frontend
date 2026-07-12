@@ -24,12 +24,35 @@ export function CourseDetailView({ course, reviews }: Props) {
           </section>
 
           <section className="relative">
-            {/* Pink/purple glow behind the instructor text. Move with top-/left-, resize with w-/h-. */}
-            <DecorBlob
-              className="top-[28%] left-[25%] h-[500px] w-[700px] blur-[40px]"
-              gradient="var(--gradient-glow-teacher)"
+            {/* Full-bleed background image behind the instructor block. */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 -z-10"
+              style={{
+                backgroundImage: "url('/backgrounds/background-rectangle.png')",
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }}
             />
-            <CourseTeacher teacher={course.teacher} quote={course.quote} />
+            {/* White gradient overlay on top — transparent in the center (image shows
+                through) and opaque white toward the edges, so the image blends into
+                the surrounding white page instead of showing a hard rectangular edge. */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 -z-10"
+              style={{
+                background: "radial-gradient(ellipse at center, rgba(255,255,255,0) 0%, rgba(255,255,255,0.9) 78%, rgba(255,255,255,1) 100%)",
+              }}
+              
+            />
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 -z-10"
+              style={{
+                background: "radial-gradient(ellipse at center, rgba(255,255,255,0) 0%, rgba(255,255,255,0.9) 78%, rgba(255,255,255,1) 100%)",
+              }}
+            />
+            <CourseTeacher teacher={course.teacher} quote={course.short_description} />
           </section>
 
           <section className="grid grid-cols-1 gap-x-8 gap-y-8 sm:gap-x-12 lg:grid-cols-[minmax(0,1fr)_369px] lg:gap-x-[111px] lg:gap-y-10">
@@ -85,23 +108,25 @@ export function CourseDetailView({ course, reviews }: Props) {
             className="relative mb-20 scroll-mt-24 pb-12 sm:mb-32 sm:pb-16 lg:mb-[260px] lg:pb-24"
           >
             <DecorBlob
-              className="top-[-25%] left-1/2 h-[1000px] w-[1600px] -translate-x-1/2"
+              className="top-1/2 left-1/2 aspect-[3/2] h-[140%] w-auto -translate-x-1/2 -translate-y-1/2"
               gradient="var(--gradient-glow-lavender)"
             />
             {/* Decorative molecule renders, arranged left / centre / right. Hidden below
                 lg because the absolute positioning overlaps the stacked pricing cards.
-                Move one with its left-/right-/top- value; spin with rotate-[Ndeg]. */}
+                Anchored at top-1/2 + -translate-y-1/2 so they stay vertically centered on
+                the section regardless of how tall it grows (e.g. 3-4 pricing cards).
+                Move one with its left-/right- value; spin with rotate-[Ndeg]. */}
             <DecorImage
-              src="/backgrounds/00 4.png"
-              className="absolute top-[10%] left-[-8%] -z-10 hidden rotate-[0deg] lg:block"
+              src="/backgrounds/00 4.svg"
+              className="absolute top-1/2 left-[-8%] -z-10 hidden -translate-y-1/2 rotate-[0deg] lg:block"
             />
             <DecorImage
-              src="/backgrounds/00 3.png"
-              className="absolute top-[20%] left-[50%] -z-10 hidden -translate-x-1/2 scale-x-[-1] scale-y-[-1] rotate-[-20deg] lg:block"
+              src="/backgrounds/00 3.svg"
+              className="absolute top-1/2 left-[50%] -z-10 hidden -translate-x-1/2 -translate-y-1/2 scale-x-[-1] scale-y-[-1] rotate-[-20deg] lg:block"
             />
             <DecorImage
-              src="/backgrounds/00 2.png"
-              className="absolute top-[1%] right-[-7%] -z-10 hidden rotate-[170deg] lg:block"
+              src="/backgrounds/00 2.svg"
+              className="absolute top-1/2 right-[-7%] -z-10 hidden -translate-y-1/2 rotate-[170deg] lg:block"
             />
             <CoursePricingBlock
               courseId={course.id}

@@ -17,7 +17,9 @@ import {
   IndividualStudentsList,
   SimpleStudentsList,
 } from "@/features/courses";
+import { CourseManagementReviewsTab } from "@/widgets/course-detail";
 import { AccentButton } from "@/shared/ui/AccentButton";
+import { PageShell } from "@/shared/ui/PageShell";
 import { WhiteButton } from "@/shared/ui/WhiteButton";
 
 // ── Lookups ────────────────────────────────────────────────────────────────────
@@ -35,13 +37,14 @@ const LEVEL_LABEL: Record<string, string> = {
 };
 
 // ── Tab types ──────────────────────────────────────────────────────────────────
-type MainTab   = "info" | "content" | "pricing";
+type MainTab   = "info" | "content" | "reviews" | "pricing";
 type FormatTab = "individual" | "group" | "scheduled" | "self_paced";
 type Tab = MainTab | FormatTab;
 
 const MAIN_TABS: { id: MainTab; label: string }[] = [
   { id: "info",    label: "Info" },
   { id: "content", label: "Content" },
+  { id: "reviews", label: "Reviews" },
   { id: "pricing", label: "Format & Price" },
 ];
 const FORMAT_TAB_LABEL: Record<FormatTab, string> = {
@@ -70,8 +73,10 @@ function TabBtn({ active, onClick, children }: {
 }
 
 // ── FormatStatsBar ─────────────────────────────────────────────────────────────
-function FormatStatsBar({ fmt, slug, course, slotsKey }: {
+function FormatStatsBar({ fmt, slug, course, slotsKey, onMemberCompleted, onMemberUncompleted }: {
   fmt: CourseDeliveryFormat; slug?: string; course?: CourseDetail; slotsKey?: number;
+  onMemberCompleted?: (enrollmentId: number) => void;
+  onMemberUncompleted?: (enrollmentId: number) => void;
 }) {
   const [studentsOpen, setStudentsOpen] = useState(false);
 
@@ -85,7 +90,10 @@ function FormatStatsBar({ fmt, slug, course, slotsKey }: {
   type Stat = { label: string; value: string };
   const extras: Stat[] = [];
   const enrolled = fmt.enrolled_count ?? 0;
-  const enrolledValue = fmt.max_students != null ? `${enrolled} / ${fmt.max_students}` : String(enrolled);
+  const completed = fmt.completed_count ?? 0;
+  const studying = Math.max(enrolled - completed, 0);
+  // "still studying / already completed the course"
+  const enrolledValue = `${studying} / ${completed}`;
 
   if (fmt.start_date)          extras.push({ label: "Starts",    value: fmtDate(fmt.start_date) });
   if (fmt.course_start_date)   extras.push({ label: "Starts",    value: fmtDate(fmt.course_start_date) });
@@ -149,8 +157,8 @@ function FormatStatsBar({ fmt, slug, course, slotsKey }: {
           {fmt.format_type === "individual" && (
             <IndividualStudentsList slug={slug} fmtId={fmt.id} refreshKey={slotsKey} />
           )}
-          {fmt.format_type === "group" && course && (
-            <GroupStudentsList course={course} />
+          {fmt.format_type === "group" && course && slug && (
+            <GroupStudentsList course={course} slug={slug} onMemberCompleted={onMemberCompleted} onMemberUncompleted={onMemberUncompleted} />
           )}
           {(fmt.format_type === "scheduled" || fmt.format_type === "self_paced") && (
             <SimpleStudentsList slug={slug} fmtId={fmt.id} />
@@ -215,6 +223,30 @@ export default function CourseManagementPage() {
     setCourse(prev => prev ? { ...prev, ...updates } : prev);
   }
 
+  function handleMemberCompleted(enrollmentId: number) {
+    setCourse(prev => prev ? {
+      ...prev,
+      cohorts: (prev.cohorts ?? []).map(c => ({
+        ...c,
+        members: (c.members ?? []).map(m =>
+          m.enrollment_id === enrollmentId ? { ...m, is_completed: true } : m,
+        ),
+      })),
+    } : prev);
+  }
+
+  function handleMemberUncompleted(enrollmentId: number) {
+    setCourse(prev => prev ? {
+      ...prev,
+      cohorts: (prev.cohorts ?? []).map(c => ({
+        ...c,
+        members: (c.members ?? []).map(m =>
+          m.enrollment_id === enrollmentId ? { ...m, is_completed: false } : m,
+        ),
+      })),
+    } : prev);
+  }
+
   // Map format_type → CourseDeliveryFormat for O(1) lookup
   const fmtByType = useMemo(
     () => Object.fromEntries(
@@ -275,10 +307,8 @@ export default function CourseManagementPage() {
   };
 
   return (
-    <main
-      className="bg-my-courses min-h-[calc(100vh-76px)]"
-      style={{ paddingInline: "clamp(16px, 2.78vw, 40px)", paddingTop: "clamp(16px, 1.67vw, 28px)", paddingBottom: 360 }}
-    >
+    <PageShell className="bg-my-courses" style={{ paddingBottom: 360 }}>
+      <div style={{ maxWidth: "1648px", margin: "0 auto" }}>
       {/* Back nav */}
       <div style={{ marginBottom: "clamp(16px, 1.39vw, 24px)" }}>
         <WhiteButton onClick={() => router.push("/teacher-dashboard/courses")}>My courses</WhiteButton>
@@ -391,12 +421,28 @@ export default function CourseManagementPage() {
       {tab === "info" && (
         <CourseManagementInfoTab course={course} slug={slug} onCourseUpdated={handleCourseUpdated} onTabChange={t => setTab(t as Tab)} />
       )}
-      {tab === "content" && <CourseManagementContentTab course={course} slug={slug} />}
+      {tab === "content" && (
+        <CourseManagementContentTab
+          course={course}
+          slug={slug}
+          onLessonUpdated={(moduleId, lesson) =>
+            handleCourseUpdated({
+              modules: course.modules.map(m =>
+                m.id === moduleId
+                  ? { ...m, lessons: m.lessons.map(l => (l.id === lesson.id ? lesson : l)) }
+                  : m,
+              ),
+            })
+          }
+        />
+      )}
+      {tab === "reviews" && (
+        <CourseManagementReviewsTab slug={slug} />
+      )}
       {tab === "pricing" && (
         <CourseManagementPricingTab
           course={course}
           slug={slug}
-          onCohortsChanged={cohorts => handleCourseUpdated({ cohorts })}
           onFormatsChanged={delivery_formats => handleCourseUpdated({ delivery_formats })}
         />
       )}
@@ -410,7 +456,7 @@ export default function CourseManagementPage() {
       )}
       {tab === "group" && fmtByType.group && (
         <div style={{ display: "flex", flexDirection: "column", gap: "clamp(16px, 1.39vw, 24px)" }}>
-          <FormatStatsBar fmt={fmtByType.group} slug={slug} course={course} />
+          <FormatStatsBar fmt={fmtByType.group} slug={slug} course={course} onMemberCompleted={handleMemberCompleted} onMemberUncompleted={handleMemberUncompleted} />
           <CourseManagementGroupTab
             course={course}
             slug={slug}
@@ -439,6 +485,7 @@ export default function CourseManagementPage() {
       {tab === "self_paced" && fmtByType.self_paced && (
         <SelfPacedFormatTab fmt={fmtByType.self_paced} slug={slug} />
       )}
-    </main>
+      </div>
+    </PageShell>
   );
 }

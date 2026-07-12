@@ -4,7 +4,8 @@ export type NotificationType =
   | "homework_graded"
   | "schedule_event"
   | "new_lesson"
-  | "moderation_action";
+  | "moderation_action"
+  | "course_completed";
 
 export type NotificationActor = {
   id: number;

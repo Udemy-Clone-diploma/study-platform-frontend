@@ -20,7 +20,7 @@ export function AppSidebar({
   return (
     <aside
       className={[
-        "absolute inset-y-0 left-0 z-30 overflow-y-auto overflow-x-hidden [background-image:var(--gradient-brand)] [background-size:100vw_100%] [background-position:0_0] bg-no-repeat px-[clamp(10px,0.85vw,16px)] pt-[clamp(16px,1.5vw,28px)] transition-[width] duration-200",
+        "absolute inset-y-0 left-0 z-30 hidden overflow-y-auto overflow-x-hidden [background-image:var(--gradient-brand)] [background-size:100vw_100%] [background-position:0_0] bg-no-repeat px-[clamp(10px,0.85vw,16px)] pt-[clamp(16px,1.5vw,28px)] transition-[width] duration-200 lg:block",
         isExpanded
           ? "w-[clamp(240px,15.2vw,292px)]"
           : "w-[clamp(60px,4.5vw,80px)]",

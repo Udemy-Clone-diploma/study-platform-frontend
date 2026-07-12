@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { getMe } from "@/entities/user";
 import { getAccessToken } from "@/shared/api/authCookies";
 import { SectionContainer } from "@/shared/ui/SectionContainer";
 import { AccentButton } from "@/shared/ui/AccentButton";
@@ -12,7 +13,10 @@ const PARTNERS = [
 ];
 
 export async function HeroSection() {
-    const isLoggedIn = !!(await getAccessToken());
+    const accessToken = await getAccessToken();
+    const isLoggedIn = !!accessToken;
+    const user = isLoggedIn ? await getMe(accessToken).catch(() => null) : null;
+    const isTeacher = user?.role === "teacher";
 
     return (
         <section style={{ position: "relative", overflow: "hidden" }}>
@@ -102,12 +106,14 @@ export async function HeroSection() {
                         </div>
 
                         {/* Button */}
-                        <div style={{ alignSelf: "flex-start" }}>
-                            {isLoggedIn
-                                ? <AccentButton href="/coming-soon?page=Continue+Learning" size="md" style={{ fontSize: "clamp(14px, 1.41vw, 20px)", height: "clamp(36px, 3.61vw, 52px)", padding: "0 clamp(16px, 1.94vw, 28px)" }}>Continue Learning</AccentButton>
-                                : <AccentButton href="/login" size="md" style={{ fontSize: "clamp(14px, 1.41vw, 20px)", height: "clamp(36px, 3.61vw, 52px)", padding: "0 clamp(16px, 1.94vw, 28px)" }}>Get Started</AccentButton>
-                            }
-                        </div>
+                        {!isTeacher && (
+                            <div style={{ alignSelf: "flex-start" }}>
+                                {isLoggedIn
+                                    ? <AccentButton href="/student-dashboard/courses" size="md" style={{ fontSize: "clamp(14px, 1.41vw, 20px)", height: "clamp(36px, 3.61vw, 52px)", padding: "0 clamp(16px, 1.94vw, 28px)" }}>Continue Learning</AccentButton>
+                                    : <AccentButton href="/login" size="md" style={{ fontSize: "clamp(14px, 1.41vw, 20px)", height: "clamp(36px, 3.61vw, 52px)", padding: "0 clamp(16px, 1.94vw, 28px)" }}>Get Started</AccentButton>
+                                }
+                            </div>
+                        )}
                     </div>
 
                     {/* Partners */}

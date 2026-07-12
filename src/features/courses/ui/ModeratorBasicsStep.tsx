@@ -30,23 +30,22 @@ function FieldRow({ fieldKey, label, children, itemStatuses, onItemStatusToggle,
 
 /** Step 1: course basics fields review with per-field status badges. */
 export function ModeratorBasicsStep(props: StepProps) {
-  const { course, pendingEdit, lockedKeys, action, comment, submitting, error, step, hasAnyFlagged, itemStatuses,
+  const { course, draftCourse, lockedKeys, action, comment, submitting, error, step, hasAnyFlagged, itemStatuses,
           onActionChange, onCommentChange, onItemStatusToggle, basicsAction, onBasicsActionChange,
           onNext, onBack, onSubmit, router } = props;
   void onActionChange; void onCommentChange;
 
   // For pending edits, show proposed values for changed fields
-  const pe = pendingEdit;
-  const displayTitle     = (!lockedKeys.has("field-title")             && pe?.title)             || course?.title             || "—";
-  const displayShortDesc = (!lockedKeys.has("field-short-description") && pe?.short_description) || course?.short_description || "—";
-  const displayFullDesc  = (!lockedKeys.has("field-full-description")  && pe?.full_description)  || course?.full_description  || "—";
-  const displayImage    = (!lockedKeys.has("field-icon")        && pe?.image)             ?? course?.image ?? null;
-  const displayCategory = !lockedKeys.has("field-category") && pe
-    ? (pe.category_id != null ? `Category #${pe.category_id}` : "—")
+  const draft = draftCourse;
+  const displayTitle     = (!lockedKeys.has("field-title")             && draft?.title)             || course?.title             || "—";
+  const displayShortDesc = (!lockedKeys.has("field-short-description") && draft?.short_description) || course?.short_description || "—";
+  const displayFullDesc  = (!lockedKeys.has("field-full-description")  && draft?.full_description)  || course?.full_description  || "—";
+  const displayImage    = (!lockedKeys.has("field-icon")        && draft?.image)             || course?.image             || null;
+  const displayCategory = !lockedKeys.has("field-category") && draft
+    ? (draft.category?.name ?? "—")
     : (course?.category?.name ?? "—");
-  const displayLevel    = (!lockedKeys.has("field-level") && pe?.level) ?? course?.level ?? "";
+  const displayLevel    = (!lockedKeys.has("field-level") && draft?.level) || course?.level || "";
 
-  const priceValue   = course?.delivery_formats?.find(f => f.pricing)?.pricing?.price ?? "";
   const levelLabel   = displayLevel ? displayLevel.charAt(0).toUpperCase() + displayLevel.slice(1) : "—";
 
   const canContinue =
@@ -105,13 +104,6 @@ export function ModeratorBasicsStep(props: StepProps) {
               <div style={valueWithBadgeSt}>{levelLabel}</div>
             </FieldRow>
           </div>
-
-          {/* Price: always locked for pending edits (pricing not tracked in pending edit) */}
-          <FieldRow fieldKey="field-price" label="Price (EUR)" itemStatuses={itemStatuses} onItemStatusToggle={onItemStatusToggle} locked={lockedKeys.has("field-price")}>
-            <span style={{ position: "absolute", left: "clamp(12px, 0.83vw, 16px)", top: "50%", transform: "translateY(-50%)", fontSize: "clamp(14px, 1.04vw, 20px)", fontFamily: bodyFont, color: "var(--color-text-secondary)", pointerEvents: "none", zIndex: 1 }} aria-hidden="true">€</span>
-            <div style={{ ...valueWithBadgeSt, paddingLeft: "clamp(28px, 2.08vw, 36px)" }}>{priceValue || "Free"}</div>
-          </FieldRow>
-
 
         </div>
       </SectionCard>

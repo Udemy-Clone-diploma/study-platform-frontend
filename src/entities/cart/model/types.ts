@@ -10,6 +10,19 @@ export type CartCourse = {
   currency: PricingPlan["currency"] | null;
 };
 
+export type CartScheduleSlot = {
+  id: number;
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+};
+
+export type CartCohort = {
+  id: number;
+  name: string | null;
+  start_date: string | null;
+};
+
 export type CartItem = {
   id: number;
   course_id: number;
@@ -21,6 +34,8 @@ export type CartItem = {
   currency: PricingPlan["currency"] | null;
   unit_price: string;
   subtotal: string;
+  schedule_slots: CartScheduleSlot[];
+  cohort: CartCohort | null;
   added_at: string;
 };
 

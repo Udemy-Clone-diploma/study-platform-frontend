@@ -39,10 +39,19 @@ export type CalendarEvent = {
   rescheduled_from_date?: string | null;
 };
 
+export type CalendarDeadline = {
+  date: string; // "YYYY-MM-DD"
+  assignment_id: number;
+  title: string;
+  course_title: string;
+  course_slug: string;
+};
+
 export type CalendarResponse = {
   week_start: string; // "YYYY-MM-DD" (Monday)
   events: CalendarEvent[];
   unavailability: TeacherUnavailability[];
+  deadlines: CalendarDeadline[];
 };
 
 // ── Create event payload ──────────────────────────────────────────────────────

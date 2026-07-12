@@ -1,5 +1,6 @@
 import { api } from "@/shared/api/base";
 import type { CourseLesson, LessonDocument } from "../model/module";
+import type { LessonSession } from "../model/schedule";
 
 const COURSES = "courses/";
 
@@ -12,6 +13,21 @@ export async function getLessonDetail(
   return data;
 }
 
+/**
+ * Scheduled live sessions tied to this lesson, scoped to the requesting user
+ * (their own cohort/individual sessions for a student; every session tied to
+ * the lesson for the owning teacher). Requires enrollment (or ownership).
+ */
+export async function getLessonSessions(
+  courseSlug: string,
+  lessonId: number,
+): Promise<LessonSession[]> {
+  const { data } = await api.get<LessonSession[]>(
+    `${COURSES}${courseSlug}/lessons/${lessonId}/sessions/`,
+  );
+  return data;
+}
+
 export type LessonPayload = {
   title?: string;
   duration_minutes?: number | null;
@@ -19,6 +35,7 @@ export type LessonPayload = {
   unlock_after_days?: number | null;
   requires_previous?: boolean;
   is_manually_locked?: boolean;
+  is_mandatory?: boolean;
 };
 
 export async function createLesson(

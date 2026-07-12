@@ -34,5 +34,9 @@ export default async function AuthenticatedLayout({
     redirect("/login");
   }
 
-  return <AppShell sidebarItems={getSidebarItems(user.role)}>{children}</AppShell>;
+  return (
+    <AppShell sidebarItems={getSidebarItems(user.role)} role={user.role}>
+      {children}
+    </AppShell>
+  );
 }

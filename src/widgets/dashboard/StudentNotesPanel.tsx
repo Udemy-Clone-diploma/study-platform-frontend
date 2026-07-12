@@ -4,12 +4,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
-import { getCourseBySlug, type CourseDetail, type CourseLevel } from "@/entities/course";
-import {
-  readLessonNotes,
-  subscribeToLessonNotes,
-  type StoredLessonNote,
-} from "@/features/learning";
+import { getAllNotes, type NoteListItem } from "@/entities/note";
+import { GradientButton } from "@/shared/ui/GradientButton";
+
+const PANEL_NOTES_LIMIT = 20;
 
 type SortValue = "newest" | "oldest";
 
@@ -18,47 +16,21 @@ type SelectOption = {
   label: string;
 };
 
-type CourseNoteMeta = {
-  title: string;
-  level: CourseLevel;
-  lessons: Map<number, { title: string; order: number }>;
-};
-
 const SORT_OPTIONS: SelectOption[] = [
   { value: "newest", label: "Newest" },
   { value: "oldest", label: "Oldest" },
 ];
 
-const LEVEL_ICON: Record<CourseLevel, string> = {
-  beginner: "/icons/curses.svg",
-  intermediate: "/icons/world.png",
-  advanced: "/icons/statistics.svg",
-};
-
-const LEVEL_ACCENT: Record<CourseLevel, string> = {
-  beginner: "from-[#fff3dc] to-[#ffe7ef]",
-  intermediate: "from-[#e0fbf5] to-[#d8ddff]",
-  advanced: "from-[#ffe7ef] to-[#dfd7ff]",
-};
-
-function humanizeSlug(slug: string): string {
-  return slug
-    .split("-")
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-}
+// One consistent note icon/gradient regardless of course level -- a personal
+// notes list shouldn't visually vary by course difficulty.
+const NOTE_ICON = "/icons/curses.svg";
+const NOTE_ACCENT = "from-[#fff3dc] to-[#ffe7ef]";
 
 function firstNoteLine(text: string): string {
   return text
     .split(/\r?\n/)
     .map((line) => line.trim())
     .find(Boolean) ?? "Untitled note";
-}
-
-function noteTime(note: StoredLessonNote): number {
-  const value = note.updatedAt ? new Date(note.updatedAt).getTime() : 0;
-  return Number.isFinite(value) ? value : 0;
 }
 
 function formatNoteDate(value: string): string {
@@ -71,105 +43,22 @@ function formatNoteDate(value: string): string {
   }).format(date).replace(/\//g, ".");
 }
 
-function buildCourseMeta(course: CourseDetail): CourseNoteMeta {
-  const lessons = new Map<number, { title: string; order: number }>();
-
-  course.modules.forEach((module) => {
-    module.lessons.forEach((lesson) => {
-      lessons.set(lesson.id, {
-        title: lesson.title,
-        order: lesson.order,
-      });
-    });
-  });
-
-  return {
-    title: course.title,
-    level: course.level,
-    lessons,
-  };
-}
-
-function enrichNotes(
-  notes: StoredLessonNote[],
-  courses: Map<string, CourseNoteMeta>,
-): StoredLessonNote[] {
-  return notes.map((note) => {
-    const course = courses.get(note.slug);
-    const lesson = course?.lessons.get(note.lessonId);
-
-    return {
-      ...note,
-      courseTitle: note.courseTitle || course?.title,
-      courseLevel: note.courseLevel || course?.level,
-      lessonTitle: note.lessonTitle || lesson?.title,
-      lessonOrder: note.lessonOrder ?? lesson?.order,
-    };
-  });
-}
-
 export function StudentNotesPanel() {
-  const [notes, setNotes] = useState<StoredLessonNote[]>([]);
+  const [notes, setNotes] = useState<NoteListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [sort, setSort] = useState<SortValue>("newest");
   const [courseFilter, setCourseFilter] = useState("all");
 
   useEffect(() => {
-    let disposed = false;
-
-    async function loadNotes() {
-      const stored = readLessonNotes();
-      if (!disposed) {
-        setNotes(stored);
-        setLoading(false);
-      }
-
-      const slugsToLoad = Array.from(
-        new Set(
-          stored
-            .filter((note) => !note.courseTitle || !note.lessonTitle || note.lessonOrder == null)
-            .map((note) => note.slug),
-        ),
-      );
-
-      if (slugsToLoad.length === 0) return;
-
-      const entries = await Promise.all(
-        slugsToLoad.map(async (slug) => {
-          const course = await getCourseBySlug(slug).catch(() => null);
-          return course ? ([slug, buildCourseMeta(course)] as const) : null;
-        }),
-      );
-
-      if (disposed) return;
-
-      const courseMeta = new Map<string, CourseNoteMeta>();
-      entries.forEach((entry) => {
-        if (entry) courseMeta.set(entry[0], entry[1]);
-      });
-
-      if (courseMeta.size > 0) {
-        setNotes((current) => enrichNotes(current, courseMeta));
-      }
-    }
-
-    void loadNotes();
-
-    const unsubscribe = subscribeToLessonNotes(() => {
-      void loadNotes();
-    });
-
-    return () => {
-      disposed = true;
-      unsubscribe();
-    };
+    getAllNotes(1, PANEL_NOTES_LIMIT)
+      .then((res) => setNotes(res.results))
+      .catch(() => setNotes([]))
+      .finally(() => setLoading(false));
   }, []);
 
   const courseOptions = useMemo<SelectOption[]>(() => {
     const courses = new Map<string, string>();
-    notes.forEach((note) => {
-      courses.set(note.slug, note.courseTitle || humanizeSlug(note.slug));
-    });
+    notes.forEach((note) => courses.set(note.course_slug, note.course_title));
 
     return [
       { value: "all", label: "All courses" },
@@ -185,9 +74,9 @@ export function StudentNotesPanel() {
 
   const visibleNotes = useMemo(() => {
     return notes
-      .filter((note) => activeCourseFilter === "all" || note.slug === activeCourseFilter)
+      .filter((note) => activeCourseFilter === "all" || note.course_slug === activeCourseFilter)
       .sort((a, b) => {
-        const delta = noteTime(b) - noteTime(a);
+        const delta = new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
         return sort === "newest" ? delta : -delta;
       });
   }, [notes, activeCourseFilter, sort]);
@@ -209,6 +98,19 @@ export function StudentNotesPanel() {
             options={SORT_OPTIONS}
             onChange={(value) => setSort(value as SortValue)}
           />
+          <GradientButton
+            href="/student-dashboard/notes"
+            style={{ padding: "4px 14px", fontSize: 11, gap: 4 }}
+          >
+            All
+            <Image
+              src="/icons/arrow-goto.png"
+              alt=""
+              width={10}
+              height={10}
+              style={{ width: 10, height: "auto", flexShrink: 0 }}
+            />
+          </GradientButton>
         </div>
       </div>
 
@@ -271,57 +173,52 @@ function NotesDropdown({
       </button>
 
       {open ? (
-        <ul
-          role="listbox"
-          className="absolute right-0 z-20 mt-2 flex max-h-56 w-48 flex-col overflow-y-auto rounded-xl bg-white p-2 shadow-[0_6px_18px_rgba(0,0,0,0.16)]"
-        >
-          {options.map((option) => {
-            const selected = option.value === value;
-            return (
-              <li key={option.value} role="option" aria-selected={selected}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    onChange(option.value);
-                    setOpen(false);
-                  }}
-                  className={`w-full rounded-lg px-3 py-2 text-left text-xs transition-colors ${
-                    selected
-                      ? "bg-[#edf1ff] text-[#003aff]"
-                      : "text-black hover:bg-[#fafafa]"
-                  }`}
-                >
-                  {option.label}
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+        <div className="absolute right-0 z-20 mt-2 w-48 overflow-hidden rounded-xl bg-white shadow-[0_6px_18px_rgba(0,0,0,0.16)]">
+          <ul role="listbox" className="flex max-h-56 flex-col overflow-y-auto p-2">
+            {options.map((option) => {
+              const selected = option.value === value;
+              return (
+                <li key={option.value} role="option" aria-selected={selected}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onChange(option.value);
+                      setOpen(false);
+                    }}
+                    className={`w-full rounded-lg px-3 py-2 text-left text-xs transition-colors ${
+                      selected
+                        ? "bg-[#edf1ff] text-[#003aff]"
+                        : "text-black hover:bg-[#fafafa]"
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
       ) : null}
     </div>
   );
 }
 
-function NoteCard({ note }: { note: StoredLessonNote }) {
-  const level = note.courseLevel ?? "beginner";
-  const courseTitle = note.courseTitle || humanizeSlug(note.slug);
-  const lessonLabel = note.lessonOrder
-    ? `Lesson ${note.lessonOrder}`
-    : note.lessonTitle
-      ? "Lesson"
-      : `Lesson ${note.lessonId}`;
-  const date = formatNoteDate(note.updatedAt);
+function NoteCard({ note }: { note: NoteListItem }) {
+  const lessonLabel = note.lesson_order
+    ? `Lesson ${note.lesson_order}`
+    : note.lesson_title || "Lesson";
+  const date = formatNoteDate(note.updated_at);
 
   return (
     <Link
-      href={`/learn/${note.slug}/${note.lessonId}`}
+      href={`/student-dashboard/notes?note=${note.id}`}
       className="mb-2 flex min-h-[80px] items-center gap-3 rounded-md border border-black/5 bg-white px-3 py-2 shadow-[0_1px_8px_rgba(0,0,0,0.12)] transition-colors hover:bg-[#fafafa] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#003aff]"
     >
       <div
-        className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-gradient-to-br ${LEVEL_ACCENT[level]}`}
+        className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-gradient-to-br ${NOTE_ACCENT}`}
       >
         <Image
-          src={LEVEL_ICON[level]}
+          src={NOTE_ICON}
           alt=""
           width={38}
           height={38}
@@ -330,10 +227,11 @@ function NoteCard({ note }: { note: StoredLessonNote }) {
       </div>
       <div className="min-w-0 flex-1">
         <p className="truncate text-[11px] text-[#5e5e5e]">
-          {courseTitle} <span className="px-1">|</span> {lessonLabel}
+          {note.course_title} <span className="px-1">|</span> {lessonLabel}
+          {note.is_course_completed && <span className="px-1 text-[#5e5e5e]">· Completed</span>}
         </p>
         <p className="line-clamp-2 text-sm font-medium leading-tight text-black">
-          {firstNoteLine(note.text)}
+          {firstNoteLine(note.content)}
         </p>
       </div>
       {date ? <span className="whitespace-nowrap text-xs text-[#003aff]">{date}</span> : null}

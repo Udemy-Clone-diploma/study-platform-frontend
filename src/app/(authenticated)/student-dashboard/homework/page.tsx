@@ -21,6 +21,7 @@ import {
 import { QuizQuestionCard, QuizWindow, type AnswerState } from "@/features/quiz";
 import type { ApiError } from "@/shared/api/base";
 import { GradientButton } from "@/shared/ui/GradientButton";
+import { PageShell } from "@/shared/ui/PageShell";
 
 type TaskTypeFilter = "all" | "task" | "test";
 type StatusFilter = "all" | "to_do" | "submitted" | "reviewed";
@@ -877,7 +878,7 @@ export default function StudentHomeworkPage() {
   }
 
   return (
-    <main className="relative isolate min-h-[calc(100vh-76px)] overflow-hidden bg-white px-4 py-7 sm:px-8 lg:px-11">
+    <PageShell className="relative isolate overflow-hidden bg-white">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute top-[-257px] left-[113px] z-0 h-[1002px] w-[1368px] rotate-[-33.8deg] bg-[#FCC4C3] opacity-50 blur-[300px]"
@@ -932,7 +933,10 @@ export default function StudentHomeworkPage() {
         <div className="mt-14 space-y-11">
           {groupedAssignments.map((group) => (
             <section key={group.key}>
-              <h2 className="mb-6 text-[28px] leading-none font-normal text-[#121212]">
+              <h2
+                className="font-normal text-[#121212]"
+                style={{ fontSize: "clamp(16px, 1.67vw, 24px)", marginBottom: "clamp(8px, 1.11vw, 16px)" }}
+              >
                 {group.label}
               </h2>
               <div className="grid gap-x-5 gap-y-6 2xl:grid-cols-[minmax(0,722px)_minmax(0,722px)]">
@@ -984,6 +988,6 @@ export default function StudentHomeworkPage() {
         }}
       />
       <HomeworkQuizModal assignment={testAssignment} onClose={() => setTestAssignment(null)} />
-    </main>
+    </PageShell>
   );
 }

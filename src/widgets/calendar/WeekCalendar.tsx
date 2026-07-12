@@ -2,7 +2,7 @@
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
-import type { CalendarEvent } from "@/entities/course/model/calendar";
+import type { CalendarDeadline, CalendarEvent } from "@/entities/course/model/calendar";
 import type { TeacherUnavailability } from "@/entities/course/model/schedule";
 import { timeToMinutes } from "@/shared/lib/time";
 
@@ -308,10 +308,13 @@ const NAV_BTN: React.CSSProperties = {
 export type WeekCalendarProps = {
   events: CalendarEvent[];
   unavailability?: TeacherUnavailability[];
+  deadlines?: CalendarDeadline[];
   onWeekChange?: (weekStart: string) => void;
   role?: "teacher" | "student";
   onSlotClick?: (date: string, hour: number) => void;
   onEventClick?: (event: CalendarEvent) => void;
+  /** Called when a day header with deadlines is clicked. */
+  onDayHeaderClick?: (date: string) => void;
   /** The currently selected slot — that cell gets an active highlight. */
   activeSlot?: { date: string; hour: number } | null;
   /** Extra buttons rendered in the toolbar to the right of navigation. */
@@ -322,10 +325,12 @@ export type WeekCalendarProps = {
 export function WeekCalendar({
   events,
   unavailability = [],
+  deadlines = [],
   onWeekChange,
   role = "student",
   onSlotClick,
   onEventClick,
+  onDayHeaderClick,
   activeSlot,
   actions,
 }: WeekCalendarProps) {
@@ -405,10 +410,14 @@ export function WeekCalendar({
         {columns.map((d, i) => {
           const bg     = colBg(d);
           const active = toISO(d) === todayISO;
+          const dayDeadlines = deadlines.filter(dl => dl.date === toISO(d));
+          const hasDeadlines = dayDeadlines.length > 0;
           return (
             <div
               key={i}
+              onClick={hasDeadlines ? () => onDayHeaderClick?.(toISO(d)) : undefined}
               style={{
+                position: "relative",
                 flex: 1,
                 minWidth: 0,
                 height: "clamp(48px, 4.44vw, 68px)",
@@ -419,8 +428,23 @@ export function WeekCalendar({
                 display: "flex",
                 flexDirection: "column",
                 gap: 2,
+                cursor: hasDeadlines ? "pointer" : "default",
               }}
             >
+              {hasDeadlines && (
+                <span
+                  aria-hidden
+                  style={{
+                    position: "absolute",
+                    top: 4,
+                    right: 4,
+                    width: 7,
+                    height: 7,
+                    borderRadius: "50%",
+                    background: "var(--color-blue)",
+                  }}
+                />
+              )}
               <span style={{
                 fontFamily: "var(--font-base)",
                 fontWeight: 700,

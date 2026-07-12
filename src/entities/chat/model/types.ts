@@ -10,6 +10,14 @@ export type Paginated<T> = {
 export type ChatType = "direct" | "group";
 export type ChatParticipantRole = "owner" | "admin" | "member";
 export type ChatMessageType = "text" | "file" | "image" | "system";
+export type MessageReportReason =
+  | "spam"
+  | "harassment"
+  | "hate"
+  | "violence"
+  | "sexual"
+  | "fraud"
+  | "other";
 
 export type ChatUser = {
   id: number;
@@ -61,6 +69,7 @@ export type ChatParticipant = {
   joined_at: string;
   left_at: string | null;
   is_muted: boolean;
+  history_cleared_at: string | null;
   last_read_message: number | null;
   created_at: string;
   updated_at: string;
@@ -76,8 +85,50 @@ export type ChatRoom = {
   participants: ChatParticipant[];
   last_message: ChatMessage | null;
   unread_count: number;
+  blocked_user_ids: number[];
+  is_read_only: boolean;
   created_at: string;
   updated_at: string;
+};
+
+export type MessageReport = {
+  id: number;
+  reason: MessageReportReason;
+  reason_label: string;
+  details: string;
+  message_text: string;
+  created_at: string;
+  message: number;
+  message_created_at: string;
+  sender: ChatUser | null;
+  reporter: ChatUser;
+  chat: Pick<ChatRoom, "id" | "type" | "title">;
+  attachments: ChatAttachment[];
+};
+
+export type ChatModerationActionKind =
+  | "warning"
+  | "retract_warning"
+  | "restrict"
+  | "restore";
+
+export type ChatModerationAction = {
+  id: number;
+  action: ChatModerationActionKind;
+  action_label: string;
+  note: string;
+  report: number | null;
+  moderator: ChatUser | null;
+  created_at: string;
+};
+
+export type ChatModerationStatus = {
+  user_id: number;
+  is_restricted: boolean;
+  restriction_reason: string;
+  restricted_at: string | null;
+  active_warning_report_ids: number[];
+  actions: ChatModerationAction[];
 };
 
 export type ChatSocketEvent =
@@ -85,8 +136,11 @@ export type ChatSocketEvent =
   | { type: "message.updated"; message: ChatMessage }
   | { type: "message.deleted"; message: ChatMessage }
   | { type: "typing"; chat_id: number; user: Pick<ChatUser, "id" | "name">; is_typing: boolean }
+  | { type: "presence.snapshot"; online_user_ids: number[] }
+  | { type: "presence"; user_id: number; is_online: boolean }
   | { type: "message.read"; chat_id: number; user_id: number; message_id: number | null }
   | { type: "chat.updated"; chat: ChatRoom }
+  | { type: "chat.deleted"; chat_id: number }
   | { type: "participant.added"; chat_id: number; participant: { user_id: number; role: ChatParticipantRole } }
   | { type: "participant.removed"; chat_id: number; user_id: number }
   | { type: "error"; code: string; detail: unknown };

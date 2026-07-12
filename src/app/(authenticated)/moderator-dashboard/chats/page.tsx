@@ -1,5 +1,5 @@
-import { ChatWorkspace } from "@/features/chat";
+import { MessageReportsWorkspace } from "@/features/chat";
 
 export default function ModeratorChatsPage() {
-  return <ChatWorkspace />;
+  return <MessageReportsWorkspace />;
 }

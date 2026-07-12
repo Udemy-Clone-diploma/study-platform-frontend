@@ -1,4 +1,10 @@
-export type NotificationType = "new_message" | "homework_graded" | "schedule_event" | "new_lesson";
+export type NotificationType =
+  | "new_message"
+  | "homework_submitted"
+  | "homework_graded"
+  | "schedule_event"
+  | "new_lesson"
+  | "moderation_action";
 
 export type NotificationActor = {
   id: number;

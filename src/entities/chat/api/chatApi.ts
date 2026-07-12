@@ -1,10 +1,14 @@
 import { api } from "@/shared/api/base";
 import type {
   ChatAttachment,
+  ChatModerationActionKind,
+  ChatModerationStatus,
   ChatMessage,
   ChatParticipant,
   ChatParticipantRole,
   ChatRoom,
+  MessageReport,
+  MessageReportReason,
   Paginated,
   UserSearchResult,
 } from "../model/types";
@@ -41,6 +45,29 @@ export async function deleteChat(chatId: number): Promise<void> {
   await api.delete(`chats/${chatId}/`);
 }
 
+export async function updateChatMute(chatId: number, isMuted: boolean): Promise<ChatParticipant> {
+  const { data } = await api.patch<ChatParticipant>(`chats/${chatId}/mute/`, {
+    is_muted: isMuted,
+  });
+  return data;
+}
+
+export async function updateChatBlock(
+  chatId: number,
+  isBlocked: boolean,
+): Promise<{ user_id: number; is_blocked: boolean }> {
+  const { data } = await api.patch<{ user_id: number; is_blocked: boolean }>(
+    `chats/${chatId}/block/`,
+    { is_blocked: isBlocked },
+  );
+  return data;
+}
+
+export async function clearChatHistory(chatId: number): Promise<ChatRoom> {
+  const { data } = await api.post<ChatRoom>(`chats/${chatId}/clear-history/`);
+  return data;
+}
+
 export async function getMessages(chatId: number, page = 1): Promise<Paginated<ChatMessage>> {
   const { data } = await api.get<Paginated<ChatMessage>>(`chats/${chatId}/messages/`, {
     params: { page },
@@ -52,10 +79,12 @@ export async function sendMessage(
   chatId: number,
   text: string,
   messageType: ChatMessage["message_type"] = "text",
+  replyTo?: number | null,
 ): Promise<ChatMessage> {
   const { data } = await api.post<ChatMessage>(`chats/${chatId}/messages/`, {
     text,
     message_type: messageType,
+    reply_to: replyTo ?? null,
   });
   return data;
 }
@@ -67,6 +96,44 @@ export async function updateMessage(messageId: number, text: string): Promise<Ch
 
 export async function deleteMessage(messageId: number): Promise<void> {
   await api.delete(`messages/${messageId}/`);
+}
+
+export async function reportMessage(
+  messageId: number,
+  reason: MessageReportReason,
+  details = "",
+): Promise<MessageReport> {
+  const { data } = await api.post<MessageReport>(`messages/${messageId}/report/`, {
+    reason,
+    details,
+  });
+  return data;
+}
+
+export async function getMessageReports(page = 1): Promise<Paginated<MessageReport>> {
+  const { data } = await api.get<Paginated<MessageReport>>("moderation/message-reports/", {
+    params: { page },
+  });
+  return data;
+}
+
+export async function getChatModerationStatus(userId: number): Promise<ChatModerationStatus> {
+  const { data } = await api.get<ChatModerationStatus>(`moderation/users/${userId}/`);
+  return data;
+}
+
+export async function moderateChatUser(
+  userId: number,
+  action: ChatModerationActionKind,
+  note = "",
+  reportId?: number | null,
+): Promise<ChatModerationStatus> {
+  const { data } = await api.post<ChatModerationStatus>(`moderation/users/${userId}/`, {
+    action,
+    note,
+    report_id: reportId ?? null,
+  });
+  return data;
 }
 
 export async function markChatRead(

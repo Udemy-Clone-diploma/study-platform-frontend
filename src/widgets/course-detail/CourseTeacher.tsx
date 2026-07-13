@@ -4,7 +4,7 @@ import { SectionBadge } from "./SectionBadge";
 
 type Props = { teacher: Teacher; quote: string | null };
 
-/** Instructor section: name, badge, bio, inline stats and pull-quote on the left, portrait on the right. */
+/** Teacher section: name, badge, bio, inline stats and pull-quote on the left, portrait on the right. */
 export function CourseTeacher({ teacher, quote }: Props) {
   const stats = (
     [
@@ -27,7 +27,7 @@ export function CourseTeacher({ teacher, quote }: Props) {
                 {teacher.specialization}
               </p>
             )}
-            <SectionBadge>Instructor</SectionBadge>
+            <SectionBadge>Teacher</SectionBadge>
           </div>
           <p className="text-lg text-(--color-text-primary) sm:text-xl lg:text-2xl">{teacher.bio}</p>
         </div>

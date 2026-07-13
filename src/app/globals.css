@@ -164,9 +164,6 @@
     #fcc4c3 49%,
     rgb(167 186 250 / 0) 100%
   );
-<<<<<<< HEAD
-  --gradient-sidebar-item-collapsed: linear-gradient(90deg, #fff4da 0%, #fcc4c3 49%, #fcc4c3 100%);
-=======
   --gradient-sidebar-item-collapsed: linear-gradient(
     90deg,
     #FFF4DA 0%,
@@ -178,7 +175,6 @@
     #FFF4DA 0%,
     #FCC4C3 49.04%
   );
->>>>>>> origin/develop
 
   --gradient-feedback: linear-gradient(
     70.58deg,

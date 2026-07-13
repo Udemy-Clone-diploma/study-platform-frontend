@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from "react";
 import { Award, RotateCcw, Search } from "lucide-react";
+import Link from "next/link";
 import { PageShell } from "@/shared/ui/PageShell";
 import { PillSelect } from "@/shared/ui/PillSelect";
 import {
@@ -262,9 +263,9 @@ export default function TeacherStudentsPage() {
       render: (row) => (
         <div className="flex items-center" style={{ gap: "clamp(8px, 0.83vw, 12px)" }}>
           <StudentAvatar name={row.student_name} avatar={row.student_avatar} />
-          <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">
+          <Link href={`/teacher-dashboard/students/${row.student_id}`} className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap hover:text-(--color-blue)">
             {row.student_name}
-          </span>
+          </Link>
         </div>
       ),
     },

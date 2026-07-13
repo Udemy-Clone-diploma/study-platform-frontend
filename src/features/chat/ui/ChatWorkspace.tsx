@@ -13,7 +13,7 @@ import {
   useState,
 } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Ban,
   BellOff,
@@ -1172,6 +1172,8 @@ function ChatMenuPanel({
 
 export function ChatWorkspace() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const requestedChatId = Number(searchParams.get("chat")) || null;
   const [me, setMe] = useState<UserData | null>(null);
   const [chats, setChats] = useState<ChatRoom[]>([]);
   const [selectedChatId, setSelectedChatId] = useState<number | null>(null);
@@ -1256,17 +1258,18 @@ export function ChatWorkspace() {
 
   useEffect(() => {
     setSelectedChatId((current) => {
+      if (requestedChatId && typeFilteredChats.some((chat) => chat.id === requestedChatId)) return requestedChatId;
       if (current && typeFilteredChats.some((chat) => chat.id === current)) return current;
       return typeFilteredChats[0]?.id ?? null;
     });
-  }, [typeFilteredChats]);
+  }, [requestedChatId, typeFilteredChats]);
 
   const loadChats = useCallback(async () => {
     setError("");
     const data = await getChats(1);
     setChats(sortChats(data.results));
-    setSelectedChatId((current) => current ?? data.results[0]?.id ?? null);
-  }, []);
+    setSelectedChatId((current) => requestedChatId ?? current ?? data.results[0]?.id ?? null);
+  }, [requestedChatId]);
 
   const loadMessages = useCallback(async (chatId: number) => {
     setLoadingMessages(true);

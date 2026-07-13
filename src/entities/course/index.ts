@@ -37,3 +37,4 @@ export * from "./model/calendar";
 export * from "./model/attendance";
 export * from "./model/tag";
 export * from "./model/teacher";
+export * from "./model/studentDashboard";

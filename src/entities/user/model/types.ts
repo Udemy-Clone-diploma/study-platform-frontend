@@ -14,6 +14,8 @@ export interface UserData<TProfile extends UserProfile = UserProfile> {
   avatar: string | null;
   language: UserLanguage;
   is_blocked: boolean;
+  is_deleted: boolean;
+  is_email_verified: boolean;
   date_joined: string;
   profile: TProfile;
   instagram: string;
@@ -21,6 +23,17 @@ export interface UserData<TProfile extends UserProfile = UserProfile> {
   facebook: string;
   behance: string;
 }
+
+export interface PaginatedUsers {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: UserData[];
+}
+
+export type UserNote = {
+  content: string;
+};
 
 export type TopTeacher = {
   teacher_id: number;

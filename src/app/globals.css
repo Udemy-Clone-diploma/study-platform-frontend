@@ -270,6 +270,7 @@
   --shadow-sort-dropdown: 0px 0px 5.2px rgba(54, 54, 54, 0.25);
   --shadow-my-courses-card: 0px 0px 30px rgba(0, 0, 0, 0.16);
   --shadow-quiz-card: 0px 0px 24.5px rgba(167, 186, 250, 0.5), inset 0px 2px 4px #ffffff;
+  --shadow-unverified-glow: 0px 0px 10px rgba(255, 141, 40, 0.55);
 }
 
 /* Fonts reference next/font runtime vars — @theme inline passes values through as-is */
@@ -545,5 +546,16 @@ body {
   50% {
     opacity: 0.55;
     transform: scale(0.94);
+  }
+}
+
+@keyframes table-refresh {
+  from {
+    opacity: 0.3;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

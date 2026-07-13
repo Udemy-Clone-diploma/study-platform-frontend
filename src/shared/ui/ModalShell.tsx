@@ -18,6 +18,8 @@ type Props = {
   minHeight?: string;
   /** CSS z-index for the overlay. Use a higher value for nested modals (default: 50). */
   zIndex?: number;
+  /** Set false to keep the modal open when the overlay backdrop is clicked (default: true). */
+  closeOnOverlayClick?: boolean;
   children: React.ReactNode;
 };
 
@@ -32,6 +34,7 @@ export function ModalShell({
   maxHeight = "90vh",
   minHeight,
   zIndex = 50,
+  closeOnOverlayClick = true,
   children,
 }: Props) {
   const [mounted, setMounted] = useState(false);
@@ -41,7 +44,7 @@ export function ModalShell({
     <div
       className="fixed inset-0 flex items-center justify-center"
       style={{ zIndex, backgroundColor: "var(--color-modal-overlay)" }}
-      onClick={onClose}
+      onClick={closeOnOverlayClick ? onClose : undefined}
     >
       {/* overflow-hidden on the outer box so border-radius clips correctly */}
       <div

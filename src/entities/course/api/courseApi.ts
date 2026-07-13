@@ -11,6 +11,7 @@ import type { CourseReview, ModeratorReview, TopReview } from "../model/review";
 import type { CourseCompletion } from "../model/completion";
 import type { Enrollment } from "../model/enrollment";
 import type { EnrollmentGrowthData, GrowthPeriod } from "../model/growth";
+import type { TeacherStudentDashboard } from "../model/studentDashboard";
 import type {
   ApprovedCourseRecord,
   CourseDeliveryType,
@@ -28,6 +29,11 @@ import type {
 
 const COURSES = "courses/";
 const CATEGORIES = "categories/";
+
+export async function getTeacherStudentDashboard(studentId: number): Promise<TeacherStudentDashboard> {
+  const { data } = await api.get<TeacherStudentDashboard>(`teacher/students/${studentId}/dashboard/`);
+  return data;
+}
 
 /**
  * Backend accepts these enum-like filters as comma-separated values

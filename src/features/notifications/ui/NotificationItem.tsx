@@ -1,16 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { Award, Bell, BookOpen, Bookmark, ClipboardList, MessageSquare } from "lucide-react";
+import { Award, ShieldAlert, Bell, BookOpen, Bookmark, ClipboardList, MessageSquare } from "lucide-react";
 import type { Notification, NotificationType } from "@/entities/notification";
 import { formatRelativeTime } from "@/shared/lib/time";
 import { NotificationItemMenu } from "./NotificationItemMenu";
 
 const ICONS: Record<NotificationType, typeof Bell> = {
   new_message: MessageSquare,
+  homework_submitted: Bookmark,
   homework_graded: Bookmark,
   schedule_event: ClipboardList,
   new_lesson: BookOpen,
+  moderation_action: ShieldAlert,
   course_completed: Award,
 };
 

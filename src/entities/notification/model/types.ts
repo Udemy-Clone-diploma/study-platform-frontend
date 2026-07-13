@@ -1,8 +1,10 @@
 export type NotificationType =
   | "new_message"
+  | "homework_submitted"
   | "homework_graded"
   | "schedule_event"
   | "new_lesson"
+  | "moderation_action"
   | "course_completed";
 
 export type NotificationActor = {

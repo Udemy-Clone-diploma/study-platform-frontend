@@ -11,7 +11,7 @@ const teacherItems: SidebarItem[] = [
   { id: "chats", label: "Chats", href: "/teacher-dashboard/chats", icon: "chats", iconSrc: "/icons/sms.svg", match: "startsWith" },
   { id: "statistics", label: "Statistics", href: "/teacher-dashboard/statistics", icon: "statistics", iconSrc: "/icons/statistics.svg", match: "startsWith" },
   { id: "schedule", label: "Schedule", href: "/teacher-dashboard/schedule", icon: "schedule", iconSrc: "/icons/list.svg", match: "startsWith" },
-  { id: "payment", label: "Payment", href: "/teacher-dashboard/payment", icon: "payment", iconSrc: "/icons/wallet.svg", match: "startsWith" },
+  { id: "payment", label: "Payments", href: "/teacher-dashboard/payments", icon: "payment", iconSrc: "/icons/wallet.svg", match: "startsWith" },
 ];
 
 const studentItems: SidebarItem[] = [

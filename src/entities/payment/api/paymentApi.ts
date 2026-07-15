@@ -9,6 +9,7 @@ import type {
   PaymentList,
   PaymentType,
 } from "../model/types";
+import type { TeacherOrderStatus, TeacherOrdersData } from "../model/teacherOrders";
 
 const ORDERS_ENDPOINT = "orders/";
 const PAYMENTS_ENDPOINT = "payments/";
@@ -101,5 +102,26 @@ export async function createInstallmentPaymentIntent(
   const { data } = await api.post<PaymentIntent>(
     `${ORDERS_ENDPOINT}${orderId}/installments/${installmentId}/payment-intent/`,
   );
+  return data;
+}
+
+export type TeacherOrdersParams = {
+  course?: string;
+  cohort?: number;
+  status?: TeacherOrderStatus;
+  date_from?: string;
+  date_to?: string;
+  search?: string;
+};
+
+export async function getTeacherOrders(params: TeacherOrdersParams = {}): Promise<TeacherOrdersData> {
+  const { data } = await api.get<TeacherOrdersData>(`${ORDERS_ENDPOINT}teacher/`, { params });
+  return data;
+}
+
+export async function downloadTeacherOrderInvoice(orderId: number): Promise<Blob> {
+  const { data } = await api.get<Blob>(`${ORDERS_ENDPOINT}teacher/${orderId}/invoice/`, {
+    responseType: "blob",
+  });
   return data;
 }

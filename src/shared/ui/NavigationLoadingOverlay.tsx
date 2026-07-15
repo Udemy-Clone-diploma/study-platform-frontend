@@ -4,6 +4,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { LoadingLogo } from "@/shared/ui/LoadingLogo";
+import { subscribePageLoading } from "@/shared/lib/pageLoadingSignal";
 
 const SHOW_DELAY = 150;
 const MIN_VISIBLE = 500;
@@ -35,6 +36,7 @@ export function NavigationLoadingOverlay() {
   const [visible, setVisible] = useState(false);
 
   const pending = useRef(false);
+  const pageLoading = useRef(false);
   const visibleRef = useRef(false);
   const shownAt = useRef(0);
   const currentPath = useRef(pathname);
@@ -58,10 +60,28 @@ export function NavigationLoadingOverlay() {
     clearTimer(showTimer);
     clearTimer(safetyTimer);
     if (!visibleRef.current) return;
+    // A page can hold the overlay open past the route transition itself
+    // (e.g. it's still creating a draft copy server-side) via usePageLoadingOverlay.
+    if (pageLoading.current) return;
     const remaining = Math.max(0, MIN_VISIBLE - (Date.now() - shownAt.current));
     clearTimer(hideTimer);
     hideTimer.current = setTimeout(hide, remaining);
   }, [hide]);
+
+  // Lets in-page async work (see usePageLoadingOverlay) show the overlay
+  // immediately and keep it open even after the route itself has finished
+  // transitioning.
+  useEffect(() => {
+    return subscribePageLoading((loading) => {
+      pageLoading.current = loading;
+      if (loading) {
+        clearTimer(hideTimer);
+        show();
+      } else {
+        finish();
+      }
+    });
+  }, [show, finish]);
 
   const start = useCallback(
     (nextPath: string) => {

@@ -81,13 +81,11 @@ export default function TeacherStudentsPage() {
   // re-fetching them when only the format selection changes.
   const metaFetchedFor = useRef<string>("");
 
-  // Load teacher's courses once on mount
+  // Load teacher's courses once on mount. Defaults to "All courses" (merged
+  // student list across every course) rather than auto-picking the first one.
   useEffect(() => {
     getTeacherCourses()
-      .then((res) => {
-        setCourses(res.results);
-        if (res.results.length > 0) setSelectedCourse(res.results[0].slug);
-      })
+      .then((res) => { setCourses(res.results); })
       .catch(() => {})
       .finally(() => setLoadingCourses(false));
   }, []);
@@ -97,11 +95,16 @@ export default function TeacherStudentsPage() {
   // this effect fires — no nested setState / double-trigger issues.
   useEffect(() => {
     if (!selectedCourse || selectedCourse === ALL_COURSES) {
-      setStudents([]);
       setFormats([]);
       setCohorts([]);
       metaFetchedFor.current = "";
-      return;
+
+      let cancelled = false;
+      setLoadingStudents(true);
+      Promise.all(courses.map((c) => getCourseEnrolledStudents(c.slug).catch(() => [])))
+        .then((lists) => { if (!cancelled) setStudents(lists.flat()); })
+        .finally(() => { if (!cancelled) setLoadingStudents(false); });
+      return () => { cancelled = true; };
     }
 
     let cancelled = false;
@@ -128,7 +131,7 @@ export default function TeacherStudentsPage() {
 
     void loadStudents;
     return () => { cancelled = true; };
-  }, [selectedCourse, selectedFormat, selectedStatus]);
+  }, [selectedCourse, selectedFormat, selectedStatus, courses]);
 
   // Which delivery format type is currently active (null when "All formats")
   const selectedFormatType =
@@ -319,12 +322,11 @@ export default function TeacherStudentsPage() {
     },
   ];
 
-  const emptyMessage =
-    selectedCourse === ALL_COURSES
-      ? "Select a course to view its students."
-      : loadingStudents
-        ? "Loading students…"
-        : "No students enrolled in this course.";
+  const emptyMessage = loadingStudents
+    ? "Loading students…"
+    : selectedCourse === ALL_COURSES
+      ? "No students enrolled yet."
+      : "No students enrolled in this course.";
 
   // ── Render ───────────────────────────────────────────────────────────────────
 

@@ -21,6 +21,7 @@ import { CourseManagementReviewsTab } from "@/widgets/course-detail";
 import { AccentButton } from "@/shared/ui/AccentButton";
 import { PageShell } from "@/shared/ui/PageShell";
 import { WhiteButton } from "@/shared/ui/WhiteButton";
+import { usePageLoadingOverlay } from "@/shared/lib/pageLoadingSignal";
 
 // ── Lookups ────────────────────────────────────────────────────────────────────
 const STATUS_LABEL: Record<CourseStatus, string> = {
@@ -206,6 +207,7 @@ export default function CourseManagementPage() {
   const router    = useRouter();
   const [course, setCourse] = useState<CourseDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  usePageLoadingOverlay(loading);
   const [error, setError]   = useState<string | null>(null);
   const [tab, setTab]       = useState<Tab>("info");
   const [descExpanded, setDescExpanded] = useState(false);
@@ -264,14 +266,9 @@ export default function CourseManagementPage() {
   }, [fmtByType, tab]);
 
   // ── Loading / error ──────────────────────────────────────────────────────────
+  // NavigationLoadingOverlay already covers the load; avoid a second, plain-text one here.
   if (loading) {
-    return (
-      <main className="bg-my-courses min-h-[calc(100vh-76px)] flex items-center justify-center">
-        <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(14px, 0.83vw, 16px)", color: "var(--color-text-secondary)" }}>
-          Loading…
-        </p>
-      </main>
-    );
+    return <main className="bg-my-courses min-h-[calc(100vh-76px)]" />;
   }
   if (error || !course) {
     return (

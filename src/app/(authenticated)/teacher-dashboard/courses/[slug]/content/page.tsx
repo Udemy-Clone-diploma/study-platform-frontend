@@ -32,6 +32,7 @@ import type { LessonFormValues } from "@/features/courses";
 import { AccentButton } from "@/shared/ui/AccentButton";
 import { GradientButton } from "@/shared/ui/GradientButton";
 import { SectionCard } from "@/shared/ui/SectionCard";
+import { usePageLoadingOverlay } from "@/shared/lib/pageLoadingSignal";
 import { WhiteButton } from "@/shared/ui/WhiteButton";
 
 const PUBLISHED_STATUSES = new Set(["published", "hidden"]);
@@ -52,6 +53,7 @@ export default function CourseContentPage() {
 
   const [course, setCourse] = useState<CourseDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  usePageLoadingOverlay(loading);
   const [moduleList, setModuleList] = useState<CourseModule[]>([]);
   const [moderationReview, setModerationReview] = useState<ModerationReview | null>(null);
   /** True when working with a pending edit (published course) instead of a live draft course. */
@@ -221,22 +223,9 @@ export default function CourseContentPage() {
     router.push("/teacher-dashboard/courses");
   }
 
+  // NavigationLoadingOverlay already covers the load; avoid a second, plain-text one here.
   if (loading) {
-    return (
-      <CourseCreationLayout>
-        <p
-          style={{
-            fontFamily: "var(--font-base)",
-            fontSize: "clamp(14px, 0.83vw, 16px)",
-            color: "var(--color-text-secondary)",
-            textAlign: "center",
-            padding: "clamp(40px, 6vw, 80px) 0",
-          }}
-        >
-          Loading…
-        </p>
-      </CourseCreationLayout>
-    );
+    return <CourseCreationLayout>{null}</CourseCreationLayout>;
   }
 
   return (

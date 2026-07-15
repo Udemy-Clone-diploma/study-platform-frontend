@@ -9,6 +9,7 @@ import { GrowthCard } from "./GrowthCard";
 import { MyCoursesDashboardWidget } from "./MyCoursesDashboardWidget";
 import { ScheduleRail } from "./ScheduleRail";
 import { StudentNotesPanel } from "./StudentNotesPanel";
+import { TeacherStudentsPanel } from "./TeacherStudentsPanel";
 import { PAGE_PADDING_TOP, SIDEBAR_GAP } from "@/shared/ui/PageShell";
 
 type DashboardRole = "student" | "teacher";
@@ -22,13 +23,6 @@ type DashboardListItem = {
   date?: string;
   badge?: string;
   author?: string;
-};
-
-type ProgressItem = {
-  title: string;
-  icon: string;
-  accent: string;
-  value: number;
 };
 
 const scheduleRailStyle = {
@@ -68,39 +62,6 @@ const teacherChecks: DashboardListItem[] = [
     icon: "/icons/diary.svg",
     accent: "from-[#edf1ff] to-[#fff3dc]",
     author: "Maksym Dovzhenko",
-  },
-];
-
-const progressItems: ProgressItem[] = [
-  {
-    title: "UX/UI Design Principles...",
-    icon: "/icons/world.png",
-    accent: "from-[#fff3dc] to-[#ffe7ef]",
-    value: 32,
-  },
-  {
-    title: "Marketing",
-    icon: "/icons/statistics.svg",
-    accent: "from-[#ffe7ef] to-[#dfd7ff]",
-    value: 53,
-  },
-  {
-    title: "Business analytics",
-    icon: "/icons/curses.svg",
-    accent: "from-[#e0fbf5] to-[#d8ddff]",
-    value: 18,
-  },
-  {
-    title: "Product discovery",
-    icon: "/icons/diary.svg",
-    accent: "from-[#edf1ff] to-[#fff3dc]",
-    value: 64,
-  },
-  {
-    title: "UX/UI Design Principles...",
-    icon: "/icons/world.png",
-    accent: "from-[#fff3dc] to-[#ffe7ef]",
-    value: 32,
   },
 ];
 
@@ -184,11 +145,10 @@ function TeacherDashboard() {
             className="flex min-w-0 flex-col"
             style={{
               gap: "clamp(12px, 1.04vw, 20px)",
-              paddingTop: "clamp(32px, 2.97vw, 57px)",
+              paddingTop: "calc(clamp(36px, 2.71vw, 52px) + clamp(12px, 1.04vw, 20px))",
             }}
           >
-            <StudentTotalCard />
-            <CourseProgressPanel items={progressItems} />
+            <TeacherStudentsPanel />
           </div>
         </div>
 
@@ -228,40 +188,6 @@ function TodoPanel({
             item={item}
             teacher={teacher}
           />
-        ))}
-      </ScrollableList>
-    </Card>
-  );
-}
-
-function StudentTotalCard() {
-  return (
-    <Card className="min-h-[100px] border border-[#fcc4c3] p-6">
-      <div className="flex h-full items-center justify-between gap-4">
-        <div>
-          <p className="text-base text-black">Total Students</p>
-          <p className="mt-4 text-2xl font-bold text-black">134</p>
-        </div>
-        <Image src="/icons/people.svg" alt="" width={40} height={40} className="h-10 w-10" />
-      </div>
-    </Card>
-  );
-}
-
-function CourseProgressPanel({ items }: { items: ProgressItem[] }) {
-  return (
-    <Card className="max-h-[472px] overflow-hidden p-4">
-      <h2 className="mb-3 text-base font-bold text-black">Course progress</h2>
-      <ScrollableList>
-        {items.map((item, i) => (
-          <div
-            key={`${item.title}-${item.value}-${i}`}
-            className="mb-2 flex min-h-[64px] items-center gap-3 rounded-md border border-black/5 bg-white px-3 shadow-[0_1px_8px_rgba(0,0,0,0.12)]"
-          >
-            <IconTile accent={item.accent} icon={item.icon} size="sm" />
-            <span className="min-w-0 flex-1 truncate text-xs text-[#5e5e5e]">{item.title}</span>
-            <ProgressRing value={item.value} />
-          </div>
         ))}
       </ScrollableList>
     </Card>
@@ -308,7 +234,7 @@ function ListRow({
   );
 }
 
-function ProgressRing({ value }: { value: number }) {
+export function ProgressRing({ value }: { value: number }) {
   return (
     <div
       className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
@@ -351,7 +277,7 @@ function IconTile({
   );
 }
 
-function ScrollableList({ children }: { children: ReactNode }) {
+export function ScrollableList({ children }: { children: ReactNode }) {
   return <div className="max-h-full overflow-y-auto pr-1">{children}</div>;
 }
 

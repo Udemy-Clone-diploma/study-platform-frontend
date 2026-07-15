@@ -18,6 +18,7 @@ import {
   ModeratorBasicsStep, ModeratorContentStep, ModeratorReviewStep,
 } from "@/features/courses";
 import type { ApiError } from "@/shared/api/base";
+import { usePageLoadingOverlay } from "@/shared/lib/pageLoadingSignal";
 
 const STEPS = [
   { name: "Basics",           sub: "Course information"       },
@@ -107,6 +108,7 @@ export default function ModeratorReviewPage() {
 
   const [course, setCourse]                       = useState<CourseDetail | null>(null);
   const [loading, setLoading]                     = useState(true);
+  usePageLoadingOverlay(loading);
   const [step, setStep]                           = useState<0 | 1 | 2>(0);
   const [action, setAction]                       = useState<ModeratorAction>(null);
   const [comment, setComment]                     = useState("");
@@ -376,22 +378,9 @@ export default function ModeratorReviewPage() {
     courseSlug: slug ?? "",
   };
 
+  // NavigationLoadingOverlay already covers the load; avoid a second, plain-text one here.
   if (loading) {
-    return (
-      <CourseCreationLayout>
-        <p
-          style={{
-            fontFamily: "var(--font-base)",
-            fontSize: "clamp(14px, 0.83vw, 16px)",
-            color: "var(--color-text-secondary)",
-            textAlign: "center",
-            padding: "clamp(40px, 6vw, 80px) 0",
-          }}
-        >
-          Loading…
-        </p>
-      </CourseCreationLayout>
-    );
+    return <CourseCreationLayout>{null}</CourseCreationLayout>;
   }
 
   return (

@@ -18,6 +18,7 @@ import {
   CourseStatsGrid,
   ModeratorNoteBanner,
 } from "@/features/courses";
+import { usePageLoadingOverlay } from "@/shared/lib/pageLoadingSignal";
 
 const PUBLISHED_STATUSES = new Set(["published", "hidden"]);
 
@@ -159,6 +160,7 @@ export default function CourseReviewPage() {
   const router = useRouter();
   const [course, setCourse] = useState<CourseDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  usePageLoadingOverlay(loading);
   const [moduleList, setModuleList] = useState<CourseModule[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [isPendingEditMode, setIsPendingEditMode] = useState(false);
@@ -229,22 +231,9 @@ export default function CourseReviewPage() {
     : "Review your course content and publish when ready";
   const submitLabel = "Continue to Review & Publish";
 
+  // NavigationLoadingOverlay already covers the load; avoid a second, plain-text one here.
   if (loading) {
-    return (
-      <CourseCreationLayout>
-        <p
-          style={{
-            fontFamily: "var(--font-base)",
-            fontSize: "clamp(14px, 0.83vw, 16px)",
-            color: "var(--color-text-secondary)",
-            textAlign: "center",
-            padding: "clamp(40px, 6vw, 80px) 0",
-          }}
-        >
-          Loading…
-        </p>
-      </CourseCreationLayout>
-    );
+    return <CourseCreationLayout>{null}</CourseCreationLayout>;
   }
 
   return (

@@ -21,6 +21,7 @@ import type {
 } from "@/entities/course";
 import { DataTable } from "@/shared/ui/DataTable";
 import type { DataTableColumn } from "@/shared/ui/DataTable";
+import { StudentAvatar } from "@/shared/ui/StudentAvatar";
 import { CompletionBadge } from "@/features/courses/ui/CourseManagementStudentsBlock";
 import { CourseConfirmModal } from "@/features/courses/ui/CourseConfirmModal";
 import type { ApiError } from "@/shared/api/base";
@@ -36,15 +37,6 @@ function formatEntryDate(iso: string): string {
   ].join(".");
 }
 
-function getInitials(name: string): string {
-  return name
-    .split(" ")
-    .slice(0, 2)
-    .map((w) => w[0] ?? "")
-    .join("")
-    .toUpperCase();
-}
-
 function cohortLabel(cohort: CourseCohort, index: number): string {
   return cohort.name ?? `Group ${index + 1}`;
 }
@@ -55,26 +47,6 @@ const FORMAT_LABELS: Record<string, string> = {
   individual:  "Individual",
   group:       "Group",
 };
-
-// ── Local sub-components ──────────────────────────────────────────────────────
-
-function StudentAvatar({ name, avatar }: { name: string; avatar?: string | null }) {
-  const size = "clamp(32px, 2.78vw, 40px)";
-  if (avatar) return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img src={avatar} alt={name} className="shrink-0 rounded-full" style={{ width: size, height: size, objectFit: "cover" }} />
-  );
-  return (
-    <div
-      className="flex shrink-0 items-center justify-center rounded-full"
-      style={{ width: size, height: size, background: "var(--gradient-brand)" }}
-    >
-      <span style={{ fontFamily: "var(--font-accent)", fontWeight: 700, fontSize: "clamp(9px, 0.69vw, 11px)", color: "var(--color-text-primary)", lineHeight: 1 }}>
-        {getInitials(name)}
-      </span>
-    </div>
-  );
-}
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 

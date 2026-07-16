@@ -4,8 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { Check, RefreshCw, Search, SlidersHorizontal } from "lucide-react";
 import type { Category } from "@/entities/course";
 
-export type DateOrdering = "newest" | "oldest";
-
 type Props = {
   search: string;
   onSearchChange: (value: string) => void;

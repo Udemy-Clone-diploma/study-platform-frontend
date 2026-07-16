@@ -5,7 +5,6 @@ import { Check, RefreshCw, Search, SlidersHorizontal } from "lucide-react";
 import { AddButton } from "@/shared/ui/AddButton";
 
 export type StatusFilter = "active" | "inactive" | "blocked" | "deleted" | null;
-export type DateOrdering = "newest" | "oldest";
 
 const STATUS_OPTIONS: { label: string; value: StatusFilter }[] = [
   { label: "All statuses", value: null },
@@ -15,18 +14,11 @@ const STATUS_OPTIONS: { label: string; value: StatusFilter }[] = [
   { label: "Deleted", value: "deleted" },
 ];
 
-const ORDERING_OPTIONS: { label: string; value: DateOrdering }[] = [
-  { label: "Newest first", value: "newest" },
-  { label: "Oldest first", value: "oldest" },
-];
-
 type Props = {
   search: string;
   onSearchChange: (value: string) => void;
   status: StatusFilter;
   onStatusChange: (value: StatusFilter) => void;
-  ordering: DateOrdering;
-  onOrderingChange: (value: DateOrdering) => void;
   onRefresh: () => void;
   refreshing: boolean;
   onAddUser: () => void;
@@ -37,8 +29,6 @@ export function UsersToolbar({
   onSearchChange,
   status,
   onStatusChange,
-  ordering,
-  onOrderingChange,
   onRefresh,
   refreshing,
   onAddUser,
@@ -70,10 +60,15 @@ export function UsersToolbar({
     return () => document.removeEventListener("mousedown", onOutside);
   }, [filterOpen]);
 
-  const activeStatusLabel = STATUS_OPTIONS.find((o) => o.value === status && o.value !== null)?.label;
+  const activeStatusLabel = STATUS_OPTIONS.find(
+    (o) => o.value === status && o.value !== null,
+  )?.label;
 
   return (
-    <div className="flex flex-wrap items-center justify-between" style={{ gap: "clamp(12px, 1.11vw, 16px)" }}>
+    <div
+      className="flex flex-wrap items-center justify-between"
+      style={{ gap: "clamp(12px, 1.11vw, 16px)" }}
+    >
       <div className="flex flex-wrap items-center" style={{ gap: "clamp(12px, 1.94vw, 28px)" }}>
         <label
           className="gradient-border flex cursor-text items-center gap-2"
@@ -145,18 +140,6 @@ export function UsersToolbar({
                   setFilterOpen(false);
                 }}
               />
-              <div
-                style={{ borderTop: "1px solid var(--color-border-light)", margin: "8px 0" }}
-              />
-              <FilterGroup
-                heading="Sort by date"
-                options={ORDERING_OPTIONS}
-                selected={ordering}
-                onSelect={(value) => {
-                  onOrderingChange(value);
-                  setFilterOpen(false);
-                }}
-              />
             </div>
           )}
         </div>
@@ -222,8 +205,7 @@ function FilterGroup<T extends string | null>({
             padding: "7px 14px",
             fontFamily: "var(--font-base)",
             fontSize: "clamp(13px, 0.97vw, 15px)",
-            color:
-              option.value === selected ? "var(--color-blue)" : "var(--color-text-primary)",
+            color: option.value === selected ? "var(--color-blue)" : "var(--color-text-primary)",
           }}
         >
           {option.label}

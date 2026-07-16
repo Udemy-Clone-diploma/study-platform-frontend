@@ -60,7 +60,48 @@ export async function getCategories(): Promise<Category[]> {
   return Array.isArray(data) ? data : data.results;
 }
 
-export async function getCourses(filters: CourseListParams = {}): Promise<Paginated<CourseListItem>> {
+export type CategoryListParams = {
+  search?: string;
+  page?: number;
+  page_size?: number;
+  ordering?: string;
+};
+
+export async function getCategoriesPage(
+  params: CategoryListParams = {},
+): Promise<Paginated<Category>> {
+  const { data } = await api.get<Category[] | Paginated<Category>>(CATEGORIES, { params });
+  return Array.isArray(data)
+    ? { count: data.length, next: null, previous: null, results: data }
+    : data;
+}
+
+export type CategoryInput = {
+  name: string;
+  slug?: string;
+  description?: string;
+};
+
+export async function createCategory(body: CategoryInput): Promise<Category> {
+  const { data } = await api.post<Category>(CATEGORIES, body);
+  return data;
+}
+
+export async function updateCategory(
+  id: number,
+  patch: Partial<CategoryInput> & { featured_order?: number | null },
+): Promise<Category> {
+  const { data } = await api.patch<Category>(`${CATEGORIES}${id}/`, patch);
+  return data;
+}
+
+export async function deleteCategory(id: number): Promise<void> {
+  await api.delete(`${CATEGORIES}${id}/`);
+}
+
+export async function getCourses(
+  filters: CourseListParams = {},
+): Promise<Paginated<CourseListItem>> {
   const params = {
     ...(filters.category ? { category: filters.category } : {}),
     ...(filters.course_type?.length ? { course_type: filters.course_type.join(",") } : {}),
@@ -78,7 +119,9 @@ export async function getCourses(filters: CourseListParams = {}): Promise<Pagina
     ...(filters.status !== undefined
       ? { status: Array.isArray(filters.status) ? filters.status.join(",") : filters.status }
       : {}),
-    ...(filters.with_certificate !== undefined ? { with_certificate: filters.with_certificate } : {}),
+    ...(filters.with_certificate !== undefined
+      ? { with_certificate: filters.with_certificate }
+      : {}),
     ...(filters.page ? { page: filters.page } : {}),
     ...(filters.page_size ? { page_size: filters.page_size } : {}),
   };
@@ -116,21 +159,15 @@ export async function getPopularCourses(): Promise<CourseListItem[]> {
  * missing or in a different course's slug.
  */
 export async function getLesson(slug: string, lessonId: number): Promise<CourseLesson> {
-  const { data } = await api.get<CourseLesson>(
-    `${COURSES}${slug}/lessons/${lessonId}/`,
-  );
+  const { data } = await api.get<CourseLesson>(`${COURSES}${slug}/lessons/${lessonId}/`);
   return data;
 }
 
 /** Paginated public reviews for a course, newest first. */
-export async function getCourseReviews(
-  slug: string,
-  page = 1,
-): Promise<Paginated<CourseReview>> {
-  const { data } = await api.get<Paginated<CourseReview>>(
-    `${COURSES}${slug}/reviews/`,
-    { params: { page } },
-  );
+export async function getCourseReviews(slug: string, page = 1): Promise<Paginated<CourseReview>> {
+  const { data } = await api.get<Paginated<CourseReview>>(`${COURSES}${slug}/reviews/`, {
+    params: { page },
+  });
   return data;
 }
 
@@ -190,10 +227,7 @@ export async function createPricingPlan(
   slug: string,
   body: PricingPlanInput,
 ): Promise<PricingPlan> {
-  const { data } = await api.post<PricingPlan>(
-    `${COURSES}${slug}/pricing-plans/`,
-    body,
-  );
+  const { data } = await api.post<PricingPlan>(`${COURSES}${slug}/pricing-plans/`, body);
   return data;
 }
 
@@ -202,10 +236,7 @@ export async function updatePricingPlan(
   id: number,
   body: Partial<PricingPlanInput>,
 ): Promise<PricingPlan> {
-  const { data } = await api.patch<PricingPlan>(
-    `${COURSES}${slug}/pricing-plans/${id}/`,
-    body,
-  );
+  const { data } = await api.patch<PricingPlan>(`${COURSES}${slug}/pricing-plans/${id}/`, body);
   return data;
 }
 
@@ -216,7 +247,9 @@ export async function deletePricingPlan(slug: string, id: number): Promise<void>
 export type CohortInput = Omit<CourseCohort, "id" | "members_count" | "members">;
 
 export async function getCohorts(slug: string): Promise<CourseCohort[]> {
-  const { data } = await api.get<CourseCohort[] | Paginated<CourseCohort>>(`${COURSES}${slug}/cohorts/`);
+  const { data } = await api.get<CourseCohort[] | Paginated<CourseCohort>>(
+    `${COURSES}${slug}/cohorts/`,
+  );
   return Array.isArray(data) ? data : data.results;
 }
 
@@ -231,10 +264,7 @@ export async function updateCohort(
   id: number,
   body: Partial<CohortInput>,
 ): Promise<CourseCohort> {
-  const { data } = await api.patch<CourseCohort>(
-    `${COURSES}${slug}/cohorts/${id}/`,
-    body,
-  );
+  const { data } = await api.patch<CourseCohort>(`${COURSES}${slug}/cohorts/${id}/`, body);
   return data;
 }
 
@@ -247,10 +277,9 @@ export async function addCohortMember(
   cohortId: number,
   enrollmentId: number,
 ): Promise<CohortMember> {
-  const { data } = await api.post<CohortMember>(
-    `${COURSES}${slug}/cohorts/${cohortId}/members/`,
-    { enrollment_id: enrollmentId },
-  );
+  const { data } = await api.post<CohortMember>(`${COURSES}${slug}/cohorts/${cohortId}/members/`, {
+    enrollment_id: enrollmentId,
+  });
   return data;
 }
 
@@ -270,7 +299,9 @@ export async function getCourseEnrolledStudents(
   const params: Record<string, string | number> = {};
   if (formatId) params.format_id = formatId;
   if (status) params.status = status;
-  const { data } = await api.get<EnrolledStudent[]>(`${COURSES}${slug}/enrolled-students/`, { params });
+  const { data } = await api.get<EnrolledStudent[]>(`${COURSES}${slug}/enrolled-students/`, {
+    params,
+  });
   return data;
 }
 
@@ -294,9 +325,10 @@ export async function uncompleteStudentEnrollment(
 }
 
 /** New-enrollment count over time for the teacher's courses (teacher dashboard "Growth" widget). */
-export async function getEnrollmentGrowth(
-  params: { course?: string; period: GrowthPeriod },
-): Promise<EnrollmentGrowthData> {
+export async function getEnrollmentGrowth(params: {
+  course?: string;
+  period: GrowthPeriod;
+}): Promise<EnrollmentGrowthData> {
   const { data } = await api.get<EnrollmentGrowthData>("enrollments/growth/", { params });
   return data;
 }
@@ -316,10 +348,7 @@ export async function submitCourseReview(
   slug: string,
   body: ReviewSubmission,
 ): Promise<CourseReview> {
-  const { data } = await api.post<CourseReview>(
-    `${COURSES}${slug}/reviews/`,
-    body,
-  );
+  const { data } = await api.post<CourseReview>(`${COURSES}${slug}/reviews/`, body);
   return data;
 }
 
@@ -392,7 +421,9 @@ export async function getMyModerationCourses(page = 1): Promise<Paginated<Course
 }
 
 /** Rejected courses moderated by the current moderator (includes moderation_review). */
-export async function getMyRejectedModerationCourses(page = 1): Promise<Paginated<RejectedCourseItem>> {
+export async function getMyRejectedModerationCourses(
+  page = 1,
+): Promise<Paginated<RejectedCourseItem>> {
   const { data } = await api.get<Paginated<RejectedCourseItem>>(`${COURSES}moderation/rejected/`, {
     params: { page, page_size: 100 },
   });
@@ -469,7 +500,10 @@ export async function createCourse(data: Record<string, unknown>): Promise<Cours
   return result;
 }
 
-export async function updateCourse(slug: string, data: Record<string, unknown>): Promise<CourseDetail> {
+export async function updateCourse(
+  slug: string,
+  data: Record<string, unknown>,
+): Promise<CourseDetail> {
   const { data: result } = await api.patch<CourseDetail>(`${COURSES}${slug}/`, data);
   return result;
 }
@@ -519,26 +553,41 @@ export async function copyCourseToDraft(slug: string): Promise<CourseDetail> {
 }
 
 /** Teacher's rejection history — immutable snapshot records, independent of course status. */
-export async function getTeacherRejectionRecords(page = 1): Promise<Paginated<RejectedCourseRecord>> {
-  const { data } = await api.get<Paginated<RejectedCourseRecord>>(`${COURSES}my-rejection-records/`, {
-    params: { page, page_size: 100 },
-  });
+export async function getTeacherRejectionRecords(
+  page = 1,
+): Promise<Paginated<RejectedCourseRecord>> {
+  const { data } = await api.get<Paginated<RejectedCourseRecord>>(
+    `${COURSES}my-rejection-records/`,
+    {
+      params: { page, page_size: 100 },
+    },
+  );
   return data;
 }
 
 /** Moderator's rejection history snapshot records. */
-export async function getModeratorRejectionRecords(page = 1): Promise<Paginated<RejectedCourseRecord>> {
-  const { data } = await api.get<Paginated<RejectedCourseRecord>>(`${COURSES}moderation/rejection-records/`, {
-    params: { page, page_size: 100 },
-  });
+export async function getModeratorRejectionRecords(
+  page = 1,
+): Promise<Paginated<RejectedCourseRecord>> {
+  const { data } = await api.get<Paginated<RejectedCourseRecord>>(
+    `${COURSES}moderation/rejection-records/`,
+    {
+      params: { page, page_size: 100 },
+    },
+  );
   return data;
 }
 
 /** Moderator's approval history snapshot records. */
-export async function getModeratorApprovalRecords(page = 1): Promise<Paginated<ApprovedCourseRecord>> {
-  const { data } = await api.get<Paginated<ApprovedCourseRecord>>(`${COURSES}moderation/approval-records/`, {
-    params: { page, page_size: 100 },
-  });
+export async function getModeratorApprovalRecords(
+  page = 1,
+): Promise<Paginated<ApprovedCourseRecord>> {
+  const { data } = await api.get<Paginated<ApprovedCourseRecord>>(
+    `${COURSES}moderation/approval-records/`,
+    {
+      params: { page, page_size: 100 },
+    },
+  );
   return data;
 }
 
@@ -563,14 +612,23 @@ export async function uploadCourseImage(slug: string, imageFile: File): Promise<
   await api.patch(`${COURSES}${slug}/`, formData);
 }
 
-export async function uploadCourseIcon(slug: string, iconSrc: string, iconName: string): Promise<void> {
+export async function uploadCourseIcon(
+  slug: string,
+  iconSrc: string,
+  iconName: string,
+): Promise<void> {
   try {
     const res = await fetch(iconSrc);
     if (!res.ok) return;
     const blob = await res.blob();
     const extension = iconSrc.split(".").pop() || "png";
-    await uploadCourseImage(slug, new File([blob], `${iconName}-pic.${extension}`, { type: blob.type }));
-  } catch { /* best-effort */ }
+    await uploadCourseImage(
+      slug,
+      new File([blob], `${iconName}-pic.${extension}`, { type: blob.type }),
+    );
+  } catch {
+    /* best-effort */
+  }
 }
 
 export async function toggleWishlist(slug: string): Promise<{ is_wishlisted: boolean }> {

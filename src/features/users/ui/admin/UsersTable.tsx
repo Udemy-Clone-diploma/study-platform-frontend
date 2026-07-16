@@ -19,6 +19,8 @@ type Props = {
   onToggleBlock: (user: UserData) => void;
   onDelete: (user: UserData) => void;
   onRestore: (user: UserData) => void;
+  currentSort?: string | null;
+  onSortChange?: (ordering: string) => void;
 };
 
 export function UsersTable({
@@ -31,12 +33,15 @@ export function UsersTable({
   onToggleBlock,
   onDelete,
   onRestore,
+  currentSort,
+  onSortChange,
 }: Props) {
   const columns: DataTableColumn<UserData>[] = [
     {
       key: "user",
       label: "User",
       flex: 2.5,
+      sortKey: "first_name",
       render: (row) => (
         <div className="flex min-w-0 items-center" style={{ gap: "clamp(8px, 0.83vw, 12px)" }}>
           <UserAvatar user={row} />
@@ -65,6 +70,7 @@ export function UsersTable({
       flex: 2.4,
       headerAlign: "center",
       cellAlign: "center",
+      sortKey: "email",
       render: (row) => (
         <span className="block overflow-hidden text-ellipsis whitespace-nowrap">{row.email}</span>
       ),
@@ -88,6 +94,7 @@ export function UsersTable({
       flex: 1.2,
       headerAlign: "center",
       cellAlign: "center",
+      sortKey: "date_joined",
       render: (row) => <span>{formatUserDate(row.date_joined)}</span>,
     },
     {
@@ -108,7 +115,10 @@ export function UsersTable({
         }
         const isSelf = row.id === currentUserId;
         return (
-          <div className="flex items-center justify-center" style={{ gap: "clamp(4px, 0.56vw, 8px)" }}>
+          <div
+            className="flex items-center justify-center"
+            style={{ gap: "clamp(4px, 0.56vw, 8px)" }}
+          >
             <ActionButton title="Edit user" onClick={() => onEdit(row)}>
               <Pencil size={16} />
             </ActionButton>
@@ -150,6 +160,8 @@ export function UsersTable({
       showIndex={false}
       rowVariant="card"
       selectedKey={selectedUserId}
+      currentSort={currentSort}
+      onSortChange={onSortChange}
     />
   );
 }

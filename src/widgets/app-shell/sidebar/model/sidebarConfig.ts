@@ -38,6 +38,7 @@ const moderatorItems: SidebarItem[] = [
 const adminItems: SidebarItem[] = [
   { id: "dashboard", label: "Dashboard", href: "/admin", icon: "dashboard", iconSrc: "/icons/house.svg", match: "exact" },
   { id: "students", label: "Users", href: "/admin/users", icon: "students", iconSrc: "/icons/people.svg", match: "startsWith" },
+  { id: "categories", label: "Categories", href: "/admin/categories", icon: "materials", iconSrc: "/icons/categories.svg", match: "startsWith" },
   { id: "courses", label: "Courses", href: "/admin/courses", icon: "courses", iconSrc: "/icons/curses.svg", match: "startsWith" },
   { id: "statistics", label: "Statistics", href: "/admin/statistics", icon: "statistics", iconSrc: "/icons/statistics.svg", match: "startsWith" },
   { id: "payment", label: "Payment", href: "/admin/payment", icon: "payment", iconSrc: "/icons/wallet.svg", match: "startsWith" },

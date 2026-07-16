@@ -8,11 +8,11 @@ import { deleteUser, getMe, getUsers, restoreUser, setUserBlocked } from "@/enti
 import type { UserData, UserRole } from "@/entities/user";
 import type { ApiError } from "@/shared/api/base";
 import { RoleTabs } from "./RoleTabs";
-import { UsersToolbar, type DateOrdering, type StatusFilter } from "./UsersToolbar";
+import { UsersToolbar, type StatusFilter } from "./UsersToolbar";
 import { UsersTable } from "./UsersTable";
+import { ConfirmActionModal } from "@/shared/ui/ConfirmActionModal";
 import { CreateUserModal } from "./CreateUserModal";
 import { EditUserModal } from "./EditUserModal";
-import { ConfirmUserActionModal } from "./ConfirmUserActionModal";
 import { UserDetailPanel } from "./UserDetailPanel";
 
 const PAGE_SIZE = 10;
@@ -40,7 +40,7 @@ export function UsersAdminView() {
       ? statusParam
       : null;
   const search = searchParams.get("search") ?? "";
-  const ordering: DateOrdering = searchParams.get("ordering") === "oldest" ? "oldest" : "newest";
+  const ordering = searchParams.get("ordering") ?? "-date_joined";
 
   const [users, setUsers] = useState<UserData[]>([]);
   const [count, setCount] = useState(0);
@@ -95,7 +95,7 @@ export function UsersAdminView() {
       isBlocked: status === "blocked" ? true : undefined,
       isDeleted: status === "deleted" ? true : undefined,
       search: search || undefined,
-      ordering: ordering === "oldest" ? "date_joined" : "-date_joined",
+      ordering,
     })
       .then((data) => {
         if (cancelled) return;
@@ -147,10 +147,7 @@ export function UsersAdminView() {
         const restored = await restoreUser(pendingAction.user.id);
         if (detailUser?.id === restored.id) setDetailUser(restored);
       } else {
-        const updated = await setUserBlocked(
-          pendingAction.user.id,
-          pendingAction.kind === "block",
-        );
+        const updated = await setUserBlocked(pendingAction.user.id, pendingAction.kind === "block");
         if (detailUser?.id === updated.id) setDetailUser(updated);
       }
       setPendingAction(null);
@@ -196,10 +193,7 @@ export function UsersAdminView() {
 
   return (
     <PageShell className="bg-(--color-brand-lavender-soft)">
-      <div
-        className="flex w-full flex-col"
-        style={{ maxWidth: 1648, margin: "0 auto" }}
-      >
+      <div className="flex w-full flex-col" style={{ maxWidth: 1648, margin: "0 auto" }}>
         <h1
           className="font-semibold text-(--color-text-primary)"
           style={{
@@ -221,10 +215,6 @@ export function UsersAdminView() {
             onSearchChange={handleSearchChange}
             status={status}
             onStatusChange={(next) => updateParams({ status: next, page: null })}
-            ordering={ordering}
-            onOrderingChange={(next) =>
-              updateParams({ ordering: next === "oldest" ? "oldest" : null, page: null })
-            }
             onRefresh={refresh}
             refreshing={loading}
             onAddUser={() => setCreating(true)}
@@ -260,6 +250,10 @@ export function UsersAdminView() {
                 onToggleBlock={(user) => requestAction(user.is_blocked ? "unblock" : "block", user)}
                 onDelete={(user) => requestAction("delete", user)}
                 onRestore={(user) => requestAction("restore", user)}
+                currentSort={ordering}
+                onSortChange={(next) =>
+                  updateParams({ ordering: next === "-date_joined" ? null : next, page: null })
+                }
               />
             </div>
 
@@ -276,9 +270,7 @@ export function UsersAdminView() {
             )}
           </div>
 
-          {detailUser && (
-            <UserDetailPanel user={detailUser} onClose={() => setDetailUser(null)} />
-          )}
+          {detailUser && <UserDetailPanel user={detailUser} onClose={() => setDetailUser(null)} />}
         </div>
       </div>
 
@@ -307,7 +299,7 @@ export function UsersAdminView() {
       )}
 
       {pendingAction && actionCopy && (
-        <ConfirmUserActionModal
+        <ConfirmActionModal
           title={actionCopy.title}
           description={actionCopy.description}
           confirmLabel={actionCopy.confirmLabel}

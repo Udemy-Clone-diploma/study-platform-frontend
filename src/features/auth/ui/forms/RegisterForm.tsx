@@ -202,6 +202,13 @@ export function RegisterForm() {
                 Sign in now
               </Link>
             </p>
+
+            <p className="text-center text-[0.78rem] text-[#3e3840]">
+              Want to teach on the platform?{" "}
+              <Link href="/register/teacher" className="text-[#3557ff] transition hover:text-[#1937cb]">
+                Apply as a teacher
+              </Link>
+            </p>
           </div>
 
         </div>

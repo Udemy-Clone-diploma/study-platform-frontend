@@ -30,6 +30,7 @@ const studentItems: SidebarItem[] = [
 const moderatorItems: SidebarItem[] = [
   { id: "dashboard",     label: "Dashboard",    href: "/moderator-dashboard",            icon: "dashboard",     iconSrc: "/icons/house.svg",         match: "exact" },
   { id: "courses",       label: "My courses",   href: "/moderator-dashboard/courses",    icon: "courses",       iconSrc: "/icons/curses.svg",         match: "startsWith" },
+  { id: "teacher-applications", label: "Applications", href: "/moderator-dashboard/teacher-applications", icon: "students", iconSrc: "/icons/people.svg", match: "startsWith" },
   { id: "chats",         label: "Chats",        href: "/moderator-dashboard/chats",      icon: "chats",         iconSrc: "/icons/sms.svg",            match: "startsWith" },
   { id: "reviews",       label: "Reviews",      href: "/moderator-dashboard/reviews",    icon: "reviews",       iconSrc: "/icons/Reviews.svg",        match: "startsWith" },
   { id: "notifications", label: "Notifications",href: "/moderator-dashboard/notifications", icon: "notifications", iconSrc: "/icons/Notification.svg", match: "startsWith" },

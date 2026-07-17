@@ -12,8 +12,8 @@ import { registerUser } from "@/features/auth/api/authApi";
 import { useAuthForm } from "@/features/auth/model/useAuthForm";
 import { AuthField } from "@/features/auth/ui/AuthField";
 import { AuthShell } from "@/features/auth/ui/AuthShell";
-import { DateOfBirthPicker } from "@/features/auth/ui/DateOfBirthPicker";
 import { AccentButton } from "@/shared/ui/AccentButton";
+import { DatePicker, todayISO } from "@/shared/ui/DatePicker";
 
 const initialForm: RegisterFormData = {
   email: "",
@@ -106,7 +106,11 @@ export function RegisterForm() {
                 autoComplete="given-name"
               />
 
-              <DateOfBirthPicker
+              <DatePicker
+                variant="underline"
+                allowTyping
+                label="Date of Birth"
+                max={todayISO()}
                 value={formData.dateOfBirth}
                 error={errors.dateOfBirth}
                 onChange={(dateOfBirth) => {

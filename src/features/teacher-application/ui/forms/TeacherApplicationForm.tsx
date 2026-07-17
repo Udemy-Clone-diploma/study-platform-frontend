@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AuthField, AuthShell, DateOfBirthPicker, useAuthForm } from "@/features/auth";
+import { AuthField, AuthShell, useAuthForm } from "@/features/auth";
 import { checkTeacherApplicationEmail, submitTeacherApplication } from "@/entities/teacher-application";
 import { AccentButton } from "@/shared/ui/AccentButton";
+import { DatePicker, todayISO } from "@/shared/ui/DatePicker";
 import {
   validateApplicationBasicStep,
   validateApplicationProfileStep,
@@ -171,7 +173,11 @@ export function TeacherApplicationForm() {
                 autoComplete="given-name"
               />
 
-              <DateOfBirthPicker
+              <DatePicker
+                variant="underline"
+                allowTyping
+                label="Date of Birth"
+                max={todayISO()}
                 value={formData.dateOfBirth}
                 error={errors.dateOfBirth}
                 onChange={(dateOfBirth) => {
@@ -338,6 +344,13 @@ export function TeacherApplicationForm() {
                 Back
               </button>
             ) : null}
+
+            <p className="text-center text-[0.78rem] text-[#3e3840]">
+              Already have an account?{" "}
+              <Link href="/login" className="text-[#3557ff] transition hover:text-[#1937cb]">
+                Sign in now
+              </Link>
+            </p>
           </div>
         </div>
       </form>

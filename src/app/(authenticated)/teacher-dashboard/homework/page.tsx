@@ -1,12 +1,10 @@
 "use client";
 
 import Image from "next/image";
+import { createPortal } from "react-dom";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
-  CalendarDays,
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
   ClipboardList,
   Plus,
   Upload,
@@ -39,6 +37,7 @@ import { QuizQuestionCard, QuizWindow } from "@/features/quiz";
 import type { ApiError } from "@/shared/api/base";
 import { PageShell } from "@/shared/ui/PageShell";
 import { PillSelect } from "@/shared/ui/PillSelect";
+import { DatePicker } from "@/shared/ui/DatePicker";
 
 type FormState = {
   courseSlug: string;
@@ -233,152 +232,6 @@ function HomeworkSelect({
   );
 }
 
-const WEEK_DAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
-
-function toDateValue(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
-function parseDateValue(value: string): Date | null {
-  if (!value) return null;
-  const [year, month, day] = value.split("-").map(Number);
-  const date = new Date(year, month - 1, day);
-  return Number.isNaN(date.getTime()) ? null : date;
-}
-
-function sameDate(left: Date | null, right: Date): boolean {
-  return Boolean(
-    left &&
-    left.getFullYear() === right.getFullYear() &&
-    left.getMonth() === right.getMonth() &&
-    left.getDate() === right.getDate(),
-  );
-}
-
-function HomeworkDatePicker({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (value: string) => void;
-}) {
-  const selectedDate = parseDateValue(value);
-  const [isOpen, setIsOpen] = useState(false);
-  const [visibleMonth, setVisibleMonth] = useState(
-    () =>
-      new Date(
-        selectedDate?.getFullYear() ?? new Date().getFullYear(),
-        selectedDate?.getMonth() ?? new Date().getMonth(),
-        1,
-      ),
-  );
-  const rootRef = useRef<HTMLDivElement>(null);
-  const monthName = new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(
-    visibleMonth,
-  );
-  const days = useMemo(() => {
-    const firstDay = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth(), 1);
-    const start = new Date(firstDay);
-    start.setDate(firstDay.getDate() - firstDay.getDay());
-    return Array.from({ length: 42 }, (_, index) => {
-      const date = new Date(start);
-      date.setDate(start.getDate() + index);
-      return date;
-    });
-  }, [visibleMonth]);
-
-  useEffect(() => {
-    function closeOnOutsidePointer(event: PointerEvent) {
-      if (!rootRef.current?.contains(event.target as Node)) setIsOpen(false);
-    }
-
-    document.addEventListener("pointerdown", closeOnOutsidePointer);
-    return () => document.removeEventListener("pointerdown", closeOnOutsidePointer);
-  }, []);
-
-  return (
-    <div ref={rootRef} className="relative">
-      <p className="mb-2 text-[14px] font-semibold text-[#121212]">Due date</p>
-      <button
-        type="button"
-        aria-haspopup="dialog"
-        aria-expanded={isOpen}
-        onClick={() => setIsOpen((current) => !current)}
-        className="flex h-14 w-full items-center justify-between gap-3 rounded-md bg-[#ECECEC] px-4 text-left text-[15px] text-[#121212] outline-none transition focus:ring-2 focus:ring-[#9DB1FA]"
-      >
-        <span>{selectedDate ? dateLabel(selectedDate) : "Select a due date"}</span>
-        <CalendarDays size={20} aria-hidden="true" />
-      </button>
-
-      {isOpen ? (
-        <div
-          role="dialog"
-          aria-label="Choose due date"
-          className="absolute z-[140] mt-2 w-[330px] rounded-[16px] bg-[#FAFAFA] p-4 shadow-[0_12px_28px_rgba(0,0,0,0.18)]"
-        >
-          <div className="mb-4 flex items-center justify-between">
-            <button
-              type="button"
-              aria-label="Previous month"
-              onClick={() =>
-                setVisibleMonth((month) => new Date(month.getFullYear(), month.getMonth() - 1, 1))
-              }
-              className="flex h-8 w-8 items-center justify-center rounded-full transition hover:bg-[#EEEEEE]"
-            >
-              <ChevronLeft size={24} aria-hidden="true" />
-            </button>
-            <p className="text-[16px] font-medium text-[#121212]">{monthName}</p>
-            <button
-              type="button"
-              aria-label="Next month"
-              onClick={() =>
-                setVisibleMonth((month) => new Date(month.getFullYear(), month.getMonth() + 1, 1))
-              }
-              className="flex h-8 w-8 items-center justify-center rounded-full transition hover:bg-[#EEEEEE]"
-            >
-              <ChevronRight size={24} aria-hidden="true" />
-            </button>
-          </div>
-
-          <div className="grid grid-cols-7 gap-y-2 text-center">
-            {WEEK_DAYS.map((day) => (
-              <span key={day} className="text-[14px] text-[#6A6A6A]">
-                {day}
-              </span>
-            ))}
-            {days.map((day) => {
-              const isVisibleMonth = day.getMonth() === visibleMonth.getMonth();
-              const isSelected = sameDate(selectedDate, day);
-              return (
-                <button
-                  key={toDateValue(day)}
-                  type="button"
-                  onClick={() => {
-                    onChange(toDateValue(day));
-                    setIsOpen(false);
-                  }}
-                  className={`mx-auto flex h-10 w-10 items-center justify-center rounded-full text-[16px] transition ${
-                    isSelected
-                      ? "bg-[radial-gradient(circle_at_25%_25%,#A7BAFA_0%,#A7BAFA_28%,#FCC4C3_68%,#FFF4DA_100%)] text-white"
-                      : isVisibleMonth
-                        ? "text-[#121212] hover:bg-[#F0F3FF]"
-                        : "text-[#D2D2D2]"
-                  }`}
-                >
-                  {day.getDate()}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
 function monthLabel(value: string): string {
   return new Intl.DateTimeFormat("en-US", { month: "long" }).format(new Date(value));
 }
@@ -565,7 +418,7 @@ function HomeworkSubmissionPickerDialog({
   onSelect: (submissionId: number) => void;
   onClose: () => void;
 }) {
-  return (
+  return createPortal(
     <div
       role="presentation"
       className="fixed inset-0 z-[145] flex items-center justify-center bg-[#121212]/45 px-4 py-6"
@@ -637,7 +490,8 @@ function HomeworkSubmissionPickerDialog({
           ))}
         </div>
       </section>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -779,7 +633,7 @@ function HomeworkReviewDialog({
   const busy = saving || retrieving;
   const reviewDisabled = busy || isReadOnly || !score.trim() || !feedback.trim();
 
-  return (
+  return createPortal(
     <div
       role="presentation"
       className="fixed inset-0 z-[150] flex items-center justify-center bg-[#121212]/45 px-4 py-6"
@@ -1023,7 +877,8 @@ function HomeworkReviewDialog({
           onClose={() => setIsAttemptReviewOpen(false)}
         />
       ) : null}
-    </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -1731,7 +1586,7 @@ export default function TeacherHomeworkPage() {
         />
       ) : null}
 
-      {isModalOpen ? (
+      {isModalOpen ? createPortal(
         <div
           role="presentation"
           className="fixed inset-0 z-[100] flex items-center justify-center bg-[#B7C7FA]/80 px-4 py-6"
@@ -1936,7 +1791,8 @@ export default function TeacherHomeworkPage() {
               </p>
 
               <div className="mt-6 grid gap-5 sm:grid-cols-2">
-                <HomeworkDatePicker
+                <DatePicker
+                  label="Due date"
                   value={form.dueAt}
                   onChange={(value) => updateField("dueAt", value)}
                 />
@@ -2070,7 +1926,8 @@ export default function TeacherHomeworkPage() {
               </div>
             ) : null}
           </section>
-        </div>
+        </div>,
+        document.body,
       ) : null}
     </PageShell>
   );

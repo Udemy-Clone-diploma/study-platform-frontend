@@ -17,7 +17,12 @@ type Props = {
 };
 
 export function CategoryFilter({ categories, currentSlug }: Props) {
-  const items = categories.length > 0 ? categories : DEFAULT_CATEGORIES;
+  const items =
+    categories.length > 0
+      ? [...categories].sort(
+          (a, b) => (a.featured_order ?? Infinity) - (b.featured_order ?? Infinity),
+        )
+      : DEFAULT_CATEGORIES;
 
   const router = useRouter();
   const searchParams = useSearchParams();

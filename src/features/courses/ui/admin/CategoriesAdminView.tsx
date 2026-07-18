@@ -181,9 +181,7 @@ export function CategoriesAdminView() {
               setDeleteTarget(category);
             }}
             currentSort={ordering}
-            onSortChange={(next) =>
-              updateParams({ ordering: next === "name" ? null : next, page: null })
-            }
+            onSortChange={(next) => updateParams({ ordering: next === "name" ? null : next })}
           />
         </div>
 

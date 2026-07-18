@@ -252,7 +252,7 @@ export function UsersAdminView() {
                 onRestore={(user) => requestAction("restore", user)}
                 currentSort={ordering}
                 onSortChange={(next) =>
-                  updateParams({ ordering: next === "-date_joined" ? null : next, page: null })
+                  updateParams({ ordering: next === "-date_joined" ? null : next })
                 }
               />
             </div>

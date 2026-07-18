@@ -41,7 +41,7 @@ export function UsersTable({
       key: "user",
       label: "User",
       flex: 2.5,
-      sortKey: "first_name",
+      sortKey: "full_name",
       render: (row) => (
         <div className="flex min-w-0 items-center" style={{ gap: "clamp(8px, 0.83vw, 12px)" }}>
           <UserAvatar user={row} />

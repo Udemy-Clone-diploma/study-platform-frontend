@@ -105,7 +105,7 @@ export function CoursesTable({
     },
     {
       key: "created",
-      label: "Date",
+      label: "Created",
       flex: 1,
       headerAlign: "center",
       cellAlign: "center",

@@ -170,8 +170,8 @@ export function CoursesAdminView() {
           description: pendingAction.course.students_count
             ? `Delete "${pendingAction.course.title}"? It has ${pendingAction.course.students_count} enrolled ${
                 pendingAction.course.students_count === 1 ? "student" : "students"
-              } who may lose access. This cannot be undone.`
-            : `Delete "${pendingAction.course.title}"? This cannot be undone.`,
+              }. The course will be archived and removed from the catalog; you can find it later under the Archived tab.`
+            : `Delete "${pendingAction.course.title}"? The course will be archived and removed from the catalog; you can find it later under the Archived tab.`,
           confirmLabel: "Delete",
         },
       }[pendingAction.kind]
@@ -240,7 +240,7 @@ export function CoursesAdminView() {
                 onDelete={(course) => requestAction("delete", course)}
                 currentSort={ordering}
                 onSortChange={(next) =>
-                  updateParams({ ordering: next === "-created_at" ? null : next, page: null })
+                  updateParams({ ordering: next === "-created_at" ? null : next })
                 }
               />
             </div>

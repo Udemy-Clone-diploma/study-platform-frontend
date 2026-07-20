@@ -1,41 +1,69 @@
-name: Build and Push image to Amazon ECR
-
+name: Frontend — Build & Deploy
+ 
 on:
   workflow_dispatch:
-
+ 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+ 
 jobs:
-  build:
+  build-and-push:
+    name: Build & Push (Next.js)
     runs-on: ubuntu-latest
-
+ 
+    if: github.event.pull_request.merged == true
+ 
+    permissions:
+      id-token: write
+      contents: read
+ 
+    outputs:
+      image-env: ${{ steps.env-tag.outputs.IMAGE_ENV }}
+ 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Login to Amazon ECR
-        uses: aws-actions/amazon-ecr-login@v1
-
-      - name: Build, tag, and push image
-        env:
-          IMAGE_TAG: ${{ github.sha }}
-          NEXT_PUBLIC_API_URL: /api/v1
-          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+ 
+      - name: Set environment tag
+        id: env-tag
         run: |
-          IMAGE_URI=${{ vars.ECR_REGISTRY }}/${{ vars.ECR_REPOSITORY_FRONT }}
-
-          docker build \
-            --build-arg NEXT_PUBLIC_API_URL=/api/v1 \
-            --build-arg NEXT_PUBLIC_WS_URL=/ws \
-            --build-arg NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${{ vars.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }} \
-            -t $IMAGE_URI:$IMAGE_TAG \
-            -t $IMAGE_URI:latest \
-            .
-
-          docker push $IMAGE_URI:$IMAGE_TAG
-          docker push $IMAGE_URI:latest
+          if [ "${{ github.base_ref }}" = "main" ]; then
+            echo "IMAGE_ENV=staging" >> $GITHUB_OUTPUT
+          else
+            echo "IMAGE_ENV=dev" >> $GITHUB_OUTPUT
+          fi
+ 
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ secrets.AWS_REGION }}
+ 
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+ 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+ 
+      - name: Build, tag, and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          build-args: |
+            NEXT_PUBLIC_API_URL=/api/v1
+            NEXT_PUBLIC_WS_URL=/ws
+            NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${{ vars.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY_FRONT }}:${{ github.sha }}
+            ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY_FRONT }}:${{ steps.env-tag.outputs.IMAGE_ENV }}
+          cache-from: type=gha,scope=frontend-${{ steps.env-tag.outputs.IMAGE_ENV }}
+          cache-to: type=gha,scope=frontend-${{ steps.env-tag.outputs.IMAGE_ENV }},mode=max
+ 
+      - name: Print image URI
+        run: |
+          echo "✅ Image pushed:"
+          echo "   ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY_FRONT }}:${{ github.sha }}"

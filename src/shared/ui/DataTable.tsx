@@ -123,11 +123,7 @@ export function DataTable<T>({
                 </span>
                 <SortIcon
                   aria-hidden="true"
-                  className={`shrink-0${!isAsc && !isDesc ? " opacity-70" : ""}`}
-                  style={{
-                    width: "clamp(14px, 1.11vw, 16px)",
-                    height: "clamp(14px, 1.11vw, 16px)",
-                  }}
+                  className={`h-4 w-4 shrink-0${!isAsc && !isDesc ? " opacity-70" : ""}`}
                 />
               </button>
             );

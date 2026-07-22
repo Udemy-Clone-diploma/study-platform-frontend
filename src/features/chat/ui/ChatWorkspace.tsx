@@ -10,7 +10,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { MessageSquarePlus, Plus } from "lucide-react";
 import {
   clearChatHistory,
@@ -95,6 +95,7 @@ type ChatWorkspaceProps = {
 /** Full chat workspace with an optional profile-view override for composed experiences. */
 export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const requestedChatId = Number(searchParams.get("chat")) || null;
   const [me, setMe] = useState<UserData | null>(null);
@@ -109,6 +110,7 @@ export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
   const [imagePreview, setImagePreview] = useState<{ url: string; alt: string } | null>(null);
   const [chatSearch, setChatSearch] = useState("");
   const [chatTypeFilter, setChatTypeFilter] = useState<ChatType>("direct");
+  const [mobileChatOpen, setMobileChatOpen] = useState(() => Boolean(requestedChatId));
   const [loadingChats, setLoadingChats] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -204,6 +206,10 @@ export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
       return typeFilteredChats[0]?.id ?? null;
     });
   }, [requestedChatId, typeFilteredChats]);
+
+  useEffect(() => {
+    setMobileChatOpen(Boolean(requestedChatId));
+  }, [requestedChatId]);
 
   const loadChats = useCallback(async () => {
     setError("");
@@ -740,6 +746,12 @@ export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
     setChatMenuOpen(false);
   }
 
+  function selectChat(chatId: number) {
+    setSelectedChatId(chatId);
+    setMobileChatOpen(true);
+    router.push(`${pathname}?chat=${chatId}`);
+  }
+
   function clearVisibleHistory() {
     if (selectedChat?.is_read_only) return;
     setConfirmationAction("clear-history");
@@ -1132,7 +1144,7 @@ export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
   }
 
   return (
-    <main className="flex h-[calc(100vh-76px)] min-h-[640px] gap-[clamp(28px,4vw,76px)] bg-[#D6E0FF] px-[clamp(28px,4vw,78px)] py-[clamp(24px,3vw,40px)] text-[#111827]">
+    <main className="-mt-16 flex min-h-[100dvh] flex-1 flex-col overflow-hidden bg-[#D6E0FF] px-4 pb-[calc(103px+env(safe-area-inset-bottom))] pt-[123px] text-[#111827] lg:m-0 lg:h-[calc(100vh-76px)] lg:min-h-[640px] lg:flex-row lg:gap-[clamp(28px,4vw,76px)] lg:overflow-visible lg:px-[clamp(28px,4vw,78px)] lg:py-[clamp(24px,3vw,40px)]">
       <ChatSidebar
         search={chatSearch}
         typeFilter={chatTypeFilter}
@@ -1142,11 +1154,14 @@ export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
         selectedChatId={selectedChatId}
         onSearchChange={setChatSearch}
         onTypeFilterChange={setChatTypeFilter}
-        onSelectChat={setSelectedChatId}
+        mobileVisible={!mobileChatOpen}
+        onSelectChat={selectChat}
         onNewChat={() => setComposeOpen(true)}
       />
 
-      <section className="relative flex min-w-0 flex-1 flex-col">
+      <section
+        className={`${mobileChatOpen ? "flex" : "hidden lg:flex"} relative min-h-0 min-w-0 flex-1 flex-col`}
+      >
         {selectedChat ? (
           <>
             <ChatHeader
@@ -1283,7 +1298,7 @@ export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
           onClose={() => setComposeOpen(false)}
           onCreated={(chat) => {
             setChats((current) => upsertChat(current, chat));
-            setSelectedChatId(chat.id);
+            selectChat(chat.id);
           }}
         />
       ) : null}

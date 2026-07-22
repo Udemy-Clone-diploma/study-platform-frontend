@@ -86,11 +86,11 @@ export function MessageList({
   onLongPressClick,
 }: Props) {
   return (
-    <div className="relative mt-4 min-h-0 flex-1">
+    <div className="relative mt-3 min-h-0 flex-1 lg:mt-4">
       <div
         ref={viewportRef}
         onScroll={onScroll}
-        className="chat-scrollbar-hidden h-full overflow-y-auto rounded-[18px] border border-white/70 bg-[#D6E0FF]/45 px-5 py-6 shadow-[inset_0_2px_4px_rgba(255,255,255,0.65)]"
+        className="chat-scrollbar-hidden h-full overflow-y-auto rounded-none border-0 bg-transparent px-0 py-1 shadow-none lg:rounded-[18px] lg:border lg:border-white/70 lg:bg-[#D6E0FF]/45 lg:px-5 lg:py-6 lg:shadow-[inset_0_2px_4px_rgba(255,255,255,0.65)]"
       >
         {hasMore ? (
           <div className="mb-5 flex justify-center">
@@ -112,7 +112,7 @@ export function MessageList({
             Loading messages
           </div>
         ) : messages.length > 0 ? (
-          <div className="space-y-4">
+          <div className="space-y-2 lg:space-y-4">
             {messages.map((message) => {
               const mine = message.sender?.id === meId;
               const actionSelected = selectedActionMessageId === message.id;
@@ -144,7 +144,7 @@ export function MessageList({
                     onPointerCancel={onLongPressEnd}
                     onPointerLeave={onLongPressEnd}
                     onClickCapture={onLongPressClick}
-                    className={`flex max-w-[52%] flex-col ${
+                    className={`flex max-w-[88%] flex-col lg:max-w-[52%] ${
                       mine ? "items-end" : "items-start"
                     } ${actionSelected ? "relative z-[90]" : ""} ${
                       message.is_deleted || message.optimistic ? "" : "cursor-default"
@@ -159,7 +159,7 @@ export function MessageList({
                       className={
                         standaloneImageMessage
                           ? "text-sm leading-5 text-[#121212]"
-                          : `rounded-[12px] px-4 py-2 text-sm leading-5 text-[#121212] shadow-sm ${
+                          : `rounded-[12px] px-4 py-2 text-[12px] leading-4 text-[#121212] shadow-sm lg:text-sm lg:leading-5 ${
                               chat.is_read_only
                                 ? "bg-[#FFF4DA]"
                                 : mine

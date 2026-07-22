@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ModalShell } from "@/shared/ui/ModalShell";
 import { ModalFooter } from "@/shared/ui/ModalFooter";
 import { Input } from "@/shared/ui/Input";
+import { DatePicker, todayISO } from "@/shared/ui/DatePicker";
 import { createUser } from "@/entities/user";
 import type { UserLanguage, UserRole } from "@/entities/user";
 import type { ApiError } from "@/shared/api/base";
@@ -132,12 +133,11 @@ export function CreateUserModal({ onClose, onCreated }: Props) {
             onChange={(value) => setField("language", value as UserLanguage)}
             error={fieldErrors.language}
           />
-          <Input
-            id="create-date-of-birth"
+          <DatePicker
             label="Date of birth (optional)"
-            type="date"
+            max={todayISO()}
             value={form.date_of_birth}
-            onChange={(e) => setField("date_of_birth", e.target.value)}
+            onChange={(value) => setField("date_of_birth", value)}
             error={fieldErrors.date_of_birth}
           />
         </div>

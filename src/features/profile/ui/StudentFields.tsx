@@ -1,5 +1,6 @@
-import { ProfileField, ProfileLanguageField, LABEL_STYLE, VALUE_STYLE, INPUT_STYLE, TEXTAREA_STYLE, formatDate } from "./ProfileField";
+import { ProfileField, ProfileLanguageField, LABEL_STYLE, VALUE_STYLE, TEXTAREA_STYLE, formatDate } from "./ProfileField";
 import { AccentButton } from "@/shared/ui/AccentButton";
+import { DatePicker, todayISO } from "@/shared/ui/DatePicker";
 import type { StudentProfile, UserLanguage } from "@/entities/user";
 
 const GRID_3: React.CSSProperties = {
@@ -50,16 +51,19 @@ export function StudentFields({
                 />
                 <ProfileField label="Email" value={email} />
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.208vw" }}>
-                    <span style={LABEL_STYLE}>Date of birth</span>
                     {editing ? (
-                        <input
-                            type="date"
+                        <DatePicker
+                            label="Date of birth"
+                            size="sm"
+                            max={todayISO()}
                             value={dateOfBirth}
-                            onChange={e => onDateOfBirthChange(e.target.value)}
-                            style={INPUT_STYLE}
+                            onChange={onDateOfBirthChange}
                         />
                     ) : (
-                        <span style={VALUE_STYLE}>{dobDisplay}</span>
+                        <>
+                            <span style={LABEL_STYLE}>Date of birth</span>
+                            <span style={VALUE_STYLE}>{dobDisplay}</span>
+                        </>
                     )}
                 </div>
 

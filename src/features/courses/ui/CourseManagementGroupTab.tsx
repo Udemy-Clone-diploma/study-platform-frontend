@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { AlertTriangle, Check, ChevronDown, Lock, LockOpen, Pencil, Trash2, UserMinus } from "lucide-react";
 import { AddButton } from "@/shared/ui/AddButton";
 import { ModalShell } from "@/shared/ui/ModalShell";
+import { DatePicker } from "@/shared/ui/DatePicker";
 import type { CourseDetail } from "@/entities/course";
 import type { CourseCohort } from "@/entities/course/model/cohort";
 import type { CohortMember, EnrolledStudent } from "@/entities/course/model/cohortGroup";
@@ -549,12 +550,11 @@ function CohortScheduleForm({ initial, onSave, onCancel, slug, cohortId, exclude
                         {isRescheduling && rescheduleState && (
                           <div style={{ display: "flex", gap: 8, alignItems: "flex-end", flexWrap: "wrap", paddingTop: 4 }}>
                             <div>
-                              <label style={LABEL}>New date</label>
-                              <input
-                                type="date"
+                              <DatePicker
+                                size="sm"
+                                label="New date"
                                 value={rescheduleState.date}
-                                onChange={e => setRescheduleState(s => s ? { ...s, date: e.target.value } : s)}
-                                style={{ ...INPUT, width: "auto", padding: "5px 10px" }}
+                                onChange={value => setRescheduleState(s => s ? { ...s, date: value } : s)}
                               />
                             </div>
                             <div>
@@ -708,12 +708,10 @@ function CohortForm({
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
         <div>
-          <label style={LABEL}>Start date</label>
-          <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={FINPUT} />
+          <DatePicker size="sm" label="Start date" value={startDate} onChange={setStartDate} />
         </div>
         <div>
-          <label style={LABEL}>Enroll deadline</label>
-          <input type="date" value={deadline} onChange={e => setDeadline(e.target.value)} style={FINPUT} />
+          <DatePicker size="sm" label="Enroll deadline" value={deadline} onChange={setDeadline} />
         </div>
         <div>
           <label style={LABEL}>Duration (months)</label>

@@ -115,3 +115,30 @@ export async function confirmPasswordReset(
   );
   return data;
 }
+
+export async function validateTeacherInvitationToken(
+  uidb64: string,
+  token: string,
+): Promise<{ valid: boolean }> {
+  const { data } = await api.get<{ valid: boolean }>(
+    `auth/teacher-invitation/${uidb64}/${token}/validate/`,
+  );
+  return data;
+}
+
+export async function confirmTeacherInvitation(
+  uidb64: string,
+  token: string,
+  payload: PasswordResetConfirmPayload,
+): Promise<{ detail: string }> {
+  const { data } = await api.post<{ detail: string }>(
+    `auth/teacher-invitation/${uidb64}/${token}/`,
+    payload,
+  );
+  return data;
+}
+
+export async function resendTeacherInvitation(email: string): Promise<{ detail: string }> {
+  const { data } = await api.post<{ detail: string }>("auth/teacher-invitation/resend/", { email });
+  return data;
+}

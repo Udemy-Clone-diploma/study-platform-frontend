@@ -185,6 +185,14 @@ const moderatorItems: SidebarItem[] = [
     match: "startsWith",
   },
   {
+    id: "teacher-applications",
+    label: "Applications",
+    href: "/moderator-dashboard/teacher-applications",
+    icon: "students",
+    iconSrc: "/icons/people.svg",
+    match: "startsWith",
+  },
+  {
     id: "chats",
     label: "Chats",
     href: "/moderator-dashboard/chats",

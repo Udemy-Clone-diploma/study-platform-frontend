@@ -8,7 +8,6 @@ export * from "./model/validation";
 export * from "./ui/AuthField";
 export * from "./ui/AuthPanel";
 export * from "./ui/AuthShell";
-export * from "./ui/DateOfBirthPicker";
 export * from "./ui/UserDropdown";
 export * from "./ui/forms/LoginForm";
 export * from "./ui/forms/RegisterForm";

@@ -1247,10 +1247,8 @@ function IndividualFormatSection({
                         {isRescheduling && addEventReschedule && (
                           <div style={{ display: "flex", gap: 8, alignItems: "flex-end", flexWrap: "wrap", paddingTop: 4 }}>
                             <div>
-                              <label style={CLABEL}>New date</label>
-                              <input type="date" value={addEventReschedule.date}
-                                onChange={e => setAddEventReschedule(s => s ? { ...s, date: e.target.value } : s)}
-                                style={{ ...INPUT, width: "auto", padding: "5px 10px" }} />
+                              <DatePicker size="sm" label="New date" value={addEventReschedule.date}
+                                onChange={value => setAddEventReschedule(s => s ? { ...s, date: value } : s)} />
                             </div>
                             <div>
                               <label style={CLABEL}>Start</label>
@@ -1396,10 +1394,8 @@ function IndividualFormatSection({
                         {isRescheduling && rescheduleEventReschedule && (
                           <div style={{ display: "flex", gap: 8, alignItems: "flex-end", flexWrap: "wrap", paddingTop: 4 }}>
                             <div>
-                              <label style={CLABEL}>New date</label>
-                              <input type="date" value={rescheduleEventReschedule.date}
-                                onChange={e => setRescheduleEventReschedule(s => s ? { ...s, date: e.target.value } : s)}
-                                style={{ ...INPUT, width: "auto", padding: "5px 10px" }} />
+                              <DatePicker size="sm" label="New date" value={rescheduleEventReschedule.date}
+                                onChange={value => setRescheduleEventReschedule(s => s ? { ...s, date: value } : s)} />
                             </div>
                             <div>
                               <label style={CLABEL}>Start</label>

@@ -3,26 +3,15 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Category } from "@/entities/course";
 
-const DEFAULT_CATEGORIES: Pick<Category, "id" | "name" | "slug">[] = [
-  { id: -1, name: "Programming & IT", slug: "programming-it" },
-  { id: -2, name: "Design", slug: "design" },
-  { id: -3, name: "Marketing", slug: "marketing" },
-  { id: -4, name: "Languages", slug: "languages" },
-  { id: -5, name: "Personal development", slug: "personal-development" },
-];
-
 type Props = {
   categories: Category[];
   currentSlug: string | undefined;
 };
 
 export function CategoryFilter({ categories, currentSlug }: Props) {
-  const items =
-    categories.length > 0
-      ? [...categories].sort(
-          (a, b) => (a.featured_order ?? Infinity) - (b.featured_order ?? Infinity),
-        )
-      : DEFAULT_CATEGORIES;
+  const items = [...categories].sort(
+    (a, b) => (a.featured_order ?? Infinity) - (b.featured_order ?? Infinity),
+  );
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -39,6 +28,12 @@ export function CategoryFilter({ categories, currentSlug }: Props) {
     params.delete("page");
 
     router.push(params.toString() ? `?${params.toString()}` : "/catalog", { scroll: false });
+  }
+
+  if (items.length === 0) {
+    return (
+      <p className="flex-1 text-xl text-(--color-text-secondary)">No categories yet.</p>
+    );
   }
 
   return (

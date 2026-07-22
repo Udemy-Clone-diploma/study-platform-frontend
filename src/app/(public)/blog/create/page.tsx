@@ -49,6 +49,7 @@ export default function CreateArticlePage() {
   const [categories, setCategories] = useState<BlogCategory[]>([]);
   const [values, setValues] = useState<ArticleFormValues>(EMPTY);
   const [loading, setLoading] = useState(false);
+  const [savingDraft, setSavingDraft] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -73,6 +74,21 @@ export default function CreateArticlePage() {
     } catch {
       setError("Something went wrong. Please try again.");
       setLoading(false);
+    }
+  }
+
+  async function handleSaveDraft() {
+    if (!values.title.trim() || !values.subtitle.trim()) return;
+    setSavingDraft(true);
+    setError(null);
+    try {
+      // createArticle always creates a draft (see ArticleService.create_article) --
+      // saving as draft just skips the publish/submit-for-review step below.
+      await createArticle(values);
+      router.push((role && MANAGE_HREF[role]) || "/blog");
+    } catch {
+      setError("Something went wrong. Please try again.");
+      setSavingDraft(false);
     }
   }
 
@@ -126,13 +142,21 @@ export default function CreateArticlePage() {
                     </p>
                   )}
                   <div className="flex items-center justify-end" style={{ gap: 20 }}>
-                    <WhiteButton icon={null} onClick={() => router.push("/blog")} disabled={loading} style={{ minWidth: 160, height: 48 }}>
+                    <WhiteButton icon={null} onClick={() => router.push("/blog")} disabled={loading || savingDraft} style={{ minWidth: 160, height: 48 }}>
                       Cancel
+                    </WhiteButton>
+                    <WhiteButton
+                      icon={null}
+                      onClick={handleSaveDraft}
+                      disabled={!values.title.trim() || !values.subtitle.trim() || loading || savingDraft}
+                      style={{ minWidth: 160, height: 48 }}
+                    >
+                      {savingDraft ? "Saving…" : "Save as Draft"}
                     </WhiteButton>
                     <AccentButton
                       type="submit"
                       size="md"
-                      disabled={!values.title.trim() || !values.subtitle.trim() || loading}
+                      disabled={!values.title.trim() || !values.subtitle.trim() || loading || savingDraft}
                       style={{ minWidth: 160, height: 48 }}
                     >
                       {loading ? "Saving…" : submitLabel}

@@ -196,8 +196,8 @@ const moderatorItems: SidebarItem[] = [
     id: "teacher-applications",
     label: "Applications",
     href: "/moderator-dashboard/teacher-applications",
-    icon: "students",
-    iconSrc: "/icons/people.svg",
+    icon: "reports",
+    iconSrc: "/icons/copy-check-navy.svg",
     match: "startsWith",
   },
   {
@@ -256,6 +256,14 @@ const adminItems: SidebarItem[] = [
     href: "/admin/users",
     icon: "students",
     iconSrc: "/icons/people.svg",
+    match: "startsWith",
+  },
+  {
+    id: "teacher-applications",
+    label: "Applications",
+    href: "/admin/teacher-applications",
+    icon: "reports",
+    iconSrc: "/icons/copy-check-navy.svg",
     match: "startsWith",
   },
   {

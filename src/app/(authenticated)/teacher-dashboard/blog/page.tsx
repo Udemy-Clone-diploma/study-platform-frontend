@@ -4,10 +4,11 @@ import { useCallback, useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { PageShell } from "@/shared/ui/PageShell";
 import { AccentButton } from "@/shared/ui/AccentButton";
+import { Pagination } from "@/shared/ui/Pagination";
 import { useAutoRefresh } from "@/shared/lib/useAutoRefresh";
 import { getArticles, getBlogCategories } from "@/entities/blog";
 import type { ArticleListItem, ArticleStatus, BlogCategory } from "@/entities/blog";
-import { ArticleActionModals, ArticleGrid, useArticleActions } from "@/features/blog";
+import { ArticleActionModals, ArticleCard, useArticleActions } from "@/features/blog";
 
 const TABS = ["All", "Draft", "Under Review", "Rejected", "Published", "Archived"] as const;
 type Tab = (typeof TABS)[number];
@@ -29,11 +30,14 @@ const EMPTY_LABEL: Record<Tab, string> = {
   Archived: "No archived articles.",
 };
 
+const PAGE_SIZE = 12;
+
 export default function TeacherBlogPage() {
   const [articles, setArticles] = useState<ArticleListItem[]>([]);
   const [categories, setCategories] = useState<BlogCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<Tab>("All");
+  const [page, setPage] = useState(1);
 
   const refresh = useCallback(() => {
     getArticles({ mine: true }).then(setArticles).catch(() => {});
@@ -58,8 +62,12 @@ export default function TeacherBlogPage() {
     return !status || a.status === status;
   });
 
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const effectivePage = Math.min(page, totalPages);
+  const pageArticles = filtered.slice((effectivePage - 1) * PAGE_SIZE, effectivePage * PAGE_SIZE);
+
   return (
-    <PageShell className="bg-(--color-brand-lavender-soft)">
+    <PageShell className="bg-my-courses">
       <div style={{ maxWidth: "1648px", margin: "0 auto" }}>
         <div
           className="flex flex-wrap items-center justify-between"
@@ -69,7 +77,10 @@ export default function TeacherBlogPage() {
             {TABS.map((tab) => (
               <button
                 key={tab}
-                onClick={() => setActiveTab(tab)}
+                onClick={() => {
+                  setPage(1);
+                  setActiveTab(tab);
+                }}
                 aria-current={activeTab === tab ? "page" : undefined}
                 className={[
                   "font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-blue)",
@@ -89,19 +100,30 @@ export default function TeacherBlogPage() {
           </AccentButton>
         </div>
 
-        <section className="min-h-[520px] rounded-[20px] bg-white p-4 shadow-(--shadow-dashboard-card) sm:p-6">
-          {loading ? (
-            <p className="mt-16 text-center text-lg text-(--color-text-secondary)">Loading...</p>
-          ) : (
-            <ArticleGrid
-              articles={filtered}
-              emptyLabel={EMPTY_LABEL[activeTab]}
-              currentUserId={articles[0]?.author.id ?? null}
-              currentUserRole="teacher"
-              onAction={actions.handleAction}
-            />
-          )}
-        </section>
+        {loading ? (
+          <p className="mt-16 text-center text-lg text-(--color-text-secondary)">Loading...</p>
+        ) : filtered.length === 0 ? (
+          <p className="mt-16 text-center text-lg text-(--color-text-secondary)">{EMPTY_LABEL[activeTab]}</p>
+        ) : (
+          <>
+            <div className="flex flex-wrap" style={{ gap: "1.04vw" }}>
+              {pageArticles.map((article) => (
+                <ArticleCard
+                  key={article.id}
+                  article={article}
+                  currentUserId={articles[0]?.author.id ?? null}
+                  currentUserRole="teacher"
+                  onAction={actions.handleAction}
+                />
+              ))}
+            </div>
+            {totalPages > 1 && (
+              <div style={{ marginTop: "clamp(16px, 1.67vw, 24px)" }}>
+                <Pagination currentPage={effectivePage} totalPages={totalPages} onPageChange={setPage} />
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       <ArticleActionModals categories={categories} state={actions} />

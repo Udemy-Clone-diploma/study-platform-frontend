@@ -6,6 +6,9 @@ export type BlogCategory = {
   slug: string;
   description: string;
   order: number;
+  /** Only present when the list endpoint annotates it (see BlogCategoryService.annotate_articles_count) --
+   * absent on categories embedded in article payloads. */
+  articles_count?: number;
 };
 
 export type ArticleAuthor = {

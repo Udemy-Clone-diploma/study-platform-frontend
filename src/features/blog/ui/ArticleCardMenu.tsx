@@ -27,7 +27,7 @@ export type ArticleMenuAction =
   | "approve"
   | "reject";
 
-type MenuItem = {
+export type MenuItem = {
   label: string;
   action: ArticleMenuAction;
   Icon: React.ElementType;
@@ -47,7 +47,9 @@ type Props = {
   onAction: (action: ArticleMenuAction) => void;
 };
 
-function buildMenu({ status, isOwner, isStaff, authorIsStaff, isAssignedToMe }: Omit<Props, "onAction">): MenuItem[] {
+/** Which actions are available for an article, given the viewer's relationship to it.
+ * Shared by ArticleCardMenu's dropdown (article page) and ArticleDetailPanel's button row (dashboard). */
+export function buildArticleMenu({ status, isOwner, isStaff, authorIsStaff, isAssignedToMe }: Omit<Props, "onAction">): MenuItem[] {
   const items: MenuItem[] = [];
 
   if (isOwner) {
@@ -82,9 +84,11 @@ function buildMenu({ status, isOwner, isStaff, authorIsStaff, isAssignedToMe }: 
     }
   }
 
-  if (isStaff && !isOwner) {
-    if (status !== "archived") items.push({ label: "Archive", action: "archive", Icon: Archive });
-    items.push({ label: "Delete", action: "delete", Icon: Trash2, danger: true });
+  // Articles under review only ever offer assign/approve/reject (above). On someone else's
+  // article, staff can only archive it -- delete stays the owner's own call (see the isOwner
+  // branches above), except for their own content.
+  if (isStaff && !isOwner && status !== "review" && status !== "archived") {
+    items.push({ label: "Archive", action: "archive", Icon: Archive });
   }
 
   return items;
@@ -107,7 +111,7 @@ export function ArticleCardMenu({ status, isOwner, isStaff, authorIsStaff, isAss
     return () => document.removeEventListener("mousedown", handler);
   }, [open]);
 
-  const items = buildMenu({ status, isOwner, isStaff, authorIsStaff, isAssignedToMe });
+  const items = buildArticleMenu({ status, isOwner, isStaff, authorIsStaff, isAssignedToMe });
   if (items.length === 0) return null;
 
   function handleClick(action: ArticleMenuAction) {

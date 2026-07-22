@@ -17,6 +17,21 @@ type Props = {
   currentUserRole: UserRole | null;
 };
 
+/** Highlights a "Prefix: rest" title the same way CatalogHero highlights its lead phrase —
+ * titles without a colon just render plain. */
+function renderHighlightedTitle(title: string) {
+  const colonIndex = title.indexOf(":");
+  if (colonIndex === -1) return title;
+  return (
+    <>
+      <span className="bg-(--color-catalog-highlight) px-1 py-0.5 text-(--color-blue)">
+        {title.slice(0, colonIndex + 1)}
+      </span>
+      {title.slice(colonIndex + 1)}
+    </>
+  );
+}
+
 /** Decorative molecule render (same asset/size/position as the article-creation page). */
 function DecorImage({ src, className }: { src: string; className: string }) {
   return (
@@ -84,7 +99,7 @@ export function ArticleDetailView({ article, categories, currentUserId, currentU
               </span>
             )}
             <h1 style={{ fontFamily: "var(--font-base)", fontWeight: 400, fontSize: "clamp(28px, 3.5vw, 48px)", lineHeight: 1.2, color: "var(--color-text-primary)", margin: 0, overflowWrap: "break-word" }}>
-              {article.title}
+              {renderHighlightedTitle(article.title)}
             </h1>
             <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(15px, 1.4vw, 20px)", color: "var(--color-text-secondary)", margin: 0, overflowWrap: "break-word" }}>
               {article.subtitle}

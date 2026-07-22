@@ -32,8 +32,20 @@ export async function updateBlogCategory(
 }
 
 /** Administrator-only: remove a category block (fails with 409 if articles still use it). */
-export async function deleteBlogCategory(slug: string): Promise<void> {
-  await api.delete(`${CATEGORIES}${slug}/`);
+export type BlogCategoryDeleteResolution =
+  | { type: "archive" }
+  | { type: "move"; targetCategorySlug: string };
+
+export async function deleteBlogCategory(
+  slug: string,
+  resolution?: BlogCategoryDeleteResolution,
+): Promise<void> {
+  const data = !resolution
+    ? undefined
+    : resolution.type === "archive"
+      ? { resolution: "archive" }
+      : { resolution: "move", target_category: resolution.targetCategorySlug };
+  await api.delete(`${CATEGORIES}${slug}/`, { data });
 }
 
 export type GetArticlesParams = {
@@ -41,6 +53,7 @@ export type GetArticlesParams = {
   mine?: boolean;
   status?: ArticleStatus;
   assigned?: "unassigned" | "mine";
+  search?: string;
 };
 
 export async function getArticles(params: GetArticlesParams = {}, accessToken?: string): Promise<ArticleListItem[]> {
@@ -50,6 +63,7 @@ export async function getArticles(params: GetArticlesParams = {}, accessToken?: 
       mine: params.mine ? "true" : undefined,
       status: params.status,
       assigned: params.assigned,
+      search: params.search,
     },
     headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
   });

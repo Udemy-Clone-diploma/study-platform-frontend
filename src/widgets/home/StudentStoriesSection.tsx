@@ -2,49 +2,15 @@
 
 import { SectionContainer } from "@/shared/ui/SectionContainer";
 import { useDragScroll } from "@/shared/lib/useDragScroll";
-import { StudentStoryCard, type StudentStory } from "@/features/users";
+import { StudentStoryCard } from "@/features/users";
+import type { ArticleListItem } from "@/entities/blog";
 
-const MOCK_STORIES: StudentStory[] = [
-    {
-        id: 1,
-        name: "Olivia Novak",
-        bio: "She left the medical field to start from scratch in design — and found a career that truly inspires her.",
-        image: null,
-    },
-    {
-        id: 2,
-        name: "Emma Carter",
-        bio: "From marketing assistant to UX/UI designer — a journey of turning routine work into creative problem-solving.",
-        image: null,
-    },
-    {
-        id: 3,
-        name: "Daniel Schmidt",
-        bio: "After years in finance, he chose a creative path — and found a new career in 3D design.",
-        image: null,
-    },
-    {
-        id: 4,
-        name: "Aisha Khan",
-        bio: "She turned her passion for organization into a career in project management.",
-        image: null,
-    },
-    {
-        id: 5,
-        name: "John Cho",
-        bio: "No prior tech background, but decided to learn coding — and built his first app within months.",
-        image: null,
-    },
-    {
-        id: 6,
-        name: "Taras Chub",
-        bio: "From uncertainty to confidence — how learning data analytics opened new career opportunities.",
-        image: null,
-    },
-];
+type Props = { articles: ArticleListItem[] };
 
-export function StudentStoriesSection() {
+export function StudentStoriesSection({ articles }: Props) {
     const { scrollRef, onPointerDown, onPointerMove, onPointerUp } = useDragScroll<HTMLDivElement>();
+
+    if (articles.length === 0) return null;
 
     return (
         <section>
@@ -129,8 +95,8 @@ export function StudentStoriesSection() {
                 onPointerUp={onPointerUp}
             >
                 <div style={{ display: "flex", gap: "1.04vw", width: "max-content", paddingRight: "13vw" }}>
-                    {MOCK_STORIES.map((story) => (
-                        <StudentStoryCard key={story.id} story={story} />
+                    {articles.map((article) => (
+                        <StudentStoryCard key={article.id} article={article} />
                     ))}
                 </div>
             </div>

@@ -123,7 +123,7 @@ export function ArticleFormFields({ values, onChange, categories, existingCoverI
                   Upload an image for this article
                 </p>
                 <p style={{ fontFamily: "var(--font-base)", fontSize: 12, color: "var(--color-text-secondary)", margin: 0 }}>
-                  PDF, JPG, PNG up to 50MB
+                  JPG, PNG, WEBP, SVG or JFIF
                 </p>
               </>
             )}
@@ -135,7 +135,7 @@ export function ArticleFormFields({ values, onChange, categories, existingCoverI
               Choose File
             </WhiteButton>
           </div>
-          <input ref={coverInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleCoverChange} />
+          <input ref={coverInputRef} type="file" accept="image/*,.jfif" style={{ display: "none" }} onChange={handleCoverChange} />
         </div>
       </div>
 

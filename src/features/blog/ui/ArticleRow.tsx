@@ -2,18 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { Eye } from "lucide-react";
 import type { ArticleListItem } from "@/entities/blog";
 import type { UserRole } from "@/entities/user";
-import { ArticleCardMenu, type ArticleMenuAction } from "./ArticleCardMenu";
+import { ARTICLE_STATUS_COLORS, ARTICLE_STATUS_LABELS } from "../model/articleStatus";
 
 const STAFF_ROLES: UserRole[] = ["moderator", "administrator"];
-
-const STATUS_LABELS: Record<string, string> = {
-  draft: "Draft",
-  review: "Under Review",
-  rejected: "Rejected",
-  archived: "Archived",
-};
 
 const metaSt: React.CSSProperties = {
   fontFamily: "var(--font-accent)",
@@ -27,24 +21,46 @@ type Props = {
   article: ArticleListItem;
   currentUserId?: number | null;
   currentUserRole?: UserRole | null;
-  onAction: (action: ArticleMenuAction, article: ArticleListItem) => void;
+  isSelected: boolean;
+  onSelect: (article: ArticleListItem) => void;
 };
 
-/** Horizontal list row for dashboard article tabs (My Articles / moderation queues) — cover
- * image on the left linking to the article page, title/description/author/category/date and
- * the management menu on the right. */
-export function ArticleRow({ article, currentUserId, currentUserRole, onAction }: Props) {
+/** Horizontal list row for dashboard article tabs (My Articles / moderation queues). The whole
+ * row opens the shared ArticleDetailPanel (info + management actions); the small eye icon is a
+ * separate link straight through to the article page. */
+export function ArticleRow({ article, currentUserId, currentUserRole, isSelected, onSelect }: Props) {
   const isOwner = currentUserId != null && currentUserId === article.author.id;
   const isStaff = !!currentUserRole && STAFF_ROLES.includes(currentUserRole);
-  const authorIsStaff = STAFF_ROLES.includes(article.author.role as UserRole);
-  const statusLabel = article.status !== "published" ? STATUS_LABELS[article.status] : null;
+  const statusLabel = ARTICLE_STATUS_LABELS[article.status];
+  const statusColor = ARTICLE_STATUS_COLORS[article.status];
   const dateLabel = new Date(article.published_at ?? article.created_at).toLocaleDateString();
 
+  const canManage = isOwner || isStaff;
+
   return (
-    <div className="flex w-full items-stretch gap-4 overflow-hidden rounded-2xl border border-(--color-border-light) bg-white transition hover:border-(--color-blue)">
-      <Link
-        href={`/blog/${article.slug}`}
-        className="relative block shrink-0"
+    <div
+      role={canManage ? "button" : undefined}
+      tabIndex={canManage ? 0 : undefined}
+      onClick={canManage ? () => onSelect(article) : undefined}
+      onKeyDown={
+        canManage
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onSelect(article);
+              }
+            }
+          : undefined
+      }
+      aria-pressed={canManage ? isSelected : undefined}
+      className="flex w-full items-stretch gap-4 overflow-hidden rounded-2xl border bg-white transition"
+      style={{
+        borderColor: isSelected ? "var(--color-blue)" : "var(--color-border-light)",
+        cursor: canManage ? "pointer" : "default",
+      }}
+    >
+      <div
+        className="relative shrink-0"
         style={{ width: "clamp(140px, 18vw, 220px)", aspectRatio: "4 / 3" }}
       >
         {article.cover_image ? (
@@ -52,46 +68,60 @@ export function ArticleRow({ article, currentUserId, currentUserRole, onAction }
         ) : (
           <div style={{ position: "absolute", inset: 0, background: "var(--shadow-lavander)" }} />
         )}
-      </Link>
+      </div>
 
       <div className="flex min-w-0 flex-1 flex-col gap-2 py-3 pr-4">
         <div className="flex items-start justify-between gap-2">
           <div className="flex flex-wrap items-center gap-2" style={{ minHeight: 20 }}>
             {article.category && <span style={metaSt}>{article.category.name}</span>}
             {statusLabel && (
-              <span style={{ ...metaSt, color: "var(--color-text-secondary)" }}>{statusLabel}</span>
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  padding: "2px 10px",
+                  borderRadius: 20,
+                  fontFamily: "var(--font-accent)",
+                  fontWeight: 600,
+                  fontSize: 11,
+                  textTransform: "uppercase",
+                  color: statusColor,
+                  border: `1px solid ${statusColor}`,
+                  background: "white",
+                }}
+              >
+                {statusLabel}
+              </span>
             )}
             <span style={{ fontFamily: "var(--font-base)", fontSize: 12, color: "var(--color-text-secondary)" }}>
               {dateLabel}
             </span>
           </div>
 
-          {(isOwner || isStaff) && (
-            <ArticleCardMenu
-              status={article.status}
-              isOwner={isOwner}
-              isStaff={isStaff}
-              authorIsStaff={authorIsStaff}
-              isAssignedToMe={article.is_assigned_to_me}
-              onAction={(action) => onAction(action, article)}
-            />
-          )}
+          <Link
+            href={`/blog/${article.slug}`}
+            aria-label="View article"
+            title="View article"
+            onClick={(e) => e.stopPropagation()}
+            className="flex shrink-0 items-center justify-center rounded-full transition hover:bg-(--color-brand-lavender-soft)"
+            style={{ width: 32, height: 32, background: "var(--color-bg)" }}
+          >
+            <Eye size={16} style={{ color: "var(--color-text-primary)" }} />
+          </Link>
         </div>
 
-        <Link href={`/blog/${article.slug}`}>
-          <h3
-            style={{
-              fontFamily: "var(--font-base)",
-              fontWeight: 600,
-              fontSize: "clamp(15px, 1.1vw, 18px)",
-              color: "var(--color-text-primary)",
-              margin: 0,
-              overflowWrap: "break-word",
-            }}
-          >
-            {article.title}
-          </h3>
-        </Link>
+        <h3
+          style={{
+            fontFamily: "var(--font-base)",
+            fontWeight: 600,
+            fontSize: "clamp(15px, 1.1vw, 18px)",
+            color: "var(--color-text-primary)",
+            margin: 0,
+            overflowWrap: "break-word",
+          }}
+        >
+          {article.title}
+        </h3>
 
         <p
           style={{

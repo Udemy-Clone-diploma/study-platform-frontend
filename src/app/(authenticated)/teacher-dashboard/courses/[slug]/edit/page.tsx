@@ -15,6 +15,7 @@ import {
 import type { CourseBasicsFormValues } from "@/features/courses";
 import type { ApiError } from "@/shared/api/base";
 import { mapApiFieldErrors } from "@/shared/lib/apiErrors";
+import { usePageLoadingOverlay } from "@/shared/lib/pageLoadingSignal";
 
 async function matchIconToImage(imageUrl: string): Promise<string | null> {
   try {
@@ -67,6 +68,7 @@ export default function EditCourseBasicsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  usePageLoadingOverlay(loading);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [generalError, setGeneralError] = useState("");
   const [form, setForm] = useState<CourseBasicsFormValues>(EMPTY_FORM);
@@ -203,22 +205,9 @@ export default function EditCourseBasicsPage() {
     }
   }
 
+  // NavigationLoadingOverlay already covers the load; avoid a second, plain-text one here.
   if (loading) {
-    return (
-      <CourseCreationLayout>
-        <p
-          style={{
-            fontFamily: "var(--font-base)",
-            fontSize: "clamp(14px, 0.83vw, 16px)",
-            color: "var(--color-text-secondary)",
-            textAlign: "center",
-            padding: "clamp(40px, 6vw, 80px) 0",
-          }}
-        >
-          Loading…
-        </p>
-      </CourseCreationLayout>
-    );
+    return <CourseCreationLayout>{null}</CourseCreationLayout>;
   }
 
   return (

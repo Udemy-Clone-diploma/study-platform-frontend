@@ -3,4 +3,6 @@ export type Category = {
   name: string;
   slug: string;
   description: string;
+  courses_count?: number;
+  featured_order?: number | null;
 };

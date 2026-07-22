@@ -41,10 +41,12 @@ export function Dropdown({
   value,
   options,
   onChange,
+  disabled = false,
 }: {
   value: string;
   options: Option[];
   onChange: (value: string) => void;
+  disabled?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -64,8 +66,11 @@ export function Dropdown({
         type="button"
         aria-haspopup="listbox"
         aria-expanded={open}
+        disabled={disabled}
         onClick={() => setOpen((current) => !current)}
-        className="flex h-6 max-w-[140px] items-center gap-1 rounded-full px-2 text-[10px] font-medium text-black transition-colors hover:text-[#003aff]"
+        className={`flex h-6 max-w-[140px] items-center gap-1 rounded-full px-2 text-[10px] font-medium transition-colors ${
+          disabled ? "cursor-not-allowed text-black/30" : "text-black hover:text-[#003aff]"
+        }`}
       >
         <span className="truncate">{active?.label}</span>
         <ChevronDown
@@ -74,7 +79,7 @@ export function Dropdown({
         />
       </button>
 
-      {open && (
+      {open && !disabled && (
         <div className="absolute right-0 z-20 mt-1 w-48 overflow-hidden rounded-xl bg-white shadow-[0_6px_18px_rgba(0,0,0,0.16)]">
           <ul role="listbox" className="flex max-h-56 flex-col overflow-y-auto p-2">
             {options.map((option) => {
@@ -230,7 +235,13 @@ export function GrowthCard({
 
       <div className={`relative ${chartHeightClassName}`}>
         {data && points.length > 0 && (
-          <svg className="h-full w-full" viewBox="0 0 640 130" role="img" aria-label="Growth chart">
+          <svg
+            className="h-full w-full"
+            viewBox="0 0 640 130"
+            preserveAspectRatio="none"
+            role="img"
+            aria-label="Growth chart"
+          >
             <defs>
               <linearGradient id="growthFill" x1="0" x2="0" y1="0" y2="1">
                 <stop offset="0%" stopColor="#a7bafa" stopOpacity="0.7" />
@@ -254,7 +265,7 @@ export function GrowthCard({
                 key={`${p.label}-${index}`}
                 x={xFor(index, points.length)}
                 y="128"
-                textAnchor="middle"
+                textAnchor={index === 0 ? "start" : index === points.length - 1 ? "end" : "middle"}
                 fill="#5e5e5e"
                 fontSize={labelFontSize}
               >

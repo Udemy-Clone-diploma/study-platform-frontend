@@ -14,7 +14,7 @@ type Props = {
   onCancel: () => void;
 };
 
-export function ConfirmUserActionModal({
+export function ConfirmActionModal({
   title,
   description,
   confirmLabel,

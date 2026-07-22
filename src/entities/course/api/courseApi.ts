@@ -72,6 +72,45 @@ export async function getCategories(): Promise<Category[]> {
   return Array.isArray(data) ? data : data.results;
 }
 
+export type CategoryListParams = {
+  search?: string;
+  page?: number;
+  page_size?: number;
+  ordering?: string;
+};
+
+export async function getCategoriesPage(
+  params: CategoryListParams = {},
+): Promise<Paginated<Category>> {
+  const { data } = await api.get<Category[] | Paginated<Category>>(CATEGORIES, { params });
+  return Array.isArray(data)
+    ? { count: data.length, next: null, previous: null, results: data }
+    : data;
+}
+
+export type CategoryInput = {
+  name: string;
+  slug?: string;
+  description?: string;
+};
+
+export async function createCategory(body: CategoryInput): Promise<Category> {
+  const { data } = await api.post<Category>(CATEGORIES, body);
+  return data;
+}
+
+export async function updateCategory(
+  id: number,
+  patch: Partial<CategoryInput> & { featured_order?: number | null },
+): Promise<Category> {
+  const { data } = await api.patch<Category>(`${CATEGORIES}${id}/`, patch);
+  return data;
+}
+
+export async function deleteCategory(id: number): Promise<void> {
+  await api.delete(`${CATEGORIES}${id}/`);
+}
+
 export async function getCourses(
   filters: CourseListParams = {},
 ): Promise<Paginated<CourseListItem>> {

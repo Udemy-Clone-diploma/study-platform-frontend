@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { ChevronDown, ChevronUp, ChevronsUpDown } from "lucide-react";
 
 /** Column definition for {@link DataTable}. */
 export type DataTableColumn<T> = {
@@ -9,6 +10,8 @@ export type DataTableColumn<T> = {
   flex?: number;
   headerAlign?: "left" | "center" | "right";
   cellAlign?: "left" | "center" | "right";
+  /** Backend ordering key for this column (e.g. "date_joined"). Omit for non-sortable columns. */
+  sortKey?: string;
 };
 
 interface DataTableProps<T> {
@@ -28,6 +31,10 @@ interface DataTableProps<T> {
   rowVariant?: "flush" | "card";
   /** Key (as returned by getRowKey) of the row to highlight as selected. Card variant only. */
   selectedKey?: string | number | null;
+  /** Current sort ordering string (e.g. "-date_joined"). Controls which header shows a chevron. */
+  currentSort?: string | null;
+  /** Called when a sortable header is clicked. Receives the new ordering string. */
+  onSortChange?: (ordering: string) => void;
 }
 
 /**
@@ -46,6 +53,8 @@ export function DataTable<T>({
   showIndex = true,
   rowVariant = "flush",
   selectedKey = null,
+  currentSort = null,
+  onSortChange,
 }: DataTableProps<T>) {
   const headerTextClass =
     headerVariant === "plain"
@@ -62,7 +71,9 @@ export function DataTable<T>({
       className={`w-full overflow-hidden rounded-2xl bg-white${scrollable ? " flex min-h-0 flex-1 flex-col" : ""}`}
       style={{
         boxShadow: "var(--shadow-dashboard-card)",
-        padding: isCard ? "clamp(8px, 0.83vw, 12px) clamp(12px, 1.67vw, 24px) clamp(12px, 1.67vw, 24px)" : undefined,
+        padding: isCard
+          ? "clamp(8px, 0.83vw, 12px) clamp(12px, 1.67vw, 24px) clamp(12px, 1.67vw, 24px)"
+          : undefined,
       }}
     >
       {/* Gradient header row */}
@@ -83,20 +94,51 @@ export function DataTable<T>({
             №
           </span>
         )}
-        {columns.map((col) => (
-          <span
-            key={col.key}
-            className={`min-w-0 overflow-hidden text-ellipsis whitespace-nowrap ${headerTextClass}`}
-            style={{
-              flex: col.flex ?? 1,
-              fontSize: fs,
-              fontFamily: "var(--font-base)",
-              textAlign: col.headerAlign ?? "left",
-            }}
-          >
-            {col.label}
-          </span>
-        ))}
+        {columns.map((col) => {
+          const isSortable = !!col.sortKey && !!onSortChange;
+          const isAsc = !!col.sortKey && currentSort === col.sortKey;
+          const isDesc = !!col.sortKey && currentSort === `-${col.sortKey}`;
+          const SortIcon = isAsc ? ChevronDown : isDesc ? ChevronUp : ChevronsUpDown;
+          const justifyContent =
+            col.headerAlign === "center"
+              ? "center"
+              : col.headerAlign === "right"
+                ? "flex-end"
+                : "flex-start";
+          const baseStyle = { flex: col.flex ?? 1, fontSize: fs, fontFamily: "var(--font-base)" };
+
+          if (isSortable) {
+            const nextSort = isAsc ? `-${col.sortKey}` : col.sortKey!;
+            return (
+              <button
+                key={col.key}
+                type="button"
+                onClick={() => onSortChange!(nextSort)}
+                className={`flex min-w-0 cursor-pointer items-center overflow-hidden border-none bg-transparent p-0 transition hover:opacity-70 ${headerTextClass}`}
+                style={{ ...baseStyle, gap: 4, justifyContent }}
+                aria-label={`Sort by ${col.label}`}
+              >
+                <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">
+                  {col.label}
+                </span>
+                <SortIcon
+                  aria-hidden="true"
+                  className={`h-4 w-4 shrink-0${!isAsc && !isDesc ? " opacity-70" : ""}`}
+                />
+              </button>
+            );
+          }
+
+          return (
+            <span
+              key={col.key}
+              className={`min-w-0 overflow-hidden text-ellipsis whitespace-nowrap ${headerTextClass}`}
+              style={{ ...baseStyle, textAlign: col.headerAlign ?? "left" }}
+            >
+              {col.label}
+            </span>
+          );
+        })}
       </div>
 
       {/* Body */}
@@ -110,7 +152,11 @@ export function DataTable<T>({
       ) : (
         <div
           className={scrollable ? "overflow-y-auto" : ""}
-          style={isCard ? { display: "flex", flexDirection: "column", gap: "clamp(8px, 0.83vw, 12px)" } : undefined}
+          style={
+            isCard
+              ? { display: "flex", flexDirection: "column", gap: "clamp(8px, 0.83vw, 12px)" }
+              : undefined
+          }
         >
           {rows.map((row, i) => {
             const rowKey = getRowKey(row, i);

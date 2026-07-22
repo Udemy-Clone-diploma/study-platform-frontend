@@ -33,7 +33,7 @@ export function SidebarNavItem({
       className={[
         "group/item flex h-[clamp(28px,2.2vw,48px)] w-full items-center overflow-hidden rounded-sm text-[#092878] transition-[background-color,background-image,margin,padding,width] duration-200",
         isExpanded ? "sidebar-nav-gradient-expanded" : "sidebar-nav-gradient-collapsed",
-        isExpanded ? expandedRowLayout : "",
+        isExpanded ? expandedRowLayout : "justify-center",
       ].join(" ")}
     >
       <span className="flex h-[clamp(28px,2.2vw,48px)] w-[clamp(36px,2.2vw,48px)] shrink-0 items-center justify-center">
@@ -57,10 +57,10 @@ export function SidebarNavItem({
 
       <span
         className={[
-          "ml-[clamp(10px,0.8vw,14px)] overflow-hidden whitespace-nowrap font-mono text-[clamp(13px,0.9vw,16px)] font-medium uppercase tracking-normal transition-all duration-200",
+          "overflow-hidden whitespace-nowrap font-mono text-[clamp(13px,0.9vw,16px)] font-medium uppercase tracking-normal transition-all duration-200",
           isExpanded
-            ? "w-[clamp(140px,10vw,200px)] opacity-100"
-            : "w-0 opacity-0",
+            ? "ml-[clamp(10px,0.8vw,14px)] w-[clamp(140px,10vw,200px)] opacity-100"
+            : "ml-0 w-0 opacity-0",
         ].join(" ")}
       >
         {item.label}

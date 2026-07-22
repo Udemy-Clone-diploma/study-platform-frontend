@@ -76,8 +76,8 @@ const teacherItems: SidebarItem[] = [
   },
   {
     id: "payment",
-    label: "Payment",
-    href: "/teacher-dashboard/payment",
+    label: "Payments",
+    href: "/teacher-dashboard/payments",
     icon: "payment",
     iconSrc: "/icons/wallet.svg",
     match: "startsWith",
@@ -232,6 +232,14 @@ const adminItems: SidebarItem[] = [
     href: "/admin/users",
     icon: "students",
     iconSrc: "/icons/people.svg",
+    match: "startsWith",
+  },
+  {
+    id: "categories",
+    label: "Categories",
+    href: "/admin/categories",
+    icon: "materials",
+    iconSrc: "/icons/categories.svg",
     match: "startsWith",
   },
   {

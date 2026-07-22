@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
 
 export type PillSelectOption = { value: string; label: string };
@@ -13,6 +13,8 @@ type PillSelectProps = {
   placeholder?: string;
   ariaLabel?: string;
   className?: string;
+  /** Optional leading icon rendered before the label (e.g. a filter-type icon). */
+  icon?: ReactNode;
 };
 
 /**
@@ -28,6 +30,7 @@ export function PillSelect({
   placeholder,
   ariaLabel,
   className = "",
+  icon,
 }: PillSelectProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -62,6 +65,7 @@ export function PillSelect({
           whiteSpace: "nowrap",
         }}
       >
+        {icon}
         <span className="min-w-0 truncate">{selected?.label ?? placeholder ?? options[0]?.label}</span>
         <ChevronDown
           aria-hidden="true"

@@ -59,6 +59,14 @@ const teacherItems: SidebarItem[] = [
     match: "startsWith",
   },
   {
+    id: "blog",
+    label: "My Articles",
+    href: "/teacher-dashboard/blog",
+    icon: "materials",
+    iconSrc: "/icons/book-navy.svg",
+    match: "startsWith",
+  },
+  {
     id: "statistics",
     label: "Statistics",
     href: "/teacher-dashboard/statistics",
@@ -188,8 +196,8 @@ const moderatorItems: SidebarItem[] = [
     id: "teacher-applications",
     label: "Applications",
     href: "/moderator-dashboard/teacher-applications",
-    icon: "students",
-    iconSrc: "/icons/people.svg",
+    icon: "reports",
+    iconSrc: "/icons/copy-check-navy.svg",
     match: "startsWith",
   },
   {
@@ -213,6 +221,14 @@ const moderatorItems: SidebarItem[] = [
     label: "Reports",
     href: "/moderator-dashboard/reports",
     icon: "reports",
+    match: "startsWith",
+  },
+  {
+    id: "blog",
+    label: "Blog",
+    href: "/moderator-dashboard/blog",
+    icon: "materials",
+    iconSrc: "/icons/book-navy.svg",
     match: "startsWith",
   },
   {
@@ -240,6 +256,14 @@ const adminItems: SidebarItem[] = [
     href: "/admin/users",
     icon: "students",
     iconSrc: "/icons/people.svg",
+    match: "startsWith",
+  },
+  {
+    id: "teacher-applications",
+    label: "Applications",
+    href: "/admin/teacher-applications",
+    icon: "reports",
+    iconSrc: "/icons/copy-check-navy.svg",
     match: "startsWith",
   },
   {
@@ -281,6 +305,14 @@ const adminItems: SidebarItem[] = [
     href: "/admin/statistics",
     icon: "statistics",
     iconSrc: "/icons/statistics.svg",
+    match: "startsWith",
+  },
+  {
+    id: "blog",
+    label: "Blog",
+    href: "/admin/blog",
+    icon: "materials",
+    iconSrc: "/icons/book-navy.svg",
     match: "startsWith",
   },
   {

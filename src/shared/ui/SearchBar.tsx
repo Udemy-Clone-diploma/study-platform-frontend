@@ -1,9 +1,23 @@
+"use client";
+
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export function SearchBar() {
+    const router = useRouter();
+    const [query, setQuery] = useState("");
+
+    function handleSubmit(e: React.FormEvent) {
+        e.preventDefault();
+        const trimmed = query.trim();
+        router.push(trimmed ? `/search?search=${encodeURIComponent(trimmed)}` : "/search");
+    }
+
     return (
-        <label
-            className="flex items-center gap-[10px] cursor-text flex-1"
+        <form
+            onSubmit={handleSubmit}
+            className="flex items-center gap-[10px] flex-1"
             style={{
                 minWidth: 180,
                 maxWidth: 460,
@@ -14,12 +28,18 @@ export function SearchBar() {
                 padding: "10px 16px",
             }}
         >
-            <span style={{ width: 32, height: 32, display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <button
+                type="submit"
+                aria-label="Search"
+                style={{ width: 32, height: 32, display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0, background: "transparent", border: "none", cursor: "pointer", padding: 0 }}
+            >
                 <Image src="/icons/search.png" alt="" width={24} height={24} />
-            </span>
+            </button>
             <input
                 type="search"
-                placeholder="Search 10,000+ articles"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search courses & articles"
                 className="flex-1 min-w-0 bg-transparent outline-none"
                 style={{
                     fontFamily: "var(--font-base)",
@@ -30,6 +50,6 @@ export function SearchBar() {
                     color: "var(--color-text-primary)",
                 }}
             />
-        </label>
+        </form>
     );
 }

@@ -1,29 +1,27 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
-import Image from "next/image";
+import { useCallback, useEffect, useState } from "react";
 import { useAutoRefresh } from "@/shared/lib/useAutoRefresh";
 import { PageShell } from "@/shared/ui/PageShell";
 import {
-  getUnassignedModerationCourses,
-  getMyModerationCourses,
-  getModeratorRejectionRecords,
-  getModeratorApprovalRecords,
   assignModeratorSelf,
-} from "@/entities/course";
-import { CourseConfirmModal } from "@/features/courses/ui/CourseConfirmModal";
-import { RejectionDetailModal } from "@/features/courses/ui/RejectionDetailModal";
-import { CourseInfoModal } from "@/features/courses/ui/CourseInfoModal";
-import type {
-  ApprovedCourseRecord,
-  CourseListItem,
-  CourseLevel,
-  RejectedCourseRecord,
+  getModeratorApprovalRecords,
+  getModeratorRejectionRecords,
+  getMyModerationCourses,
+  getUnassignedModerationCourses,
+  type ApprovedCourseRecord,
+  type CourseListItem,
+  type RejectedCourseRecord,
 } from "@/entities/course";
 import type { ApiError } from "@/shared/api/base";
-
-// ── Tabs ──────────────────────────────────────────────────────────────────────
+import { CourseConfirmModal } from "@/features/courses/ui/CourseConfirmModal";
+import { CourseInfoModal } from "@/features/courses/ui/CourseInfoModal";
+import { RejectionDetailModal } from "@/features/courses/ui/RejectionDetailModal";
+import {
+  ModeratorCoursesTable,
+  ModeratorHistoryTable,
+  type ModeratorCourseTab,
+} from "@/features/courses/ui/ModeratorCoursesTable";
 
 const TABS = [
   { key: "unassigned", label: "Unassigned" },
@@ -35,314 +33,11 @@ const TABS = [
 
 type TabKey = (typeof TABS)[number]["key"];
 
-const MY_STATUS_FILTER: Partial<Record<TabKey, string>> = {
-  review: "review",
-  needs_revision: "needs_revision",
-  approved: "published",
-};
-
-// ── Card design ───────────────────────────────────────────────────────────────
-
-const LEVEL_GRADIENT: Record<CourseLevel, string> = {
-  beginner: "var(--gradient-card-blue)",
-  intermediate: "var(--gradient-card-yellow)",
-  advanced: "var(--gradient-card-pink)",
-};
-
-const LEVEL_BORDER: Record<CourseLevel, string> = {
-  beginner: "var(--color-brand-lavender)",
-  intermediate: "var(--color-brand-yellow)",
-  advanced: "var(--color-brand-pink)",
-};
-
-const TAB_STATUS_ICON: Record<TabKey, string | null> = {
-  unassigned: null,
-  review: "/icons/clock.svg",
-  needs_revision: "/icons/exclamationmark-triangle.svg",
-  approved: "/icons/yes.svg",
-  rejected: "/icons/no.svg",
-};
-
-const LEVEL_FALLBACK: Record<CourseLevel, string> = {
-  beginner: "/icons/curses.svg",
-  intermediate: "/icons/world.png",
-  advanced: "/icons/statistics.svg",
-};
-
-function ModeratorCourseCard({
-  course,
-  tab,
-  onClick,
-  href,
-}: {
-  course: CourseListItem;
-  tab: TabKey;
-  onClick?: () => void;
-  href?: string;
-}) {
-  const gradient = LEVEL_GRADIENT[course.level] ?? "var(--gradient-card-blue)";
-  const border = LEVEL_BORDER[course.level] ?? "var(--color-brand-lavender)";
-  const fallback = LEVEL_FALLBACK[course.level] ?? "/icons/curses.svg";
-  const statusIcon = TAB_STATUS_ICON[tab];
-  const thumbSize = "60px";
-  const iconSize = "24px";
-
-  const cardClass =
-    "mini-course-card flex w-full items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-blue)";
-  const cardStyle = {
-    "--card-bg": gradient,
-    "--card-border-color": border,
-    width: "100%",
-    height: "140px",
-    borderRadius: "20px",
-    padding: "30px 12px",
-    gap: "10px",
-  } as React.CSSProperties;
-
-  const body = (
-    <>
-      <Image
-        src={course.image ?? fallback}
-        alt=""
-        width={60}
-        height={60}
-        unoptimized={!!course.image}
-        className="shrink-0 object-contain"
-        style={{ width: thumbSize, height: thumbSize }}
-      />
-
-      <div
-        className="flex min-w-0 flex-1 flex-col justify-center"
-        style={{ gap: "clamp(4px, 0.56vw, 8px)" }}
-      >
-        <div className="flex items-center" style={{ gap: "clamp(4px, 0.28vw, 4px)" }}>
-          <h3
-            className="line-clamp-2 flex-1 font-bold uppercase text-(--color-text-primary)"
-            style={{
-              fontSize: "clamp(10px, 0.97vw, 14px)",
-              lineHeight: "clamp(13px, 1.25vw, 18px)",
-            }}
-          >
-            {course.title}
-          </h3>
-
-          {statusIcon ? (
-            <div
-              className="flex shrink-0 items-center justify-center"
-              style={{ width: "clamp(24px, 2.5vw, 36px)", height: "clamp(24px, 2.5vw, 36px)" }}
-            >
-              <Image
-                src={statusIcon}
-                alt=""
-                width={24}
-                height={24}
-                style={{ width: iconSize, height: iconSize }}
-              />
-            </div>
-          ) : tab === "unassigned" ? (
-            <span
-              className="shrink-0 rounded-full border border-dashed border-(--color-draft) bg-white/50 font-(family-name:--font-accent) font-semibold uppercase"
-              style={{
-                fontSize: "clamp(8px, 0.63vw, 11px)",
-                padding: "2px 7px",
-                color: "var(--color-text-secondary)",
-                whiteSpace: "nowrap",
-              }}
-            >
-              New
-            </span>
-          ) : null}
-        </div>
-      </div>
-
-      <div aria-hidden className="shrink-0" style={{ width: "clamp(24px, 2.5vw, 40px)" }} />
-    </>
-  );
-
-  if (onClick) {
-    return (
-      <div className="relative">
-        <button
-          type="button"
-          onClick={onClick}
-          className={`${cardClass} w-full text-left`}
-          style={cardStyle}
-        >
-          {body}
-        </button>
-      </div>
-    );
-  }
-  return (
-    <div className="relative">
-      <Link href={href ?? "#"} className={cardClass} style={cardStyle}>
-        {body}
-      </Link>
-    </div>
-  );
-}
-
-// ── Record card (approved / rejected history tabs) ────────────────────────────
-
-const CURRENT_YEAR = new Date().getFullYear();
-
-function recordMonthLabel(date: string): string {
-  const d = new Date(date);
-  const name = d.toLocaleString("en-US", { month: "long" });
-  return d.getFullYear() === CURRENT_YEAR ? name : `${name} ${d.getFullYear()}`;
-}
-
-function ModeratorRecordCard({
-  title,
-  image,
-  level,
-  statusIcon,
-  statusAlt,
-  onClick,
-}: {
-  title: string;
-  image?: string | null;
-  level: CourseLevel;
-  statusIcon: string;
-  statusAlt: string;
-  onClick: () => void;
-}) {
-  const gradient = LEVEL_GRADIENT[level] ?? "var(--gradient-card-blue)";
-  const border = LEVEL_BORDER[level] ?? "var(--color-brand-lavender)";
-  const fallback = LEVEL_FALLBACK[level] ?? "/icons/curses.svg";
-  const thumbSize = "60px";
-  const iconSize = "24px";
-  return (
-    <div className="relative">
-      <button
-        type="button"
-        onClick={onClick}
-        className="mini-course-card flex w-full items-center text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-blue)"
-        style={
-          {
-            "--card-bg": gradient,
-            "--card-border-color": border,
-            width: "100%",
-            height: "140px",
-            borderRadius: "20px",
-            padding: "30px 12px",
-            gap: "10px",
-          } as React.CSSProperties
-        }
-      >
-        <Image
-          src={image ?? fallback}
-          alt=""
-          width={60}
-          height={60}
-          unoptimized={!!image}
-          className="shrink-0 object-contain"
-          style={{ width: thumbSize, height: thumbSize }}
-        />
-        <div
-          className="flex min-w-0 flex-1 flex-col justify-center"
-          style={{ gap: "clamp(4px, 0.56vw, 8px)" }}
-        >
-          <div className="flex items-center" style={{ gap: "clamp(4px, 0.28vw, 4px)" }}>
-            <h3
-              className="line-clamp-2 flex-1 font-bold uppercase text-(--color-text-primary)"
-              style={{
-                fontSize: "clamp(10px, 0.97vw, 14px)",
-                lineHeight: "clamp(13px, 1.25vw, 18px)",
-              }}
-            >
-              {title}
-            </h3>
-            <div
-              className="flex shrink-0 items-center justify-center"
-              style={{ width: "clamp(24px, 2.5vw, 36px)", height: "clamp(24px, 2.5vw, 36px)" }}
-            >
-              <Image
-                src={statusIcon}
-                alt={statusAlt}
-                width={24}
-                height={24}
-                style={{ width: iconSize, height: iconSize }}
-              />
-            </div>
-          </div>
-        </div>
-        <div aria-hidden className="shrink-0" style={{ width: "clamp(24px, 2.5vw, 40px)" }} />
-      </button>
-    </div>
-  );
-}
-
-function RecordMonthGrid<T extends { id: number | string }>({
-  records,
-  dateKey,
-  statusIcon,
-  statusAlt,
-  getTitle,
-  getImage,
-  getLevel,
-  onView,
-  emptyText,
-}: {
-  records: T[];
-  dateKey: keyof T;
-  statusIcon: string;
-  statusAlt: string;
-  getTitle: (r: T) => string;
-  getImage: (r: T) => string | null | undefined;
-  getLevel: (r: T) => CourseLevel;
-  onView: (r: T) => void;
-  emptyText: string;
-}) {
-  if (records.length === 0) {
-    return <p className="mt-16 text-center text-lg text-(--color-text-secondary)">{emptyText}</p>;
-  }
-  const months = [...new Set(records.map((r) => recordMonthLabel(r[dateKey] as string)))];
-  return (
-    <>
-      {months.map((month) => (
-        <section key={month} style={{ marginBottom: "clamp(16px, 2.22vw, 32px)" }}>
-          <h2
-            style={{
-              fontFamily: "var(--font-base)",
-              fontSize: "clamp(16px, 1.67vw, 24px)",
-              marginBottom: "clamp(8px, 1.11vw, 16px)",
-              color: "var(--color-text-primary)",
-            }}
-          >
-            {month}
-          </h2>
-          <div
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-            style={{ gap: "clamp(8px, 1.11vw, 16px)" }}
-          >
-            {records
-              .filter((r) => recordMonthLabel(r[dateKey] as string) === month)
-              .map((r) => (
-                <ModeratorRecordCard
-                  key={r.id}
-                  title={getTitle(r)}
-                  image={getImage(r)}
-                  level={getLevel(r)}
-                  statusIcon={statusIcon}
-                  statusAlt={statusAlt}
-                  onClick={() => onView(r)}
-                />
-              ))}
-          </div>
-        </section>
-      ))}
-    </>
-  );
-}
-
-// ── Page ──────────────────────────────────────────────────────────────────────
-
 export default function ModeratorCoursesPage() {
   const [activeTab, setActiveTab] = useState<TabKey>(() => {
     if (typeof window === "undefined") return "unassigned";
-    const p = new URLSearchParams(window.location.search).get("tab");
-    return (TABS.some((t) => t.key === p) ? p : "unassigned") as TabKey;
+    const tab = new URLSearchParams(window.location.search).get("tab");
+    return (TABS.some((item) => item.key === tab) ? tab : "unassigned") as TabKey;
   });
   const [unassigned, setUnassigned] = useState<CourseListItem[]>([]);
   const [myCourses, setMyCourses] = useState<CourseListItem[]>([]);
@@ -356,97 +51,108 @@ export default function ModeratorCoursesPage() {
   const [assigning, setAssigning] = useState(false);
   const [assignError, setAssignError] = useState("");
 
-  const refresh = useCallback(() => {
-    Promise.all([
-      getUnassignedModerationCourses().then((r) => r.results),
-      getMyModerationCourses().then((r) => r.results),
-      getModeratorRejectionRecords().then((r) => r.results),
-      getModeratorApprovalRecords().then((r) => r.results),
-    ])
-      .then(([u, m, rej, appr]) => {
-        setUnassigned(u);
-        setMyCourses(m);
-        setRejected(rej);
-        setApprovedRecords(appr);
-      })
-      .catch(() => {});
+  const loadCourses = useCallback(async () => {
+    const [unassignedResult, myResult, rejectedResult, approvedResult] = await Promise.all([
+      getUnassignedModerationCourses(),
+      getMyModerationCourses(),
+      getModeratorRejectionRecords(),
+      getModeratorApprovalRecords(),
+    ]);
+
+    setUnassigned(unassignedResult.results);
+    setMyCourses(myResult.results);
+    setRejected(rejectedResult.results);
+    setApprovedRecords(approvedResult.results);
   }, []);
 
   useEffect(() => {
-    Promise.all([
-      getUnassignedModerationCourses().then((r) => r.results),
-      getMyModerationCourses().then((r) => r.results),
-      getModeratorRejectionRecords().then((r) => r.results),
-      getModeratorApprovalRecords().then((r) => r.results),
-    ])
-      .then(([u, m, rej, appr]) => {
-        setUnassigned(u);
-        setMyCourses(m);
-        setRejected(rej);
-        setApprovedRecords(appr);
-        setLoading(false);
+    let cancelled = false;
+    setLoading(true);
+    setError("");
+
+    loadCourses()
+      .catch((requestError: Partial<ApiError>) => {
+        if (!cancelled) setError(requestError.message ?? "Failed to load courses.");
       })
-      .catch((err: Partial<ApiError>) => {
-        setError(err.message ?? "Failed to load courses.");
-        setLoading(false);
+      .finally(() => {
+        if (!cancelled) setLoading(false);
       });
-  }, []);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [loadCourses]);
+
+  const refresh = useCallback(() => {
+    void loadCourses().catch(() => {});
+  }, [loadCourses]);
 
   useAutoRefresh(refresh);
 
-  function getVisible(): CourseListItem[] {
+  function getVisibleCourses() {
     if (activeTab === "unassigned") return unassigned;
-    if (activeTab === "rejected" || activeTab === "approved") return [];
     if (activeTab === "review") {
       return myCourses.filter(
-        (c) =>
-          c.status === "review" ||
-          ((c.status === "published" || c.status === "hidden") &&
-            c.pending_edit_status === "pending"),
+        (course) =>
+          course.status === "review" ||
+          ((course.status === "published" || course.status === "hidden") &&
+            course.pending_edit_status === "pending"),
       );
     }
     if (activeTab === "needs_revision") {
       return myCourses.filter(
-        (c) =>
-          c.status === "needs_revision" ||
-          ((c.status === "published" || c.status === "hidden") &&
-            c.pending_edit_status === "needs_revision"),
+        (course) =>
+          course.status === "needs_revision" ||
+          ((course.status === "published" || course.status === "hidden") &&
+            course.pending_edit_status === "needs_revision"),
       );
     }
-    const status = MY_STATUS_FILTER[activeTab];
-    return status ? myCourses.filter((c) => c.status === status) : [];
+    return [];
   }
 
   async function handleAssignConfirm() {
     if (!pendingSlug) return;
     setAssigning(true);
     setAssignError("");
+
     try {
       await assignModeratorSelf(pendingSlug);
-      const moved = unassigned.find((c) => c.slug === pendingSlug);
+      const moved = unassigned.find((course) => course.slug === pendingSlug);
       if (moved) {
-        setUnassigned((prev) => prev.filter((c) => c.slug !== pendingSlug));
-        setMyCourses((prev) => [{ ...moved, status: "review" }, ...prev]);
+        setUnassigned((current) => current.filter((course) => course.slug !== pendingSlug));
+        setMyCourses((current) => [{ ...moved, status: "review" }, ...current]);
       }
       setActiveTab("review");
       setPendingSlug(null);
-    } catch (err: unknown) {
-      setAssignError((err as Partial<ApiError>).message ?? "Failed to assign. Please try again.");
+    } catch (requestError: unknown) {
+      setAssignError(
+        (requestError as Partial<ApiError>).message ?? "Failed to assign. Please try again.",
+      );
     } finally {
       setAssigning(false);
     }
   }
 
-  const visible = getVisible();
+  const visibleCourses = getVisibleCourses();
 
   return (
     <PageShell className="bg-my-courses">
-      <div style={{ maxWidth: "1648px", margin: "0 auto" }}>
-        {/* Tabs */}
+      <div className="mx-auto w-full" style={{ maxWidth: 1648 }}>
+        <h1
+          className="font-semibold text-(--color-text-primary)"
+          style={{
+            fontFamily: "var(--font-base)",
+            fontSize: "clamp(24px, 2.5vw, 36px)",
+            margin: "0 0 clamp(16px, 1.67vw, 24px)",
+          }}
+        >
+          Courses
+        </h1>
+
         <nav
           aria-label="Moderation filter"
           className="flex flex-wrap items-center"
-          style={{ gap: "clamp(12px, 2.6vw, 50px)", marginBottom: "clamp(12px, 1.67vw, 28px)" }}
+          style={{ gap: "clamp(12px, 2.6vw, 50px)", marginBottom: "clamp(16px, 1.67vw, 24px)" }}
         >
           {TABS.map(({ key, label }) => (
             <button
@@ -457,12 +163,11 @@ export default function ModeratorCoursesPage() {
                 setError("");
               }}
               aria-current={activeTab === key ? "page" : undefined}
-              className={[
-                "font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-blue)",
+              className={`font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-blue) ${
                 activeTab === key
                   ? "text-(--color-text-primary)"
-                  : "text-(--color-text-secondary) opacity-35 hover:opacity-100",
-              ].join(" ")}
+                  : "text-(--color-text-secondary) opacity-35 hover:opacity-100"
+              }`}
               style={{ fontSize: "clamp(14px, 1.25vw, 24px)" }}
             >
               {label}
@@ -470,88 +175,46 @@ export default function ModeratorCoursesPage() {
           ))}
         </nav>
 
-        {/* Content */}
         {loading ? (
           <p className="mt-16 text-center text-lg text-(--color-text-secondary)">Loading…</p>
         ) : error ? (
           <p className="mt-16 text-center text-lg text-red-500">{error}</p>
-        ) : activeTab === "rejected" ? (
-          <RecordMonthGrid
-            records={rejected}
-            dateKey="rejected_at"
-            statusIcon="/icons/no.svg"
-            statusAlt="rejected"
-            getTitle={(r) => r.course_title}
-            getImage={(r) => r.course_image_url}
-            getLevel={(r) => (r.course_level as CourseLevel) ?? "beginner"}
-            onView={setViewRejected}
-            emptyText="No rejected courses."
-          />
         ) : activeTab === "approved" ? (
-          <RecordMonthGrid
+          <ModeratorHistoryTable
             records={approvedRecords}
-            dateKey="approved_at"
-            statusIcon="/icons/yes.svg"
-            statusAlt="approved"
-            getTitle={(r) => r.course_title}
-            getImage={(r) => r.course_image_url}
-            getLevel={(r) => (r.course_level as CourseLevel) ?? "beginner"}
-            onView={setViewApproved}
-            emptyText="No approved courses."
+            status="approved"
+            emptyMessage="No approved courses."
+            onView={(record) => setViewApproved(record as ApprovedCourseRecord)}
           />
-        ) : activeTab === "unassigned" ? (
-          unassigned.length === 0 ? (
-            <p className="mt-16 text-center text-lg text-(--color-text-secondary)">
-              No courses found.
-            </p>
-          ) : (
-            <div
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-              style={{ gap: "clamp(8px, 1.11vw, 16px)" }}
-            >
-              {unassigned.map((course) => (
-                <ModeratorCourseCard
-                  key={course.slug}
-                  course={course}
-                  tab="unassigned"
-                  onClick={() => {
-                    setAssignError("");
-                    setPendingSlug(course.slug);
-                  }}
-                />
-              ))}
-            </div>
-          )
-        ) : visible.length === 0 ? (
-          <p className="mt-16 text-center text-lg text-(--color-text-secondary)">
-            No courses found.
-          </p>
+        ) : activeTab === "rejected" ? (
+          <ModeratorHistoryTable
+            records={rejected}
+            status="rejected"
+            emptyMessage="No rejected courses."
+            onView={(record) => setViewRejected(record as RejectedCourseRecord)}
+          />
         ) : (
-          <div
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-            style={{ gap: "clamp(8px, 1.11vw, 16px)" }}
-          >
-            {visible.map((course) => (
-              <ModeratorCourseCard
-                key={course.slug}
-                course={course}
-                tab={activeTab}
-                href={`/moderator-dashboard/courses/${course.slug}/review`}
-              />
-            ))}
-          </div>
+          <ModeratorCoursesTable
+            courses={visibleCourses}
+            tab={activeTab as ModeratorCourseTab}
+            emptyMessage="No courses found."
+            onAssign={(course) => {
+              setAssignError("");
+              setPendingSlug(course.slug);
+            }}
+          />
         )}
       </div>
 
-      {viewRejected && (
+      {viewRejected ? (
         <RejectionDetailModal record={viewRejected} onClose={() => setViewRejected(null)} />
-      )}
+      ) : null}
 
-      {viewApproved && (
+      {viewApproved ? (
         <CourseInfoModal record={viewApproved} onClose={() => setViewApproved(null)} />
-      )}
+      ) : null}
 
-      {pendingSlug && (
+      {pendingSlug ? (
         <CourseConfirmModal
           title="Assign as moderator"
           description={
@@ -566,7 +229,7 @@ export default function ModeratorCoursesPage() {
             setAssignError("");
           }}
         />
-      )}
+      ) : null}
     </PageShell>
   );
 }

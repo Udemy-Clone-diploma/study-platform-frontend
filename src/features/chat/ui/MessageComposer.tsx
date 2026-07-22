@@ -89,8 +89,8 @@ export function MessageComposer({
   }
 
   return (
-    <div className="mt-4 shrink-0">
-      <div className="mb-2 min-h-5 text-xs text-[#4B5563]">
+    <div className="mt-2 shrink-0 lg:mt-4">
+      <div className="mb-2 hidden min-h-5 text-xs text-[#4B5563] lg:block">
         {typingLabel ? `${typingLabel} typing...` : ""}
         {peerBlocked ? "User is blocked. Unblock them from the menu to write." : ""}
       </div>
@@ -138,9 +138,9 @@ export function MessageComposer({
         </div>
       ) : null}
 
-      <div className="flex items-end gap-3">
-        <div className="flex min-h-14 flex-1 rounded-[18px] bg-[linear-gradient(90deg,#A7BAFA_0%,#FCC4C3_52%,#FFF4DA_100%)] p-[2px]">
-          <div className="flex min-h-[52px] flex-1 items-end rounded-[16px] bg-[#D6E0FF]">
+      <div className="flex items-end gap-2 lg:gap-3">
+        <div className="flex min-h-10 flex-1 rounded-[18px] bg-[linear-gradient(90deg,#A7BAFA_0%,#FCC4C3_52%,#FFF4DA_100%)] p-[2px] lg:min-h-14">
+          <div className="flex min-h-9 flex-1 items-end rounded-[16px] bg-[#D6E0FF] lg:min-h-[52px]">
             <textarea
               value={draft}
               rows={1}
@@ -154,7 +154,7 @@ export function MessageComposer({
                 }
               }}
               placeholder="Message"
-              className="max-h-32 min-h-[52px] flex-1 resize-none bg-transparent px-6 py-4 text-sm outline-none placeholder:text-[#121212] disabled:cursor-not-allowed disabled:opacity-60"
+              className="max-h-32 min-h-9 flex-1 resize-none bg-transparent px-3 py-2 text-xs leading-4 outline-none placeholder:text-[#121212] disabled:cursor-not-allowed disabled:opacity-60 lg:min-h-[52px] lg:px-6 lg:py-4 lg:text-sm lg:leading-normal"
             />
             <input
               ref={fileInputRef}
@@ -171,7 +171,7 @@ export function MessageComposer({
               aria-label="Attach files"
               disabled={peerBlocked}
               onClick={() => fileInputRef.current?.click()}
-              className="mr-3 flex h-12 w-12 shrink-0 items-center justify-center rounded-lg text-black transition hover:bg-white/35 disabled:cursor-not-allowed disabled:opacity-45"
+              className="mr-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-black transition hover:bg-white/35 disabled:cursor-not-allowed disabled:opacity-45 lg:mr-3 lg:h-12 lg:w-12"
             >
               <Image src="/icons/paperclip.svg" alt="" width={24} height={24} />
             </button>
@@ -182,7 +182,7 @@ export function MessageComposer({
           aria-label="Send message"
           disabled={peerBlocked || (!draft.trim() && attachedFiles.length === 0)}
           onClick={() => void onSend()}
-          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[8px] [background-image:var(--gradient-brand)] text-black transition hover:brightness-105 disabled:cursor-not-allowed disabled:grayscale"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[8px] [background-image:var(--gradient-brand)] text-black transition hover:brightness-105 disabled:cursor-not-allowed disabled:grayscale lg:h-14 lg:w-14"
         >
           <Send className="h-7 w-7 fill-black" />
         </button>

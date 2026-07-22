@@ -901,6 +901,7 @@ export default function TeacherHomeworkPage() {
   const [reviewSelectionAssignmentId, setReviewSelectionAssignmentId] = useState<number | null>(
     null,
   );
+  const [pendingReviewTarget, setPendingReviewTarget] = useState<ReviewTarget | null>(null);
   const [isReviewSelectionOpen, setIsReviewSelectionOpen] = useState(false);
   const [reviewTarget, setReviewTarget] = useState<ReviewTarget | null>(null);
   const [reviewScore, setReviewScore] = useState("");
@@ -915,14 +916,74 @@ export default function TeacherHomeworkPage() {
   const [success, setSuccess] = useState("");
 
   useEffect(() => {
+    const query = new URLSearchParams(window.location.search);
+    const requestedCourse = query.get("course");
+    const requestedQueue = query.get("queue");
+    const requestedAssignment = query.get("assignment");
+    const requestedSubmission = query.get("submission");
+
+    if (HOMEWORK_QUEUE_TABS.some((tab) => tab.value === requestedQueue)) {
+      setQueueFilter(requestedQueue as HomeworkQueueFilter);
+    }
+    if (
+      requestedAssignment &&
+      requestedSubmission &&
+      Number.isInteger(Number(requestedAssignment)) &&
+      Number.isInteger(Number(requestedSubmission))
+    ) {
+      setPendingReviewTarget({
+        assignmentId: Number(requestedAssignment),
+        submissionId: Number(requestedSubmission),
+      });
+    }
+
     getTeacherCourses()
       .then((result) => {
         setCourses(result.results);
-        setSelectedCourseSlug(result.results[0]?.slug || "");
+        const requestedCourseExists = result.results.some(
+          (course) => course.slug === requestedCourse,
+        );
+        setSelectedCourseSlug(
+          requestedCourseExists ? (requestedCourse ?? "") : result.results[0]?.slug || "",
+        );
       })
       .catch(() => setError("Could not load your courses."))
       .finally(() => setLoadingCourses(false));
   }, []);
+
+  useEffect(() => {
+    if (!pendingReviewTarget || loadingAssignments) return;
+
+    const assignment = assignments.find((item) => item.id === pendingReviewTarget.assignmentId);
+    if (!assignment) {
+      if (assignments.length > 0) setPendingReviewTarget(null);
+      return;
+    }
+
+    const submission = assignment.teacher_submissions.find(
+      (item) => item.id === pendingReviewTarget.submissionId,
+    );
+    if (submission) {
+      setReviewTarget({ assignmentId: assignment.id, submissionId: submission.id });
+      setReviewSelectionAssignmentId(null);
+      setIsReviewSelectionOpen(false);
+      setSuccess("");
+      setReviewError("");
+    } else {
+      const reviewable = reviewableSubmissions(assignment);
+      if (reviewable.length === 0) {
+        setError("No submitted homework to review yet.");
+      } else if (reviewable.length === 1) {
+        setReviewTarget({ assignmentId: assignment.id, submissionId: reviewable[0].id });
+        setReviewSelectionAssignmentId(null);
+        setIsReviewSelectionOpen(false);
+      } else {
+        setReviewSelectionAssignmentId(assignment.id);
+        setIsReviewSelectionOpen(true);
+      }
+    }
+    setPendingReviewTarget(null);
+  }, [assignments, loadingAssignments, pendingReviewTarget]);
 
   useEffect(() => {
     if (!selectedCourseSlug) {
@@ -1306,7 +1367,9 @@ export default function TeacherHomeworkPage() {
         maxScore < HOMEWORK_SCORE_MIN ||
         maxScore > HOMEWORK_SCORE_MAX)
     ) {
-      setError(`Maximum score must be a whole number from ${HOMEWORK_SCORE_MIN} to ${HOMEWORK_SCORE_MAX}.`);
+      setError(
+        `Maximum score must be a whole number from ${HOMEWORK_SCORE_MIN} to ${HOMEWORK_SCORE_MAX}.`,
+      );
       return;
     }
 
@@ -1577,7 +1640,9 @@ export default function TeacherHomeworkPage() {
         />
       ) : null}
 
-      {reviewSelectionAssignment && isReviewSelectionOpen && reviewSelectionSubmissions.length > 1 ? (
+      {reviewSelectionAssignment &&
+      isReviewSelectionOpen &&
+      reviewSelectionSubmissions.length > 1 ? (
         <HomeworkSubmissionPickerDialog
           assignment={reviewSelectionAssignment}
           submissions={reviewSelectionSubmissions}
@@ -1589,14 +1654,14 @@ export default function TeacherHomeworkPage() {
       {isModalOpen ? createPortal(
         <div
           role="presentation"
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-[#B7C7FA]/80 px-4 py-6"
+          className="fixed inset-0 z-[100] flex items-start justify-center bg-[#B7C7FA]/80 px-4 pt-[108px] pb-6 lg:pt-[120px]"
           onMouseDown={closeModal}
         >
           <section
             role="dialog"
             aria-modal="true"
             aria-labelledby="homework-dialog-title"
-            className="max-h-[calc(100vh-48px)] w-full max-w-[1240px] overflow-y-auto rounded-[16px] bg-white px-6 py-7 shadow-[0_18px_56px_rgba(38,58,130,0.25)] sm:px-[50px] sm:py-[40px]"
+            className="dashboard-homework-scrollbar max-h-[calc(100dvh-132px)] w-full max-w-[1240px] overflow-y-auto rounded-[16px] bg-white px-6 py-7 shadow-[0_18px_56px_rgba(38,58,130,0.25)] sm:px-[50px] sm:py-[40px] lg:max-h-[calc(100dvh-144px)]"
             onMouseDown={(event) => event.stopPropagation()}
           >
             <div className="flex items-center justify-between gap-4">

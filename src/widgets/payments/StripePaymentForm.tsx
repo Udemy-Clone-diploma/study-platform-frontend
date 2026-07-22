@@ -115,6 +115,7 @@ function StripePaymentElementForm({
     expiry: false,
     cvc: false,
   });
+  const [walletNotice, setWalletNotice] = useState("");
 
   function handleCardFieldChange(
     field: CardFieldName,
@@ -217,6 +218,10 @@ function StripePaymentElementForm({
     } else {
       window.location.href = returnUrl;
     }
+  }
+
+  function handleWalletClick() {
+    setWalletNotice("Coming soon");
   }
 
   return (
@@ -327,6 +332,32 @@ function StripePaymentElementForm({
           >
             {processing ? "Processing..." : submitLabel}
           </button>
+
+          <div className="mt-3 flex max-w-[365px] gap-2">
+            <button
+              type="button"
+              onClick={handleWalletClick}
+              aria-label="Google Pay"
+              className="inline-flex h-[40px] w-[188px] flex-none items-center justify-center gap-[10px] rounded-[232px] border border-[#121212] px-[10px] text-[14px] leading-none text-[#121212] opacity-100 transition-colors hover:bg-[#F2F2F2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#003AFF]"
+            >
+              <Image src="/icons/G.svg" alt="" aria-hidden="true" width={17} height={18} />
+              Pay
+            </button>
+            <button
+              type="button"
+              onClick={handleWalletClick}
+              aria-label="Apple Pay"
+              className="inline-flex h-[40px] w-[188px] flex-none items-center justify-center gap-[10px] rounded-[232px] border border-[#121212] px-[10px] text-[14px] leading-none text-[#121212] opacity-100 transition-colors hover:bg-[#F2F2F2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#003AFF]"
+            >
+              <Image src="/icons/ApplePay.svg" alt="" aria-hidden="true" width={50} height={20} />
+            </button>
+          </div>
+
+          {walletNotice ? (
+            <p role="status" className="mt-2 max-w-[365px] text-center text-[12px] text-[#003AFF]">
+              {walletNotice}
+            </p>
+          ) : null}
 
           {error ? (
             <p role="alert" className="mt-3 max-w-[330px] font-mono text-[11px] text-[#B42318]">

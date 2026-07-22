@@ -16,23 +16,15 @@
   --color-bg: #ffffff;
   --color-text-primary: #121212;
   --color-text-secondary: #5e5e5e;
+  --profile-card-button-bottom: 2.8125rem;
   --gradient-sidebar-item-expanded: linear-gradient(
     90deg,
     #fff4da 0%,
     #fcc4c3 49%,
     rgb(167 186 250 / 0) 100%
   );
-  --gradient-sidebar-item-collapsed: linear-gradient(
-    90deg,
-    #FFF4DA 0%,
-    #FCC4C3 49%,
-    #FCC4C3 100%
-  );
-  --gradient-bottom-nav-active: linear-gradient(
-    90deg,
-    #FFF4DA 0%,
-    #FCC4C3 49.04%
-  );
+  --gradient-sidebar-item-collapsed: linear-gradient(90deg, #fff4da 0%, #fcc4c3 49%, #fcc4c3 100%);
+  --gradient-bottom-nav-active: linear-gradient(90deg, #fff4da 0%, #fcc4c3 49.04%);
 
   --color-calendar-bg: #d6e0ff;
   --color-calendar-today: #a7bafa;
@@ -134,7 +126,7 @@
     circle,
     rgba(255, 244, 218, 0.85) 0%,
     rgba(252, 196, 195, 0.75) 45%,
-    rgba(167, 186, 250, 0.90) 70%,
+    rgba(167, 186, 250, 0.9) 70%,
     rgba(167, 186, 250, 0) 100%
   );
 
@@ -151,6 +143,11 @@
     var(--color-brand-pink) 50.96%,
     var(--color-brand-cream) 100%
   );
+  --gradient-student-stat: linear-gradient(
+    90deg,
+    rgba(167, 186, 250, 0.32) 0%,
+    rgba(167, 186, 250, 0) 100%
+  );
   --gradient-lavender: linear-gradient(
     90deg,
     transparent 0%,
@@ -164,17 +161,8 @@
     #fcc4c3 49%,
     rgb(167 186 250 / 0) 100%
   );
-  --gradient-sidebar-item-collapsed: linear-gradient(
-    90deg,
-    #FFF4DA 0%,
-    #FCC4C3 49%,
-    #FCC4C3 100%
-  );
-  --gradient-bottom-nav-active: linear-gradient(
-    90deg,
-    #FFF4DA 0%,
-    #FCC4C3 49.04%
-  );
+  --gradient-sidebar-item-collapsed: linear-gradient(90deg, #fff4da 0%, #fcc4c3 49%, #fcc4c3 100%);
+  --gradient-bottom-nav-active: linear-gradient(90deg, #fff4da 0%, #fcc4c3 49.04%);
 
   --gradient-feedback: linear-gradient(
     70.58deg,
@@ -483,6 +471,42 @@ body {
 }
 .drag-scroll::-webkit-scrollbar {
   display: none;
+}
+
+.dashboard-homework-scrollbar {
+  scrollbar-color: var(--color-black) var(--color-draft);
+  scrollbar-width: thin;
+}
+
+.dashboard-homework-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.dashboard-homework-scrollbar::-webkit-scrollbar-button,
+.dashboard-homework-scrollbar::-webkit-scrollbar-button:single-button,
+.dashboard-homework-scrollbar::-webkit-scrollbar-button:vertical:decrement,
+.dashboard-homework-scrollbar::-webkit-scrollbar-button:vertical:increment,
+.dashboard-homework-scrollbar::-webkit-scrollbar-button:vertical:start,
+.dashboard-homework-scrollbar::-webkit-scrollbar-button:vertical:end {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
+  width: 0;
+  height: 0;
+  min-height: 0;
+  border: 0;
+  background: transparent;
+  background-image: none;
+}
+
+.dashboard-homework-scrollbar::-webkit-scrollbar-track {
+  background: var(--color-draft);
+  border-radius: 4px;
+}
+
+.dashboard-homework-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-black);
+  border-radius: 4px;
 }
 
 @keyframes carousel-right {

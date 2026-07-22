@@ -51,8 +51,18 @@ function StatusPill({ status }: { status: "pending" | "approved" | "rejected" })
   );
 }
 
-function PillActionButton({ color, icon, onClick, disabled, children }: {
-  color: string; icon: React.ReactNode; onClick: () => void; disabled?: boolean; children: React.ReactNode;
+function PillActionButton({
+  color,
+  icon,
+  onClick,
+  disabled,
+  children,
+}: {
+  color: string;
+  icon: React.ReactNode;
+  onClick: () => void;
+  disabled?: boolean;
+  children: React.ReactNode;
 }) {
   return (
     <button
@@ -97,13 +107,22 @@ function ReviewCard({
   return (
     <div
       className="rounded-2xl bg-white"
-      style={{ padding: "clamp(16px, 1.67vw, 24px)", border: "1px solid var(--color-border-light)" }}
+      style={{
+        padding: "clamp(16px, 1.67vw, 24px)",
+        border: "1px solid var(--color-border-light)",
+      }}
     >
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-start gap-3">
           <div className="relative h-13 w-13 flex-shrink-0 overflow-hidden rounded-full bg-(--color-placeholder)">
             {review.student.avatar ? (
-              <Image src={review.student.avatar} alt={review.student.name} fill className="object-cover" sizes="52px" />
+              <Image
+                src={review.student.avatar}
+                alt={review.student.name}
+                fill
+                className="object-cover"
+                sizes="52px"
+              />
             ) : (
               <span className="flex h-full w-full items-center justify-center text-base font-semibold text-(--color-text-primary)">
                 {initial}
@@ -112,12 +131,20 @@ function ReviewCard({
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-bold text-(--color-text-primary)">{review.student.name}</span>
+              <Link
+                href={`/profile/${review.student.id}?view=review&from=moderator-reviews`}
+                className="font-bold text-(--color-text-primary) hover:text-(--color-blue)"
+              >
+                {review.student.name}
+              </Link>
               <span className="text-sm text-(--color-text-secondary)">
                 {new Date(review.created_at).toLocaleDateString()}
               </span>
             </div>
-            <Link href={`/courses/${review.course.slug}`} className="text-sm text-(--color-text-secondary) hover:underline">
+            <Link
+              href={`/courses/${review.course.slug}`}
+              className="text-sm text-(--color-text-secondary) hover:underline"
+            >
               {review.course.title}
             </Link>
           </div>
@@ -125,13 +152,21 @@ function ReviewCard({
 
         <div className="flex items-center gap-1">
           {Array.from({ length: 5 }).map((_, i) => (
-            <Star key={i} size={18} fill={i < review.rating ? "var(--color-gold)" : "transparent"} stroke="var(--color-gold)" />
+            <Star
+              key={i}
+              size={18}
+              fill={i < review.rating ? "var(--color-gold)" : "transparent"}
+              stroke="var(--color-gold)"
+            />
           ))}
         </div>
       </div>
 
       {review.text && (
-        <p className="mt-3 text-(--color-text-secondary)" style={{ fontSize: "clamp(13px, 0.97vw, 16px)" }}>
+        <p
+          className="mt-3 text-(--color-text-secondary)"
+          style={{ fontSize: "clamp(13px, 0.97vw, 16px)" }}
+        >
           {review.text}
         </p>
       )}
@@ -190,11 +225,20 @@ function ReviewCard({
             <div
               key={i}
               className="flex items-center gap-3 py-2"
-              style={{ borderBottom: i < review.reports.length - 1 ? "1px solid var(--color-border-light)" : "none" }}
+              style={{
+                borderBottom:
+                  i < review.reports.length - 1 ? "1px solid var(--color-border-light)" : "none",
+              }}
             >
               <div className="relative h-9 w-9 flex-shrink-0 overflow-hidden rounded-full bg-(--color-placeholder)">
                 {r.reporter_avatar ? (
-                  <Image src={r.reporter_avatar} alt={r.reporter_name} fill className="object-cover" sizes="36px" />
+                  <Image
+                    src={r.reporter_avatar}
+                    alt={r.reporter_name}
+                    fill
+                    className="object-cover"
+                    sizes="36px"
+                  />
                 ) : (
                   <span className="flex h-full w-full items-center justify-center text-sm font-semibold text-(--color-text-primary)">
                     {r.reporter_name.charAt(0)}
@@ -204,7 +248,12 @@ function ReviewCard({
 
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-baseline gap-2">
-                  <span className="font-semibold text-(--color-text-primary)">{r.reporter_name}</span>
+                  <Link
+                    href={`/profile/${r.reporter_id}?view=review&from=moderator-reviews`}
+                    className="font-semibold text-(--color-text-primary) hover:text-(--color-blue)"
+                  >
+                    {r.reporter_name}
+                  </Link>
                   <span className="text-xs text-(--color-text-secondary)">
                     {new Date(r.created_at).toLocaleDateString()}
                   </span>
@@ -288,7 +337,9 @@ export default function ModeratorReviewsPage() {
     setBusyId(id);
     try {
       await approveReportedReview(id);
-      setMine((prev) => prev.map((r) => (r.id === id ? { ...r, moderation_status: "approved" } : r)));
+      setMine((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, moderation_status: "approved" } : r)),
+      );
     } catch {
       // ignore -- card just stays in "Under Review"
     } finally {
@@ -300,7 +351,9 @@ export default function ModeratorReviewsPage() {
     setBusyId(id);
     try {
       await rejectReportedReview(id);
-      setMine((prev) => prev.map((r) => (r.id === id ? { ...r, moderation_status: "rejected" } : r)));
+      setMine((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, moderation_status: "rejected" } : r)),
+      );
     } catch {
       // ignore -- card just stays in "Under Review"
     } finally {
@@ -328,7 +381,10 @@ export default function ModeratorReviewsPage() {
             <button
               key={key}
               type="button"
-              onClick={() => { setActiveTab(key); setError(""); }}
+              onClick={() => {
+                setActiveTab(key);
+                setError("");
+              }}
               aria-current={activeTab === key ? "page" : undefined}
               className={[
                 "font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-blue)",
@@ -343,13 +399,18 @@ export default function ModeratorReviewsPage() {
           ))}
         </nav>
 
-        <div className="rounded-2xl bg-white" style={{ padding: "clamp(16px, 1.67vw, 24px)", marginTop: "clamp(16px, 1.67vw, 24px)" }}>
+        <div
+          className="rounded-2xl bg-white"
+          style={{ padding: "clamp(16px, 1.67vw, 24px)", marginTop: "clamp(16px, 1.67vw, 24px)" }}
+        >
           {loading ? (
             <p className="py-16 text-center text-lg text-(--color-text-secondary)">Loading…</p>
           ) : error ? (
             <p className="py-16 text-center text-lg text-red-500">{error}</p>
           ) : visible.length === 0 ? (
-            <p className="py-16 text-center text-lg text-(--color-text-secondary)">No reviews found.</p>
+            <p className="py-16 text-center text-lg text-(--color-text-secondary)">
+              No reviews found.
+            </p>
           ) : (
             <div className="flex flex-col" style={{ gap: "clamp(12px, 1.11vw, 16px)" }}>
               {visible.map((review) => (
@@ -357,7 +418,10 @@ export default function ModeratorReviewsPage() {
                   key={review.id}
                   review={review}
                   busy={busyId === review.id}
-                  onAssign={() => { setAssignError(""); setPendingAssignId(review.id); }}
+                  onAssign={() => {
+                    setAssignError("");
+                    setPendingAssignId(review.id);
+                  }}
                   onApprove={() => handleApprove(review.id)}
                   onReject={() => handleReject(review.id)}
                 />
@@ -370,11 +434,17 @@ export default function ModeratorReviewsPage() {
       {pendingAssignId != null && (
         <CourseConfirmModal
           title="Assign as moderator"
-          description={assignError || "Assign yourself as moderator for this reported review? It will move to your Under Review list."}
+          description={
+            assignError ||
+            "Assign yourself as moderator for this reported review? It will move to your Under Review list."
+          }
           confirmLabel="Assign to me"
           loading={assigning}
           onConfirm={handleAssignConfirm}
-          onCancel={() => { setPendingAssignId(null); setAssignError(""); }}
+          onCancel={() => {
+            setPendingAssignId(null);
+            setAssignError("");
+          }}
         />
       )}
     </PageShell>

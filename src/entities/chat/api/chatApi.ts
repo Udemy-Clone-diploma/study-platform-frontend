@@ -1,6 +1,7 @@
 import { api } from "@/shared/api/base";
 import type {
   ChatAttachment,
+  ChatAttachmentItem,
   ChatModerationActionKind,
   ChatModerationStatus,
   ChatMessage,
@@ -28,7 +29,22 @@ export async function createDirectChat(userId: number): Promise<ChatRoom> {
   return data;
 }
 
-export async function createGroupChat(title: string, participantIds: number[]): Promise<ChatRoom> {
+export async function createGroupChat(
+  title: string,
+  participantIds: number[],
+  image?: File | null,
+): Promise<ChatRoom> {
+  if (image) {
+    const body = new FormData();
+    body.append("title", title);
+    participantIds.forEach((participantId) =>
+      body.append("participant_ids", String(participantId)),
+    );
+    body.append("image", image);
+    const { data } = await api.post<ChatRoom>("chats/group/", body);
+    return data;
+  }
+
   const { data } = await api.post<ChatRoom>("chats/group/", {
     title,
     participant_ids: participantIds,
@@ -38,6 +54,13 @@ export async function createGroupChat(title: string, participantIds: number[]): 
 
 export async function updateChat(chatId: number, patch: Partial<Pick<ChatRoom, "title">>) {
   const { data } = await api.patch<ChatRoom>(`chats/${chatId}/`, patch);
+  return data;
+}
+
+export async function uploadChatImage(chatId: number, image: File): Promise<ChatRoom> {
+  const body = new FormData();
+  body.append("image", image);
+  const { data } = await api.patch<ChatRoom>(`chats/${chatId}/`, body);
   return data;
 }
 
@@ -72,6 +95,11 @@ export async function getMessages(chatId: number, page = 1): Promise<Paginated<C
   const { data } = await api.get<Paginated<ChatMessage>>(`chats/${chatId}/messages/`, {
     params: { page },
   });
+  return data;
+}
+
+export async function getChatAttachments(chatId: number): Promise<ChatAttachmentItem[]> {
+  const { data } = await api.get<ChatAttachmentItem[]>(`chats/${chatId}/attachments/`);
   return data;
 }
 

@@ -38,11 +38,18 @@ export type UserSearchResult = {
 };
 
 export type ChatAttachment = {
-  id: number;
+  id: number | string;
   url: string | null;
   file_type: string;
   size: number;
   created_at: string;
+};
+
+export type ChatAttachmentKind = "file" | "video" | "link" | "image";
+
+export type ChatAttachmentItem = ChatAttachment & {
+  kind: ChatAttachmentKind;
+  message: ChatMessage;
 };
 
 export type ChatMessage = {
@@ -106,11 +113,7 @@ export type MessageReport = {
   attachments: ChatAttachment[];
 };
 
-export type ChatModerationActionKind =
-  | "warning"
-  | "retract_warning"
-  | "restrict"
-  | "restore";
+export type ChatModerationActionKind = "warning" | "retract_warning" | "restrict" | "restore";
 
 export type ChatModerationAction = {
   id: number;
@@ -141,6 +144,10 @@ export type ChatSocketEvent =
   | { type: "message.read"; chat_id: number; user_id: number; message_id: number | null }
   | { type: "chat.updated"; chat: ChatRoom }
   | { type: "chat.deleted"; chat_id: number }
-  | { type: "participant.added"; chat_id: number; participant: { user_id: number; role: ChatParticipantRole } }
+  | {
+      type: "participant.added";
+      chat_id: number;
+      participant: { user_id: number; role: ChatParticipantRole };
+    }
   | { type: "participant.removed"; chat_id: number; user_id: number }
   | { type: "error"; code: string; detail: unknown };

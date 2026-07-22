@@ -98,7 +98,7 @@ export function DataTable<T>({
           const isSortable = !!col.sortKey && !!onSortChange;
           const isAsc = !!col.sortKey && currentSort === col.sortKey;
           const isDesc = !!col.sortKey && currentSort === `-${col.sortKey}`;
-          const SortIcon = isAsc ? ChevronUp : isDesc ? ChevronDown : ChevronsUpDown;
+          const SortIcon = isAsc ? ChevronDown : isDesc ? ChevronUp : ChevronsUpDown;
           const justifyContent =
             col.headerAlign === "center"
               ? "center"
@@ -123,11 +123,7 @@ export function DataTable<T>({
                 </span>
                 <SortIcon
                   aria-hidden="true"
-                  className={`shrink-0${!isAsc && !isDesc ? " opacity-40" : ""}`}
-                  style={{
-                    width: "clamp(10px, 0.83vw, 12px)",
-                    height: "clamp(10px, 0.83vw, 12px)",
-                  }}
+                  className={`h-4 w-4 shrink-0${!isAsc && !isDesc ? " opacity-70" : ""}`}
                 />
               </button>
             );

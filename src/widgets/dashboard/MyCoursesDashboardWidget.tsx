@@ -107,14 +107,22 @@ export function MyCoursesDashboardWidget({ role }: Props) {
         style={{ gap: "clamp(8px, 0.83vw, 16px)" }}
       >
         <div
-          className="flex shrink-0 items-center justify-between bg-(--color-brand-lavender) font-(family-name:--font-accent) font-bold text-(--color-blue-dark)"
-          style={{
-            borderRadius: "clamp(16px, 1.35vw, 26px)",
-            height: "clamp(36px, 2.71vw, 52px)",
-            padding: "0 clamp(12px, 1.25vw, 24px)",
-            fontSize: "clamp(12px, 1.04vw, 20px)",
-            gap: "clamp(8px, 0.83vw, 16px)",
-          }}
+          className={`flex shrink-0 items-center justify-between bg-(--color-brand-lavender) font-bold ${
+            role === "student"
+              ? "h-[52px] w-[399px] gap-2.5 rounded-[20px] p-4 font-(family-name:--font-base) text-xl leading-none tracking-normal not-italic text-(--color-text-primary)"
+              : "font-(family-name:--font-accent) text-(--color-blue-dark)"
+          }`}
+          style={
+            role === "teacher"
+              ? {
+                  borderRadius: "clamp(16px, 1.35vw, 26px)",
+                  height: "clamp(36px, 2.71vw, 52px)",
+                  padding: "0 clamp(12px, 1.25vw, 24px)",
+                  fontSize: "clamp(12px, 1.04vw, 20px)",
+                  gap: "clamp(8px, 0.83vw, 16px)",
+                }
+              : undefined
+          }
         >
           <span>My courses</span>
           <span>{loading ? "…" : total}</span>

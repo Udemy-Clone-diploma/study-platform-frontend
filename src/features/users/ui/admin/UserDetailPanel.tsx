@@ -3,7 +3,12 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { AccentButton } from "@/shared/ui/AccentButton";
-import { deleteUserNote, getUserNote, resendVerificationEmail, saveUserNote } from "@/entities/user";
+import {
+  deleteUserNote,
+  getUserNote,
+  resendVerificationEmail,
+  saveUserNote,
+} from "@/entities/user";
 import type { UserData } from "@/entities/user";
 import type { ApiError } from "@/shared/api/base";
 import { formatUserDate } from "../../lib/dates";
@@ -94,7 +99,11 @@ export function UserDetailPanel({ user, onClose }: Props) {
       <div className="flex items-center justify-between" style={{ gap: 12 }}>
         <h2
           className="overflow-hidden font-bold text-ellipsis whitespace-nowrap text-(--color-text-primary)"
-          style={{ fontFamily: "var(--font-base)", fontSize: "clamp(16px, 1.25vw, 18px)", margin: 0 }}
+          style={{
+            fontFamily: "var(--font-base)",
+            fontSize: "clamp(16px, 1.25vw, 18px)",
+            margin: 0,
+          }}
         >
           {name}
         </h2>
@@ -119,7 +128,9 @@ export function UserDetailPanel({ user, onClose }: Props) {
       <dl className="flex flex-col" style={{ gap: 10, margin: 0 }}>
         <DetailRow label="Role">{ROLE_LABELS[user.role]}</DetailRow>
         <DetailRow label="Email">{user.email}</DetailRow>
-        <DetailRow label="Email status">{user.is_email_verified ? "Verified" : "Unverified"}</DetailRow>
+        <DetailRow label="Email status">
+          {user.is_email_verified ? "Verified" : "Unverified"}
+        </DetailRow>
         <DetailRow label="Language">{LANGUAGE_LABELS[user.language]}</DetailRow>
         <DetailRow label="Reg. date">{formatUserDate(user.date_joined)}</DetailRow>
         {socials.map(([key, label]) => (
@@ -136,16 +147,34 @@ export function UserDetailPanel({ user, onClose }: Props) {
         ))}
       </dl>
 
+      {user.role === "moderator" ? (
+        <AccentButton
+          href={`/admin/moderators/${user.id}`}
+          size="sm"
+          className="self-center text-center"
+        >
+          View work profile
+        </AccentButton>
+      ) : null}
+
       <div className="flex flex-col" style={{ gap: 6 }}>
         <h3
           className="font-bold text-(--color-blue)"
-          style={{ fontFamily: "var(--font-base)", fontSize: "clamp(14px, 1.11vw, 16px)", margin: 0 }}
+          style={{
+            fontFamily: "var(--font-base)",
+            fontSize: "clamp(14px, 1.11vw, 16px)",
+            margin: 0,
+          }}
         >
           User violation history
         </h3>
         <p
           className="text-(--color-text-secondary)"
-          style={{ fontFamily: "var(--font-base)", fontSize: "clamp(12px, 0.97vw, 14px)", margin: 0 }}
+          style={{
+            fontFamily: "var(--font-base)",
+            fontSize: "clamp(12px, 0.97vw, 14px)",
+            margin: 0,
+          }}
         >
           In progress
         </p>
@@ -177,7 +206,11 @@ export function UserDetailPanel({ user, onClose }: Props) {
         {!noteLoading && noteError && (
           <p
             className="text-(--color-danger)"
-            style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.83vw, 13px)", margin: 0 }}
+            style={{
+              fontFamily: "var(--font-base)",
+              fontSize: "clamp(11px, 0.83vw, 13px)",
+              margin: 0,
+            }}
           >
             {noteError}
           </p>
@@ -201,7 +234,10 @@ function DetailRow({ label, children }: { label: string; children: React.ReactNo
       className="flex items-baseline"
       style={{ gap: 12, fontFamily: "var(--font-base)", fontSize: "clamp(13px, 0.97vw, 15px)" }}
     >
-      <dt className="shrink-0 text-(--color-text-secondary)" style={{ width: "clamp(64px, 5vw, 80px)" }}>
+      <dt
+        className="shrink-0 text-(--color-text-secondary)"
+        style={{ width: "clamp(64px, 5vw, 80px)" }}
+      >
         {label}
       </dt>
       <dd

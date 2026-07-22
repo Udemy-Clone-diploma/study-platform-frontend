@@ -268,6 +268,14 @@ const adminItems: SidebarItem[] = [
     match: "startsWith",
   },
   {
+    id: "certificates",
+    label: "Certificates",
+    href: "/admin/certificates",
+    icon: "certificates",
+    iconSrc: "/icons/certificate.svg",
+    match: "startsWith",
+  },
+  {
     id: "statistics",
     label: "Statistics",
     href: "/admin/statistics",

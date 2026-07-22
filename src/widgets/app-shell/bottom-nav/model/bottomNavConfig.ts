@@ -5,8 +5,8 @@ import type { SidebarItem } from "@/features/app-shell";
 export const BOTTOM_NAV_PRIMARY_IDS: Record<UserRole, string[]> = {
   student: ["homework", "courses", "dashboard", "chats"],
   teacher: ["homework", "courses", "dashboard", "chats"],
-  moderator: ["courses", "chats", "dashboard", "reviews"],
-  administrator: ["students", "courses", "dashboard", "statistics"],
+  moderator: ["courses", "chats", "dashboard", "reports"],
+  administrator: ["students", "courses", "dashboard", "reports"],
 };
 
 /** Page listing the remaining sidebar items for the current user's role, linked from the bottom nav's "Others" slot. */

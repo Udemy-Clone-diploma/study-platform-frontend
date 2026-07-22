@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import {
   AlertTriangle,
   Ban,
@@ -127,13 +128,7 @@ function DetailRow({ label, children }: { label: string; children: React.ReactNo
   );
 }
 
-function ModeratorActionsPanel({
-  user,
-  reportId,
-}: {
-  user: ChatUser;
-  reportId: number;
-}) {
+function ModeratorActionsPanel({ user, reportId }: { user: ChatUser; reportId: number }) {
   const [status, setStatus] = useState<ChatModerationStatus | null>(null);
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(true);
@@ -202,8 +197,12 @@ function ModeratorActionsPanel({
           <span className="flex items-center gap-2 font-bold">
             <Ban className="h-4 w-4" /> Chat access restricted
           </span>
-          {status.restricted_at ? <p className="mt-1">Since {dateTime(status.restricted_at)}</p> : null}
-          {status.restriction_reason ? <p className="mt-1 leading-5">{status.restriction_reason}</p> : null}
+          {status.restricted_at ? (
+            <p className="mt-1">Since {dateTime(status.restricted_at)}</p>
+          ) : null}
+          {status.restriction_reason ? (
+            <p className="mt-1 leading-5">{status.restriction_reason}</p>
+          ) : null}
         </div>
       ) : null}
 
@@ -251,7 +250,11 @@ function ModeratorActionsPanel({
               : "border-(--color-danger) text-(--color-danger)"
           }`}
         >
-          {status?.is_restricted ? <ShieldCheck className="h-4 w-4" /> : <Ban className="h-4 w-4" />}
+          {status?.is_restricted ? (
+            <ShieldCheck className="h-4 w-4" />
+          ) : (
+            <Ban className="h-4 w-4" />
+          )}
           {status?.is_restricted ? "Unblock user" : "Block user from chats"}
         </button>
       </div>
@@ -282,8 +285,16 @@ function ModeratorActionsPanel({
         </div>
       ) : null}
 
-      {error ? <p role="alert" className="mt-3 text-xs leading-5 text-(--color-danger)">{error}</p> : null}
-      {success ? <p role="status" className="mt-3 text-xs leading-5 text-(--color-success)">{success}</p> : null}
+      {error ? (
+        <p role="alert" className="mt-3 text-xs leading-5 text-(--color-danger)">
+          {error}
+        </p>
+      ) : null}
+      {success ? (
+        <p role="status" className="mt-3 text-xs leading-5 text-(--color-success)">
+          {success}
+        </p>
+      ) : null}
 
       {status?.actions.length ? (
         <div className="mt-6">
@@ -292,20 +303,26 @@ function ModeratorActionsPanel({
             {status.actions.map((action) => (
               <div key={action.id} className="rounded-xl bg-white/45 p-3 text-xs">
                 <div className="flex items-center justify-between gap-2">
-                  <span className={`font-bold ${
-                    action.action === "warning"
-                      ? "text-(--color-yellow-dark)"
-                      : action.action === "restrict"
+                  <span
+                    className={`font-bold ${
+                      action.action === "warning"
+                        ? "text-(--color-yellow-dark)"
+                        : action.action === "restrict"
                           ? "text-(--color-danger)"
                           : "text-(--color-success)"
-                  }`}>
+                    }`}
+                  >
                     {action.action_label}
                   </span>
                   <time className="shrink-0 text-(--color-text-muted)" dateTime={action.created_at}>
                     {compactDate(action.created_at)}
                   </time>
                 </div>
-                {action.note ? <p className="mt-2 break-words leading-5 text-(--color-text-secondary)">{action.note}</p> : null}
+                {action.note ? (
+                  <p className="mt-2 break-words leading-5 text-(--color-text-secondary)">
+                    {action.note}
+                  </p>
+                ) : null}
                 <p className="mt-2 text-(--color-text-muted)">
                   {action.moderator ? fullName(action.moderator) : "Deleted moderator"}
                   {action.report ? ` · Report #${action.report}` : ""}
@@ -373,8 +390,7 @@ export function MessageReportsWorkspace() {
   }, [query, reason, reports]);
 
   const groups = useMemo(() => buildGroups(filteredReports), [filteredReports]);
-  const selectedGroup =
-    groups.find((group) => group.key === selectedUserKey) ?? groups[0] ?? null;
+  const selectedGroup = groups.find((group) => group.key === selectedUserKey) ?? groups[0] ?? null;
   const selectedReport =
     selectedGroup?.reports.find((report) => report.id === selectedReportId) ??
     selectedGroup?.reports[0] ??
@@ -428,12 +444,19 @@ export function MessageReportsWorkspace() {
 
         <div className="mt-4 flex items-center gap-6 text-sm text-(--color-text-primary)">
           <span className="font-bold">All reports</span>
-          <span>{groups.length} reported {groups.length === 1 ? "user" : "users"}</span>
-          <span>{filteredReports.length} {filteredReports.length === 1 ? "message" : "messages"}</span>
+          <span>
+            {groups.length} reported {groups.length === 1 ? "user" : "users"}
+          </span>
+          <span>
+            {filteredReports.length} {filteredReports.length === 1 ? "message" : "messages"}
+          </span>
         </div>
 
         {error ? (
-          <p role="alert" className="mt-4 rounded-xl bg-(--color-error-surface) p-4 text-sm text-(--color-danger)">
+          <p
+            role="alert"
+            className="mt-4 rounded-xl bg-(--color-error-surface) p-4 text-sm text-(--color-danger)"
+          >
             {error}
           </p>
         ) : null}
@@ -446,13 +469,17 @@ export function MessageReportsWorkspace() {
           <div className="mt-6 flex min-h-[520px] flex-col items-center justify-center rounded-2xl border border-white/70 bg-white/30 text-center">
             <AlertTriangle className="h-10 w-10 text-(--color-brand-lavender)" />
             <p className="mt-3 font-bold text-(--color-text-primary)">No reported messages</p>
-            <p className="mt-1 text-sm text-(--color-text-secondary)">New reports will appear here.</p>
+            <p className="mt-1 text-sm text-(--color-text-secondary)">
+              New reports will appear here.
+            </p>
           </div>
         ) : groups.length === 0 ? (
           <div className="mt-6 flex min-h-[520px] flex-col items-center justify-center rounded-2xl border border-white/70 bg-white/30 text-center">
             <Search className="h-9 w-9 text-(--color-brand-lavender)" />
             <p className="mt-3 font-bold text-(--color-text-primary)">Nothing found</p>
-            <p className="mt-1 text-sm text-(--color-text-secondary)">Try another search or reason.</p>
+            <p className="mt-1 text-sm text-(--color-text-secondary)">
+              Try another search or reason.
+            </p>
           </div>
         ) : (
           <div className="mt-6 grid min-h-[560px] grid-cols-[minmax(250px,0.9fr)_minmax(350px,1.45fr)_minmax(250px,0.9fr)] gap-5">
@@ -517,7 +544,8 @@ export function MessageReportsWorkspace() {
                       </div>
                     </div>
                     <span className="shrink-0 rounded-full bg-white px-3 py-1 text-xs font-semibold text-(--color-text-secondary)">
-                      {selectedGroup.reports.length} reported {selectedGroup.reports.length === 1 ? "message" : "messages"}
+                      {selectedGroup.reports.length} reported{" "}
+                      {selectedGroup.reports.length === 1 ? "message" : "messages"}
                     </span>
                   </div>
 
@@ -540,7 +568,10 @@ export function MessageReportsWorkspace() {
                               <Flag className="h-3.5 w-3.5" />
                               {report.reason_label}
                             </span>
-                            <time dateTime={report.message_created_at} className="text-xs text-(--color-text-secondary)">
+                            <time
+                              dateTime={report.message_created_at}
+                              className="text-xs text-(--color-text-secondary)"
+                            >
                               Sent {dateTime(report.message_created_at)}
                             </time>
                           </div>
@@ -548,7 +579,12 @@ export function MessageReportsWorkspace() {
                             {reportMessagePreview(report)}
                           </p>
                           <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-white/70 pt-3 text-xs text-(--color-text-secondary)">
-                            <span>Reported by <strong className="text-(--color-text-primary)">{fullName(report.reporter)}</strong></span>
+                            <span>
+                              Reported by{" "}
+                              <strong className="text-(--color-text-primary)">
+                                {fullName(report.reporter)}
+                              </strong>
+                            </span>
                             <span>{dateTime(report.created_at)}</span>
                           </div>
                         </button>
@@ -571,23 +607,40 @@ export function MessageReportsWorkspace() {
                       <p className="mt-1 text-xs capitalize text-(--color-text-secondary)">
                         {selectedReport.sender?.role || "Unknown role"}
                       </p>
+                      {selectedReport.sender ? (
+                        <Link
+                          href={`/profile/${selectedReport.sender.id}?view=review&from=moderator-chats`}
+                          className="mt-2 inline-flex text-xs font-semibold text-(--color-blue) hover:underline"
+                        >
+                          View profile
+                        </Link>
+                      ) : null}
                     </div>
                   </div>
 
                   <dl className="mt-6 space-y-3">
-                    <DetailRow label="Sender">{selectedReport.sender?.email || "Deleted account"}</DetailRow>
-                    <DetailRow label="Sent">{dateTime(selectedReport.message_created_at)}</DetailRow>
+                    <DetailRow label="Sender">
+                      {selectedReport.sender?.email || "Deleted account"}
+                    </DetailRow>
+                    <DetailRow label="Sent">
+                      {dateTime(selectedReport.message_created_at)}
+                    </DetailRow>
                     <DetailRow label="Message ID">#{selectedReport.message}</DetailRow>
                     <DetailRow label="Chat">
-                      {selectedReport.chat.title || `${selectedReport.chat.type} chat`} · #{selectedReport.chat.id}
+                      {selectedReport.chat.title || `${selectedReport.chat.type} chat`} · #
+                      {selectedReport.chat.id}
                     </DetailRow>
                   </dl>
 
                   <div className="mt-6 border-t border-white/80 pt-5">
-                    <h3 className="text-sm font-bold text-(--color-text-primary)">Report information</h3>
+                    <h3 className="text-sm font-bold text-(--color-text-primary)">
+                      Report information
+                    </h3>
                     <dl className="mt-4 space-y-3">
                       <DetailRow label="Reason">
-                        <span className="font-bold text-(--color-pink-dark)">{selectedReport.reason_label}</span>
+                        <span className="font-bold text-(--color-pink-dark)">
+                          {selectedReport.reason_label}
+                        </span>
                       </DetailRow>
                       <DetailRow label="Reported">{dateTime(selectedReport.created_at)}</DetailRow>
                       <DetailRow label="Reporter">{fullName(selectedReport.reporter)}</DetailRow>

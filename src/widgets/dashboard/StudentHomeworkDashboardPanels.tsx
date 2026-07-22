@@ -1,7 +1,9 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import {
+  type ComponentProps,
   createContext,
   type ReactNode,
   useContext,
@@ -11,11 +13,7 @@ import {
   useState,
 } from "react";
 import { ChevronDown } from "lucide-react";
-import {
-  getAssignedHomework,
-  type HomeworkAssignment,
-  type HomeworkSubmission,
-} from "@/entities/homework";
+import { getAssignedHomework, type HomeworkAssignment } from "@/entities/homework";
 import type { ApiError } from "@/shared/api/base";
 
 type HomeworkTab = "todo" | "overdue";
@@ -26,12 +24,28 @@ type HomeworkDashboardState = {
   error: string;
 };
 
-type CourseOption = {
+export type HomeworkCourseOption = {
   value: string;
   label: string;
 };
 
+export type HomeworkReviewListItem = {
+  id: number;
+  courseTitle: string;
+  courseValue: string;
+  kind: "Task" | "Test";
+  title: string;
+  dateValue: string;
+  dateLabel: string;
+  score: number | null;
+  iconSrc: string;
+  accent: string;
+  unoptimized?: boolean;
+  href?: ComponentProps<typeof Link>["href"];
+};
+
 const HomeworkDashboardContext = createContext<HomeworkDashboardState | null>(null);
+const EMPTY_ASSIGNMENTS: HomeworkAssignment[] = [];
 
 const LEVELLESS_ACCENTS = [
   "from-[#fff3dc] to-[#ffe7ef]",
@@ -87,10 +101,12 @@ function formatShortDate(value: string | null | undefined): string {
   return new Intl.DateTimeFormat("en-GB", {
     day: "2-digit",
     month: "2-digit",
-  }).format(date).replace(/\//g, ".");
+  })
+    .format(date)
+    .replace(/\//g, ".");
 }
 
-function courseOptions(assignments: HomeworkAssignment[]): CourseOption[] {
+function courseOptions(assignments: HomeworkAssignment[]): HomeworkCourseOption[] {
   const byTitle = new Map<string, string>();
   assignments.forEach((assignment) => {
     if (assignment.course_title) {
@@ -114,12 +130,6 @@ function homeworkVisual(assignment: HomeworkAssignment) {
     accent: LEVELLESS_ACCENTS[index],
     unoptimized: Boolean(assignment.course_image),
   };
-}
-
-function statusLabel(submission: HomeworkSubmission): string {
-  if (submission.status === "reviewed") return "Reviewed";
-  if (submission.status === "retrieved") return "In review";
-  return "Submitted";
 }
 
 export function StudentHomeworkProvider({ children }: { children: ReactNode }) {
@@ -148,58 +158,151 @@ export function StudentHomeworkProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const value = useMemo(
-    () => ({ assignments, loading, error }),
-    [assignments, loading, error],
-  );
+  const value = useMemo(() => ({ assignments, loading, error }), [assignments, loading, error]);
 
   return (
-    <HomeworkDashboardContext.Provider value={value}>
-      {children}
-    </HomeworkDashboardContext.Provider>
+    <HomeworkDashboardContext.Provider value={value}>{children}</HomeworkDashboardContext.Provider>
   );
 }
 
-export function HomeworkReviewPanel() {
-  const { assignments, loading, error } = useHomeworkDashboard();
-  const [courseFilter, setCourseFilter] = useState("all");
-  const options = useMemo(() => courseOptions(assignments), [assignments]);
-  const activeCourseFilter = options.some((option) => option.value === courseFilter)
-    ? courseFilter
-    : "all";
+export function HomeworkReviewPanel({
+  items: suppliedItems,
+  loading: suppliedLoading,
+  error: suppliedError,
+  courses: suppliedCourses,
+  courseValue,
+  onCourseChange,
+  className = "h-[460px]",
+  titleHref = "/student-dashboard/homework?status=completed",
+}: {
+  items?: HomeworkReviewListItem[];
+  loading?: boolean;
+  error?: string;
+  courses?: HomeworkCourseOption[];
+  courseValue?: string;
+  onCourseChange?: (value: string) => void;
+  className?: string;
+  titleHref?: string | null;
+} = {}) {
+  const dashboard = useContext(HomeworkDashboardContext);
+  if (!dashboard && !suppliedItems) {
+    throw new Error("HomeworkReviewPanel requires StudentHomeworkProvider or supplied items.");
+  }
 
-  const submittedAssignments = useMemo(() => {
+  const assignments = dashboard?.assignments ?? EMPTY_ASSIGNMENTS;
+  const loading = suppliedLoading ?? dashboard?.loading ?? false;
+  const error = suppliedError ?? dashboard?.error ?? "";
+  const [courseFilter, setCourseFilter] = useState("all");
+  const assignmentItems = useMemo<HomeworkReviewListItem[]>(() => {
     return assignments
       .filter((assignment) => assignment.my_submission)
-      .filter((assignment) =>
-        activeCourseFilter === "all" || assignment.course_title === activeCourseFilter,
-      )
       .sort((first, second) => {
         const firstSubmission = first.my_submission;
         const secondSubmission = second.my_submission;
         return (
-          assignmentTimestamp(secondSubmission?.reviewed_at || secondSubmission?.submitted_at) -
-          assignmentTimestamp(firstSubmission?.reviewed_at || firstSubmission?.submitted_at)
+          assignmentTimestamp(
+            second.due_at || secondSubmission?.reviewed_at || secondSubmission?.submitted_at,
+          ) -
+          assignmentTimestamp(
+            first.due_at || firstSubmission?.reviewed_at || firstSubmission?.submitted_at,
+          )
         );
+      })
+      .map((assignment) => {
+        const visual = homeworkVisual(assignment);
+        const submission = assignment.my_submission;
+        const status = submission?.status === "reviewed" ? "reviewed" : "submitted";
+        const reviewedScore =
+          submission?.status === "reviewed" && submission.score != null ? submission.score : null;
+        const dateValue =
+          assignment.due_at || submission?.reviewed_at || submission?.submitted_at || "";
+
+        return {
+          id: assignment.id,
+          courseTitle: assignment.course_title,
+          courseValue: assignment.course_title,
+          kind: assignmentKind(assignment),
+          title: assignment.title,
+          dateValue,
+          dateLabel: formatShortDate(assignment.due_at) || "No deadline",
+          score: reviewedScore,
+          iconSrc: visual.iconSrc,
+          accent: visual.accent,
+          unoptimized: visual.unoptimized,
+          href: {
+            pathname: "/student-dashboard/homework",
+            query: { course: assignment.course_slug, status },
+          },
+        };
       });
-  }, [activeCourseFilter, assignments]);
+  }, [assignments]);
+
+  const items = suppliedItems ?? assignmentItems;
+  const options = useMemo(
+    () => suppliedCourses ?? courseOptions(assignments),
+    [assignments, suppliedCourses],
+  );
+  const requestedCourse = courseValue ?? courseFilter;
+  const fallbackCourse = options[0]?.value ?? "all";
+  const activeCourseFilter = options.some((option) => option.value === requestedCourse)
+    ? requestedCourse
+    : fallbackCourse;
+  const visibleItems = useMemo(
+    () =>
+      items.filter(
+        (item) =>
+          activeCourseFilter === "all" ||
+          activeCourseFilter === "" ||
+          item.courseValue === activeCourseFilter,
+      ),
+    [activeCourseFilter, items],
+  );
+  const setActiveCourse = onCourseChange ?? setCourseFilter;
 
   return (
-    <section className="flex h-[300px] flex-col overflow-hidden rounded-lg bg-white p-4 shadow-[0_0_16px_rgba(0,0,0,0.14)]">
+    <section
+      className={`flex flex-col overflow-hidden rounded-lg bg-white p-4 shadow-[0_0_16px_rgba(0,0,0,0.14)] ${className}`}
+    >
       <div className="mb-3 flex items-center justify-between gap-2">
-        <h2 className="shrink-0 text-base font-bold text-black">Homework</h2>
+        <h2 className="shrink-0 text-base font-bold text-black">
+          {titleHref ? (
+            <Link
+              href={titleHref}
+              className="rounded-sm transition-colors hover:text-[#003AFF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#003AFF]"
+            >
+              Homework
+            </Link>
+          ) : (
+            "Homework"
+          )}
+        </h2>
         <HomeworkCourseDropdown
           value={activeCourseFilter}
           options={options}
-          onChange={setCourseFilter}
+          onChange={setActiveCourse}
         />
       </div>
 
-      <HomeworkListState loading={loading} error={error} empty={!submittedAssignments.length}>
-        <div className="min-h-0 flex-1 overflow-y-auto pr-1">
-          {submittedAssignments.map((assignment) => (
-            <HomeworkReviewCard key={assignment.id} assignment={assignment} />
-          ))}
+      <HomeworkListState loading={loading} error={error} empty={!visibleItems.length}>
+        <div className="dashboard-homework-scrollbar mt-8 mr-3 -mb-1 min-h-0 flex-1 overflow-y-auto pr-3">
+          {visibleItems.map((item, index) => {
+            const previousItem = visibleItems[index - 1];
+            const startsNewMonth =
+              index > 0 &&
+              previousItem &&
+              monthKey(item.dateValue) !== monthKey(previousItem.dateValue);
+
+            return (
+              <div key={item.id}>
+                {startsNewMonth ? (
+                  <h3 className="my-4 w-fit text-center text-[16px] leading-none font-normal tracking-normal not-italic text-[#121212]">
+                    {monthLabel(item.dateValue)}
+                  </h3>
+                ) : null}
+                <HomeworkReviewCard item={item} />
+              </div>
+            );
+          })}
         </div>
       </HomeworkListState>
     </section>
@@ -224,7 +327,9 @@ export function HomeworkQueuePanel() {
   const overdueAssignments = useMemo(() => {
     return assignments
       .filter((assignment) => isOverdueAssignment(assignment, now))
-      .sort((first, second) => assignmentTimestamp(second.due_at) - assignmentTimestamp(first.due_at));
+      .sort(
+        (first, second) => assignmentTimestamp(second.due_at) - assignmentTimestamp(first.due_at),
+      );
   }, [assignments, now]);
 
   const visibleAssignments = tab === "todo" ? todoAssignments : overdueAssignments;
@@ -308,7 +413,7 @@ function HomeworkCourseDropdown({
   onChange,
 }: {
   value: string;
-  options: CourseOption[];
+  options: HomeworkCourseOption[];
   onChange: (value: string) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -359,9 +464,7 @@ function HomeworkCourseDropdown({
                     setOpen(false);
                   }}
                   className={`w-full rounded-lg px-3 py-2 text-left text-xs transition-colors ${
-                    selected
-                      ? "bg-[#edf1ff] text-[#003aff]"
-                      : "text-black hover:bg-[#fafafa]"
+                    selected ? "bg-[#edf1ff] text-[#003aff]" : "text-black hover:bg-[#fafafa]"
                   }`}
                 >
                   {option.label}
@@ -375,31 +478,84 @@ function HomeworkCourseDropdown({
   );
 }
 
-function HomeworkReviewCard({ assignment }: { assignment: HomeworkAssignment }) {
-  const visual = homeworkVisual(assignment);
-  const submission = assignment.my_submission;
-  const date = formatShortDate(submission?.reviewed_at || submission?.submitted_at);
+function monthKey(value: string) {
+  const date = new Date(value);
+  return Number.isFinite(date.getTime()) ? `${date.getFullYear()}-${date.getMonth()}` : "undated";
+}
 
-  return (
-    <div className="mb-2 flex min-h-[58px] items-center gap-3 rounded-md border border-black/5 bg-white px-3 shadow-[0_1px_8px_rgba(0,0,0,0.12)]">
-      <HomeworkIcon visual={visual} />
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-[11px] text-[#5e5e5e]">
-          {assignment.course_title} <span className="px-1">|</span> {assignmentKind(assignment)}
-        </p>
-        <p className="truncate text-sm font-medium text-black">{assignment.title}</p>
-        {submission ? (
-          <p className="mt-0.5 truncate text-[10px] text-[#5e5e5e]">{statusLabel(submission)}</p>
-        ) : null}
-      </div>
-      {submission?.status === "reviewed" ? (
-        <span className="inline-flex h-10 min-w-10 items-center justify-center rounded-md bg-[#fff4da] px-2 text-sm font-medium text-[#8a6201]">
-          {submission.score ?? "-"}
+function monthLabel(value: string) {
+  const date = new Date(value);
+  return Number.isFinite(date.getTime())
+    ? new Intl.DateTimeFormat("en-US", { month: "long" }).format(date)
+    : "No deadline";
+}
+
+function scoreBadgeClassName(score: number) {
+  switch (Math.round(score)) {
+    case 5:
+      return "bg-(--color-brand-cream) text-(--color-yellow-dark)";
+    case 4:
+      return "bg-(--color-brand-lavender) text-(--color-blue-dark)";
+    case 3:
+      return "bg-(--color-brand-pink) text-(--color-pink-dark)";
+    case 2:
+      return "bg-(--color-brand-lavender-soft) text-(--color-blue)";
+    default:
+      return "bg-(--color-border-light) text-(--color-text-secondary)";
+  }
+}
+
+function HomeworkReviewCard({ item }: { item: HomeworkReviewListItem }) {
+  const content = (
+    <>
+      {item.score != null ? (
+        <span
+          className={`flex h-[60px] w-[60px] shrink-0 items-center justify-center rounded-md text-[24px] leading-none font-medium ${scoreBadgeClassName(item.score)}`}
+        >
+          {item.score}+
         </span>
-      ) : date ? (
-        <span className="whitespace-nowrap text-xs text-[#003aff]">{date}</span>
-      ) : null}
-    </div>
+      ) : (
+        <HomeworkIcon
+          visual={{
+            iconSrc: item.iconSrc,
+            accent: item.accent,
+            unoptimized: Boolean(item.unoptimized),
+          }}
+          size="large"
+        />
+      )}
+      <div className="flex h-full min-w-0 flex-col justify-between py-[3.5px]">
+        <p className="flex min-w-0 items-center gap-2 text-[16px] leading-none font-normal tracking-normal not-italic text-[#5E5E5E]">
+          <span className="min-w-0 truncate">{item.courseTitle}</span>
+          <span
+            aria-hidden="true"
+            className="h-[3px] w-[3px] shrink-0 rotate-180 rounded-full bg-[#5E5E5E] opacity-100"
+          />
+          <span className="shrink-0">{item.kind}</span>
+        </p>
+        <p className="truncate text-[20px] leading-[1.2] font-medium tracking-normal not-italic text-[#121212]">
+          {item.title}
+        </p>
+      </div>
+      <span className="flex h-full items-end justify-end">
+        <span className="mb-[3.5px] whitespace-nowrap text-[16px] leading-none font-normal tracking-normal not-italic text-[#003AFF]">
+          {item.dateLabel}
+        </span>
+      </span>
+    </>
+  );
+  const className =
+    "mb-2 grid h-20 w-full grid-cols-[60px_minmax(0,1fr)_auto] items-center gap-2.5 rounded-lg border border-black/5 bg-white px-3 py-2.5 font-(family-name:--font-base) shadow-[0_1px_8px_rgba(0,0,0,0.12)]";
+
+  return item.href ? (
+    <Link
+      href={item.href}
+      className={`${className} transition hover:bg-black/[0.02] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-blue)`}
+    >
+      {content}
+    </Link>
+  ) : (
+    <article className={className}>{content}</article>
   );
 }
 
@@ -415,7 +571,16 @@ function HomeworkQueueCard({
   const showScoreBadge = assignment.max_score !== null && assignment.max_score !== undefined;
 
   return (
-    <div className="mb-2 flex min-h-[56px] items-center gap-3 rounded-md border border-black/5 bg-white px-3 shadow-[0_1px_8px_rgba(0,0,0,0.12)]">
+    <Link
+      href={{
+        pathname: "/student-dashboard/homework",
+        query: {
+          course: assignment.course_slug,
+          status: tab === "overdue" ? "overdue" : "to_do",
+        },
+      }}
+      className="mb-2 flex min-h-[56px] items-center gap-3 rounded-md border border-black/5 bg-white px-3 shadow-[0_1px_8px_rgba(0,0,0,0.12)] transition hover:bg-black/[0.02] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-blue)"
+    >
       <HomeworkIcon visual={visual} />
       <div className="min-w-0 flex-1">
         <p className="truncate text-[11px] text-[#5e5e5e]">
@@ -425,7 +590,7 @@ function HomeworkQueueCard({
       </div>
       {showScoreBadge && tab === "todo" ? (
         <span className="rounded-md bg-[#fff4da] px-3 py-2 text-base font-medium text-[#8a6201]">
-          {assignment.max_score}+
+          {assignment.max_score}
         </span>
       ) : date ? (
         <span className="whitespace-nowrap text-xs text-black">
@@ -435,26 +600,32 @@ function HomeworkQueueCard({
       ) : (
         <span className="whitespace-nowrap text-xs text-[#003aff]">No deadline</span>
       )}
-    </div>
+    </Link>
   );
 }
 
 function HomeworkIcon({
   visual,
+  size = "small",
 }: {
   visual: { iconSrc: string; accent: string; unoptimized: boolean };
+  size?: "small" | "large";
 }) {
+  const large = size === "large";
+
   return (
     <div
-      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-gradient-to-br ${visual.accent}`}
+      className={`flex shrink-0 items-center justify-center rounded-md bg-gradient-to-br ${visual.accent} ${
+        large ? "h-[60px] w-[60px]" : "h-10 w-10"
+      }`}
     >
       <Image
         src={visual.iconSrc}
         alt=""
-        width={32}
-        height={32}
+        width={large ? 48 : 32}
+        height={large ? 48 : 32}
         unoptimized={visual.unoptimized}
-        className="h-8 w-8 object-contain"
+        className={`${large ? "h-12 w-12" : "h-8 w-8"} object-contain`}
       />
     </div>
   );

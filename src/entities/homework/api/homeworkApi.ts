@@ -14,8 +14,18 @@ export async function getHomeworkAssignments(courseSlug: string): Promise<Homewo
   return data;
 }
 
-export async function getGrowth(params: { course?: string; period: GrowthPeriod }): Promise<GrowthData> {
-  const { data } = await api.get<GrowthData>("homework/growth/", { params });
+export async function getGrowth(params: {
+  course?: string;
+  period: GrowthPeriod;
+  studentId?: number;
+}): Promise<GrowthData> {
+  const { data } = await api.get<GrowthData>("homework/growth/", {
+    params: {
+      course: params.course,
+      period: params.period,
+      student_id: params.studentId,
+    },
+  });
   return data;
 }
 
@@ -71,10 +81,9 @@ export async function submitHomework(
   assignmentId: number,
   content: string,
 ): Promise<HomeworkSubmission> {
-  const { data } = await api.post<HomeworkSubmission>(
-    `homework/${assignmentId}/submission/`,
-    { content },
-  );
+  const { data } = await api.post<HomeworkSubmission>(`homework/${assignmentId}/submission/`, {
+    content,
+  });
   return data;
 }
 

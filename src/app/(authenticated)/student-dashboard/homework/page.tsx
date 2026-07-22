@@ -24,7 +24,7 @@ import { GradientButton } from "@/shared/ui/GradientButton";
 import { PageShell } from "@/shared/ui/PageShell";
 
 type TaskTypeFilter = "all" | "task" | "test";
-type StatusFilter = "all" | "to_do" | "submitted" | "reviewed";
+type StatusFilter = "all" | "to_do" | "overdue" | "completed" | "submitted" | "reviewed";
 
 type FilterOption<T extends string = string> = {
   value: T;
@@ -40,6 +40,8 @@ const TASK_TYPE_OPTIONS: FilterOption<TaskTypeFilter>[] = [
 const STATUS_OPTIONS: FilterOption<StatusFilter>[] = [
   { value: "all", label: "Status" },
   { value: "to_do", label: "To Do" },
+  { value: "overdue", label: "Overdue" },
+  { value: "completed", label: "Completed" },
   { value: "submitted", label: "Submitted" },
   { value: "reviewed", label: "Reviewed" },
 ];
@@ -73,12 +75,28 @@ function assignmentKind(assignment: HomeworkAssignment): "Task" | "Test" {
   return assignment.test_detail ? "Test" : "Task";
 }
 
+function scoreBadgeClassName(score: number) {
+  switch (Math.round(score)) {
+    case 5:
+      return "bg-(--color-brand-cream) text-(--color-yellow-dark)";
+    case 4:
+      return "bg-(--color-brand-lavender) text-(--color-blue-dark)";
+    case 3:
+      return "bg-(--color-brand-pink) text-(--color-pink-dark)";
+    case 2:
+      return "bg-(--color-brand-lavender-soft) text-(--color-blue)";
+    default:
+      return "bg-(--color-border-light) text-(--color-text-secondary)";
+  }
+}
+
 function assignmentStatus(
   assignment: HomeworkAssignment,
   submission?: HomeworkSubmission,
 ): StatusFilter {
   if (submission?.status === "reviewed") return "reviewed";
   if (submission) return "submitted";
+  if (assignment.due_at && new Date(assignment.due_at).getTime() < Date.now()) return "overdue";
   return "to_do";
 }
 
@@ -232,27 +250,29 @@ function HomeworkCard({
           className="h-[60px] w-[60px] object-contain"
         />
       </span>
-      <span className="min-w-0">
-        <span className="block h-5 max-w-[244px] truncate text-[16px] leading-5 font-normal text-[#5E5E5E]">
-          {courseName} &bull; {kind}
+      <span className="flex h-full min-w-0 flex-col justify-between py-[3.5px]">
+        <span className="flex max-w-[244px] items-center gap-2 text-[16px] leading-none font-normal tracking-normal not-italic text-[#5E5E5E]">
+          <span className="min-w-0 truncate">{courseName}</span>
+          <span
+            aria-hidden="true"
+            className="h-[3px] w-[3px] shrink-0 rotate-180 rounded-full bg-[#5E5E5E] opacity-100"
+          />
+          <span className="shrink-0">{kind}</span>
         </span>
-        <span className="mt-[7px] block max-w-[393px] truncate text-[20px] leading-none font-medium text-[#121212]">
+        <span className="block max-w-[393px] truncate text-[20px] leading-none font-medium tracking-normal not-italic text-[#121212]">
           {assignment.title}
         </span>
-        {submission ? (
-          <span className="mt-1.5 block text-[12px] leading-none font-normal text-[#5E5E5E]">
-            {submissionStatusLabel(submission)}
-          </span>
-        ) : null}
       </span>
       <span className="flex h-full min-w-[98px] items-end justify-end">
         {reviewedScore != null ? (
-          <span className="inline-flex h-[60px] min-w-[60px] items-center justify-center rounded-lg bg-[#FFF0C8] px-3 text-[24px] leading-none font-medium text-[#9A6500]">
+          <span
+            className={`inline-flex h-[60px] min-w-[60px] items-center justify-center rounded-lg px-3 text-[24px] leading-none font-medium ${scoreBadgeClassName(reviewedScore)}`}
+          >
             {reviewedScore}
           </span>
         ) : (
-          <span className="mb-2 whitespace-nowrap text-[16px] leading-none font-normal text-[#121212]">
-            Do to: <span className="text-[#003AFF]">{cardDeadlineLabel(assignment.due_at)}</span>
+          <span className="mb-[3.5px] whitespace-nowrap text-[16px] leading-none font-normal tracking-normal not-italic text-[#003AFF]">
+            {cardDeadlineLabel(assignment.due_at)}
           </span>
         )}
       </span>
@@ -764,8 +784,12 @@ export default function StudentHomeworkPage() {
   const subjectOptions = useMemo(
     () =>
       Array.from(
-        new Set(assignments.map((assignment) => assignment.course_title).filter(Boolean)),
-      ).sort((first, second) => first.localeCompare(second)),
+        new Map(
+          assignments
+            .filter((assignment) => assignment.course_slug && assignment.course_title)
+            .map((assignment) => [assignment.course_slug, assignment.course_title]),
+        ),
+      ).sort((first, second) => first[1].localeCompare(second[1])),
     [assignments],
   );
 
@@ -777,8 +801,11 @@ export default function StudentHomeworkPage() {
         const status = assignmentStatus(assignment, submission);
 
         if (taskTypeFilter !== "all" && kind !== taskTypeFilter) return false;
-        if (subjectFilter !== "all" && assignment.course_title !== subjectFilter) return false;
-        if (statusFilter !== "all" && status !== statusFilter) return false;
+        if (subjectFilter !== "all" && assignment.course_slug !== subjectFilter) return false;
+        if (statusFilter === "completed" && !submission) return false;
+        if (statusFilter !== "all" && statusFilter !== "completed" && status !== statusFilter) {
+          return false;
+        }
         return true;
       }),
     [assignments, submissions, statusFilter, subjectFilter, taskTypeFilter],
@@ -810,6 +837,15 @@ export default function StudentHomeworkPage() {
     assignments.find((assignment) => assignment.id === selectedAssignmentId) ?? null;
 
   useEffect(() => {
+    const query = new URLSearchParams(window.location.search);
+    const requestedCourse = query.get("course");
+    const requestedStatus = query.get("status");
+
+    if (requestedCourse) setSubjectFilter(requestedCourse);
+    if (STATUS_OPTIONS.some((option) => option.value === requestedStatus)) {
+      setStatusFilter(requestedStatus as StatusFilter);
+    }
+
     getAssignedHomework()
       .then((items) => {
         setAssignments(items);
@@ -897,7 +933,7 @@ export default function StudentHomeworkPage() {
             value={subjectFilter}
             options={[
               { value: "all", label: "Subject" },
-              ...subjectOptions.map((subject) => ({ value: subject, label: subject })),
+              ...subjectOptions.map(([slug, title]) => ({ value: slug, label: title })),
             ]}
             onChange={(value) => setSubjectFilter(value)}
           />
@@ -933,10 +969,7 @@ export default function StudentHomeworkPage() {
         <div className="mt-14 space-y-11">
           {groupedAssignments.map((group) => (
             <section key={group.key}>
-              <h2
-                className="font-normal text-[#121212]"
-                style={{ fontSize: "clamp(16px, 1.67vw, 24px)", marginBottom: "clamp(8px, 1.11vw, 16px)" }}
-              >
+              <h2 className="mb-4 w-fit text-center text-[16px] leading-none font-normal tracking-normal not-italic text-[#121212]">
                 {group.label}
               </h2>
               <div className="grid gap-x-5 gap-y-6 2xl:grid-cols-[minmax(0,722px)_minmax(0,722px)]">

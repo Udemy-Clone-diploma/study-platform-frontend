@@ -1,16 +1,13 @@
+"use client";
+
 import Image from "next/image";
 import { useRef } from "react";
 import { AccentButton } from "@/shared/ui/AccentButton";
 import type { UserData } from "@/entities/user";
+import { PROFILE_SOCIALS, type SocialLinks } from "../model/socialLinks";
 
-export const SOCIAL_ICONS = [
-    { key: "instagram", srcGray: "/social-media-icons/instagrm-gray.svg", srcBlack: "/social-media-icons/instagrm.png", label: "Instagram" },
-    { key: "linkedin",  srcGray: "/social-media-icons/LinKedln-gray.svg",  srcBlack: "/social-media-icons/LinKedln.png",  label: "LinkedIn" },
-    { key: "facebook",  srcGray: "/social-media-icons/Facebook-gray.svg",  srcBlack: "/social-media-icons/Facebook.png",  label: "Facebook" },
-    { key: "behance",   srcGray: "/social-media-icons/behance-gray.svg",   srcBlack: "/social-media-icons/behance.png",   label: "Behance" },
-] as const;
-
-export type SocialLinks = { instagram: string; linkedin: string; facebook: string; behance: string };
+export { PROFILE_SOCIALS as SOCIAL_ICONS } from "../model/socialLinks";
+export type { SocialLinks } from "../model/socialLinks";
 
 type Props = {
     user: UserData;
@@ -120,7 +117,7 @@ export function ProfileSidebar({ user, editing, avatarPreview, socialLinks, teac
 
                 {editing ? (
                     <div style={{ display: "flex", flexDirection: "column", gap: "0.833vw", width: "100%" }}>
-                        {SOCIAL_ICONS.map(s => (
+                        {PROFILE_SOCIALS.map(s => (
                             <div key={s.key} style={{
                                 display: "flex", alignItems: "center", gap: "0.625vw",
                                 background: "var(--color-bg)",
@@ -148,7 +145,7 @@ export function ProfileSidebar({ user, editing, avatarPreview, socialLinks, teac
                     </div>
                 ) : (
                     <div style={{ display: "flex", gap: "1.875vw" }}>
-                        {SOCIAL_ICONS.map(s => {
+                        {PROFILE_SOCIALS.map(s => {
                             const link = socialLinks[s.key];
                             const img = (
                                 <Image key={s.key}

@@ -1,6 +1,5 @@
-import { ChatWorkspace } from "@/features/chat";
+import { StudentChatWorkspace } from "@/widgets/chat";
 
 export default function StudentChatsPage() {
-  return <ChatWorkspace />;
+  return <StudentChatWorkspace />;
 }
-

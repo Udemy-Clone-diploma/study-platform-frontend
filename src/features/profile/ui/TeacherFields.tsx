@@ -1,3 +1,5 @@
+"use client";
+
 import { useRef } from "react";
 import { ProfileField, ProfileLanguageField, ProfileInstructionLanguageField, LABEL_STYLE, VALUE_STYLE, TEXTAREA_STYLE, formatDate } from "./ProfileField";
 import type { TeacherProfile, UserLanguage } from "@/entities/user";

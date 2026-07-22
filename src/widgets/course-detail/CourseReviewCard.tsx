@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 import { Flag, Star } from "lucide-react";
 import { reportReview, type CourseReview } from "@/entities/course";
@@ -54,9 +55,12 @@ export function CourseReviewCard({ review, showRating = true }: Props) {
             )}
           </div>
           <div className="flex flex-col gap-1">
-            <span className="text-base font-semibold text-(--color-text-primary)">
+            <Link
+              href={`/profile/${review.student.id}?view=review&from=teacher-reviews`}
+              className="text-base font-semibold text-(--color-text-primary) hover:text-(--color-blue)"
+            >
               {review.student.name}
-            </span>
+            </Link>
             {review.student.role && (
               <span className="text-base text-(--color-text-secondary)">{review.student.role}</span>
             )}

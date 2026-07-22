@@ -1,5 +1,7 @@
 import type { UserProfile } from "./profiles";
 
+export type { UserProfile } from "./profiles";
+
 export type UserRole = "student" | "teacher" | "moderator" | "administrator";
 export type UserStatus = "active" | "inactive";
 export type UserLanguage = "en" | "uk";

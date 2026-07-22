@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 
@@ -20,8 +20,22 @@ type Props = {
   zIndex?: number;
   /** Set false to keep the modal open when the overlay backdrop is clicked (default: true). */
   closeOnOverlayClick?: boolean;
+  /** Accessible name used when the modal has no visible title. */
+  ariaLabel?: string;
   children: React.ReactNode;
 };
+
+const subscribeToClientMount = () => () => {};
+const getClientMountSnapshot = () => true;
+const getServerMountSnapshot = () => false;
+const FOCUSABLE_SELECTOR = [
+  "a[href]",
+  "button:not([disabled])",
+  "input:not([disabled])",
+  "select:not([disabled])",
+  "textarea:not([disabled])",
+  '[tabindex]:not([tabindex="-1"])',
+].join(",");
 
 /** Shared modal wrapper — overlay backdrop + white rounded card + optional header. */
 export function ModalShell({
@@ -35,19 +49,110 @@ export function ModalShell({
   minHeight,
   zIndex = 50,
   closeOnOverlayClick = true,
+  ariaLabel,
   children,
 }: Props) {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const returnFocusRef = useRef<HTMLElement | null>(
+    typeof document !== "undefined" && document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null,
+  );
+  const onCloseRef = useRef(onClose);
+  const closeAllowedRef = useRef(closeOnOverlayClick);
+  const mounted = useSyncExternalStore(
+    subscribeToClientMount,
+    getClientMountSnapshot,
+    getServerMountSnapshot,
+  );
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+    closeAllowedRef.current = closeOnOverlayClick;
+  }, [closeOnOverlayClick, onClose]);
+
+  useEffect(() => {
+    if (!mounted) return;
+
+    const overlay = overlayRef.current;
+    const dialog = dialogRef.current;
+    if (!overlay || !dialog) return;
+    const dialogElement = dialog;
+    const returnFocusElement = returnFocusRef.current;
+
+    const backgroundElements = Array.from(document.body.children).filter(
+      (element): element is HTMLElement => element instanceof HTMLElement && element !== overlay,
+    );
+    const previousInertValues = backgroundElements.map((element) => [element, element.inert] as const);
+    backgroundElements.forEach((element) => {
+      element.inert = true;
+    });
+
+    const focusableElements = () =>
+      Array.from(dialogElement.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
+        (element) => element.getAttribute("aria-hidden") !== "true",
+      );
+
+    if (
+      !(document.activeElement instanceof Node) ||
+      !dialogElement.contains(document.activeElement)
+    ) {
+      focusableElements()[0]?.focus();
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape" && closeAllowedRef.current) {
+        event.preventDefault();
+        onCloseRef.current();
+        return;
+      }
+
+      if (event.key !== "Tab") return;
+      const elements = focusableElements();
+      if (elements.length === 0) {
+        event.preventDefault();
+        return;
+      }
+
+      const first = elements[0];
+      const last = elements[elements.length - 1];
+      const activeElement = document.activeElement;
+      if (event.shiftKey && (activeElement === first || !dialogElement.contains(activeElement))) {
+        event.preventDefault();
+        last.focus();
+      } else if (
+        !event.shiftKey &&
+        (activeElement === last || !dialogElement.contains(activeElement))
+      ) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      previousInertValues.forEach(([element, wasInert]) => {
+        element.inert = wasInert;
+      });
+      if (returnFocusElement?.isConnected) returnFocusElement.focus();
+    };
+  }, [mounted]);
 
   const content = (
     <div
+      ref={overlayRef}
       className="fixed inset-0 flex items-center justify-center"
       style={{ zIndex, backgroundColor: "var(--color-modal-overlay)" }}
       onClick={closeOnOverlayClick ? onClose : undefined}
     >
       {/* overflow-hidden on the outer box so border-radius clips correctly */}
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={ariaLabel ?? title}
         className="bg-white rounded-2xl"
         style={{ width, boxShadow: shadow, overflow: "clip" }}
         onClick={(e) => e.stopPropagation()}

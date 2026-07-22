@@ -37,7 +37,11 @@ export type Option = { value: string; label: string };
 
 /** Compact text-and-chevron dropdown shared by stat/growth widgets — lighter
  *  weight than the full pill `PillSelect`, meant to sit inside a card header. */
-export function Dropdown({ value, options, onChange }: {
+export function Dropdown({
+  value,
+  options,
+  onChange,
+}: {
   value: string;
   options: Option[];
   onChange: (value: string) => void;
@@ -108,14 +112,23 @@ export function GrowthCard({
   metric = "score",
   cardClassName = "p-5",
   chartHeightClassName = "h-[116px]",
+  studentId,
+  initialPeriod = "weekly",
+  defaultToFirstCourse = false,
 }: {
   metric?: Metric;
   /** Overrides the card's default padding (`p-5`) — e.g. drop the horizontal padding for an edge-to-edge chart. */
   cardClassName?: string;
   /** Overrides the chart area's default height (`h-[116px]`). */
   chartHeightClassName?: string;
+  /** Related student whose score growth a teacher is allowed to inspect. */
+  studentId?: number;
+  /** Initial period without changing the student's existing weekly default. */
+  initialPeriod?: GrowthPeriod;
+  /** Selects the first available course once options load. */
+  defaultToFirstCourse?: boolean;
 }) {
-  const [period, setPeriod] = useState<GrowthPeriod>("weekly");
+  const [period, setPeriod] = useState<GrowthPeriod>(initialPeriod);
   const [courseSlug, setCourseSlug] = useState<string>("");
   const [data, setData] = useState<NormalizedGrowth | null>(null);
 
@@ -131,7 +144,7 @@ export function GrowthCard({
             scaleMin: 0,
             scaleMax: Math.max(1, ...res.points.map((p) => p.value)),
           }))
-        : getGrowth({ course: courseSlug || undefined, period }).then((res) => ({
+        : getGrowth({ course: courseSlug || undefined, period, studentId }).then((res) => ({
             summaryLabel: "Average score",
             summaryValue: res.average,
             points: res.points,
@@ -141,7 +154,14 @@ export function GrowthCard({
           }));
 
     request
-      .then((res) => { if (!cancelled) setData(res); })
+      .then((res) => {
+        if (!cancelled) {
+          setData(res);
+          if (defaultToFirstCourse && !courseSlug && res.courses[0]) {
+            setCourseSlug(res.courses[0].slug);
+          }
+        }
+      })
       .catch(() => {
         if (!cancelled) {
           setData({
@@ -154,8 +174,10 @@ export function GrowthCard({
           });
         }
       });
-    return () => { cancelled = true; };
-  }, [period, courseSlug, metric]);
+    return () => {
+      cancelled = true;
+    };
+  }, [period, courseSlug, metric, studentId, defaultToFirstCourse]);
 
   const courseOptions: Option[] = [
     { value: "", label: "All courses" },
@@ -171,13 +193,18 @@ export function GrowthCard({
   const scaleMax = data?.scaleMax ?? (metric === "enrollments" ? 1 : 5);
   const isIntegerScale = Number.isInteger(scaleMin) && Number.isInteger(scaleMax);
   const lineD = points
-    .map((p, i) => `${i === 0 ? "M" : "L"}${xFor(i, points.length)} ${yFor(p.value, scaleMin, scaleMax)}`)
+    .map(
+      (p, i) =>
+        `${i === 0 ? "M" : "L"}${xFor(i, points.length)} ${yFor(p.value, scaleMin, scaleMax)}`,
+    )
     .join(" ");
-  const areaD = points.length > 0
-    ? `${lineD} L${xFor(points.length - 1, points.length)} ${CHART_Y_BASE} L${xFor(0, points.length)} ${CHART_Y_BASE} Z`
-    : "";
+  const areaD =
+    points.length > 0
+      ? `${lineD} L${xFor(points.length - 1, points.length)} ${CHART_Y_BASE} L${xFor(0, points.length)} ${CHART_Y_BASE} Z`
+      : "";
   const labelFontSize = points.length > 6 ? 8 : 10;
-  const summaryLabel = data?.summaryLabel ?? (metric === "enrollments" ? "New students" : "Average score");
+  const summaryLabel =
+    data?.summaryLabel ?? (metric === "enrollments" ? "New students" : "Average score");
   const yAxisSteps = [4, 3, 2, 1, 0].map((step) => {
     const value = scaleMin + ((scaleMax - scaleMin) * step) / 4;
     return isIntegerScale ? Math.round(value) : Number(value.toFixed(1));
@@ -189,7 +216,11 @@ export function GrowthCard({
         <h2 className="text-base font-bold text-black">Growth</h2>
         <div className="flex items-center gap-3">
           <Dropdown value={courseSlug} options={courseOptions} onChange={setCourseSlug} />
-          <Dropdown value={period} options={periodOptions} onChange={(v) => setPeriod(v as GrowthPeriod)} />
+          <Dropdown
+            value={period}
+            options={periodOptions}
+            onChange={(v) => setPeriod(v as GrowthPeriod)}
+          />
         </div>
       </div>
 

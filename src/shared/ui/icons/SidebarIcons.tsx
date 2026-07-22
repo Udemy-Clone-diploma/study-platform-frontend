@@ -15,6 +15,7 @@ export type SidebarIconName =
   | "certificates"
   | "wishlist"
   | "reviews"
+  | "reports"
   | "notifications";
 
 type SidebarIconProps = SVGProps<SVGSVGElement> & {
@@ -146,6 +147,15 @@ export function SidebarIcon({ name, ...props }: SidebarIconProps) {
           <rect x="3" y="1" width="3.82" height="8.23" rx="1" />
           <rect x="6.82" y="1" width="15.16" height="19.75" rx="1" />
           <rect x="21.99" y="1" width="3.83" height="8.24" rx="1" />
+        </svg>
+      );
+    case "reports":
+      return (
+        <svg {...common}>
+          <path d="M5 21V4" />
+          <path d="M5 5h11l-1.5 3L16 11H5" />
+          <path d="M18.5 14.5 21 17l-2.5 2.5" />
+          <path d="M21 17h-6" />
         </svg>
       );
     case "notifications":

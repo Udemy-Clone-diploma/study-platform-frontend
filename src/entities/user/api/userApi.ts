@@ -8,6 +8,8 @@ import type {
   UserRole,
   UserStatus,
 } from "../model/types";
+import type { PublicUserProfile } from "../model/publicProfile";
+import type { AdminUserProfile } from "../model/adminProfile";
 
 export async function getMe(accessToken?: string): Promise<UserData> {
   const { data } = await api.get<UserData>("auth/me/", {
@@ -54,6 +56,21 @@ export async function getUsers(params: GetUsersParams = {}): Promise<PaginatedUs
 
 export async function getUserById(id: number): Promise<UserData> {
   const { data } = await api.get<UserData>(`users/${id}/`);
+  return data;
+}
+
+export async function getPublicUserProfile(
+  id: number,
+  accessToken?: string,
+): Promise<PublicUserProfile> {
+  const { data } = await api.get<PublicUserProfile>(`users/${id}/public-profile/`, {
+    headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+  });
+  return data;
+}
+
+export async function getAdminUserProfile(id: number): Promise<AdminUserProfile> {
+  const { data } = await api.get<AdminUserProfile>(`users/${id}/admin-profile/`);
   return data;
 }
 

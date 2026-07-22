@@ -23,6 +23,7 @@ export type TopReview = CourseReview & {
 };
 
 export type ReviewReportItem = {
+  reporter_id: number;
   reporter_name: string;
   reporter_avatar: string | null;
   reason: string;

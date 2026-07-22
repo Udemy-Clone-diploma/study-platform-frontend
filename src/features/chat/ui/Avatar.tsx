@@ -14,9 +14,9 @@ export function Avatar({ src, label, size = "md" }: Props) {
   const dimensions = {
     sm: "h-8 w-8 text-xs",
     md: "h-11 w-11 text-sm",
-    lg: "h-12 w-12 text-base",
+    lg: "h-10 w-10 text-sm lg:h-12 lg:w-12 lg:text-base",
     xl: "h-24 w-24 text-2xl",
-    card: "h-[55px] w-[55px] text-base",
+    card: "h-10 w-10 text-sm lg:h-[55px] lg:w-[55px] lg:text-base",
   }[size];
   const initials = label
     .split(" ")

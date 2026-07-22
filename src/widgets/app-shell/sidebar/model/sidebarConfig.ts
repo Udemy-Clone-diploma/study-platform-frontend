@@ -59,6 +59,14 @@ const teacherItems: SidebarItem[] = [
     match: "startsWith",
   },
   {
+    id: "blog",
+    label: "My Articles",
+    href: "/teacher-dashboard/blog",
+    icon: "materials",
+    iconSrc: "/icons/book-navy.svg",
+    match: "startsWith",
+  },
+  {
     id: "statistics",
     label: "Statistics",
     href: "/teacher-dashboard/statistics",
@@ -208,6 +216,14 @@ const moderatorItems: SidebarItem[] = [
     match: "startsWith",
   },
   {
+    id: "blog",
+    label: "Blog",
+    href: "/moderator-dashboard/blog",
+    icon: "materials",
+    iconSrc: "/icons/book-navy.svg",
+    match: "startsWith",
+  },
+  {
     id: "notifications",
     label: "Notifications",
     href: "/moderator-dashboard/notifications",
@@ -265,6 +281,14 @@ const adminItems: SidebarItem[] = [
     href: "/admin/statistics",
     icon: "statistics",
     iconSrc: "/icons/statistics.svg",
+    match: "startsWith",
+  },
+  {
+    id: "blog",
+    label: "Blog",
+    href: "/admin/blog",
+    icon: "materials",
+    iconSrc: "/icons/book-navy.svg",
     match: "startsWith",
   },
   {

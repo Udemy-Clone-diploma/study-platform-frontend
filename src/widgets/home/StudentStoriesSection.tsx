@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef } from "react";
 import { SectionContainer } from "@/shared/ui/SectionContainer";
+import { useDragScroll } from "@/shared/lib/useDragScroll";
 import { StudentStoryCard, type StudentStory } from "@/features/users";
 
 const MOCK_STORIES: StudentStory[] = [
@@ -44,42 +44,7 @@ const MOCK_STORIES: StudentStory[] = [
 ];
 
 export function StudentStoriesSection() {
-    const scrollRef = useRef<HTMLDivElement>(null);
-    const isDown = useRef(false);
-    const isDragging = useRef(false);
-    const startX = useRef(0);
-    const scrollLeft = useRef(0);
-
-    const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-        const el = scrollRef.current;
-        if (!el) return;
-        isDown.current = true;
-        isDragging.current = false;
-        startX.current = e.pageX;
-        scrollLeft.current = el.scrollLeft;
-    };
-
-    const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-        if (!isDown.current || !scrollRef.current) return;
-        const dx = e.pageX - startX.current;
-        if (!isDragging.current && Math.abs(dx) < 5) return;
-        if (!isDragging.current) {
-            isDragging.current = true;
-            scrollRef.current.setPointerCapture(e.pointerId);
-            scrollRef.current.style.cursor = "grabbing";
-        }
-        scrollRef.current.scrollLeft = scrollLeft.current - dx;
-    };
-
-    const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
-        isDown.current = false;
-        isDragging.current = false;
-        if (scrollRef.current) {
-            scrollRef.current.style.cursor = "grab";
-            if (scrollRef.current.hasPointerCapture(e.pointerId))
-                scrollRef.current.releasePointerCapture(e.pointerId);
-        }
-    };
+    const { scrollRef, onPointerDown, onPointerMove, onPointerUp } = useDragScroll<HTMLDivElement>();
 
     return (
         <section>

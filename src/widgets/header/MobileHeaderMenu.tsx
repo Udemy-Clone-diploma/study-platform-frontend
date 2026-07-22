@@ -210,7 +210,7 @@ export function MobileHeaderMenu({ isLoggedIn, categories, role }: Props) {
             </AccordionSection>
 
             <Link
-              href="/coming-soon?page=Blog"
+              href="/blog"
               onClick={closeAll}
               className="transition-opacity hover:opacity-70"
               style={topLevelStyle}

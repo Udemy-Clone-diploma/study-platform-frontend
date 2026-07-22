@@ -65,7 +65,7 @@ export async function Header({ borderRadius = "0px 0px 20px 20px" }: HeaderProps
                         <nav className="flex items-center gap-8 h-full">
                             <CatalogDropdown categories={categories} />
                             <Link
-                                href="/coming-soon?page=Blog"
+                                href="/blog"
                                 className="transition-opacity hover:opacity-70"
                                 style={navLinkStyle}
                             >

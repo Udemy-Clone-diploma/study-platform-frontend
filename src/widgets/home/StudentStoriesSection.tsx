@@ -3,14 +3,14 @@
 import { SectionContainer } from "@/shared/ui/SectionContainer";
 import { useDragScroll } from "@/shared/lib/useDragScroll";
 import { StudentStoryCard } from "@/features/users";
-import type { ArticleListItem } from "@/entities/blog";
+import type { ArticleListItem, BlogCategory } from "@/entities/blog";
 
-type Props = { articles: ArticleListItem[] };
+type Props = { articles: ArticleListItem[]; category: BlogCategory | null };
 
-export function StudentStoriesSection({ articles }: Props) {
+export function StudentStoriesSection({ articles, category }: Props) {
     const { scrollRef, onPointerDown, onPointerMove, onPointerUp } = useDragScroll<HTMLDivElement>();
 
-    if (articles.length === 0) return null;
+    if (articles.length === 0 || !category) return null;
 
     return (
         <section>
@@ -46,7 +46,7 @@ export function StudentStoriesSection({ articles }: Props) {
                                 color: "var(--color-blue)",
                             }}
                         >
-                            STUDENT STORIES
+                            {category.name.toUpperCase()}
                         </span>
                     </div>
 
@@ -61,21 +61,22 @@ export function StudentStoriesSection({ articles }: Props) {
                                 margin: 0,
                             }}
                         >
-                            Stories of growth and new beginnings
+                            {category.headline}
                         </h2>
-                        <p
-                            style={{
-                                fontFamily: "var(--font-base)",
-                                fontWeight: 400,
-                                fontSize: "1.25vw",
-                                lineHeight: "1.5625vw",
-                                color: "var(--color-text-secondary)",
-                                margin: 0,
-                            }}
-                        >
-                            Real people. Real journeys. Discover how students from around
-                            the world transformed their skills into real careers.
-                        </p>
+                        {category.description && (
+                            <p
+                                style={{
+                                    fontFamily: "var(--font-base)",
+                                    fontWeight: 400,
+                                    fontSize: "1.25vw",
+                                    lineHeight: "1.5625vw",
+                                    color: "var(--color-text-secondary)",
+                                    margin: 0,
+                                }}
+                            >
+                                {category.description}
+                            </p>
+                        )}
                     </div>
                 </div>
             </SectionContainer>

@@ -15,15 +15,17 @@ export function PopularCoursesSection({ courses, wishlistedSlugs }: Props) {
     return (
         <section>
             <SectionContainer>
-                <h2 style={{
-                    fontFamily: "var(--font-base)",
-                    fontWeight: 400,
-                    fontSize: "2.5vw",
-                    lineHeight: 1.25,
-                    textAlign: "center",
-                    margin: "3%",
-                    color: "var(--color-text-primary)",
-                }}>
+                <h2
+                    className="text-[24px] md:text-[30px] lg:text-[2.5vw]"
+                    style={{
+                        fontFamily: "var(--font-base)",
+                        fontWeight: 400,
+                        lineHeight: 1.25,
+                        textAlign: "center",
+                        margin: "3%",
+                        color: "var(--color-text-primary)",
+                    }}
+                >
                     Popular courses
                 </h2>
             </SectionContainer>

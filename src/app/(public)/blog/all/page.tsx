@@ -39,7 +39,7 @@ export default async function AllArticlesPage({
 
       <SectionContainer style={{ paddingTop: "7.19vw", paddingBottom: "2.5vw" }}>
         <div
-          className="w-full lg:w-auto lg:max-w-[36.46vw]"
+          className="w-full lg:w-auto min-[1024px]:max-[1439px]:max-w-[max(420px,36.46vw)] min-[1440px]:max-w-[max(600px,36.46vw)]"
           style={{ display: "flex", flexDirection: "column", gap: "clamp(12px, 1.04vw, 15px)", marginBottom: "2.5vw" }}
         >
           <h1

@@ -45,6 +45,23 @@ const CATEGORIES: CategoryCardData[] = [
 const row1 = CATEGORIES.slice(0, 3);
 const row2 = CATEGORIES.slice(3, 6);
 
+const toCatalogButton = (
+    <GradientButton href="/catalog">
+        To catalog
+        <Image
+            src="/icons/arrow-goto.png"
+            alt=""
+            width={14}
+            height={14}
+            style={{
+                width: "clamp(8px, 1.04vw, 14px)",
+                height: "auto",
+                flexShrink: 0,
+            }}
+        />
+    </GradientButton>
+);
+
 export function CategoriesSection() {
     return (
         <section style={{ position: "relative", overflow: "hidden" }}>
@@ -91,10 +108,9 @@ export function CategoriesSection() {
 
                 {/* Header */}
                 <div
+                    className="flex flex-col items-start lg:flex-row lg:items-end lg:justify-between"
                     style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "flex-end",
+                        gap: "24px",
                         marginBottom: "3.5vw",
                     }}
                 >
@@ -137,6 +153,7 @@ export function CategoriesSection() {
                                 Choose your field of growth
                             </h2>
                             <p
+                                className="max-w-full lg:max-w-[36.5vw]"
                                 style={{
                                     fontFamily: "var(--font-base)",
                                     fontWeight: 400,
@@ -144,7 +161,6 @@ export function CategoriesSection() {
                                     lineHeight: 1.25,
                                     color: "var(--color-text-secondary)",
                                     margin: 0,
-                                    maxWidth: "36.5vw",
                                 }}
                             >
                                 Explore 6+ core categories designed for professional career
@@ -153,35 +169,25 @@ export function CategoriesSection() {
                         </div>
                     </div>
 
-                    <GradientButton href="/catalog">
-                        To catalog
-                        <Image
-                            src="/icons/arrow-goto.png"
-                            alt=""
-                            width={14}
-                            height={14}
-                            style={{
-                                width: "clamp(8px, 1.04vw, 14px)",
-                                height: "auto",
-                                flexShrink: 0,
-                            }}
-                        />
-                    </GradientButton>
+                    <div className="hidden lg:block">{toCatalogButton}</div>
                 </div>
 
                 {/* Staggered grid */}
-                <div style={{ display: "flex", flexDirection: "column", gap: "2.08vw" }}>
-                    <div style={{ display: "flex", gap: "1.04vw" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "clamp(16px, 2.08vw, 30px)" }}>
+                    <div className="flex flex-wrap justify-center lg:flex-nowrap lg:justify-start" style={{ gap: "clamp(16px, 1.04vw, 15px)" }}>
                         {row1.map((card) => (
                             <CategoryCard key={card.title} card={card} />
                         ))}
                     </div>
-                    <div style={{ display: "flex", gap: "1.04vw", justifyContent: "flex-end" }}>
+                    <div className="flex flex-wrap justify-center lg:flex-nowrap lg:justify-end" style={{ gap: "clamp(16px, 1.04vw, 15px)" }}>
                         {row2.map((card) => (
                             <CategoryCard key={card.title} card={card} />
                         ))}
                     </div>
                 </div>
+
+                {/* Mobile/tablet: "To catalog" CTA repeated below the card grid */}
+                <div className="mt-6 flex justify-center lg:hidden">{toCatalogButton}</div>
 
             </SectionContainer>
         </section>

@@ -121,7 +121,7 @@ export default async function CatalogPage({
 
   return (
     <div className="bg-catalog-page flex min-h-screen w-full flex-col text-(--color-text-primary)">
-      <div className="mx-auto flex w-full max-w-[1480px] flex-1 flex-col px-4 pb-25 pt-50 md:px-8">
+      <div className="mx-auto flex w-full max-w-[1480px] flex-1 flex-col px-4 pt-12 pb-25 lg:pt-50 lg:px-8">
         <CatalogHero />
 
         <div className="mt-15 flex w-full flex-col items-stretch gap-6 lg:flex-row lg:items-center">
@@ -134,8 +134,8 @@ export default async function CatalogPage({
           </Suspense>
         </div>
 
-        {/* Figma spec: 150px gap from search row to filter bar. Alt if it feels too disconnected: mt-24 (96px). */}
-        <div className="mt-37.5 flex flex-col gap-14">
+        {/* Figma spec: 150px gap from search row to filter bar (desktop only; tighter below lg). */}
+        <div className="mt-10 flex flex-col gap-6 lg:mt-37.5 lg:gap-14">
           <div className="flex items-center justify-between gap-4">
             <Link
               href={buildCatalogHref(state, { filtersOpen: !state.filtersOpen })}
@@ -154,7 +154,7 @@ export default async function CatalogPage({
             </Suspense>
           </div>
 
-          <div className={`grid gap-5 ${state.filtersOpen ? "lg:grid-cols-[460px_1fr]" : ""}`}>
+          <div className={`relative grid gap-5 ${state.filtersOpen ? "lg:grid-cols-[460px_1fr]" : ""}`}>
             {state.filtersOpen ? (
               <CatalogFiltersSidebar categories={categories} state={state} />
             ) : null}
@@ -177,10 +177,7 @@ export default async function CatalogPage({
                   </Link>
                 </div>
               ) : (
-                <div
-                  className="grid justify-center gap-6"
-                  style={{ gridTemplateColumns: "repeat(auto-fit, 456px)" }}
-                >
+                <div className="flex flex-wrap justify-center gap-4">
                   {courses.map((course) => (
                     <CourseCard key={course.id} course={course} isWishlisted={wishlistSet.has(course.slug)} />
                   ))}

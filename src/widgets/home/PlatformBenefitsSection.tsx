@@ -35,35 +35,31 @@ export function PlatformBenefitsSection() {
                     style={{
                         display: "flex",
                         flexDirection: "column",
-                        gap: "8.33vw",
+                        gap: "clamp(40px, 8.33vw, 120px)",
                         paddingTop: "6.25vw",
                         paddingBottom: "6.25vw",
                     }}
                 >
-                    {/* Row 1: heading + tags (left) / description (right) */}
+                    {/* Row 1: heading + tags (left) / description (right) — stacks below 1024px */}
                     <div
-                        style={{
-                            display: "flex",
-                            flexDirection: "row",
-                            alignItems: "center",
-                            gap: "7.29vw",
-                        }}
+                        className="flex flex-col lg:flex-row lg:items-center"
+                        style={{ gap: "clamp(20px, 7.29vw, 105px)" }}
                     >
                         {/* Left column */}
                         <div
+                            className="w-full lg:w-[30.21vw]"
                             style={{
                                 display: "flex",
                                 flexDirection: "column",
-                                gap: "1.04vw",
+                                gap: "clamp(10px, 1.04vw, 15px)",
                                 flexShrink: 0,
-                                width: "30.21vw",
                             }}
                         >
                             <h2
+                                className="text-[28px] md:text-[36px] lg:text-[2.5vw]"
                                 style={{
                                     fontFamily: "var(--font-base)",
                                     fontWeight: 400,
-                                    fontSize: "2.5vw",
                                     lineHeight: 1.25,
                                     color: "var(--color-text-primary)",
                                     margin: 0,
@@ -78,28 +74,22 @@ export function PlatformBenefitsSection() {
                                     display: "inline-flex",
                                     alignSelf: "flex-start",
                                     alignItems: "center",
-                                    padding: "0 0.52vw",
+                                    padding: "3px clamp(6px, 0.52vw, 8px)",
                                     background: "var(--color-badge-lavender)",
                                     borderRadius: 4,
-                                    height: "0.99vw",
                                 }}
                             >
                                 <div
-                                    style={{
-                                        display: "flex",
-                                        flexDirection: "row",
-                                        alignItems: "center",
-                                        gap: "0.83vw",
-                                    }}
+                                    className="flex flex-row flex-wrap items-center"
+                                    style={{ gap: "clamp(8px, 0.83vw, 12px)" }}
                                 >
                                     {TAGS.map((tag) => (
                                         <span
                                             key={tag}
+                                            className="text-[11px] leading-[14px] md:text-[12px] md:leading-[15px] lg:text-[0.78vw] lg:leading-[0.99vw]"
                                             style={{
                                                 fontFamily: "var(--font-accent)",
                                                 fontWeight: 500,
-                                                fontSize: "0.78vw",
-                                                lineHeight: "0.99vw",
                                                 color: "var(--color-blue)",
                                                 whiteSpace: "nowrap",
                                             }}
@@ -113,10 +103,10 @@ export function PlatformBenefitsSection() {
 
                         {/* Right: description */}
                         <p
+                            className="text-[15px] md:text-[17px] lg:text-[1.04vw]"
                             style={{
                                 fontFamily: "var(--font-base)",
                                 fontWeight: 400,
-                                fontSize: "1.04vw",
                                 lineHeight: 1.25,
                                 color: "var(--color-text-primary)",
                                 margin: 0,
@@ -129,14 +119,10 @@ export function PlatformBenefitsSection() {
                         </p>
                     </div>
 
-                    {/* Row 2: USP glass cards */}
+                    {/* Row 2: USP glass cards — stacks below 1024px */}
                     <div
-                        style={{
-                            display: "flex",
-                            flexDirection: "row",
-                            alignItems: "stretch",
-                            gap: "1.04vw",
-                        }}
+                        className="flex flex-col items-stretch lg:flex-row"
+                        style={{ gap: "clamp(16px, 1.04vw, 15px)" }}
                     >
                         {USP_CARDS.map((card) => (
                             <UspCard

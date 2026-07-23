@@ -37,7 +37,10 @@ export function CategoryFilter({ categories, currentSlug }: Props) {
   }
 
   return (
-    <nav aria-label="Categories" className="flex flex-1 flex-wrap items-center gap-3">
+    <nav
+      aria-label="Categories"
+      className="drag-scroll flex flex-1 flex-nowrap items-center gap-3 overflow-x-auto lg:flex-wrap lg:overflow-visible"
+    >
       {items.map((cat) => {
         const active = currentSlug === cat.slug;
         return (

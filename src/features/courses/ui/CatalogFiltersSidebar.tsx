@@ -42,7 +42,7 @@ export function CatalogFiltersSidebar({
   state: CatalogFilterState;
 }) {
   return (
-    <aside className="rounded-[8px] bg-white px-6 py-6 shadow-[0_0_24px_rgba(167,186,250,0.35)]">
+    <aside className="absolute inset-x-0 top-0 z-20 rounded-[8px] bg-white px-6 py-6 shadow-[0_0_24px_rgba(167,186,250,0.35)] lg:static lg:inset-auto lg:z-auto">
       <div className="space-y-6">
         <CollapsibleFilterSection title="Format">
           <ToggleOption

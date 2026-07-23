@@ -54,7 +54,7 @@ export function BlogHeroSection({ role }: Props) {
   return (
     <SectionContainer style={{ paddingTop: "7.19vw", paddingBottom: "2.5vw" }}>
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between" style={{ gap: "clamp(16px, 2vw, 29px)" }}>
-        <div className="w-full lg:w-auto lg:max-w-[36.46vw]" style={{ display: "flex", flexDirection: "column", gap: "clamp(12px, 1.04vw, 15px)" }}>
+        <div className="w-full lg:w-auto min-[1024px]:max-[1439px]:max-w-[max(420px,36.46vw)] min-[1440px]:max-w-[max(600px,36.46vw)]" style={{ display: "flex", flexDirection: "column", gap: "clamp(12px, 1.04vw, 15px)" }}>
           <h1
             className="text-[28px] leading-[34px] md:text-[38px] md:leading-[46px] lg:text-[clamp(28px,3.125vw,45px)] lg:leading-[clamp(34px,3.75vw,54px)] lg:whitespace-nowrap"
             style={{

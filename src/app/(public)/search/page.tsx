@@ -101,7 +101,7 @@ export default async function SiteSearchPage({
               {courses.length === 0 ? (
                 <p className="text-(--color-text-secondary)">No courses found.</p>
               ) : (
-                <div className="grid justify-center gap-6" style={{ gridTemplateColumns: "repeat(auto-fit, 456px)" }}>
+                <div className="flex flex-wrap justify-center gap-4">
                   {courses.map((course) => (
                     <CourseCard key={course.id} course={course} isWishlisted={wishlistSet.has(course.slug)} />
                   ))}

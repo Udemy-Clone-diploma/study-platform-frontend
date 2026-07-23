@@ -16,9 +16,7 @@ export function Footer() {
         <footer
             className="w-full shrink-0"
             style={{
-                backgroundImage: "url('/backgrounds/footer-bg-image.png')",
-                backgroundSize: "cover",
-                backgroundPosition: "center",
+                background: "var(--gradient-brand)",
                 borderRadius: "20px 20px 0 0",
                 overflowX: "clip",
             }}

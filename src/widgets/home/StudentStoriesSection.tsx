@@ -17,11 +17,11 @@ export function StudentStoriesSection({ articles, category }: Props) {
             {/* Header */}
             <SectionContainer>
                 <div
+                    className="w-full lg:w-auto min-[1024px]:max-[1439px]:max-w-[max(420px,36.46vw)] min-[1440px]:max-w-[max(600px,36.46vw)]"
                     style={{
                         display: "flex",
                         flexDirection: "column",
-                        gap: "1.46vw",
-                        maxWidth: "36.46vw",
+                        gap: "clamp(12px, 1.46vw, 21px)",
                         paddingTop: "7.19vw",
                         paddingBottom: "3.125vw",
                     }}
@@ -32,17 +32,16 @@ export function StudentStoriesSection({ articles, category }: Props) {
                             alignSelf: "flex-start",
                             alignItems: "center",
                             justifyContent: "center",
-                            padding: "0 0.52vw",
+                            padding: "3px clamp(6px, 0.52vw, 8px)",
                             background: "var(--color-badge-lavender)",
                             borderRadius: 4,
                         }}
                     >
                         <span
+                            className="text-[11px] leading-[14px] md:text-[13px] md:leading-[16px] lg:text-[1.04vw] lg:leading-[1.3vw]"
                             style={{
                                 fontFamily: "var(--font-accent)",
                                 fontWeight: 500,
-                                fontSize: "1.04vw",
-                                lineHeight: "1.3vw",
                                 color: "var(--color-blue)",
                             }}
                         >
@@ -50,13 +49,12 @@ export function StudentStoriesSection({ articles, category }: Props) {
                         </span>
                     </div>
 
-                    <div style={{ display: "flex", flexDirection: "column", gap: "1.04vw" }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "clamp(8px, 1.04vw, 15px)" }}>
                         <h2
+                            className="text-[26px] leading-[32px] md:text-[34px] md:leading-[40px] lg:text-[2.5vw] lg:leading-[3.125vw]"
                             style={{
                                 fontFamily: "var(--font-base)",
                                 fontWeight: 400,
-                                fontSize: "2.5vw",
-                                lineHeight: "3.125vw",
                                 color: "var(--color-text-primary)",
                                 margin: 0,
                             }}
@@ -65,11 +63,10 @@ export function StudentStoriesSection({ articles, category }: Props) {
                         </h2>
                         {category.description && (
                             <p
+                                className="text-[15px] leading-[19px] md:text-[17px] md:leading-[21px] lg:text-[1.25vw] lg:leading-[1.5625vw]"
                                 style={{
                                     fontFamily: "var(--font-base)",
                                     fontWeight: 400,
-                                    fontSize: "1.25vw",
-                                    lineHeight: "1.5625vw",
                                     color: "var(--color-text-secondary)",
                                     margin: 0,
                                 }}
@@ -86,7 +83,7 @@ export function StudentStoriesSection({ articles, category }: Props) {
                 ref={scrollRef}
                 className="drag-scroll"
                 style={{
-                    paddingLeft: "13vw",
+                    paddingLeft: "clamp(16px, 13vw, 187px)",
                     paddingBottom: "7.19vw",
                     overflowX: "scroll",
                     cursor: "grab",
@@ -95,7 +92,7 @@ export function StudentStoriesSection({ articles, category }: Props) {
                 onPointerMove={onPointerMove}
                 onPointerUp={onPointerUp}
             >
-                <div style={{ display: "flex", gap: "1.04vw", width: "max-content", paddingRight: "13vw" }}>
+                <div style={{ display: "flex", gap: "1.04vw", width: "max-content", paddingRight: "clamp(16px, 13vw, 187px)" }}>
                     {articles.map((article) => (
                         <StudentStoryCard key={article.id} article={article} />
                     ))}

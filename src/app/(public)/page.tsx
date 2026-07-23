@@ -85,20 +85,22 @@ export default async function Home() {
 
             </div>
             <div style={{ position: "relative", zIndex: 1 }}>
-                {/* Hero illustration — lives here so it's unconstrained by SectionContainer */}
-                <div style={{
-                    position: "absolute",
-                    right: "6vw",
-                    top: "6vw",
-                    pointerEvents: "none",
-                }}>
+                {/* Hero illustration — lives here so it's unconstrained by SectionContainer.
+                    Stacked above the text and stretched to the page's content width below
+                    1024px (same gutter as SectionContainer); absolutely positioned top-right
+                    of the text column at lg+ (matches the original desktop layout). */}
+                <div
+                    className="mx-auto flex w-[min(1420px,calc(100%-32px))] justify-center pt-[6vw] lg:absolute lg:block lg:w-auto lg:justify-start lg:pt-0 lg:right-[6vw] lg:top-[6vw]"
+                    style={{ pointerEvents: "none" }}
+                >
                     <Image
                         src="/main/Image main.png"
                         alt=""
                         width={789}
                         height={660}
                         priority
-                        style={{ width: "41.1vw", maxWidth: 789, height: "auto", display: "block" }}
+                        className="w-full lg:w-[41.1vw]"
+                        style={{ maxWidth: 789, height: "auto", display: "block" }}
                     />
                 </div>
                 <HeroSection />

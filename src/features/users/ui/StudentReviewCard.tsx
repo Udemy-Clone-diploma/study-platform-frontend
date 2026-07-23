@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState, type CSSProperties } from "react";
+import { useState } from "react";
 import { Flag } from "lucide-react";
 import { ReportReviewModal } from "@/shared/ui/ReportReviewModal";
 import { reportReview } from "@/entities/course";
@@ -16,25 +16,27 @@ export type StudentReview = {
 
 type Props = {
     review: StudentReview;
-    style?: CSSProperties;
+    /** Sets the lg+ flex-grow ratio for the zigzag narrow/wide layout (e.g. "lg:grow-[580]").
+     * Below lg the card always stays w-full since the row stacks into a column there. */
+    className?: string;
 };
 
-export function StudentReviewCard({ review, style }: Props) {
+export function StudentReviewCard({ review, className = "" }: Props) {
     const [reporting, setReporting] = useState(false);
 
     return (
         <div
+            className={`w-full lg:w-0 lg:shrink lg:grow ${className}`}
             style={{
                 position: "relative",
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "space-between",
-                height: "11.46vw",
-                padding: "1.46vw 1.25vw 1.67vw",
+                minHeight: "clamp(160px, 11.46vw, 165px)",
+                padding: "clamp(16px, 1.46vw, 21px) clamp(16px, 1.25vw, 18px) clamp(18px, 1.67vw, 24px)",
                 background: "var(--color-bg)",
                 boxShadow: "var(--shadow-testimonial)",
-                borderRadius: "1.04vw",
-                ...style,
+                borderRadius: "20px",
             }}
         >
             <button
@@ -64,11 +66,10 @@ export function StudentReviewCard({ review, style }: Props) {
 
             {/* Quote: clamped to 4 lines so a long review can't grow the card. */}
             <p
+                className="text-[14px] leading-[18px] md:text-[15px] md:leading-[19px] lg:text-[1.04vw] lg:leading-[1.3vw]"
                 style={{
                     fontFamily: "var(--font-base)",
                     fontWeight: 500,
-                    fontSize: "1.04vw",
-                    lineHeight: "1.3vw",
                     color: "var(--color-text-secondary)",
                     margin: 0,
                     display: "-webkit-box",
@@ -92,8 +93,8 @@ export function StudentReviewCard({ review, style }: Props) {
                 <div
                     style={{
                         position: "relative",
-                        width: "2.71vw",
-                        height: "2.71vw",
+                        width: "clamp(32px, 2.71vw, 39px)",
+                        height: "clamp(32px, 2.71vw, 39px)",
                         borderRadius: "50%",
                         overflow: "hidden",
                         flexShrink: 0,
@@ -113,22 +114,20 @@ export function StudentReviewCard({ review, style }: Props) {
 
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.21vw" }}>
                     <span
+                        className="text-[12px] leading-[15px] md:text-[13px] md:leading-[16px] lg:text-[0.83vw] lg:leading-[1.04vw]"
                         style={{
                             fontFamily: "var(--font-base)",
                             fontWeight: 600,
-                            fontSize: "0.83vw",
-                            lineHeight: "1.04vw",
                             color: "var(--color-text-primary)",
                         }}
                     >
                         {review.authorName}
                     </span>
                     <span
+                        className="text-[12px] leading-[15px] md:text-[13px] md:leading-[16px] lg:text-[0.83vw] lg:leading-[1.04vw]"
                         style={{
                             fontFamily: "var(--font-base)",
                             fontWeight: 400,
-                            fontSize: "0.83vw",
-                            lineHeight: "1.04vw",
                             color: "var(--color-text-secondary)",
                         }}
                     >

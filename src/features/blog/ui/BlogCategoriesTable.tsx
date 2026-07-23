@@ -38,9 +38,19 @@ export function BlogCategoriesTable({ categories, emptyMessage, onEdit, onDelete
       ),
     },
     {
+      key: "headline",
+      label: "Headline",
+      flex: 1.8,
+      render: (row) => (
+        <span className="block overflow-hidden text-ellipsis whitespace-nowrap">
+          {row.headline}
+        </span>
+      ),
+    },
+    {
       key: "description",
       label: "Description",
-      flex: 2.6,
+      flex: 2,
       render: (row) => (
         <span className="block overflow-hidden text-ellipsis whitespace-nowrap">
           {row.description}

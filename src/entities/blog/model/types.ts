@@ -4,6 +4,7 @@ export type BlogCategory = {
   id: number;
   name: string;
   slug: string;
+  headline: string;
   description: string;
   order: number;
   /** Only present when the list endpoint annotates it (see BlogCategoryService.annotate_articles_count) --

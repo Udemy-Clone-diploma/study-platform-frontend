@@ -32,8 +32,8 @@ export function ArticleCard({ article, currentUserId, currentUserRole, onAction 
     <div
       style={{
         position: "relative",
-        width: 460,
-        height: 520,
+        width: "clamp(280px, 44.92vw, 460px)",
+        height: "clamp(316px, 50.78vw, 520px)",
         borderRadius: 24,
         overflow: "hidden",
         flexShrink: 0,
@@ -131,10 +131,10 @@ export function ArticleCard({ article, currentUserId, currentUserRole, onAction 
           ) : (
             <div style={{ width: 22, height: 22, borderRadius: "50%", background: "var(--color-bg)" }} />
           )}
-          <span style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: 13, color: "var(--color-text-primary)" }}>
+          <span style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(12px, 1.27vw, 13px)", color: "var(--color-text-primary)" }}>
             {article.author.name}
           </span>
-          <span style={{ fontFamily: "var(--font-base)", fontSize: 12, color: "var(--color-text-primary)", opacity: 0.7 }}>
+          <span style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 1.17vw, 12px)", color: "var(--color-text-primary)", opacity: 0.7 }}>
             {dateLabel}
           </span>
         </div>
@@ -143,8 +143,8 @@ export function ArticleCard({ article, currentUserId, currentUserRole, onAction 
           style={{
             fontFamily: "var(--font-base)",
             fontWeight: 600,
-            fontSize: 20,
-            lineHeight: "25px",
+            fontSize: "clamp(15px, 1.953vw, 20px)",
+            lineHeight: 1.25,
             color: "var(--color-text-primary)",
             overflowWrap: "break-word",
           }}
@@ -155,8 +155,8 @@ export function ArticleCard({ article, currentUserId, currentUserRole, onAction 
           style={{
             fontFamily: "var(--font-base)",
             fontWeight: 400,
-            fontSize: 14,
-            lineHeight: "18px",
+            fontSize: "clamp(12px, 1.37vw, 14px)",
+            lineHeight: 1.3,
             color: "var(--color-text-primary)",
             display: "-webkit-box",
             WebkitLineClamp: 2,

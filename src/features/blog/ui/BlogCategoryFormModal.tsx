@@ -38,6 +38,7 @@ type Props = {
 /** Administrator-only modal for adding or editing a blog category block. */
 export function BlogCategoryFormModal({ category, onClose, onSave }: Props) {
   const [name, setName] = useState(category?.name ?? "");
+  const [headline, setHeadline] = useState(category?.headline ?? "");
   const [description, setDescription] = useState(category?.description ?? "");
   const [order, setOrder] = useState(category?.order ?? 0);
   const [loading, setLoading] = useState(false);
@@ -45,11 +46,11 @@ export function BlogCategoryFormModal({ category, onClose, onSave }: Props) {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!name.trim() || !headline.trim()) return;
     setLoading(true);
     setError(null);
     try {
-      await onSave({ name: name.trim(), description: description.trim(), order });
+      await onSave({ name: name.trim(), headline: headline.trim(), description: description.trim(), order });
     } catch (err) {
       setError((err as ApiError).message ?? "Failed to save the category.");
       setLoading(false);
@@ -69,6 +70,10 @@ export function BlogCategoryFormModal({ category, onClose, onSave }: Props) {
           <div>
             <label htmlFor="category-name" style={labelSt}>Name*</label>
             <input id="category-name" type="text" value={name} onChange={(e) => setName(e.target.value)} required style={inputSt} />
+          </div>
+          <div>
+            <label htmlFor="category-headline" style={labelSt}>Headline*</label>
+            <input id="category-headline" type="text" value={headline} onChange={(e) => setHeadline(e.target.value)} required style={inputSt} />
           </div>
           <div>
             <label htmlFor="category-description" style={labelSt}>Description</label>
@@ -97,7 +102,7 @@ export function BlogCategoryFormModal({ category, onClose, onSave }: Props) {
           onCancel={onClose}
           submitLabel={category ? "Save" : "Create"}
           loading={loading}
-          disabled={!name.trim() || loading}
+          disabled={!name.trim() || !headline.trim() || loading}
           error={error}
         />
       </form>

@@ -12,6 +12,7 @@ export async function getBlogCategories(): Promise<BlogCategory[]> {
 export type BlogCategoryFormValues = {
   name: string;
   slug?: string;
+  headline: string;
   description: string;
   order: number;
 };

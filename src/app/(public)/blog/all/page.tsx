@@ -38,26 +38,26 @@ export default async function AllArticlesPage({
       />
 
       <SectionContainer style={{ paddingTop: "7.19vw", paddingBottom: "2.5vw" }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: "1.04vw", maxWidth: "36.46vw", marginBottom: "2.5vw" }}>
+        <div
+          className="w-full lg:w-auto lg:max-w-[36.46vw]"
+          style={{ display: "flex", flexDirection: "column", gap: "clamp(12px, 1.04vw, 15px)", marginBottom: "2.5vw" }}
+        >
           <h1
+            className="text-[28px] leading-[34px] md:text-[38px] md:leading-[46px] lg:text-[clamp(28px,3.125vw,45px)] lg:leading-[clamp(34px,3.75vw,54px)] lg:whitespace-nowrap"
             style={{
               fontFamily: "var(--font-base)",
               fontWeight: 400,
-              fontSize: "3.125vw",
-              lineHeight: "3.75vw",
               color: "var(--color-text-primary)",
               margin: 0,
-              whiteSpace: "nowrap",
             }}
           >
             Where <span className="bg-(--color-catalog-highlight) px-1 py-0.5 text-(--color-blue)">creativity</span> meets knowledge.
           </h1>
           <p
+            className="text-[15px] leading-[19px] md:text-[18px] md:leading-[23px] lg:text-[clamp(15px,1.25vw,18px)] lg:leading-[clamp(19px,1.5625vw,22.5px)]"
             style={{
               fontFamily: "var(--font-base)",
               fontWeight: 400,
-              fontSize: "1.25vw",
-              lineHeight: "1.5625vw",
               color: "var(--color-text-secondary)",
               margin: 0,
             }}
@@ -83,7 +83,7 @@ export default async function AllArticlesPage({
           <p className="mt-16 text-center text-lg text-(--color-text-secondary)">No articles found.</p>
         ) : (
           <>
-            <div className="flex flex-wrap" style={{ gap: "1.04vw" }}>
+            <div className="flex flex-wrap justify-center lg:justify-start" style={{ gap: "1.04vw" }}>
               {pageArticles.map((article) => (
                 <ArticleCard key={article.id} article={article} />
               ))}

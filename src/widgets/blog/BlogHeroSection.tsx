@@ -24,29 +24,53 @@ type Props = {
 export function BlogHeroSection({ role }: Props) {
   const canManage = !!role && role in MANAGE_HREF;
 
+  const manageRow = (
+    <div className="flex items-center" style={{ gap: "10px" }}>
+      <GradientButton href="/blog/create">Add an Article</GradientButton>
+
+      <Link
+        href={MANAGE_HREF[role!]!}
+        aria-label="Manage articles"
+        title="Manage articles"
+        className="flex shrink-0 items-center justify-center rounded-full transition hover:bg-(--color-brand-lavender-soft)"
+        style={{
+          width: "clamp(36px, 2.71vw, 44px)",
+          height: "clamp(36px, 2.71vw, 44px)",
+          border: "1px solid var(--color-draft)",
+        }}
+      >
+        <Settings size={18} style={{ color: "var(--color-text-primary)" }} />
+      </Link>
+    </div>
+  );
+
+  const allButton = (
+    <GradientButton href="/blog/all">
+      All
+      <Image src="/icons/arrow-goto.png" alt="" width={14} height={14} style={arrowIconStyle} />
+    </GradientButton>
+  );
+
   return (
     <SectionContainer style={{ paddingTop: "7.19vw", paddingBottom: "2.5vw" }}>
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "2vw" }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: "1.04vw", maxWidth: "36.46vw" }}>
+      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between" style={{ gap: "clamp(16px, 2vw, 29px)" }}>
+        <div className="w-full lg:w-auto lg:max-w-[36.46vw]" style={{ display: "flex", flexDirection: "column", gap: "clamp(12px, 1.04vw, 15px)" }}>
           <h1
+            className="text-[28px] leading-[34px] md:text-[38px] md:leading-[46px] lg:text-[clamp(28px,3.125vw,45px)] lg:leading-[clamp(34px,3.75vw,54px)] lg:whitespace-nowrap"
             style={{
               fontFamily: "var(--font-base)",
               fontWeight: 400,
-              fontSize: "3.125vw",
-              lineHeight: "3.75vw",
               color: "var(--color-text-primary)",
               margin: 0,
-              whiteSpace: "nowrap",
             }}
           >
             Where <span className="bg-(--color-catalog-highlight) px-1 py-0.5 text-(--color-blue)">creativity</span> meets knowledge.
           </h1>
           <p
+            className="text-[15px] leading-[19px] md:text-[18px] md:leading-[23px] lg:text-[clamp(15px,1.25vw,18px)] lg:leading-[clamp(19px,1.5625vw,22.5px)]"
             style={{
               fontFamily: "var(--font-base)",
               fontWeight: 400,
-              fontSize: "1.25vw",
-              lineHeight: "1.5625vw",
               color: "var(--color-text-secondary)",
               margin: 0,
             }}
@@ -54,31 +78,15 @@ export function BlogHeroSection({ role }: Props) {
             Explore articles, insights, and stories designed to inspire learning, innovation, and personal growth.
           </p>
 
-          {canManage && (
-            <div className="flex items-center" style={{ gap: "0.83vw", marginTop: "0.52vw" }}>
-              <GradientButton href="/blog/create">Add an Article</GradientButton>
-
-              <Link
-                href={MANAGE_HREF[role!]!}
-                aria-label="Manage articles"
-                title="Manage articles"
-                className="flex shrink-0 items-center justify-center rounded-full transition hover:bg-(--color-brand-lavender-soft)"
-                style={{
-                  width: "clamp(36px, 2.71vw, 44px)",
-                  height: "clamp(36px, 2.71vw, 44px)",
-                  border: "1px solid var(--color-draft)",
-                }}
-              >
-                <Settings size={18} style={{ color: "var(--color-text-primary)" }} />
-              </Link>
-            </div>
-          )}
+          {canManage && <div className="hidden lg:flex" style={{ marginTop: "0.52vw" }}>{manageRow}</div>}
         </div>
 
-        <GradientButton href="/blog/all">
-          All
-          <Image src="/icons/arrow-goto.png" alt="" width={14} height={14} style={arrowIconStyle} />
-        </GradientButton>
+        <div className="hidden lg:block">{allButton}</div>
+      </div>
+
+      <div className="mt-4 flex items-center justify-center lg:hidden" style={{ gap: "10px" }}>
+        {canManage && manageRow}
+        {allButton}
       </div>
     </SectionContainer>
   );

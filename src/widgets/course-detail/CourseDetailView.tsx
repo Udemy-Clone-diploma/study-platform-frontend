@@ -67,16 +67,8 @@ export function CourseDetailView({ course, reviews }: Props) {
                 </p>
               </div>
             </div>
-            <div className="lg:col-start-1">
-              <CourseCurriculum
-                course={course}
-                slug={course.slug}
-                hasPricing={hasPricingPlans}
-                hideHeading
-              />
-            </div>
             {course.cohorts.length > 0 && (
-              <div className="relative self-start lg:col-start-2">
+              <div className="relative self-start lg:col-start-2 lg:row-start-2">
                 {/* Branded ellipses behind the schedule card. Resize with w-/h-, move with top-/left-/bottom-. */}
                 <DecorBlob
                   className="top-1/2 left-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 opacity-40 blur-[70px]"
@@ -93,6 +85,14 @@ export function CourseDetailView({ course, reviews }: Props) {
                 />
               </div>
             )}
+            <div className="lg:col-start-1 lg:row-start-2">
+              <CourseCurriculum
+                course={course}
+                slug={course.slug}
+                hasPricing={hasPricingPlans}
+                hideHeading
+              />
+            </div>
           </section>
         </article>
       </SectionContainer>

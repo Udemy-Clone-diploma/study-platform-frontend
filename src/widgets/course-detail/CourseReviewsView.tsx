@@ -9,7 +9,7 @@ type Props = { courseTitle: string; reviews: CourseReview[] };
 export function CourseReviewsView({ courseTitle, reviews }: Props) {
   return (
     <div
-      className="relative isolate overflow-hidden"
+      className="relative isolate flex-1 overflow-hidden"
       style={{ background: "var(--gradient-feedback)" }}
     >
       <Image
@@ -19,7 +19,7 @@ export function CourseReviewsView({ courseTitle, reviews }: Props) {
         width={1200}
         height={1200}
         sizes="80vw"
-        className="pointer-events-none absolute -left-[14%] bottom-[10%] -z-10 w-[60vw] max-w-[820px] min-w-[420px] select-none"
+        className="pointer-events-none absolute -left-[14%] bottom-[10%] -z-10 w-[45vw] min-w-[160px] max-w-[280px] select-none sm:min-w-[240px] sm:max-w-[420px] lg:w-[60vw] lg:min-w-[420px] lg:max-w-[820px]"
       />
       <Image
         src="/backgrounds/crystal.png"
@@ -28,7 +28,7 @@ export function CourseReviewsView({ courseTitle, reviews }: Props) {
         width={1000}
         height={1000}
         sizes="50vw"
-        className="pointer-events-none absolute -right-[8%] top-[18%] -z-10 w-[44vw] max-w-[620px] min-w-[320px] select-none"
+        className="pointer-events-none absolute -right-[8%] top-[18%] -z-10 w-[32vw] min-w-[120px] max-w-[200px] select-none sm:min-w-[180px] sm:max-w-[320px] lg:w-[44vw] lg:min-w-[320px] lg:max-w-[620px]"
       />
 
       <SectionContainer>

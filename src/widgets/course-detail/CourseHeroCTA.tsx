@@ -7,7 +7,16 @@ import type { ApiError } from "@/shared/api/base";
 import { AUTH_COOKIE_NAMES } from "@/shared/api/config/authCookies";
 import { getClientCookie } from "@/shared/lib/cookies";
 import { AccentButton } from "@/shared/ui/AccentButton";
+import { ramp, fluid3 } from "@/shared/lib/fluidScale";
 import { PRICING_ANCHOR_ID } from "./pricingAnchor";
+
+const heroCtaStyle = {
+  height: fluid3(375, 40, 1024, 50, 1920, 52),
+  minWidth: fluid3(375, 160, 1024, 190, 1920, 200),
+  fontSize: `clamp(13px, ${ramp(375, 13, 1024, 18)}, 20px)`,
+  padding: `0 ${fluid3(375, 20, 1024, 27, 1920, 28)}`,
+  whiteSpace: "nowrap",
+} as const;
 
 type Props = {
   courseId: number;
@@ -36,14 +45,13 @@ export function CourseHeroCTA({ slug, isEnrolled, defaultFormat }: Props) {
   const [pending, setPending] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
 
-  const buttonStyle = { minWidth: 200, height: 52, whiteSpace: "nowrap" } as const;
   const defaultPricingPlan = defaultFormat?.pricing ?? null;
   const isFreeCourse = defaultPricingPlan !== null && Number(defaultPricingPlan.price) === 0;
   const needsSelection = defaultFormat?.format_type === "group" || defaultFormat?.format_type === "individual";
 
   if (enrolled) {
     return (
-      <AccentButton size="md" className="self-start" style={buttonStyle} href={`/learn/${slug}`}>
+      <AccentButton size="md" className="self-center lg:self-start" style={heroCtaStyle} href={`/learn/${slug}`}>
         Continue learning
       </AccentButton>
     );
@@ -95,7 +103,7 @@ export function CourseHeroCTA({ slug, isEnrolled, defaultFormat }: Props) {
 
   return (
     <div className="flex flex-col gap-2">
-      <AccentButton size="md" className="self-start" style={buttonStyle} onClick={handleClick} disabled={pending}>
+      <AccentButton size="md" className="self-center lg:self-start" style={heroCtaStyle} onClick={handleClick} disabled={pending}>
         {pending ? "Processing..." : isFreeCourse ? "Enroll for free" : "Choose a plan"}
       </AccentButton>
       {notice && (

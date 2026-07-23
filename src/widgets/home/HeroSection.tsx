@@ -3,6 +3,7 @@ import { getMe } from "@/entities/user";
 import { getAccessToken } from "@/shared/api/authCookies";
 import { SectionContainer } from "@/shared/ui/SectionContainer";
 import { AccentButton } from "@/shared/ui/AccentButton";
+import { ramp, fluid3 } from "@/shared/lib/fluidScale";
 
 const TAGS = ["Skills", "Networking", "Growth"];
 
@@ -11,21 +12,6 @@ const PARTNERS = [
     { src: "/main/Next Step Academy.png",    alt: "Next Step Academy",    width: 188, height: 84 },
     { src: "/main/Skill Flow Studio.png",    alt: "Skill Flow Studio",    width: 238, height: 84 },
 ];
-
-function ramp(vwA: number, pxA: number, vwB: number, pxB: number): string {
-    const slope = (pxB - pxA) / (vwB - vwA);
-    const intercept = pxA - slope * vwA;
-    return `calc(${intercept.toFixed(3)}px + ${(slope * 100).toFixed(4)}vw)`;
-}
-
-// Three-point fluid scale: hits px1 at vw1, px2 at vw2, px3 at vw3 (flat outside
-// that range). Lets phone, tablet, and desktop each land on their own approved
-// size instead of sharing one flat mobile+tablet floor.
-function fluid3(vw1: number, px1: number, vw2: number, px2: number, vw3: number, px3: number): string {
-    const rampA = `clamp(${px1}px, ${ramp(vw1, px1, vw2, px2)}, ${px2}px)`;
-    const rampB = `clamp(${px2}px, ${ramp(vw2, px2, vw3, px3)}, ${px3}px)`;
-    return `calc(${rampA} + ${rampB} - ${px2}px)`;
-}
 
 const heroButtonStyle = {
     height: fluid3(375, 40, 1024, 50, 1920, 52),

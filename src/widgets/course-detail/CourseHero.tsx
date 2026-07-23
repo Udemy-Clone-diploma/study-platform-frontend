@@ -43,7 +43,7 @@ export function CourseHero({ course }: Props) {
 
   return (
     <section className="grid grid-cols-1 items-center gap-8 sm:gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,600px)] lg:gap-12">
-      <div className="flex flex-col gap-10 lg:gap-[60px]">
+      <div className="order-2 flex flex-col gap-10 lg:order-none lg:gap-[60px]">
         <div className="flex flex-col gap-6 sm:gap-10">
           <div className="flex flex-col gap-4 sm:gap-5">
             <span
@@ -53,11 +53,11 @@ export function CourseHero({ course }: Props) {
             </span>
 
             <div className="flex flex-col gap-1">
-              <h1 className="text-3xl leading-tight text-(--color-text-primary) sm:text-4xl lg:text-6xl xl:text-7xl">
+              <h1 className="text-3xl leading-tight text-(--color-text-primary) sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl">
                 {course.title}
               </h1>
               {course.subtitle && (
-                <p className="text-xl text-(--color-text-secondary) sm:text-2xl lg:text-4xl">
+                <p className="text-xl text-(--color-text-secondary) sm:text-2xl md:text-3xl lg:text-4xl">
                   {course.subtitle}
                 </p>
               )}
@@ -101,21 +101,21 @@ export function CourseHero({ course }: Props) {
         />
       </div>
 
-      <div className="relative mx-auto w-full max-w-[600px] lg:mx-0">
+      <div className="order-1 relative mx-auto w-full max-w-[280px] sm:max-w-[380px] md:max-w-[460px] lg:order-none lg:max-w-[560px] lg:mx-0">
         {/* Decorative blobs behind the image — same recipe as the homepage hero
             (gradient-blob + blur(90px)). Resize with w-/h-, reposition with top-/left-/right-. */}
         <HeroEllipse className="top-[-25%] right-[-35%] h-[650px] w-[650px]" />
         <HeroEllipse className="top-[-7%] left-[-20%] h-[440px] w-[440px]" />
-        {/* Glitter texture overlay, same blend approach as the homepage hero. */}
+        {/* Glitter texture overlay, same blend approach as the homepage hero. Hidden below lg — too busy behind the smaller mobile image. */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -z-10"
+          className="pointer-events-none absolute -z-10 hidden lg:block"
           style={{
             left: "50%",
             top: "50%",
             width: "180%",
             height: "180%",
-            transform: "translate(-50%, -50%)",
+            transform: "translate(-50%, calc(-50% + 120px))",
             backgroundImage: "url('/main/glitter-bg.png')",
             backgroundRepeat: "no-repeat",
             backgroundPosition: "center",
@@ -130,13 +130,12 @@ export function CourseHero({ course }: Props) {
             width={500}
             height={496}
             priority
-            className="h-auto w-full object-contain"
+            className="h-auto w-full translate-x-0 translate-y-0 object-contain lg:translate-x-[60px] lg:-translate-y-[50px]"
             style={{
-              transform: "translate(60px, -50px)",
               maskImage: "linear-gradient(to bottom, black 75%, transparent 100%)",
               WebkitMaskImage: "linear-gradient(to bottom, black 75%, transparent 100%)",
             }}
-            sizes="(min-width: 1024px) 600px, 90vw"
+            sizes="(min-width: 1024px) 560px, (min-width: 768px) 460px, (min-width: 640px) 380px, 280px"
           />
         ) : (
           <div

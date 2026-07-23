@@ -15,7 +15,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${mulish.variable} ${sourceCodePro.variable}`}>
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-screen flex flex-col">
         {children}
         <NavigationLoadingOverlay />
       </body>

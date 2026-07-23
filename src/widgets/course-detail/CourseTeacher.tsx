@@ -15,52 +15,23 @@ export function CourseTeacher({ teacher, quote }: Props) {
   ).filter((s) => s.value != null) as { value: number; label: string }[];
 
   return (
-    <div className="grid grid-cols-1 items-center gap-8 sm:gap-10 lg:grid-cols-[minmax(0,1fr)_460px] lg:gap-5">
-      <div className="flex flex-col gap-6 sm:gap-8">
-        <div className="flex flex-col gap-4 sm:gap-6">
-          <div className="flex flex-col gap-3">
-            <h2 className="text-3xl text-(--color-text-primary) sm:text-4xl lg:text-5xl">
-              {teacher.name}
-            </h2>
-            {teacher.specialization && (
-              <p className="text-lg text-(--color-text-secondary) sm:text-xl">
-                {teacher.specialization}
-              </p>
-            )}
-            <SectionBadge>Teacher</SectionBadge>
-          </div>
-          <p className="text-lg text-(--color-text-primary) sm:text-xl lg:text-2xl">{teacher.bio}</p>
+    <div className="grid grid-cols-1 gap-8 sm:gap-10 lg:grid-cols-[minmax(0,1fr)_460px] lg:grid-rows-[auto_auto] lg:items-center lg:gap-5">
+      <div className="flex flex-col gap-4 sm:gap-6 lg:col-start-1 lg:row-start-1">
+        <div className="flex flex-col gap-3">
+          <h2 className="text-3xl text-(--color-text-primary) sm:text-4xl lg:text-5xl">
+            {teacher.name}
+          </h2>
+          {teacher.specialization && (
+            <p className="text-lg text-(--color-text-secondary) sm:text-xl">
+              {teacher.specialization}
+            </p>
+          )}
+          <SectionBadge>Teacher</SectionBadge>
         </div>
-
-        {(stats.length > 0 || quote) && (
-          <div className="flex flex-col gap-10 sm:gap-12 lg:gap-[60px]">
-            {stats.length > 0 && (
-              <ul className="flex flex-wrap gap-x-8 gap-y-4 sm:gap-x-12 sm:gap-y-6 lg:gap-x-20">
-                {stats.map((stat) => (
-                  <li key={stat.label} className="flex flex-col gap-1">
-                    <span className="text-4xl text-(--color-text-primary) sm:text-5xl">
-                      {stat.value}+
-                    </span>
-                    <span className="text-base text-(--color-text-primary) sm:text-xl lg:text-2xl">
-                      {stat.label}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
-
-            {quote && (
-              <blockquote className="rounded-[20px] bg-(--color-white-20) px-6 py-4 shadow-(--shadow-usp-glass)">
-                <p className="text-center text-base text-(--color-text-primary)">
-                  &#x201C;{quote}&#x201D;
-                </p>
-              </blockquote>
-            )}
-          </div>
-        )}
+        <p className="text-lg text-(--color-text-primary) sm:text-xl lg:text-2xl">{teacher.bio}</p>
       </div>
 
-      <div className="relative mx-auto aspect-[460/652] w-full max-w-[460px] overflow-hidden rounded-[20px] bg-(--color-placeholder) lg:mx-0">
+      <div className="relative mx-auto aspect-[460/652] w-full max-w-[460px] overflow-hidden rounded-[20px] bg-(--color-placeholder) lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:mx-0">
         {teacher.avatar ? (
           <Image
             src={teacher.avatar}
@@ -78,6 +49,33 @@ export function CourseTeacher({ teacher, quote }: Props) {
           </div>
         )}
       </div>
+
+      {(stats.length > 0 || quote) && (
+        <div className="flex flex-col gap-10 sm:gap-12 lg:col-start-1 lg:row-start-2 lg:gap-[60px]">
+          {stats.length > 0 && (
+            <ul className="flex flex-wrap gap-x-8 gap-y-4 sm:gap-x-12 sm:gap-y-6 lg:gap-x-20">
+              {stats.map((stat) => (
+                <li key={stat.label} className="flex flex-col gap-1">
+                  <span className="text-4xl text-(--color-text-primary) sm:text-5xl">
+                    {stat.value}+
+                  </span>
+                  <span className="text-base text-(--color-text-primary) sm:text-xl lg:text-2xl">
+                    {stat.label}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {quote && (
+            <blockquote className="rounded-[20px] bg-(--color-white-20) px-6 py-4 shadow-(--shadow-usp-glass)">
+              <p className="text-center text-base text-(--color-text-primary)">
+                &#x201C;{quote}&#x201D;
+              </p>
+            </blockquote>
+          )}
+        </div>
+      )}
     </div>
   );
 }

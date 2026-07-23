@@ -47,7 +47,7 @@ export function LoginForm() {
     });
 
   return (
-    <AuthShell contentClassName="max-w-[520px]">
+    <AuthShell contentClassName="max-w-[580px]" imageSrc="/backgrounds/login pic.svg">
       <form onSubmit={handleSubmit} className="mx-auto w-full">
         <div className="text-[#171417]">
         <div className="space-y-11">
@@ -101,8 +101,8 @@ export function LoginForm() {
             </p>
           </div>
 
-          <div className="flex flex-col gap-5 text-[0.68rem] font-medium tracking-[0.26em] text-[#2f2b30] uppercase sm:flex-row sm:items-center sm:justify-between">
-            <label className="inline-flex cursor-pointer items-center gap-3 self-start">
+          <div className="flex flex-row items-center justify-between gap-5 text-[0.68rem] font-medium tracking-[0.26em] text-[#2f2b30] uppercase">
+            <label className="inline-flex cursor-pointer items-center gap-3">
               <span className="relative flex h-4 w-4 items-center justify-center">
                 <input
                   type="checkbox"

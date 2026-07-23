@@ -139,6 +139,7 @@ export default async function CatalogPage({
           <div className="flex items-center justify-between gap-4">
             <Link
               href={buildCatalogHref(state, { filtersOpen: !state.filtersOpen })}
+              scroll={false}
               className={`flex h-10 min-w-[132px] items-center justify-center gap-2 rounded-full px-4 text-xl font-medium transition-colors ${
                 state.filtersOpen
                   ? "bg-(--color-text-primary) text-white"
@@ -171,6 +172,7 @@ export default async function CatalogPage({
                   <p className="mt-2 text-(--color-text-secondary)">Try another set of filters.</p>
                   <Link
                     href={resetCatalogFiltersHref(state)}
+                    scroll={false}
                     className="mt-6 inline-flex rounded-full bg-(--color-text-primary) px-6 py-2 text-sm font-medium text-white"
                   >
                     Reset filters

@@ -267,5 +267,18 @@
   "CourseReviewsView": {
     "title": "Reviews of the \"{course}\" course",
     "noReviews": "No reviews yet."
+  },
+  "Search": {
+    "resultsFor": "Results for <highlight>\"{query}\"</highlight>",
+    "searchHeading": "Search",
+    "resultsCount": "{count, plural, one {# result} other {# results}} across courses and articles.",
+    "enterSearchTerm": "Enter a search term to get started.",
+    "courses": "Courses",
+    "posts": "Posts",
+    "viewAllCourses": "View all courses",
+    "viewAllPosts": "View all posts",
+    "noCoursesFound": "No courses found.",
+    "noPostsFound": "No posts found.",
+    "foundCount": "{count} found"
   }
 }

@@ -267,5 +267,18 @@
   "CourseReviewsView": {
     "title": "Відгуки про курс «{course}»",
     "noReviews": "Відгуків ще немає."
+  },
+  "Search": {
+    "resultsFor": "Результати для <highlight>«{query}»</highlight>",
+    "searchHeading": "Пошук",
+    "resultsCount": "{count, plural, one {# результат} few {# результати} many {# результатів} other {# результату}} серед курсів і статей.",
+    "enterSearchTerm": "Введіть пошуковий запит, щоб почати.",
+    "courses": "Курси",
+    "posts": "Статті",
+    "viewAllCourses": "Переглянути всі курси",
+    "viewAllPosts": "Переглянути всі статті",
+    "noCoursesFound": "Курсів не знайдено.",
+    "noPostsFound": "Статей не знайдено.",
+    "foundCount": "{count} знайдено"
   }
 }

@@ -267,5 +267,18 @@
   "CourseReviewsView": {
     "title": "Avis sur le cours « {course} »",
     "noReviews": "Aucun avis pour le moment."
+  },
+  "Search": {
+    "resultsFor": "Résultats pour <highlight>« {query} »</highlight>",
+    "searchHeading": "Recherche",
+    "resultsCount": "{count, plural, one {# résultat} other {# résultats}} parmi les cours et les articles.",
+    "enterSearchTerm": "Saisissez un terme de recherche pour commencer.",
+    "courses": "Cours",
+    "posts": "Articles",
+    "viewAllCourses": "Voir tous les cours",
+    "viewAllPosts": "Voir tous les articles",
+    "noCoursesFound": "Aucun cours trouvé.",
+    "noPostsFound": "Aucun article trouvé.",
+    "foundCount": "{count} trouvé(s)"
   }
 }

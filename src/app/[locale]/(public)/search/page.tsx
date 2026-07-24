@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { getTranslations } from "next-intl/server";
 import { getCourses, getWishlistSlugs, type CourseListItem } from "@/entities/course";
 import { getArticles } from "@/entities/blog";
 import { CourseCard } from "@/features/courses";
@@ -20,6 +21,7 @@ export default async function SiteSearchPage({
   const { search } = await searchParams;
   const query = search?.trim() ?? "";
   const searchQS = query ? `?search=${encodeURIComponent(query)}` : "";
+  const t = await getTranslations("Search");
 
   const [coursesPage, articles, wishlistedSlugs] = await Promise.all([
     query ? getCourses({ search: query, page_size: RESULT_LIMIT }) : Promise.resolve({ count: 0, next: null, previous: null, results: EMPTY_COURSES }),
@@ -62,14 +64,14 @@ export default async function SiteSearchPage({
             }}
           >
             {query ? (
-              <>
-                Results for{" "}
-                <span className="bg-(--color-catalog-highlight) px-1 py-0.5 text-(--color-blue)">
-                  &ldquo;{query}&rdquo;
-                </span>
-              </>
+              t.rich("resultsFor", {
+                query,
+                highlight: (chunks) => (
+                  <span className="bg-(--color-catalog-highlight) px-1 py-0.5 text-(--color-blue)">{chunks}</span>
+                ),
+              })
             ) : (
-              "Search"
+              t("searchHeading")
             )}
           </h1>
           {query && (
@@ -83,23 +85,23 @@ export default async function SiteSearchPage({
                 margin: "1.04vw 0 0",
               }}
             >
-              {totalCount} {totalCount === 1 ? "result" : "results"} across courses and articles.
+              {t("resultsCount", { count: totalCount })}
             </p>
           )}
         </div>
 
         {!query ? (
-          <p className="text-lg text-(--color-text-secondary)">Enter a search term to get started.</p>
+          <p className="text-lg text-(--color-text-secondary)">{t("enterSearchTerm")}</p>
         ) : (
           <>
             <ResultSection
-              title="Courses"
-              count={courseCount}
+              title={t("courses")}
+              foundLabel={t("foundCount", { count: courseCount })}
               viewAllHref={`/catalog${searchQS}`}
-              viewAllLabel="View all courses"
+              viewAllLabel={t("viewAllCourses")}
             >
               {courses.length === 0 ? (
-                <p className="text-(--color-text-secondary)">No courses found.</p>
+                <p className="text-(--color-text-secondary)">{t("noCoursesFound")}</p>
               ) : (
                 <div className="flex flex-wrap justify-center gap-4">
                   {courses.map((course) => (
@@ -110,13 +112,13 @@ export default async function SiteSearchPage({
             </ResultSection>
 
             <ResultSection
-              title="Posts"
-              count={articleCount}
+              title={t("posts")}
+              foundLabel={t("foundCount", { count: articleCount })}
               viewAllHref={`/blog/all${searchQS}`}
-              viewAllLabel="View all posts"
+              viewAllLabel={t("viewAllPosts")}
             >
               {articleResults.length === 0 ? (
-                <p className="text-(--color-text-secondary)">No posts found.</p>
+                <p className="text-(--color-text-secondary)">{t("noPostsFound")}</p>
               ) : (
                 <div className="flex flex-wrap" style={{ gap: "1.04vw" }}>
                   {articleResults.map((article) => (
@@ -134,13 +136,13 @@ export default async function SiteSearchPage({
 
 function ResultSection({
   title,
-  count,
+  foundLabel,
   viewAllHref,
   viewAllLabel,
   children,
 }: {
   title: string;
-  count: number;
+  foundLabel: string;
   viewAllHref: string;
   viewAllLabel: string;
   children: React.ReactNode;
@@ -161,7 +163,7 @@ function ResultSection({
             {title}
           </h2>
           <span style={{ fontFamily: "var(--font-base)", fontSize: "0.9vw", color: "var(--color-text-secondary)" }}>
-            {count} found
+            {foundLabel}
           </span>
         </div>
         <GradientButton href={viewAllHref}>

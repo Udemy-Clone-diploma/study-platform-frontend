@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { getPublicUserProfile, type PublicUserProfile } from "@/entities/user";
 import type { ApiError } from "@/shared/api/base";
 import { ModalShell } from "@/shared/ui/ModalShell";

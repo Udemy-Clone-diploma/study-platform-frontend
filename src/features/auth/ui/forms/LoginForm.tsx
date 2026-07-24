@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link } from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { getMe, getRoleHome } from "@/entities/user";
 import { loginUser } from "@/features/auth/api/authApi";
 import { validateLoginForm } from "@/features/auth/model/validation";

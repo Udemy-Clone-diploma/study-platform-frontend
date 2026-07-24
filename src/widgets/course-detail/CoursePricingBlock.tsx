@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { BookOpen, Check, ChevronDown, Clock, User, Users } from "lucide-react";
 // ChevronDown used inside CohortPicker and IndividualSlotPicker collapsible headers
 import { addCartItem } from "@/entities/cart";

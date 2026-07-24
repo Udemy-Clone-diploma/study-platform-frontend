@@ -1,0 +1,44 @@
+{
+  "Common": {
+    "home": "Головна",
+    "blog": "Блог",
+    "catalog": "Каталог",
+    "allCourses": "Усі курси",
+    "myCourses": "Мої курси",
+    "profile": "Профіль",
+    "myProfile": "Мій профіль",
+    "myOffice": "Особистий кабінет",
+    "logout": "Вийти",
+    "getStarted": "Розпочати",
+    "search": "Пошук",
+    "user": "Користувач",
+    "language": "Мова"
+  },
+  "Header": {
+    "openMenu": "Відкрити меню",
+    "closeMenu": "Закрити меню",
+    "closeSearch": "Закрити пошук"
+  },
+  "NotificationBell": {
+    "notifications": "Сповіщення",
+    "title": "Сповіщення",
+    "closeNotifications": "Закрити сповіщення",
+    "empty": "У вас немає нових повідомлень",
+    "seeAll": "Переглянути всі"
+  },
+  "Footer": {
+    "business": "Бізнес",
+    "languages": "Мови",
+    "personalDevelopment": "Особистий розвиток",
+    "design": "Дизайн",
+    "programming": "Програмування",
+    "marketing": "Маркетинг"
+  },
+  "SearchBar": {
+    "placeholder": "Пошук курсів і статей"
+  },
+  "LanguageSwitcher": {
+    "selectLanguage": "Обрати мову",
+    "chooseLanguage": "Оберіть мову"
+  }
+}

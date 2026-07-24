@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { Eye, UserPlus } from "lucide-react";
 import type { ApprovedCourseRecord, CourseListItem, RejectedCourseRecord } from "@/entities/course";
 import { DataTable, type DataTableColumn } from "@/shared/ui/DataTable";

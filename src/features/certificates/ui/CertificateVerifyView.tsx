@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { BadgeCheck, CircleAlert, CircleX, Search } from "lucide-react";
 import { verifyCertificate } from "@/entities/certificate";
 import type { CertificateVerification } from "@/entities/certificate";

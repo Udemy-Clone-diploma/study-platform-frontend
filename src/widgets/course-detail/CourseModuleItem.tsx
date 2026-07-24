@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { Astroid, ChevronDown } from "lucide-react";
 import type { CourseModule } from "@/entities/course";
 import { PRICING_ANCHOR_ID } from "./pricingAnchor";

@@ -2,10 +2,14 @@
 
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { Globe } from "lucide-react";
+import { Link } from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { getRoleCourses, getRoleHome, type UserRole } from "@/entities/user";
 import { logout } from "@/features/auth/actions/logout";
+import { useLocaleSwitcher } from "@/shared/lib/useLocaleSwitcher";
+import { LanguageModal } from "@/shared/ui/LanguageModal";
 
 const itemStyle: React.CSSProperties = {
     fontFamily: "var(--font-accent)",
@@ -18,8 +22,11 @@ const itemStyle: React.CSSProperties = {
 
 export function UserDropdown({ firstName, role, avatar }: { firstName: string | null; role: UserRole | null; avatar: string | null }) {
     const [open, setOpen] = useState(false);
+    const [languageModalOpen, setLanguageModalOpen] = useState(false);
     const ref = useRef<HTMLDivElement>(null);
     const router = useRouter();
+    const t = useTranslations("Common");
+    const { locale } = useLocaleSwitcher();
 
     useEffect(() => {
         function onOutsideClick(e: MouseEvent) {
@@ -56,12 +63,12 @@ export function UserDropdown({ firstName, role, avatar }: { firstName: string | 
             >
                 {avatar ? (
                     <div style={{ width: 32, height: 32, borderRadius: "50%", overflow: "hidden", flexShrink: 0 }}>
-                        <Image src={avatar} alt="User" width={32} height={32} unoptimized style={{ width: 32, height: 32, objectFit: "cover" }} />
+                        <Image src={avatar} alt={t("user")} width={32} height={32} unoptimized style={{ width: 32, height: 32, objectFit: "cover" }} />
                     </div>
                 ) : (
-                    <Image src="/layout/user-icon.png" alt="User" width={24} height={24} style={{ width: 24, height: 24 }} />
+                    <Image src="/layout/user-icon.png" alt={t("user")} width={24} height={24} style={{ width: 24, height: 24 }} />
                 )}
-                {firstName ?? "User"}
+                {firstName ?? t("user")}
                 <span style={{
                     width: 36,
                     height: 36,
@@ -94,15 +101,15 @@ export function UserDropdown({ firstName, role, avatar }: { firstName: string | 
                     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                             <Link href="/profile" onClick={() => setOpen(false)} className="dropdown-link" style={itemStyle}>
-                                Profile
+                                {t("profile")}
                             </Link>
                             <div style={{ width: "100%", height: 0, borderTop: "1px solid #FFFFFF" }} />
                         </div>
                         <Link href={getRoleHome(role)} onClick={() => setOpen(false)} className="dropdown-link" style={itemStyle}>
-                            My Office
+                            {t("myOffice")}
                         </Link>
                         <Link href={getRoleCourses(role)} onClick={() => setOpen(false)} className="dropdown-link" style={itemStyle}>
-                            My Courses
+                            {t("myCourses")}
                         </Link>
                         <button
                             onClick={handleLogout}
@@ -117,11 +124,37 @@ export function UserDropdown({ firstName, role, avatar }: { firstName: string | 
                                 color: "var(--color-pink-dark)",
                             }}
                         >
-                            Exit
+                            {t("logout")}
+                        </button>
+
+                        <div style={{ width: "100%", height: 0, borderTop: "1px solid #FFFFFF" }} />
+                        <button
+                            onClick={() => {
+                                setOpen(false);
+                                setLanguageModalOpen(true);
+                            }}
+                            className="dropdown-link flex items-center justify-between"
+                            style={{
+                                ...itemStyle,
+                                background: "none",
+                                border: "none",
+                                cursor: "pointer",
+                                padding: 0,
+                                gap: 12,
+                                textAlign: "left",
+                            }}
+                        >
+                            {t("language")}
+                            <span className="flex items-center" style={{ gap: 6, fontWeight: 400, textTransform: "none" }}>
+                                {locale}
+                                <Globe className="h-4 w-4 shrink-0" aria-hidden />
+                            </span>
                         </button>
                     </div>
                 </div>
             )}
+
+            {languageModalOpen && <LanguageModal onClose={() => setLanguageModalOpen(false)} />}
         </div>
     );
 }

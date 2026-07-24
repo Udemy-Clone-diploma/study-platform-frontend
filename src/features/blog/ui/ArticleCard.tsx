@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import type { ArticleListItem } from "@/entities/blog";
 import type { UserRole } from "@/entities/user";
 import { fluid3 } from "@/shared/lib/fluidScale";

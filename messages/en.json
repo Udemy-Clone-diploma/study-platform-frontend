@@ -1,0 +1,44 @@
+{
+  "Common": {
+    "home": "Home",
+    "blog": "Blog",
+    "catalog": "Catalog",
+    "allCourses": "All Courses",
+    "myCourses": "My Courses",
+    "profile": "Profile",
+    "myProfile": "My Profile",
+    "myOffice": "My Office",
+    "logout": "Exit",
+    "getStarted": "Get Started",
+    "search": "Search",
+    "user": "User",
+    "language": "Language"
+  },
+  "Header": {
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "closeSearch": "Close search"
+  },
+  "NotificationBell": {
+    "notifications": "Notifications",
+    "title": "Notification",
+    "closeNotifications": "Close notifications",
+    "empty": "You have no new messages",
+    "seeAll": "See all"
+  },
+  "Footer": {
+    "business": "Business",
+    "languages": "Languages",
+    "personalDevelopment": "Personal development",
+    "design": "Design",
+    "programming": "Programming",
+    "marketing": "Marketing"
+  },
+  "SearchBar": {
+    "placeholder": "Search courses & articles"
+  },
+  "LanguageSwitcher": {
+    "selectLanguage": "Select language",
+    "chooseLanguage": "Choose a language"
+  }
+}

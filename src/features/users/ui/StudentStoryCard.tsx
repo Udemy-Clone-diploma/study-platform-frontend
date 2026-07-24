@@ -1,5 +1,5 @@
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import type { ArticleListItem } from "@/entities/blog";
 
 type Props = { article: ArticleListItem };

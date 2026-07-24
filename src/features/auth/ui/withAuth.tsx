@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useSyncExternalStore } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { AUTH_COOKIE_NAMES } from "@/shared/api/config/authCookies";
 import { getClientCookie } from "@/shared/lib/cookies";
 import type { UserRole } from "@/entities/user";

@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link } from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { AuthField, AuthShell, useAuthForm } from "@/features/auth";
 import { checkTeacherApplicationEmail, submitTeacherApplication } from "@/entities/teacher-application";
 import { AccentButton } from "@/shared/ui/AccentButton";

@@ -1,5 +1,6 @@
 import Image from "next/image";
-import Link from "next/link";
+import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import { getCategories } from "@/entities/course";
 import { getMe } from "@/entities/user";
 import { CatalogDropdown } from "@/features/courses";
@@ -7,6 +8,7 @@ import { UserDropdown } from "@/features/auth";
 import { NotificationBell } from "@/features/notifications";
 import { getAccessToken } from "@/shared/api/authCookies";
 import { AccentButton } from "@/shared/ui/AccentButton";
+import { LanguageSwitcher } from "@/shared/ui/LanguageSwitcher";
 import { SearchBar } from "@/shared/ui/SearchBar";
 import { MobileHeaderMenu } from "./MobileHeaderMenu";
 
@@ -24,9 +26,10 @@ type HeaderProps = {
 };
 
 export async function Header({ borderRadius = "0px 0px 20px 20px" }: HeaderProps) {
-    const [accessToken, categories] = await Promise.all([
+    const [accessToken, categories, t] = await Promise.all([
         getAccessToken(),
         getCategories().catch(() => []),
+        getTranslations("Common"),
     ]);
 
     const isLoggedIn = !!accessToken;
@@ -58,7 +61,7 @@ export async function Header({ borderRadius = "0px 0px 20px 20px" }: HeaderProps
                         className="flex items-center shrink-0 h-full"
                         style={{ gap: isLoggedIn ? 48 : 60 }}
                     >
-                        <Link href="/" style={{ display: "block", width: 180, height: 60, flexShrink: 0, position: "relative" }} aria-label="Home">
+                        <Link href="/" style={{ display: "block", width: 180, height: 60, flexShrink: 0, position: "relative" }} aria-label={t("home")}>
                             <Image src="/logo/Nexo4u_logo3.svg" alt="Nexo4you" fill className="object-contain object-left" priority />
                         </Link>
 
@@ -69,7 +72,7 @@ export async function Header({ borderRadius = "0px 0px 20px 20px" }: HeaderProps
                                 className="transition-opacity hover:opacity-70"
                                 style={navLinkStyle}
                             >
-                                Blog
+                                {t("blog")}
                             </Link>
                         </nav>
                     </div>
@@ -78,7 +81,7 @@ export async function Header({ borderRadius = "0px 0px 20px 20px" }: HeaderProps
                 </div>
 
                 {/* Right */}
-                <div className="shrink-0 h-full flex items-center">
+                <div className="shrink-0 h-full flex items-center" style={{ gap: 24 }}>
                     {isLoggedIn ? (
                         <div className="flex items-center h-full" style={{ gap: 40 }}>
                             <Link
@@ -86,7 +89,7 @@ export async function Header({ borderRadius = "0px 0px 20px 20px" }: HeaderProps
                                 className="transition-opacity hover:opacity-70"
                                 style={navLinkStyle}
                             >
-                                My Courses
+                                {t("myCourses")}
                             </Link>
 
                             <div className="flex items-center h-full" style={{ gap: 28 }}>
@@ -95,7 +98,10 @@ export async function Header({ borderRadius = "0px 0px 20px 20px" }: HeaderProps
                             </div>
                         </div>
                     ) : (
-                        <AccentButton href="/login" size="md" style={{ height: "clamp(36px, 3.61vw, 52px)", minWidth: "unset", fontSize: "clamp(10px, 1.41vw, 20px)", padding: "0 clamp(16px, 1.94vw, 28px)" }}>Get Started</AccentButton>
+                        <>
+                            <AccentButton href="/login" size="md" style={{ height: "clamp(36px, 3.61vw, 52px)", minWidth: "unset", fontSize: "clamp(10px, 1.41vw, 20px)", padding: "0 clamp(16px, 1.94vw, 28px)" }}>{t("getStarted")}</AccentButton>
+                            <LanguageSwitcher />
+                        </>
                     )}
                 </div>
             </div>

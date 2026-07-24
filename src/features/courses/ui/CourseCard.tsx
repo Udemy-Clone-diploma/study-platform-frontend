@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { formatPrice, type CourseListItem } from "@/entities/course";
 import { Stars } from "./Stars";
 import { WishlistButton } from "./WishlistButton";

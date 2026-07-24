@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { X } from "lucide-react";
 import type { Notification } from "@/entities/notification";
 import { useNotifications } from "../lib/useNotifications";
@@ -13,6 +14,7 @@ export function NotificationBell({ iconSize = 24 }: { iconSize?: number } = {}) 
   const [open, setOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const t = useTranslations("NotificationBell");
   const {
     unreadCount,
     notifications,
@@ -73,7 +75,7 @@ export function NotificationBell({ iconSize = 24 }: { iconSize?: number } = {}) 
       <div ref={ref} className="relative flex h-full items-center">
         <button
           type="button"
-          aria-label="Notifications"
+          aria-label={t("notifications")}
           aria-expanded={open}
           onClick={toggle}
           className="relative flex h-10 w-10 items-center justify-center transition-opacity hover:opacity-70"
@@ -93,11 +95,11 @@ export function NotificationBell({ iconSize = 24 }: { iconSize?: number } = {}) 
           >
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold uppercase text-(--color-text-primary) font-(family-name:--font-accent)">
-                Notification
+                {t("title")}
               </h2>
               <button
                 type="button"
-                aria-label="Close notifications"
+                aria-label={t("closeNotifications")}
                 onClick={() => setOpen(false)}
                 className="flex h-7 w-7 items-center justify-center transition-opacity hover:opacity-70"
               >
@@ -106,7 +108,7 @@ export function NotificationBell({ iconSize = 24 }: { iconSize?: number } = {}) 
             </div>
 
             {!listLoading && notifications.length === 0 ? (
-              <p className="py-6 text-(--color-text-secondary)">You have no new messages</p>
+              <p className="py-6 text-(--color-text-secondary)">{t("empty")}</p>
             ) : (
               <>
                 <div className="-mx-3 -my-4 flex max-h-[60vh] flex-col gap-3 overflow-y-auto px-3 py-4">
@@ -125,7 +127,7 @@ export function NotificationBell({ iconSize = 24 }: { iconSize?: number } = {}) 
                   onClick={openDrawer}
                   className="w-full py-1 text-center text-sm font-bold uppercase text-(--color-text-primary) transition-opacity hover:opacity-70 font-(family-name:--font-accent)"
                 >
-                  See all
+                  {t("seeAll")}
                 </button>
               </>
             )}

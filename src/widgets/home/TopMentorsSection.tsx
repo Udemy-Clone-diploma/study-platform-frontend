@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { SectionContainer } from "@/shared/ui/SectionContainer";
 import { MentorCard, type Mentor } from "@/features/users";
 import type { TopTeacher } from "@/entities/user";

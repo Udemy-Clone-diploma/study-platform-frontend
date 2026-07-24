@@ -1,5 +1,5 @@
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { Eye } from "lucide-react";
 import type { ArticleModerationSnapshot } from "@/entities/blog";
 import { ARTICLE_STATUS_COLORS, ARTICLE_STATUS_LABELS } from "../model/articleStatus";

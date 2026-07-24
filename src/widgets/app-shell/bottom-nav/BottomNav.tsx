@@ -1,8 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link } from "@/i18n/navigation";
+import { usePathname } from "@/i18n/navigation";
 import { MoreHorizontal } from "lucide-react";
 import type { UserRole } from "@/entities/user";
 import type { SidebarItem } from "@/features/app-shell";

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { PageShell } from "@/shared/ui/PageShell";
-import { AccentButton } from "@/shared/ui/AccentButton";
+import { GradientButton } from "@/shared/ui/GradientButton";
 import { Pagination } from "@/shared/ui/Pagination";
 import { useAutoRefresh } from "@/shared/lib/useAutoRefresh";
 import { getArticles, getBlogCategories } from "@/entities/blog";
@@ -95,9 +95,9 @@ export default function TeacherBlogPage() {
             ))}
           </nav>
 
-          <AccentButton href="/blog/create" size="md" style={{ minWidth: "unset", gap: 8, display: "inline-flex", alignItems: "center" }}>
+          <GradientButton href="/blog/create" style={{ gap: 8 }}>
             <Plus size={16} /> Add Article
-          </AccentButton>
+          </GradientButton>
         </div>
 
         {loading ? (

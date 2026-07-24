@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ArticleListItem } from "@/entities/blog";
 import type { UserRole } from "@/entities/user";
+import { fluid3 } from "@/shared/lib/fluidScale";
 import { ArticleCardMenu, type ArticleMenuAction } from "./ArticleCardMenu";
 import { ARTICLE_STATUS_COLORS, ARTICLE_STATUS_LABELS } from "../model/articleStatus";
 
@@ -20,7 +21,8 @@ type Props = {
 };
 
 /** Square blog article card — cover image, gradient info panel, and an arrow link through to
- * the article page. Always a fixed 460x520 box regardless of the cover photo. */
+ * the article page. Fluidly sized between 280x316 (phone) and 460x520 (desktop), regardless
+ * of the cover photo. */
 export function ArticleCard({ article, currentUserId, currentUserRole, onAction }: Props) {
   const dateLabel = new Date(article.published_at ?? article.created_at).toLocaleDateString();
   const canManage = !!onAction;
@@ -32,8 +34,8 @@ export function ArticleCard({ article, currentUserId, currentUserRole, onAction 
     <div
       style={{
         position: "relative",
-        width: "clamp(280px, 44.92vw, 460px)",
-        height: "clamp(316px, 50.78vw, 520px)",
+        width: fluid3(375, 280, 1024, 400, 1920, 460),
+        height: fluid3(375, 316, 1024, 452, 1920, 520),
         borderRadius: 24,
         overflow: "hidden",
         flexShrink: 0,

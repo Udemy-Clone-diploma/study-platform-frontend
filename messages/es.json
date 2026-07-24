@@ -448,6 +448,7 @@
     "title": "Postularse como profesor",
     "firstNameLabel": "Nombre",
     "lastNameLabel": "Apellido",
+    "dateOfBirthLabel": "Fecha de nacimiento",
     "emailLabel": "Correo electrónico",
     "phoneNumberLabel": "Número de teléfono",
     "fieldOfStudyLabel": "Campo de estudio",

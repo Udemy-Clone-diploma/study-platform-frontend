@@ -448,6 +448,7 @@
     "title": "Als Lehrkraft bewerben",
     "firstNameLabel": "Vorname",
     "lastNameLabel": "Nachname",
+    "dateOfBirthLabel": "Geburtsdatum",
     "emailLabel": "E-Mail",
     "phoneNumberLabel": "Telefonnummer",
     "fieldOfStudyLabel": "Studienrichtung",

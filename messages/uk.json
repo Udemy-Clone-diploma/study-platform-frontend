@@ -448,6 +448,7 @@
     "title": "Подати заявку викладача",
     "firstNameLabel": "Ім'я",
     "lastNameLabel": "Прізвище",
+    "dateOfBirthLabel": "Дата народження",
     "emailLabel": "Email",
     "phoneNumberLabel": "Номер телефону",
     "fieldOfStudyLabel": "Галузь навчання",

@@ -448,6 +448,7 @@
     "title": "Apply as a Teacher",
     "firstNameLabel": "First Name",
     "lastNameLabel": "Last Name",
+    "dateOfBirthLabel": "Date of Birth",
     "emailLabel": "Email",
     "phoneNumberLabel": "Phone Number",
     "fieldOfStudyLabel": "Field of Study",

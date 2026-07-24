@@ -448,6 +448,7 @@
     "title": "Postuler comme formateur",
     "firstNameLabel": "Prénom",
     "lastNameLabel": "Nom",
+    "dateOfBirthLabel": "Date de naissance",
     "emailLabel": "E-mail",
     "phoneNumberLabel": "Numéro de téléphone",
     "fieldOfStudyLabel": "Domaine d'étude",

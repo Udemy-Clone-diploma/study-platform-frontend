@@ -206,7 +206,6 @@ export function CategoriesAdminView() {
           onClose={() => setCreating(false)}
           onSaved={() => {
             setCreating(false);
-            updateParams({ page: null });
             refresh();
           }}
         />

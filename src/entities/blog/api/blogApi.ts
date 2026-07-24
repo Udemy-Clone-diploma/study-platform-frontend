@@ -1,8 +1,15 @@
 import { api } from "@/shared/api/base";
-import type { ArticleDetail, ArticleListItem, ArticleStatus, BlogCategory } from "../model/types";
+import type {
+  ArticleDetail,
+  ArticleListItem,
+  ArticleModerationSnapshot,
+  ArticleStatus,
+  BlogCategory,
+} from "../model/types";
 
 const CATEGORIES = "blog/categories/";
 const ARTICLES = "blog/articles/";
+const MODERATION_SNAPSHOTS = "blog/moderation-snapshots/";
 
 export async function getBlogCategories(): Promise<BlogCategory[]> {
   const { data } = await api.get<BlogCategory[]>(CATEGORIES);
@@ -146,5 +153,15 @@ export async function approveArticle(slug: string): Promise<ArticleDetail> {
 
 export async function rejectArticle(slug: string, comment: string): Promise<ArticleDetail> {
   const { data } = await api.post<ArticleDetail>(`${ARTICLES}${slug}/reject/`, { comment });
+  return data;
+}
+
+/** Moderator/admin only: the shared team's permanent reject/publish decision history. */
+export async function getModerationSnapshots(
+  decision: "rejected" | "published",
+): Promise<ArticleModerationSnapshot[]> {
+  const { data } = await api.get<ArticleModerationSnapshot[]>(MODERATION_SNAPSHOTS, {
+    params: { decision },
+  });
   return data;
 }

@@ -38,3 +38,21 @@ export type ArticleDetail = ArticleListItem & {
   body_html: string;
   moderator_comment: string;
 };
+
+/** Permanent record of a reject/approve decision, independent of the live article's
+ * current status (which keeps changing after the decision -- edited, resubmitted,
+ * archived, withdrawn). See ArticleModerationSnapshot on the backend. */
+export type ArticleModerationSnapshot = {
+  id: number;
+  article_id: number;
+  article_slug: string;
+  article_status: ArticleStatus;
+  decision: "rejected" | "published";
+  comment: string;
+  title: string;
+  subtitle: string;
+  cover_image: string | null;
+  author_name: string;
+  moderator_name: string | null;
+  created_at: string;
+};

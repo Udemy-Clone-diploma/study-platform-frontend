@@ -11,13 +11,21 @@ import {
   deleteBlogCategory,
   getArticles,
   getBlogCategories,
+  getModerationSnapshots,
   updateBlogCategory,
 } from "@/entities/blog";
-import type { ArticleListItem, BlogCategory, BlogCategoryDeleteResolution, GetArticlesParams } from "@/entities/blog";
+import type {
+  ArticleListItem,
+  ArticleModerationSnapshot,
+  BlogCategory,
+  BlogCategoryDeleteResolution,
+  GetArticlesParams,
+} from "@/entities/blog";
 import type { UserRole } from "@/entities/user";
 import {
   ArticleActionModals,
   ArticleGrid,
+  ArticleModerationSnapshotList,
   BlogCategoryDeleteModal,
   BlogCategoryFormModal,
   useArticleActions,
@@ -66,14 +74,20 @@ function modeTabs(role: Extract<UserRole, "moderator" | "administrator">): { val
   return tabs;
 }
 
+/** Only covers the live-queue review filters (unassigned/mine) -- "rejected"/"published"
+ * are permanent decision snapshots now, fetched separately via getModerationSnapshots. */
 function paramsForMode(mode: Mode, reviewFilter: ReviewFilter, myFilter: MyFilter): GetArticlesParams | null {
   if (mode === "mine") return myFilter === "all" ? { mine: true } : { mine: true, status: myFilter };
   if (mode === "review") {
     if (reviewFilter === "unassigned") return { assigned: "unassigned" };
     if (reviewFilter === "mine") return { assigned: "mine" };
-    return { status: reviewFilter };
+    return null;
   }
   return null;
+}
+
+function isSnapshotFilter(mode: Mode, reviewFilter: ReviewFilter): reviewFilter is "rejected" | "published" {
+  return mode === "review" && (reviewFilter === "rejected" || reviewFilter === "published");
 }
 
 function FilterChip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
@@ -109,6 +123,7 @@ export function BlogModerationView({ role }: Props) {
   const [reviewFilter, setReviewFilter] = useState<ReviewFilter>("unassigned");
   const [myFilter, setMyFilter] = useState<MyFilter>("all");
   const [articles, setArticles] = useState<ArticleListItem[]>([]);
+  const [snapshots, setSnapshots] = useState<ArticleModerationSnapshot[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [page, setPage] = useState(1);
@@ -130,6 +145,10 @@ export function BlogModerationView({ role }: Props) {
   }, [refreshCategories]);
 
   const refresh = useCallback(() => {
+    if (isSnapshotFilter(mode, reviewFilter)) {
+      getModerationSnapshots(reviewFilter).then(setSnapshots).catch(() => {});
+      return;
+    }
     const params = paramsForMode(mode, reviewFilter, myFilter);
     if (!params) return;
     getArticles(params).then(setArticles).catch(() => {});
@@ -140,6 +159,13 @@ export function BlogModerationView({ role }: Props) {
   useAutoRefresh(refresh);
 
   useEffect(() => {
+    if (isSnapshotFilter(mode, reviewFilter)) {
+      getModerationSnapshots(reviewFilter)
+        .then(setSnapshots)
+        .catch(() => {})
+        .finally(() => setLoading(false));
+      return;
+    }
     const params = paramsForMode(mode, reviewFilter, myFilter);
     if (!params) return;
     getArticles(params)
@@ -172,9 +198,12 @@ export function BlogModerationView({ role }: Props) {
     }
   }
 
-  const totalPages = Math.max(1, Math.ceil(articles.length / PAGE_SIZE));
+  const showingSnapshots = isSnapshotFilter(mode, reviewFilter);
+  const itemCount = showingSnapshots ? snapshots.length : articles.length;
+  const totalPages = Math.max(1, Math.ceil(itemCount / PAGE_SIZE));
   const effectivePage = Math.min(page, totalPages);
   const pageArticles = articles.slice((effectivePage - 1) * PAGE_SIZE, effectivePage * PAGE_SIZE);
+  const pageSnapshots = snapshots.slice((effectivePage - 1) * PAGE_SIZE, effectivePage * PAGE_SIZE);
 
   return (
     <PageShell className="bg-(--color-brand-lavender-soft)">
@@ -267,13 +296,20 @@ export function BlogModerationView({ role }: Props) {
           </section>
         ) : (
           <>
-            <ArticleGrid
-              articles={pageArticles}
-              emptyLabel={mode === "mine" ? MY_EMPTY_LABEL[myFilter] : REVIEW_EMPTY_LABEL[reviewFilter]}
-              currentUserId={mode === "mine" ? currentUserId : null}
-              currentUserRole={role}
-              onAction={actions.handleAction}
-            />
+            {showingSnapshots ? (
+              <ArticleModerationSnapshotList
+                snapshots={pageSnapshots}
+                emptyLabel={REVIEW_EMPTY_LABEL[reviewFilter]}
+              />
+            ) : (
+              <ArticleGrid
+                articles={pageArticles}
+                emptyLabel={mode === "mine" ? MY_EMPTY_LABEL[myFilter] : REVIEW_EMPTY_LABEL[reviewFilter]}
+                currentUserId={mode === "mine" ? currentUserId : null}
+                currentUserRole={role}
+                onAction={actions.handleAction}
+              />
+            )}
             {totalPages > 1 && (
               <div style={{ marginTop: "clamp(16px, 1.67vw, 24px)" }}>
                 <Pagination currentPage={effectivePage} totalPages={totalPages} onPageChange={setPage} />

@@ -172,21 +172,6 @@ export function MobileHeaderMenu({ isLoggedIn, categories, role }: Props) {
                 >
                   {t("myCourses")}
                 </Link>
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="dropdown-link"
-                  style={{
-                    ...subItemStyle,
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    padding: 0,
-                    color: "var(--color-pink-dark)",
-                  }}
-                >
-                  {t("logout")}
-                </button>
 
                 <div className="h-px w-full bg-white" />
                 <button
@@ -206,10 +191,27 @@ export function MobileHeaderMenu({ isLoggedIn, categories, role }: Props) {
                   }}
                 >
                   {t("language")}
-                  <span className="flex items-center" style={{ gap: 4, fontWeight: 400, textTransform: "none" }}>
+                  <span className="flex items-center" style={{ gap: 4, fontWeight: 400 }}>
                     {locale}
                     <Globe className="h-4 w-4 shrink-0" aria-hidden />
                   </span>
+                </button>
+
+                <div className="h-px w-full bg-white" />
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="dropdown-link"
+                  style={{
+                    ...subItemStyle,
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    padding: 0,
+                    color: "var(--color-pink-dark)",
+                  }}
+                >
+                  {t("logout")}
                 </button>
               </AccordionSection>
             )}

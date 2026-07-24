@@ -20,6 +20,12 @@ const itemStyle: React.CSSProperties = {
     whiteSpace: "nowrap",
 };
 
+// The dropdown card's own left/right padding, kept as constants so the
+// full-width Language row below can cancel them out (negative margin) and
+// reach the card's true edges regardless of the card's width.
+const DROPDOWN_PADDING_LEFT = 16;
+const DROPDOWN_PADDING_RIGHT = 117;
+
 export function UserDropdown({ firstName, role, avatar }: { firstName: string | null; role: UserRole | null; avatar: string | null }) {
     const [open, setOpen] = useState(false);
     const [languageModalOpen, setLanguageModalOpen] = useState(false);
@@ -94,7 +100,7 @@ export function UserDropdown({ firstName, role, avatar }: { firstName: string | 
                         backgroundAttachment: "fixed",
                         backgroundSize: "100vw 100%",
                         borderRadius: 12,
-                        padding: "23px 117px 23px 16px",
+                        padding: `23px ${DROPDOWN_PADDING_RIGHT}px 23px ${DROPDOWN_PADDING_LEFT}px`,
                         zIndex: 50,
                     }}
                 >
@@ -111,6 +117,38 @@ export function UserDropdown({ firstName, role, avatar }: { firstName: string | 
                         <Link href={getRoleCourses(role)} onClick={() => setOpen(false)} className="dropdown-link" style={itemStyle}>
                             {t("myCourses")}
                         </Link>
+
+                        <div style={{ width: "100%", height: 0, borderTop: "1px solid #FFFFFF" }} />
+                        <button
+                            onClick={() => {
+                                setOpen(false);
+                                setLanguageModalOpen(true);
+                            }}
+                            className="dropdown-link flex items-center justify-between"
+                            style={{
+                                ...itemStyle,
+                                background: "none",
+                                border: "none",
+                                cursor: "pointer",
+                                textAlign: "left",
+                                // Cancel the card's own padding so this row spans its true
+                                // width edge-to-edge, then re-pad symmetrically (matching
+                                // the left inset) — works regardless of the card's width.
+                                marginLeft: -DROPDOWN_PADDING_LEFT,
+                                marginRight: -DROPDOWN_PADDING_RIGHT,
+                                paddingLeft: DROPDOWN_PADDING_LEFT,
+                                paddingRight: DROPDOWN_PADDING_LEFT,
+                                gap: 12,
+                            }}
+                        >
+                            {t("language")}
+                            <span className="flex items-center" style={{ gap: 4, fontWeight: 400 }}>
+                                {locale}
+                                <Globe className="h-4 w-4 shrink-0" aria-hidden />
+                            </span>
+                        </button>
+
+                        <div style={{ width: "100%", height: 0, borderTop: "1px solid #FFFFFF" }} />
                         <button
                             onClick={handleLogout}
                             className="dropdown-link"
@@ -125,30 +163,6 @@ export function UserDropdown({ firstName, role, avatar }: { firstName: string | 
                             }}
                         >
                             {t("logout")}
-                        </button>
-
-                        <div style={{ width: "100%", height: 0, borderTop: "1px solid #FFFFFF" }} />
-                        <button
-                            onClick={() => {
-                                setOpen(false);
-                                setLanguageModalOpen(true);
-                            }}
-                            className="dropdown-link flex items-center justify-between"
-                            style={{
-                                ...itemStyle,
-                                background: "none",
-                                border: "none",
-                                cursor: "pointer",
-                                padding: 0,
-                                gap: 12,
-                                textAlign: "left",
-                            }}
-                        >
-                            {t("language")}
-                            <span className="flex items-center" style={{ gap: 6, fontWeight: 400, textTransform: "none" }}>
-                                {locale}
-                                <Globe className="h-4 w-4 shrink-0" aria-hidden />
-                            </span>
                         </button>
                     </div>
                 </div>

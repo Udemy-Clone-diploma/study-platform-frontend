@@ -37,42 +37,57 @@ export type CatalogFilterOption = {
   value: string;
 };
 
-export const LEVEL_LABELS: Record<CourseLevel, string> = {
-  beginner: "Beginner",
-  intermediate: "Intermediate",
-  advanced: "Advanced",
-};
+/** Translator scoped to the "CatalogEnums" message namespace. */
+type EnumTranslator = (key: string) => string;
 
-export const LANGUAGE_LABELS: Record<CourseLanguage, string> = {
-  english: "English",
-  ukrainian: "Ukrainian",
-  spanish: "Spanish",
-};
+export function getLevelLabels(t: EnumTranslator): Record<CourseLevel, string> {
+  return {
+    beginner: t("level.beginner"),
+    intermediate: t("level.intermediate"),
+    advanced: t("level.advanced"),
+  };
+}
 
-export const MODE_LABELS: Record<CourseMode, string> = {
-  self_learning: "Self-study",
-  with_teacher: "Study with a teacher",
-};
+export function getLanguageLabels(t: EnumTranslator): Record<CourseLanguage, string> {
+  return {
+    english: t("language.english"),
+    ukrainian: t("language.ukrainian"),
+    spanish: t("language.spanish"),
+  };
+}
 
-export const DELIVERY_LABELS: Record<CourseDeliveryType, string> = {
-  self_paced: "Self-paced",
-  scheduled: "Scheduled",
-  individual: "Individually",
-  group: "In the group",
-};
+export function getModeLabels(t: EnumTranslator): Record<CourseMode, string> {
+  return {
+    self_learning: t("mode.self_learning"),
+    with_teacher: t("mode.with_teacher"),
+  };
+}
 
-export const COURSE_TYPE_LABELS: Record<CourseType, string> = {
-  profession: "Profession",
-  qualification: "Advanced training",
-  knowledge: "Expanding knowledge",
-};
+export function getDeliveryLabels(t: EnumTranslator): Record<CourseDeliveryType, string> {
+  return {
+    self_paced: t("delivery.self_paced"),
+    scheduled: t("delivery.scheduled"),
+    individual: t("delivery.individual"),
+    group: t("delivery.group"),
+  };
+}
 
-export const FORMAT_TYPE_LABELS: Record<DeliveryFormatType, string> = {
-  self_paced: "Self-paced",
-  scheduled: "Scheduled",
-  individual: "Individual coaching",
-  group: "Group plan",
-};
+export function getCourseTypeLabels(t: EnumTranslator): Record<CourseType, string> {
+  return {
+    profession: t("courseType.profession"),
+    qualification: t("courseType.qualification"),
+    knowledge: t("courseType.knowledge"),
+  };
+}
+
+export function getFormatTypeLabels(t: EnumTranslator): Record<DeliveryFormatType, string> {
+  return {
+    self_paced: t("formatType.self_paced"),
+    scheduled: t("formatType.scheduled"),
+    individual: t("formatType.individual"),
+    group: t("formatType.group"),
+  };
+}
 
 function firstParam(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;

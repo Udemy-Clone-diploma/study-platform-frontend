@@ -1,15 +1,16 @@
+import { getTranslations } from "next-intl/server";
 import type { Category } from "@/entities/course";
 import {
   buildCatalogHref,
-  COURSE_TYPE_LABELS,
-  DELIVERY_LABELS,
+  getCourseTypeLabels,
+  getDeliveryLabels,
   type CatalogFilterOption,
   type CatalogFilterState,
   isCatalogOptionChecked,
-  LANGUAGE_LABELS,
-  LEVEL_LABELS,
-  MODE_LABELS,
-  FORMAT_TYPE_LABELS,
+  getLanguageLabels,
+  getLevelLabels,
+  getModeLabels,
+  getFormatTypeLabels,
 } from "../model/catalogFilters";
 import { CatalogFilterCheckbox } from "./CatalogFilterCheckbox";
 import { CollapsibleFilterSection } from "./CollapsibleFilterSection";
@@ -34,17 +35,29 @@ function ToggleOption({
   );
 }
 
-export function CatalogFiltersSidebar({
+export async function CatalogFiltersSidebar({
   categories,
   state,
 }: {
   categories: Category[];
   state: CatalogFilterState;
 }) {
+  const [t, tCommon, tEnums] = await Promise.all([
+    getTranslations("CatalogFilters"),
+    getTranslations("Common"),
+    getTranslations("CatalogEnums"),
+  ]);
+  const MODE_LABELS = getModeLabels(tEnums);
+  const DELIVERY_LABELS = getDeliveryLabels(tEnums);
+  const LEVEL_LABELS = getLevelLabels(tEnums);
+  const LANGUAGE_LABELS = getLanguageLabels(tEnums);
+  const COURSE_TYPE_LABELS = getCourseTypeLabels(tEnums);
+  const FORMAT_TYPE_LABELS = getFormatTypeLabels(tEnums);
+
   return (
     <aside className="absolute inset-x-0 top-0 z-20 rounded-[8px] bg-white px-6 py-6 shadow-[0_0_24px_rgba(167,186,250,0.35)] lg:static lg:inset-auto lg:z-auto">
       <div className="space-y-6">
-        <CollapsibleFilterSection title="Format">
+        <CollapsibleFilterSection title={t("format")}>
           <ToggleOption
             option={{ label: MODE_LABELS.self_learning, param: "mode", value: "self_learning" }}
             state={state}
@@ -83,7 +96,7 @@ export function CatalogFiltersSidebar({
           />
         </CollapsibleFilterSection>
 
-        <CollapsibleFilterSection title="Categories">
+        <CollapsibleFilterSection title={tCommon("categories")}>
           {categories.map((category) => (
             <CatalogFilterCheckbox
               key={category.id}
@@ -97,11 +110,11 @@ export function CatalogFiltersSidebar({
           ))}
         </CollapsibleFilterSection>
 
-        <p className="text-[0.73rem] text-(--color-text-secondary)">In the group</p>
+        <p className="text-[0.73rem] text-(--color-text-secondary)">{t("inTheGroup")}</p>
 
         <div className="h-px bg-(--color-brand-lavender)" />
 
-        <CollapsibleFilterSection title="Course rating">
+        <CollapsibleFilterSection title={t("courseRating")}>
           {["5", "4", "3"].map((rating) => (
             <CatalogFilterCheckbox
               key={rating}
@@ -110,31 +123,31 @@ export function CatalogFiltersSidebar({
                 rating_min: state.rating_min === rating ? undefined : rating,
                 filtersOpen: true,
               })}
-              label={rating === "5" ? "5 Stars only" : `${rating} and more`}
+              label={rating === "5" ? t("fiveStarsOnly") : t("andMore", { rating })}
               inset
             />
           ))}
           <CatalogFilterCheckbox
             checked={!state.rating_min}
             href={buildCatalogHref(state, { rating_min: undefined, filtersOpen: true })}
-            label="All"
+            label={tCommon("all")}
             inset
           />
         </CollapsibleFilterSection>
 
-        <CollapsibleFilterSection title="Difficulty level">
+        <CollapsibleFilterSection title={t("difficultyLevel")}>
           {Object.entries(LEVEL_LABELS).map(([value, label]) => (
             <ToggleOption key={value} option={{ label, param: "level", value }} state={state} inset />
           ))}
         </CollapsibleFilterSection>
 
-        <CollapsibleFilterSection title="Course language">
+        <CollapsibleFilterSection title={t("courseLanguage")}>
           {Object.entries(LANGUAGE_LABELS).map(([value, label]) => (
             <ToggleOption key={value} option={{ label, param: "language", value }} state={state} inset />
           ))}
         </CollapsibleFilterSection>
 
-        <CollapsibleFilterSection title="Course type">
+        <CollapsibleFilterSection title={t("courseType")}>
           {Object.entries(COURSE_TYPE_LABELS).map(([value, label]) => (
             <ToggleOption
               key={value}
@@ -146,18 +159,18 @@ export function CatalogFiltersSidebar({
           <CatalogFilterCheckbox
             checked={false}
             href={buildCatalogHref(state, { filtersOpen: true })}
-            label="Workshops"
+            label={t("workshops")}
             inset
           />
           <CatalogFilterCheckbox
             checked={false}
             href={buildCatalogHref(state, { filtersOpen: true })}
-            label="Masterclasses"
+            label={t("masterclasses")}
             inset
           />
         </CollapsibleFilterSection>
 
-        <CollapsibleFilterSection title="Format type">
+        <CollapsibleFilterSection title={t("formatType")}>
           {(Object.entries(FORMAT_TYPE_LABELS) as [string, string][]).map(([value, label]) => (
             <ToggleOption
               key={value}
@@ -168,18 +181,18 @@ export function CatalogFiltersSidebar({
           ))}
         </CollapsibleFilterSection>
 
-        <CollapsibleFilterSection title="Price range">
+        <CollapsibleFilterSection title={t("priceRange")}>
           <PriceRangeFilter initialMin={state.price_min} initialMax={state.price_max} />
         </CollapsibleFilterSection>
 
-        <CollapsibleFilterSection title="Promotions">
+        <CollapsibleFilterSection title={t("promotions")}>
           <CatalogFilterCheckbox
             checked={Boolean(state.is_on_sale)}
             href={buildCatalogHref(state, {
               is_on_sale: state.is_on_sale ? undefined : true,
               filtersOpen: true,
             })}
-            label="Sale"
+            label={t("sale")}
             inset
           />
         </CollapsibleFilterSection>

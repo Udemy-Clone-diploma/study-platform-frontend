@@ -125,5 +125,62 @@
     "pagination": "Seitennavigation",
     "previousPage": "Vorherige Seite",
     "nextPage": "Nächste Seite"
+  },
+  "Catalog": {
+    "errorLoadCourses": "Kurse konnten nicht geladen werden.",
+    "allFilters": "Alle Filter",
+    "coursesUnavailable": "Kurse sind nicht verfügbar",
+    "noCoursesFound": "Keine Kurse gefunden",
+    "tryAnotherFilters": "Versuche eine andere Filterkombination.",
+    "resetFilters": "Filter zurücksetzen"
+  },
+  "CatalogHero": {
+    "title": "<highlight>Erweitere dein Fachwissen</highlight> mit erstklassigen Kursen für deinen nächsten Karriereschritt."
+  },
+  "CourseSearch": {
+    "searchCourses": "Kurse durchsuchen",
+    "clearSearch": "Suche löschen"
+  },
+  "CategoryFilter": {
+    "noCategoriesYet": "Noch keine Kategorien."
+  },
+  "CatalogFilters": {
+    "format": "Format",
+    "courseRating": "Kursbewertung",
+    "inTheGroup": "In der Gruppe",
+    "fiveStarsOnly": "Nur 5 Sterne",
+    "andMore": "{rating} und mehr",
+    "difficultyLevel": "Schwierigkeitsgrad",
+    "courseLanguage": "Kurssprache",
+    "courseType": "Kursart",
+    "workshops": "Workshops",
+    "masterclasses": "Meisterkurse",
+    "formatType": "Formatart",
+    "priceRange": "Preisspanne",
+    "promotions": "Angebote",
+    "sale": "Rabatt",
+    "min": "Min",
+    "minimumPrice": "Mindestpreis",
+    "max": "Max",
+    "maximumPrice": "Höchstpreis",
+    "apply": "Anwenden"
+  },
+  "CatalogEnums": {
+    "level": { "beginner": "Anfänger", "intermediate": "Mittelstufe", "advanced": "Fortgeschritten" },
+    "language": { "english": "Englisch", "ukrainian": "Ukrainisch", "spanish": "Spanisch" },
+    "mode": { "self_learning": "Selbststudium", "with_teacher": "Lernen mit Lehrkraft" },
+    "delivery": { "self_paced": "Im eigenen Tempo", "scheduled": "Nach Zeitplan", "individual": "Einzeln", "group": "In der Gruppe" },
+    "courseType": { "profession": "Beruf", "qualification": "Weiterbildung", "knowledge": "Wissenserweiterung" },
+    "formatType": { "self_paced": "Im eigenen Tempo", "scheduled": "Nach Zeitplan", "individual": "Einzelcoaching", "group": "Gruppenplan" }
+  },
+  "SortDropdown": {
+    "sortBy": "Sortieren nach",
+    "options": {
+      "popularity": "Nach Beliebtheit",
+      "rating": "Nach Bewertung",
+      "novelty": "Nach Neuheit",
+      "cheapFirst": "Zuerst günstig",
+      "expensiveFirst": "Zuerst teuer"
+    }
   }
 }

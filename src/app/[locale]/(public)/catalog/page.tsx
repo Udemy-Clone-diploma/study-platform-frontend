@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { SlidersHorizontal } from "lucide-react";
 import {
@@ -53,7 +54,12 @@ function splitFilter<T extends string>(value: string | undefined): Array<T> | un
   return parts.length ? parts : undefined;
 }
 
-async function loadCourses(state: CatalogFilterState, page: number, ordering: string | undefined) {
+async function loadCourses(
+  state: CatalogFilterState,
+  page: number,
+  ordering: string | undefined,
+  fallbackErrorMessage: string,
+) {
   try {
     const data = await getCourses({
       category: state.category,
@@ -85,7 +91,7 @@ async function loadCourses(state: CatalogFilterState, page: number, ordering: st
     return {
       courses: [],
       count: 0,
-      error: apiError.message || apiError.detail || "Could not load courses.",
+      error: apiError.message || apiError.detail || fallbackErrorMessage,
     };
   }
 }
@@ -107,9 +113,10 @@ export default async function CatalogPage({
   const state = parseCatalogState(params);
   const currentPage = parsePage(params);
   const ordering = firstParam(params.sort);
+  const t = await getTranslations("Catalog");
 
   const [{ courses, count, error }, categories, wishlistedSlugs] = await Promise.all([
-    loadCourses(state, currentPage, ordering),
+    loadCourses(state, currentPage, ordering, t("errorLoadCourses")),
     loadCategories(),
     getWishlistSlugs().catch(() => []),
   ]);
@@ -147,7 +154,7 @@ export default async function CatalogPage({
               }`}
             >
               <SlidersHorizontal aria-hidden="true" className="h-4 w-4" />
-              <span>All Filters</span>
+              <span>{t("allFilters")}</span>
             </Link>
 
             <Suspense>
@@ -163,19 +170,19 @@ export default async function CatalogPage({
             <section>
               {error ? (
                 <div className="rounded-[8px] border border-red-200 bg-red-50 p-6 text-red-800 shadow-sm">
-                  <h3 className="text-xl font-semibold">Courses are unavailable</h3>
+                  <h3 className="text-xl font-semibold">{t("coursesUnavailable")}</h3>
                   <p className="mt-2 text-sm">{error}</p>
                 </div>
               ) : courses.length === 0 ? (
                 <div className="rounded-[8px] bg-white p-10 text-center shadow-[0_8px_22px_rgba(76,68,87,0.12)]">
-                  <h3 className="text-xl font-semibold">No courses found</h3>
-                  <p className="mt-2 text-(--color-text-secondary)">Try another set of filters.</p>
+                  <h3 className="text-xl font-semibold">{t("noCoursesFound")}</h3>
+                  <p className="mt-2 text-(--color-text-secondary)">{t("tryAnotherFilters")}</p>
                   <Link
                     href={resetCatalogFiltersHref(state)}
                     scroll={false}
                     className="mt-6 inline-flex rounded-full bg-(--color-text-primary) px-6 py-2 text-sm font-medium text-white"
                   >
-                    Reset filters
+                    {t("resetFilters")}
                   </Link>
                 </div>
               ) : (

@@ -125,5 +125,62 @@
     "pagination": "Pagination",
     "previousPage": "Page précédente",
     "nextPage": "Page suivante"
+  },
+  "Catalog": {
+    "errorLoadCourses": "Impossible de charger les cours.",
+    "allFilters": "Tous les filtres",
+    "coursesUnavailable": "Les cours sont indisponibles",
+    "noCoursesFound": "Aucun cours trouvé",
+    "tryAnotherFilters": "Essayez un autre ensemble de filtres.",
+    "resetFilters": "Réinitialiser les filtres"
+  },
+  "CatalogHero": {
+    "title": "<highlight>Développez votre expertise</highlight> grâce à des cours de classe mondiale conçus pour votre prochaine évolution de carrière."
+  },
+  "CourseSearch": {
+    "searchCourses": "Rechercher des cours",
+    "clearSearch": "Effacer la recherche"
+  },
+  "CategoryFilter": {
+    "noCategoriesYet": "Aucune catégorie pour l'instant."
+  },
+  "CatalogFilters": {
+    "format": "Format",
+    "courseRating": "Note du cours",
+    "inTheGroup": "En groupe",
+    "fiveStarsOnly": "5 étoiles uniquement",
+    "andMore": "{rating} et plus",
+    "difficultyLevel": "Niveau de difficulté",
+    "courseLanguage": "Langue du cours",
+    "courseType": "Type de cours",
+    "workshops": "Ateliers",
+    "masterclasses": "Masterclasses",
+    "formatType": "Type de format",
+    "priceRange": "Fourchette de prix",
+    "promotions": "Promotions",
+    "sale": "Promo",
+    "min": "Min",
+    "minimumPrice": "Prix minimum",
+    "max": "Max",
+    "maximumPrice": "Prix maximum",
+    "apply": "Appliquer"
+  },
+  "CatalogEnums": {
+    "level": { "beginner": "Débutant", "intermediate": "Intermédiaire", "advanced": "Avancé" },
+    "language": { "english": "Anglais", "ukrainian": "Ukrainien", "spanish": "Espagnol" },
+    "mode": { "self_learning": "Autoformation", "with_teacher": "Cours avec un formateur" },
+    "delivery": { "self_paced": "À son rythme", "scheduled": "Programmé", "individual": "Individuellement", "group": "En groupe" },
+    "courseType": { "profession": "Profession", "qualification": "Formation avancée", "knowledge": "Élargir ses connaissances" },
+    "formatType": { "self_paced": "À son rythme", "scheduled": "Programmé", "individual": "Coaching individuel", "group": "Formule groupe" }
+  },
+  "SortDropdown": {
+    "sortBy": "Trier par",
+    "options": {
+      "popularity": "Par popularité",
+      "rating": "Par note",
+      "novelty": "Par nouveauté",
+      "cheapFirst": "Prix croissant",
+      "expensiveFirst": "Prix décroissant"
+    }
   }
 }

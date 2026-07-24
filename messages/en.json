@@ -125,5 +125,147 @@
     "pagination": "Pagination",
     "previousPage": "Previous page",
     "nextPage": "Next page"
+  },
+  "Catalog": {
+    "errorLoadCourses": "Could not load courses.",
+    "allFilters": "All Filters",
+    "coursesUnavailable": "Courses are unavailable",
+    "noCoursesFound": "No courses found",
+    "tryAnotherFilters": "Try another set of filters.",
+    "resetFilters": "Reset filters"
+  },
+  "CatalogHero": {
+    "title": "<highlight>Expand your expertise</highlight> with world-class courses designed for your next career move."
+  },
+  "CourseSearch": {
+    "searchCourses": "Search courses",
+    "clearSearch": "Clear search"
+  },
+  "CategoryFilter": {
+    "noCategoriesYet": "No categories yet."
+  },
+  "CatalogFilters": {
+    "format": "Format",
+    "courseRating": "Course rating",
+    "inTheGroup": "In the group",
+    "fiveStarsOnly": "5 Stars only",
+    "andMore": "{rating} and more",
+    "difficultyLevel": "Difficulty level",
+    "courseLanguage": "Course language",
+    "courseType": "Course type",
+    "workshops": "Workshops",
+    "masterclasses": "Masterclasses",
+    "formatType": "Format type",
+    "priceRange": "Price range",
+    "promotions": "Promotions",
+    "sale": "Sale",
+    "min": "Min",
+    "minimumPrice": "Minimum price",
+    "max": "Max",
+    "maximumPrice": "Maximum price",
+    "apply": "Apply"
+  },
+  "CatalogEnums": {
+    "level": { "beginner": "Beginner", "intermediate": "Intermediate", "advanced": "Advanced" },
+    "language": { "english": "English", "ukrainian": "Ukrainian", "spanish": "Spanish" },
+    "mode": { "self_learning": "Self-study", "with_teacher": "Study with a teacher" },
+    "delivery": { "self_paced": "Self-paced", "scheduled": "Scheduled", "individual": "Individually", "group": "In the group" },
+    "courseType": { "profession": "Profession", "qualification": "Advanced training", "knowledge": "Expanding knowledge" },
+    "formatType": { "self_paced": "Self-paced", "scheduled": "Scheduled", "individual": "Individual coaching", "group": "Group plan" }
+  },
+  "SortDropdown": {
+    "sortBy": "Sort by",
+    "options": {
+      "popularity": "By popularity",
+      "rating": "By rating",
+      "novelty": "By novelty",
+      "cheapFirst": "Cheap at first",
+      "expensiveFirst": "Expensive at first"
+    }
+  },
+  "CourseCurriculum": {
+    "heading": "Course Curriculum",
+    "summary": "{lessons, plural, one {# Video Lesson} other {# Video Lessons}} | {modules, plural, one {# Module} other {# Modules}}",
+    "noCurriculum": "No curriculum available yet."
+  },
+  "CourseModuleItem": {
+    "modulePrefix": "Module {number}",
+    "lessonPrefix": "Lesson {number}: {title}.",
+    "freePreview": "Free preview",
+    "mandatory": "Mandatory"
+  },
+  "CourseHero": {
+    "levelMeta": { "beginner": "Foundational training", "intermediate": "Intermediate training", "advanced": "Advanced training" },
+    "mode": { "with_teacher": "With a teacher", "self_learning": "Self-paced" },
+    "ratingLabel": "{rating} (based on {count}+ global reviews)",
+    "noReviewsYet": "No reviews yet",
+    "languageLabel": "Language: {language}"
+  },
+  "CourseHeroCTA": {
+    "courseAvailable": "The course is already available in My Courses.",
+    "freeEnrollmentSuccess": "Enrollment complete. You can start this course now.",
+    "studentOnly": "Enrollment is available only for students.",
+    "noPricingPlan": "This course does not have an available pricing plan.",
+    "continueLearning": "Continue learning",
+    "processing": "Processing...",
+    "enrollFree": "Enroll for free",
+    "choosePlan": "Choose a plan",
+    "genericError": "Could not process your request."
+  },
+  "CourseTeacher": {
+    "yearsExperience": "years in real-world projects",
+    "students": "students",
+    "partnerships": "partnerships with companies",
+    "teacherBadge": "Teacher"
+  },
+  "CourseFeedback": {
+    "badge": "Feedback",
+    "viewMore": "View more",
+    "noReviewsFull": "No reviews yet. Be the first to share your experience."
+  },
+  "CourseReviewCard": {
+    "ratingLabel": "{rating} out of 5 stars"
+  },
+  "CoursePricingBlock": {
+    "noSchedules": "No available schedules at this time.",
+    "group": "Group",
+    "selectSchedule": "Select a schedule",
+    "startsDate": "Starts {date}",
+    "spotsLeft": "{count, plural, one {# spot left} other {# spots left}}",
+    "loadingTimes": "Loading available times…",
+    "noSessions": "No available sessions at this time.",
+    "availableSessions": "Available sessions ({count})",
+    "pickSessions": "Pick {min}–{max} weekly sessions ({selected}/{max} selected)",
+    "selectScheduleFirst": "Please select a schedule first.",
+    "selectTimeSlots": "Please select {min}-{max} available time slots.",
+    "tuitionBadge": "Tuition Fees & Payment Options",
+    "tuitionIntro": "Choose the format that best fits your goals and budget. We offer flexible payment plans for your convenience.",
+    "formatLabel": { "self_paced": "Self-paced", "scheduled": "Scheduled", "individual": "Individual Coaching", "group": "Group Courses" },
+    "formatBlurb": {
+      "self_paced": "Learn at your own pace with lifetime access to all content",
+      "scheduled": "Follow a structured schedule with content unlocking over time",
+      "individual": "1-on-1 mentorship with a curriculum tailored to your pace",
+      "group": "Learn and collaborate with peers in a dynamic environment"
+    },
+    "fullPrice": "Full Price:",
+    "onePayment": "(one-time payment)",
+    "installmentPlan": "Installment Plan:",
+    "monthlyPayments": "({count} monthly payments)",
+    "noSpots": "No spots available",
+    "buyNow": "Buy now"
+  },
+  "CourseScheduleCard": {
+    "schedule": "Schedule",
+    "hoursPerWeek": "{hours} hours per week",
+    "hoursPerWeekRange": "{min}–{max} hours per week",
+    "groupOf": "Group of {count} people",
+    "group": "Group",
+    "monthsCount": "{count, plural, one {# Month} other {# Months}}",
+    "modulesLessons": "{modules, plural, one {# module} other {# modules}} | {lessons, plural, one {# lesson} other {# lessons}}",
+    "startDate": "Start date:"
+  },
+  "CourseReviewsView": {
+    "title": "Reviews of the \"{course}\" course",
+    "noReviews": "No reviews yet."
   }
 }

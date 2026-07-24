@@ -1,6 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { useState, useRef, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
@@ -10,13 +11,13 @@ export type SortOption = {
   value: string;
 };
 
-export const SORT_OPTIONS: SortOption[] = [
-  { label: "By popularity", value: "-students_count" },
-  { label: "By rating", value: "-rating_avg" },
-  { label: "By novelty", value: "-published_at" },
-  { label: "Cheap at first", value: "min_price" },
-  { label: "Expensive at first", value: "-min_price" },
-];
+const SORT_VALUES = [
+  { key: "popularity", value: "-students_count" },
+  { key: "rating", value: "-rating_avg" },
+  { key: "novelty", value: "-published_at" },
+  { key: "cheapFirst", value: "min_price" },
+  { key: "expensiveFirst", value: "-min_price" },
+] as const;
 
 /**
  * Matches the backend's current default ordering. Keep these in sync — if the
@@ -35,6 +36,11 @@ export function SortDropdown({ currentSort }: Props) {
   const searchParams = useSearchParams();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const t = useTranslations("SortDropdown");
+  const SORT_OPTIONS: SortOption[] = SORT_VALUES.map(({ key, value }) => ({
+    label: t(`options.${key}`),
+    value,
+  }));
 
   const activeOption = SORT_OPTIONS.find((o) => o.value === currentSort);
   const highlightedValue = activeOption?.value ?? DEFAULT_SORT;
@@ -70,7 +76,7 @@ export function SortDropdown({ currentSort }: Props) {
         aria-haspopup="listbox"
         aria-expanded={open}
       >
-        <span>{activeOption?.label ?? "Sort by"}</span>
+        <span>{activeOption?.label ?? t("sortBy")}</span>
         <ChevronDown
           aria-hidden="true"
           className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`}

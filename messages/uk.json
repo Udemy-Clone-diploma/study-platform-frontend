@@ -125,5 +125,62 @@
     "pagination": "Пагінація",
     "previousPage": "Попередня сторінка",
     "nextPage": "Наступна сторінка"
+  },
+  "Catalog": {
+    "errorLoadCourses": "Не вдалося завантажити курси.",
+    "allFilters": "Усі фільтри",
+    "coursesUnavailable": "Курси недоступні",
+    "noCoursesFound": "Курсів не знайдено",
+    "tryAnotherFilters": "Спробуйте інший набір фільтрів.",
+    "resetFilters": "Скинути фільтри"
+  },
+  "CatalogHero": {
+    "title": "<highlight>Розширте свою експертизу</highlight> завдяки курсам світового рівня, створеним для вашого наступного кар'єрного кроку."
+  },
+  "CourseSearch": {
+    "searchCourses": "Пошук курсів",
+    "clearSearch": "Очистити пошук"
+  },
+  "CategoryFilter": {
+    "noCategoriesYet": "Категорій поки немає."
+  },
+  "CatalogFilters": {
+    "format": "Формат",
+    "courseRating": "Рейтинг курсу",
+    "inTheGroup": "У групі",
+    "fiveStarsOnly": "Лише 5 зірок",
+    "andMore": "{rating} і вище",
+    "difficultyLevel": "Рівень складності",
+    "courseLanguage": "Мова курсу",
+    "courseType": "Тип курсу",
+    "workshops": "Воркшопи",
+    "masterclasses": "Майстер-класи",
+    "formatType": "Тип формату",
+    "priceRange": "Діапазон цін",
+    "promotions": "Акції",
+    "sale": "Знижка",
+    "min": "Від",
+    "minimumPrice": "Мінімальна ціна",
+    "max": "До",
+    "maximumPrice": "Максимальна ціна",
+    "apply": "Застосувати"
+  },
+  "CatalogEnums": {
+    "level": { "beginner": "Початковий", "intermediate": "Середній", "advanced": "Просунутий" },
+    "language": { "english": "Англійська", "ukrainian": "Українська", "spanish": "Іспанська" },
+    "mode": { "self_learning": "Самостійне навчання", "with_teacher": "Навчання з викладачем" },
+    "delivery": { "self_paced": "У власному темпі", "scheduled": "За розкладом", "individual": "Індивідуально", "group": "У групі" },
+    "courseType": { "profession": "Професія", "qualification": "Підвищення кваліфікації", "knowledge": "Розширення знань" },
+    "formatType": { "self_paced": "У власному темпі", "scheduled": "За розкладом", "individual": "Індивідуальний коучинг", "group": "Груповий план" }
+  },
+  "SortDropdown": {
+    "sortBy": "Сортувати за",
+    "options": {
+      "popularity": "За популярністю",
+      "rating": "За рейтингом",
+      "novelty": "За новизною",
+      "cheapFirst": "Спочатку дешевші",
+      "expensiveFirst": "Спочатку дорожчі"
+    }
   }
 }

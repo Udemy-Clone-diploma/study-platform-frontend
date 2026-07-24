@@ -125,5 +125,62 @@
     "pagination": "Paginación",
     "previousPage": "Página anterior",
     "nextPage": "Página siguiente"
+  },
+  "Catalog": {
+    "errorLoadCourses": "No se pudieron cargar los cursos.",
+    "allFilters": "Todos los filtros",
+    "coursesUnavailable": "Los cursos no están disponibles",
+    "noCoursesFound": "No se encontraron cursos",
+    "tryAnotherFilters": "Prueba con otro conjunto de filtros.",
+    "resetFilters": "Restablecer filtros"
+  },
+  "CatalogHero": {
+    "title": "<highlight>Amplía tu experiencia</highlight> con cursos de primer nivel diseñados para tu próximo paso profesional."
+  },
+  "CourseSearch": {
+    "searchCourses": "Buscar cursos",
+    "clearSearch": "Borrar búsqueda"
+  },
+  "CategoryFilter": {
+    "noCategoriesYet": "Todavía no hay categorías."
+  },
+  "CatalogFilters": {
+    "format": "Formato",
+    "courseRating": "Valoración del curso",
+    "inTheGroup": "En grupo",
+    "fiveStarsOnly": "Solo 5 estrellas",
+    "andMore": "{rating} o más",
+    "difficultyLevel": "Nivel de dificultad",
+    "courseLanguage": "Idioma del curso",
+    "courseType": "Tipo de curso",
+    "workshops": "Talleres",
+    "masterclasses": "Masterclasses",
+    "formatType": "Tipo de formato",
+    "priceRange": "Rango de precio",
+    "promotions": "Promociones",
+    "sale": "Oferta",
+    "min": "Mín",
+    "minimumPrice": "Precio mínimo",
+    "max": "Máx",
+    "maximumPrice": "Precio máximo",
+    "apply": "Aplicar"
+  },
+  "CatalogEnums": {
+    "level": { "beginner": "Principiante", "intermediate": "Intermedio", "advanced": "Avanzado" },
+    "language": { "english": "Inglés", "ukrainian": "Ucraniano", "spanish": "Español" },
+    "mode": { "self_learning": "Autoaprendizaje", "with_teacher": "Estudio con profesor" },
+    "delivery": { "self_paced": "A tu ritmo", "scheduled": "Programado", "individual": "Individual", "group": "En grupo" },
+    "courseType": { "profession": "Profesión", "qualification": "Formación avanzada", "knowledge": "Ampliar conocimientos" },
+    "formatType": { "self_paced": "A tu ritmo", "scheduled": "Programado", "individual": "Coaching individual", "group": "Plan grupal" }
+  },
+  "SortDropdown": {
+    "sortBy": "Ordenar por",
+    "options": {
+      "popularity": "Por popularidad",
+      "rating": "Por valoración",
+      "novelty": "Por novedad",
+      "cheapFirst": "Precio: menor primero",
+      "expensiveFirst": "Precio: mayor primero"
+    }
   }
 }

@@ -1,16 +1,18 @@
 import Image from "next/image";
+import { getTranslations } from "next-intl/server";
 import type { Teacher } from "@/entities/course";
 import { SectionBadge } from "./SectionBadge";
 
 type Props = { teacher: Teacher; quote: string | null };
 
 /** Teacher section: name, badge, bio, inline stats and pull-quote on the left, portrait on the right. */
-export function CourseTeacher({ teacher, quote }: Props) {
+export async function CourseTeacher({ teacher, quote }: Props) {
+  const t = await getTranslations("CourseTeacher");
   const stats = (
     [
-      { value: teacher.years_experience, label: "years in real-world projects" },
-      { value: teacher.students_taught, label: "students" },
-      { value: teacher.partnerships_count, label: "partnerships with companies" },
+      { value: teacher.years_experience, label: t("yearsExperience") },
+      { value: teacher.students_taught, label: t("students") },
+      { value: teacher.partnerships_count, label: t("partnerships") },
     ] as const
   ).filter((s) => s.value != null) as { value: number; label: string }[];
 
@@ -26,7 +28,7 @@ export function CourseTeacher({ teacher, quote }: Props) {
               {teacher.specialization}
             </p>
           )}
-          <SectionBadge>Teacher</SectionBadge>
+          <SectionBadge>{t("teacherBadge")}</SectionBadge>
         </div>
         <p className="text-lg text-(--color-text-primary) sm:text-xl lg:text-2xl">{teacher.bio}</p>
       </div>

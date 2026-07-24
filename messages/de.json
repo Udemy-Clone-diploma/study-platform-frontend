@@ -182,5 +182,90 @@
       "cheapFirst": "Zuerst günstig",
       "expensiveFirst": "Zuerst teuer"
     }
+  },
+  "CourseCurriculum": {
+    "heading": "Kurslehrplan",
+    "summary": "{lessons, plural, one {# Videolektion} other {# Videolektionen}} | {modules, plural, one {# Modul} other {# Module}}",
+    "noCurriculum": "Noch kein Lehrplan verfügbar."
+  },
+  "CourseModuleItem": {
+    "modulePrefix": "Modul {number}",
+    "lessonPrefix": "Lektion {number}: {title}.",
+    "freePreview": "Kostenlose Vorschau",
+    "mandatory": "Verpflichtend"
+  },
+  "CourseHero": {
+    "levelMeta": { "beginner": "Grundlagentraining", "intermediate": "Mittelstufentraining", "advanced": "Fortgeschrittenentraining" },
+    "mode": { "with_teacher": "Mit Lehrkraft", "self_learning": "Im eigenen Tempo" },
+    "ratingLabel": "{rating} (basierend auf über {count} weltweiten Bewertungen)",
+    "noReviewsYet": "Noch keine Bewertungen",
+    "languageLabel": "Sprache: {language}"
+  },
+  "CourseHeroCTA": {
+    "courseAvailable": "Der Kurs ist bereits unter Meine Kurse verfügbar.",
+    "freeEnrollmentSuccess": "Anmeldung abgeschlossen. Du kannst diesen Kurs jetzt starten.",
+    "studentOnly": "Die Anmeldung ist nur für Studierende möglich.",
+    "noPricingPlan": "Für diesen Kurs ist kein Preisplan verfügbar.",
+    "continueLearning": "Weiterlernen",
+    "processing": "Wird verarbeitet...",
+    "enrollFree": "Kostenlos anmelden",
+    "choosePlan": "Plan auswählen",
+    "genericError": "Deine Anfrage konnte nicht verarbeitet werden."
+  },
+  "CourseTeacher": {
+    "yearsExperience": "Jahre in realen Projekten",
+    "students": "Studierende",
+    "partnerships": "Partnerschaften mit Unternehmen",
+    "teacherBadge": "Lehrkraft"
+  },
+  "CourseFeedback": {
+    "badge": "Feedback",
+    "viewMore": "Mehr anzeigen",
+    "noReviewsFull": "Noch keine Bewertungen. Sei die/der Erste, die/der ihre/seine Erfahrung teilt."
+  },
+  "CourseReviewCard": {
+    "ratingLabel": "{rating} von 5 Sternen"
+  },
+  "CoursePricingBlock": {
+    "noSchedules": "Derzeit keine verfügbaren Termine.",
+    "group": "Gruppe",
+    "selectSchedule": "Termin auswählen",
+    "startsDate": "Beginnt am {date}",
+    "spotsLeft": "{count, plural, one {noch # Platz frei} other {noch # Plätze frei}}",
+    "loadingTimes": "Verfügbare Zeiten werden geladen…",
+    "noSessions": "Derzeit keine verfügbaren Termine.",
+    "availableSessions": "Verfügbare Termine ({count})",
+    "pickSessions": "Wähle {min}–{max} wöchentliche Termine ({selected}/{max} ausgewählt)",
+    "selectScheduleFirst": "Bitte wähle zuerst einen Termin.",
+    "selectTimeSlots": "Bitte wähle {min}–{max} verfügbare Zeitfenster.",
+    "tuitionBadge": "Kursgebühren & Zahlungsoptionen",
+    "tuitionIntro": "Wähle das Format, das am besten zu deinen Zielen und deinem Budget passt. Wir bieten flexible Zahlungspläne für deinen Komfort.",
+    "formatLabel": { "self_paced": "Im eigenen Tempo", "scheduled": "Nach Zeitplan", "individual": "Einzelcoaching", "group": "Gruppenkurse" },
+    "formatBlurb": {
+      "self_paced": "Lerne in deinem eigenen Tempo mit lebenslangem Zugang zu allen Inhalten",
+      "scheduled": "Folge einem strukturierten Zeitplan mit schrittweise freigeschalteten Inhalten",
+      "individual": "1:1-Mentoring mit einem an dein Tempo angepassten Lehrplan",
+      "group": "Lerne und arbeite mit Gleichgesinnten in einer dynamischen Umgebung zusammen"
+    },
+    "fullPrice": "Vollpreis:",
+    "onePayment": "(Einmalzahlung)",
+    "installmentPlan": "Ratenzahlung:",
+    "monthlyPayments": "({count} monatliche Zahlungen)",
+    "noSpots": "Keine Plätze verfügbar",
+    "buyNow": "Jetzt kaufen"
+  },
+  "CourseScheduleCard": {
+    "schedule": "Zeitplan",
+    "hoursPerWeek": "{hours} Stunden pro Woche",
+    "hoursPerWeekRange": "{min}–{max} Stunden pro Woche",
+    "groupOf": "Gruppe von {count} Personen",
+    "group": "Gruppe",
+    "monthsCount": "{count, plural, one {# Monat} other {# Monate}}",
+    "modulesLessons": "{modules, plural, one {# Modul} other {# Module}} | {lessons, plural, one {# Lektion} other {# Lektionen}}",
+    "startDate": "Startdatum:"
+  },
+  "CourseReviewsView": {
+    "title": "Bewertungen für den Kurs „{course}“",
+    "noReviews": "Noch keine Bewertungen."
   }
 }

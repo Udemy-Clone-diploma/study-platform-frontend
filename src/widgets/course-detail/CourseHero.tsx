@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { getTranslations } from "next-intl/server";
 import { Star } from "lucide-react";
 import type { CourseDetail } from "@/entities/course";
 import { CourseDescription } from "./CourseDescription";
@@ -6,40 +7,40 @@ import { CourseHeroCTA } from "./CourseHeroCTA";
 
 type Props = { course: CourseDetail };
 
-const LEVEL_LABEL: Record<CourseDetail["level"], string> = {
-  beginner: "Beginner",
-  intermediate: "Intermediate",
-  advanced: "Advanced",
-};
-
 const LEVEL_BADGE: Record<CourseDetail["level"], string> = {
   beginner: "bg-(--color-brand-yellow) text-(--color-yellow-dark)",
   intermediate: "bg-(--color-brand-lavender) text-(--color-blue-dark)",
   advanced: "bg-(--color-brand-pink) text-(--color-pink-dark)",
 };
 
-const LEVEL_META_LABEL: Record<CourseDetail["level"], string> = {
-  beginner: "Foundational training",
-  intermediate: "Intermediate training",
-  advanced: "Advanced training",
-};
-
-const LANGUAGE_LABEL: Record<CourseDetail["language"], string> = {
-  english: "English",
-  ukrainian: "Ukrainian",
-  spanish: "Spanish",
-};
-
-const MODE_LABEL: Record<CourseDetail["mode"], string> = {
-  with_teacher: "With a teacher",
-  self_learning: "Self-paced",
-};
-
 /** Top hero: level badge, title/subtitle/description, rating row, meta pills, CTA. Right column: instructor cutout with a floating name pill. */
-export function CourseHero({ course }: Props) {
+export async function CourseHero({ course }: Props) {
   const ratingValue = Number(course.rating_avg).toFixed(1);
   const reviewsLabel = new Intl.NumberFormat("en-US").format(course.rating_count);
   const hasReviews = course.rating_count > 0;
+  const [t, tEnums] = await Promise.all([
+    getTranslations("CourseHero"),
+    getTranslations("CatalogEnums"),
+  ]);
+  const LEVEL_LABEL = {
+    beginner: tEnums("level.beginner"),
+    intermediate: tEnums("level.intermediate"),
+    advanced: tEnums("level.advanced"),
+  };
+  const LEVEL_META_LABEL = {
+    beginner: t("levelMeta.beginner"),
+    intermediate: t("levelMeta.intermediate"),
+    advanced: t("levelMeta.advanced"),
+  };
+  const LANGUAGE_LABEL = {
+    english: tEnums("language.english"),
+    ukrainian: tEnums("language.ukrainian"),
+    spanish: tEnums("language.spanish"),
+  };
+  const MODE_LABEL = {
+    with_teacher: t("mode.with_teacher"),
+    self_learning: t("mode.self_learning"),
+  };
 
   return (
     <section className="grid grid-cols-1 items-center gap-8 sm:gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,600px)] lg:gap-12">
@@ -77,16 +78,14 @@ export function CourseHero({ course }: Props) {
                 stroke="var(--color-gold)"
               />
               {hasReviews ? (
-                <span>
-                  {ratingValue} (based on {reviewsLabel}+ global reviews)
-                </span>
+                <span>{t("ratingLabel", { rating: ratingValue, count: reviewsLabel })}</span>
               ) : (
-                <span className="text-(--color-text-secondary)">No reviews yet</span>
+                <span className="text-(--color-text-secondary)">{t("noReviewsYet")}</span>
               )}
             </div>
 
             <ul className="flex flex-wrap items-center gap-2 sm:gap-3">
-              <MetaPill>Language: {LANGUAGE_LABEL[course.language]}</MetaPill>
+              <MetaPill>{t("languageLabel", { language: LANGUAGE_LABEL[course.language] })}</MetaPill>
               <MetaPill>{MODE_LABEL[course.mode]}</MetaPill>
               <MetaPill>{LEVEL_META_LABEL[course.level]}</MetaPill>
             </ul>

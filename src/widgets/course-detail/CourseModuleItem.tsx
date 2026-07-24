@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Astroid, ChevronDown } from "lucide-react";
 import type { CourseModule } from "@/entities/course";
@@ -13,6 +14,7 @@ export function CourseModuleItem({ courseModule, slug, hasPricing }: Props) {
   const [open, setOpen] = useState(false);
   const panelId = useId();
   const headerId = useId();
+  const t = useTranslations("CourseModuleItem");
 
   const scrollToPricing = () =>
     document
@@ -30,7 +32,7 @@ export function CourseModuleItem({ courseModule, slug, hasPricing }: Props) {
         className="flex w-full items-center gap-3 text-left"
       >
         <span className="inline-flex flex-shrink-0 items-center justify-center rounded-[20px] bg-(--color-brand-lavender-soft) px-3 py-0.5 text-base font-semibold text-(--color-blue) sm:text-xl">
-          Module {courseModule.order}
+          {t("modulePrefix", { number: courseModule.order })}
         </span>
         <span className="flex-1 text-base font-semibold text-(--color-text-primary) sm:text-xl">
           {courseModule.title}
@@ -57,16 +59,16 @@ export function CourseModuleItem({ courseModule, slug, hasPricing }: Props) {
                   fill="currentColor"
                 />
                 <span className="min-w-0 flex-1">
-                  Lesson {lesson.order}: {lesson.title}.
+                  {t("lessonPrefix", { number: lesson.order, title: lesson.title })}
                 </span>
                 {lesson.is_preview && (
                   <span className="flex-shrink-0 rounded-full bg-(--color-catalog-highlight) px-3 py-0.5 font-(family-name:--font-accent) text-xs uppercase text-(--color-blue) sm:text-sm">
-                    Free preview
+                    {t("freePreview")}
                   </span>
                 )}
                 {lesson.is_mandatory && (
                   <span className="flex-shrink-0 rounded-full bg-(--color-brand-yellow) px-3 py-0.5 font-(family-name:--font-accent) text-xs uppercase text-(--color-text-primary) sm:text-sm">
-                    Mandatory
+                    {t("mandatory")}
                   </span>
                 )}
               </>

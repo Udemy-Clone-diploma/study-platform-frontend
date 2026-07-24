@@ -182,5 +182,90 @@
       "cheapFirst": "Спочатку дешевші",
       "expensiveFirst": "Спочатку дорожчі"
     }
+  },
+  "CourseCurriculum": {
+    "heading": "Навчальна програма",
+    "summary": "{lessons, plural, one {# відеоурок} few {# відеоуроки} many {# відеоуроків} other {# відеоуроку}} | {modules, plural, one {# модуль} few {# модулі} many {# модулів} other {# модуля}}",
+    "noCurriculum": "Програму курсу ще не додано."
+  },
+  "CourseModuleItem": {
+    "modulePrefix": "Модуль {number}",
+    "lessonPrefix": "Урок {number}: {title}.",
+    "freePreview": "Безкоштовний перегляд",
+    "mandatory": "Обов'язково"
+  },
+  "CourseHero": {
+    "levelMeta": { "beginner": "Базова підготовка", "intermediate": "Середня підготовка", "advanced": "Поглиблена підготовка" },
+    "mode": { "with_teacher": "З викладачем", "self_learning": "У власному темпі" },
+    "ratingLabel": "{rating} (на основі {count}+ відгуків з усього світу)",
+    "noReviewsYet": "Ще немає відгуків",
+    "languageLabel": "Мова: {language}"
+  },
+  "CourseHeroCTA": {
+    "courseAvailable": "Курс уже доступний у розділі «Мої курси».",
+    "freeEnrollmentSuccess": "Запис завершено. Ви можете почати курс просто зараз.",
+    "studentOnly": "Записатися можуть лише студенти.",
+    "noPricingPlan": "Для цього курсу немає доступного тарифного плану.",
+    "continueLearning": "Продовжити навчання",
+    "processing": "Обробка...",
+    "enrollFree": "Записатися безкоштовно",
+    "choosePlan": "Обрати план",
+    "genericError": "Не вдалося обробити запит."
+  },
+  "CourseTeacher": {
+    "yearsExperience": "років у реальних проєктах",
+    "students": "студентів",
+    "partnerships": "партнерств із компаніями",
+    "teacherBadge": "Викладач"
+  },
+  "CourseFeedback": {
+    "badge": "Відгуки",
+    "viewMore": "Переглянути більше",
+    "noReviewsFull": "Ще немає відгуків. Будьте першими, хто поділиться враженнями."
+  },
+  "CourseReviewCard": {
+    "ratingLabel": "{rating} з 5 зірок"
+  },
+  "CoursePricingBlock": {
+    "noSchedules": "Наразі немає доступних розкладів.",
+    "group": "Група",
+    "selectSchedule": "Оберіть розклад",
+    "startsDate": "Початок {date}",
+    "spotsLeft": "{count, plural, one {залишилось # місце} few {залишилось # місця} many {залишилось # місць} other {залишилось # місця}}",
+    "loadingTimes": "Завантаження доступного часу…",
+    "noSessions": "Наразі немає доступних сесій.",
+    "availableSessions": "Доступні сесії ({count})",
+    "pickSessions": "Оберіть {min}–{max} щотижневих сесій ({selected}/{max} обрано)",
+    "selectScheduleFirst": "Спочатку оберіть розклад.",
+    "selectTimeSlots": "Оберіть {min}-{max} доступних часових слотів.",
+    "tuitionBadge": "Вартість навчання й способи оплати",
+    "tuitionIntro": "Оберіть формат, що найкраще відповідає вашим цілям і бюджету. Пропонуємо гнучкі плани оплати для вашої зручності.",
+    "formatLabel": { "self_paced": "У власному темпі", "scheduled": "За розкладом", "individual": "Індивідуальний коучинг", "group": "Групові курси" },
+    "formatBlurb": {
+      "self_paced": "Навчайтесь у власному темпі з довічним доступом до всього контенту",
+      "scheduled": "Дотримуйтесь структурованого розкладу з поступовим відкриттям контенту",
+      "individual": "Індивідуальний менторинг з програмою, адаптованою під ваш темп",
+      "group": "Навчайтесь і співпрацюйте з однодумцями в динамічному середовищі"
+    },
+    "fullPrice": "Повна вартість:",
+    "onePayment": "(одноразовий платіж)",
+    "installmentPlan": "План розстрочки:",
+    "monthlyPayments": "({count} щомісячних платежів)",
+    "noSpots": "Немає вільних місць",
+    "buyNow": "Купити зараз"
+  },
+  "CourseScheduleCard": {
+    "schedule": "Розклад",
+    "hoursPerWeek": "{hours} год/тиждень",
+    "hoursPerWeekRange": "{min}–{max} год/тиждень",
+    "groupOf": "Група з {count} осіб",
+    "group": "Група",
+    "monthsCount": "{count, plural, one {# місяць} few {# місяці} many {# місяців} other {# місяця}}",
+    "modulesLessons": "{modules, plural, one {# модуль} few {# модулі} many {# модулів} other {# модуля}} | {lessons, plural, one {# урок} few {# уроки} many {# уроків} other {# уроку}}",
+    "startDate": "Дата початку:"
+  },
+  "CourseReviewsView": {
+    "title": "Відгуки про курс «{course}»",
+    "noReviews": "Відгуків ще немає."
   }
 }

@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Flag, Star } from "lucide-react";
 import { reportReview, type CourseReview } from "@/entities/course";
 import { ReportReviewModal } from "@/shared/ui/ReportReviewModal";
@@ -16,14 +17,16 @@ type Props = {
 export function CourseReviewCard({ review, showRating = true }: Props) {
   const initial = review.student.name.charAt(0);
   const [reporting, setReporting] = useState(false);
+  const t = useTranslations("StudentReviewCard");
+  const tCard = useTranslations("CourseReviewCard");
 
   return (
     <article className="relative flex h-full flex-col gap-2.5 rounded-[20px] bg-(--color-bg) px-5 pt-6 pb-6 shadow-(--shadow-testimonial) sm:px-6 sm:pt-7 sm:pb-8">
       <button
         type="button"
         onClick={() => setReporting(true)}
-        aria-label="Report review"
-        title="Report review"
+        aria-label={t("reportReview")}
+        title={t("reportReview")}
         className="absolute top-3 right-3 flex items-center justify-center text-(--color-text-secondary) hover:text-(--color-text-primary)"
         style={{ border: "none", background: "transparent", cursor: "pointer" }}
       >
@@ -70,7 +73,7 @@ export function CourseReviewCard({ review, showRating = true }: Props) {
         {showRating && (
           <div
             role="img"
-            aria-label={`${review.rating} out of 5 stars`}
+            aria-label={tCard("ratingLabel", { rating: review.rating })}
             className="flex items-center gap-1"
           >
             {Array.from({ length: 5 }).map((_, i) => (

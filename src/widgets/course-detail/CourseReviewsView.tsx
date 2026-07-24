@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { getTranslations } from "next-intl/server";
 import type { CourseReview } from "@/entities/course";
 import { SectionContainer } from "@/shared/ui/SectionContainer";
 import { CourseReviewCard } from "./CourseReviewCard";
@@ -6,7 +7,9 @@ import { CourseReviewCard } from "./CourseReviewCard";
 type Props = { courseTitle: string; reviews: CourseReview[] };
 
 /** Full reviews page: title + a single column of wide review cards that zigzag left/right. */
-export function CourseReviewsView({ courseTitle, reviews }: Props) {
+export async function CourseReviewsView({ courseTitle, reviews }: Props) {
+  const t = await getTranslations("CourseReviewsView");
+
   return (
     <div
       className="relative isolate flex-1 overflow-hidden"
@@ -34,7 +37,7 @@ export function CourseReviewsView({ courseTitle, reviews }: Props) {
       <SectionContainer>
         <article className="flex flex-col gap-8 py-12 sm:gap-12 sm:py-16 lg:gap-16 lg:py-28">
           <h1 className="text-2xl text-(--color-text-primary) sm:text-3xl lg:text-5xl">
-            Reviews of the &ldquo;{courseTitle}&rdquo; course
+            {t("title", { course: courseTitle })}
           </h1>
 
           {reviews.length > 0 ? (
@@ -49,7 +52,7 @@ export function CourseReviewsView({ courseTitle, reviews }: Props) {
               ))}
             </ul>
           ) : (
-            <p className="text-base text-(--color-text-secondary) sm:text-lg">No reviews yet.</p>
+            <p className="text-base text-(--color-text-secondary) sm:text-lg">{t("noReviews")}</p>
           )}
         </article>
       </SectionContainer>

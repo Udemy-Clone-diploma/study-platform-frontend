@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { getTranslations } from "next-intl/server";
 import type { CourseDetail, CourseReview } from "@/entities/course";
 import { SectionContainer } from "@/shared/ui/SectionContainer";
 import { CourseCurriculum } from "./CourseCurriculum";
@@ -12,8 +13,9 @@ import { PRICING_ANCHOR_ID } from "./pricingAnchor";
 type Props = { course: CourseDetail; reviews: CourseReview[] };
 
 /** Top-level composition for the /courses/[slug] page. */
-export function CourseDetailView({ course, reviews }: Props) {
+export async function CourseDetailView({ course, reviews }: Props) {
   const hasPricingPlans = course.delivery_formats.some(f => f.pricing);
+  const t = await getTranslations("CourseCurriculum");
 
   return (
     <div className="relative isolate overflow-x-clip bg-(--color-bg)">
@@ -59,11 +61,10 @@ export function CourseDetailView({ course, reviews }: Props) {
             <div className="lg:col-span-2">
               <div className="flex flex-col gap-2">
                 <h2 className="text-3xl text-(--color-text-primary) sm:text-4xl lg:text-6xl">
-                  Course Curriculum
+                  {t("heading")}
                 </h2>
                 <p className="text-xl text-(--color-text-secondary) sm:text-2xl lg:text-3xl">
-                  {course.lessons_count} Video Lessons | {course.modules.length}{" "}
-                  {course.modules.length === 1 ? "Module" : "Modules"}
+                  {t("summary", { lessons: course.lessons_count, modules: course.modules.length })}
                 </p>
               </div>
             </div>

@@ -182,5 +182,90 @@
       "cheapFirst": "Prix croissant",
       "expensiveFirst": "Prix décroissant"
     }
+  },
+  "CourseCurriculum": {
+    "heading": "Programme du cours",
+    "summary": "{lessons, plural, one {# leçon vidéo} other {# leçons vidéo}} | {modules, plural, one {# module} other {# modules}}",
+    "noCurriculum": "Aucun programme disponible pour le moment."
+  },
+  "CourseModuleItem": {
+    "modulePrefix": "Module {number}",
+    "lessonPrefix": "Leçon {number} : {title}.",
+    "freePreview": "Aperçu gratuit",
+    "mandatory": "Obligatoire"
+  },
+  "CourseHero": {
+    "levelMeta": { "beginner": "Formation de base", "intermediate": "Formation intermédiaire", "advanced": "Formation avancée" },
+    "mode": { "with_teacher": "Avec un formateur", "self_learning": "À son rythme" },
+    "ratingLabel": "{rating} (basé sur {count}+ avis dans le monde)",
+    "noReviewsYet": "Aucun avis pour le moment",
+    "languageLabel": "Langue : {language}"
+  },
+  "CourseHeroCTA": {
+    "courseAvailable": "Le cours est déjà disponible dans Mes cours.",
+    "freeEnrollmentSuccess": "Inscription terminée. Vous pouvez commencer ce cours dès maintenant.",
+    "studentOnly": "L'inscription est réservée aux étudiants.",
+    "noPricingPlan": "Ce cours n'a pas de formule tarifaire disponible.",
+    "continueLearning": "Continuer l'apprentissage",
+    "processing": "Traitement en cours...",
+    "enrollFree": "S'inscrire gratuitement",
+    "choosePlan": "Choisir une formule",
+    "genericError": "Impossible de traiter votre demande."
+  },
+  "CourseTeacher": {
+    "yearsExperience": "ans sur des projets concrets",
+    "students": "étudiants",
+    "partnerships": "partenariats avec des entreprises",
+    "teacherBadge": "Formateur"
+  },
+  "CourseFeedback": {
+    "badge": "Avis",
+    "viewMore": "Voir plus",
+    "noReviewsFull": "Aucun avis pour le moment. Soyez le premier à partager votre expérience."
+  },
+  "CourseReviewCard": {
+    "ratingLabel": "{rating} sur 5 étoiles"
+  },
+  "CoursePricingBlock": {
+    "noSchedules": "Aucun créneau disponible pour le moment.",
+    "group": "Groupe",
+    "selectSchedule": "Choisir un créneau",
+    "startsDate": "Débute le {date}",
+    "spotsLeft": "{count, plural, one {# place restante} other {# places restantes}}",
+    "loadingTimes": "Chargement des créneaux disponibles…",
+    "noSessions": "Aucune session disponible pour le moment.",
+    "availableSessions": "Sessions disponibles ({count})",
+    "pickSessions": "Choisissez {min}–{max} sessions hebdomadaires ({selected}/{max} sélectionnées)",
+    "selectScheduleFirst": "Veuillez d'abord choisir un créneau.",
+    "selectTimeSlots": "Veuillez choisir {min} à {max} créneaux disponibles.",
+    "tuitionBadge": "Frais de scolarité et modalités de paiement",
+    "tuitionIntro": "Choisissez le format qui correspond le mieux à vos objectifs et à votre budget. Nous proposons des plans de paiement flexibles pour votre confort.",
+    "formatLabel": { "self_paced": "À son rythme", "scheduled": "Programmé", "individual": "Coaching individuel", "group": "Cours en groupe" },
+    "formatBlurb": {
+      "self_paced": "Apprenez à votre rythme avec un accès à vie à tout le contenu",
+      "scheduled": "Suivez un programme structuré avec un contenu débloqué progressivement",
+      "individual": "Un accompagnement individuel avec un programme adapté à votre rythme",
+      "group": "Apprenez et collaborez avec vos pairs dans un environnement dynamique"
+    },
+    "fullPrice": "Prix plein :",
+    "onePayment": "(paiement unique)",
+    "installmentPlan": "Plan d'échelonnement :",
+    "monthlyPayments": "({count} paiements mensuels)",
+    "noSpots": "Aucune place disponible",
+    "buyNow": "Acheter maintenant"
+  },
+  "CourseScheduleCard": {
+    "schedule": "Planning",
+    "hoursPerWeek": "{hours} heures par semaine",
+    "hoursPerWeekRange": "{min}–{max} heures par semaine",
+    "groupOf": "Groupe de {count} personnes",
+    "group": "Groupe",
+    "monthsCount": "{count, plural, one {# mois} other {# mois}}",
+    "modulesLessons": "{modules, plural, one {# module} other {# modules}} | {lessons, plural, one {# leçon} other {# leçons}}",
+    "startDate": "Date de début :"
+  },
+  "CourseReviewsView": {
+    "title": "Avis sur le cours « {course} »",
+    "noReviews": "Aucun avis pour le moment."
   }
 }

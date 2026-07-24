@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { BookOpen, Check, ChevronDown, Clock, User, Users } from "lucide-react";
 // ChevronDown used inside CohortPicker and IndividualSlotPicker collapsible headers
@@ -23,22 +24,6 @@ type Props = {
 };
 
 const CART_URL = "/student-dashboard/payment?tab=card";
-const COURSE_AVAILABLE_NOTICE = "The course is already available in My Courses.";
-const STUDENT_ONLY_MESSAGE = "Enrollment is available only for students.";
-
-const FORMAT_LABEL: Record<DeliveryFormatType, string> = {
-  self_paced:  "Self-paced",
-  scheduled:   "Scheduled",
-  individual:  "Individual Coaching",
-  group:       "Group Courses",
-};
-
-const FORMAT_BLURB: Record<DeliveryFormatType, string> = {
-  self_paced:  "Learn at your own pace with lifetime access to all content",
-  scheduled:   "Follow a structured schedule with content unlocking over time",
-  individual:  "1-on-1 mentorship with a curriculum tailored to your pace",
-  group:       "Learn and collaborate with peers in a dynamic environment",
-};
 
 const FORMAT_ICON: Record<DeliveryFormatType, React.ComponentType<{ className?: string }>> = {
   self_paced:  BookOpen,
@@ -73,10 +58,12 @@ function CohortPicker({
   open: boolean;
   onOpenChange: (v: boolean) => void;
 }) {
+  const t = useTranslations("CoursePricingBlock");
+
   if (cohorts.length === 0) {
     return (
       <p className="text-center text-sm text-(--color-text-muted) py-1">
-        No available schedules at this time.
+        {t("noSchedules")}
       </p>
     );
   }
@@ -91,7 +78,7 @@ function CohortPicker({
         className="flex items-center justify-between gap-2 w-full text-left"
       >
         <span className="text-sm font-(family-name:--font-accent) uppercase text-(--color-text-secondary) tracking-wide">
-          {activeCohort ? activeCohort.name ?? "Group" : "Select a schedule"}
+          {activeCohort ? activeCohort.name ?? t("group") : t("selectSchedule")}
         </span>
         <ChevronDown
           className="h-4 w-4 shrink-0 text-(--color-text-secondary) transition-transform duration-200"
@@ -117,16 +104,16 @@ function CohortPicker({
               >
                 <div className="flex flex-col gap-0.5 min-w-0">
                   <span className="font-(family-name:--font-base) font-semibold text-sm text-(--color-text-primary)">
-                    {c.name ?? "Group"}
+                    {c.name ?? t("group")}
                   </span>
                   {c.start_date && (
                     <span className="text-xs text-(--color-text-secondary)">
-                      Starts {formatDate(c.start_date)}
+                      {t("startsDate", { date: formatDate(c.start_date) })}
                     </span>
                   )}
                   {spotsLeft !== null && (
                     <span className="text-xs text-(--color-text-muted)">
-                      {spotsLeft} spot{spotsLeft !== 1 ? "s" : ""} left
+                      {t("spotsLeft", { count: spotsLeft })}
                     </span>
                   )}
                 </div>
@@ -166,6 +153,7 @@ function IndividualSlotPicker({
   const [slots, setSlots] = useState<ScheduleSlot[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const t = useTranslations("CoursePricingBlock");
 
   useEffect(() => {
     getScheduleSlots(slug, formatId)
@@ -185,7 +173,7 @@ function IndividualSlotPicker({
     return (
       <div className="flex items-center gap-2 text-sm text-(--color-text-muted)">
         <Clock className="h-4 w-4 shrink-0" />
-        Loading available times…
+        {t("loadingTimes")}
       </div>
     );
   }
@@ -194,7 +182,7 @@ function IndividualSlotPicker({
     return (
       <div className="flex items-center gap-2 text-sm text-(--color-text-muted)">
         <Clock className="h-4 w-4 shrink-0" />
-        No available sessions at this time.
+        {t("noSessions")}
       </div>
     );
   }
@@ -217,7 +205,7 @@ function IndividualSlotPicker({
       >
         <span className="text-sm font-(family-name:--font-accent) uppercase text-(--color-text-secondary) tracking-wide flex items-center gap-1.5">
           <Clock className="h-4 w-4 shrink-0" />
-          Available sessions ({slots.length})
+          {t("availableSessions", { count: slots.length })}
         </span>
         <ChevronDown
           className="h-4 w-4 shrink-0 text-(--color-text-secondary) transition-transform duration-200"
@@ -228,7 +216,11 @@ function IndividualSlotPicker({
       {open && (
         <>
           <p className="text-xs text-(--color-text-secondary)">
-            Pick {MIN_INDIVIDUAL_SLOTS}–{MAX_INDIVIDUAL_SLOTS} weekly sessions ({selected.length}/{MAX_INDIVIDUAL_SLOTS} selected)
+            {t("pickSessions", {
+              min: MIN_INDIVIDUAL_SLOTS,
+              max: MAX_INDIVIDUAL_SLOTS,
+              selected: selected.length,
+            })}
           </p>
           {days.map(d => (
             <div key={d} className="flex flex-col gap-1.5">
@@ -270,6 +262,8 @@ function IndividualSlotPicker({
 /** Tuition section: heading badge, intro, pricing cards per delivery format. */
 export function CoursePricingBlock({ courseId, formats, slug, cohorts = [] }: Props) {
   const router = useRouter();
+  const t = useTranslations("CoursePricingBlock");
+  const tHeroCta = useTranslations("CourseHeroCTA");
   const [pendingPlanId, setPendingPlanId] = useState<number | null>(null);
   const [cardNotices, setCardNotices] = useState<Record<number, string>>({});
   const [cohortPickerOpen, setCohortPickerOpen] = useState<Record<number, boolean>>({});
@@ -305,7 +299,7 @@ export function CoursePricingBlock({ courseId, formats, slug, cohorts = [] }: Pr
 
     const role = getClientCookie(AUTH_COOKIE_NAMES.role);
     if (role && role !== "student") {
-      setCardNotice(formatId, STUDENT_ONLY_MESSAGE);
+      setCardNotice(formatId, tHeroCta("studentOnly"));
       return;
     }
 
@@ -313,7 +307,7 @@ export function CoursePricingBlock({ courseId, formats, slug, cohorts = [] }: Pr
       const cohortId = selectedCohort[formatId];
       if (!cohortId) {
         openCohortPicker(formatId);
-        setCardNotice(formatId, "Please select a schedule first.");
+        setCardNotice(formatId, t("selectScheduleFirst"));
         return;
       }
     }
@@ -321,7 +315,10 @@ export function CoursePricingBlock({ courseId, formats, slug, cohorts = [] }: Pr
     if (formatType === "individual") {
       const slotCount = selectedSlots[formatId]?.length ?? 0;
       if (slotCount < MIN_INDIVIDUAL_SLOTS) {
-        setCardNotice(formatId, `Please select ${MIN_INDIVIDUAL_SLOTS}-${MAX_INDIVIDUAL_SLOTS} available time slots.`);
+        setCardNotice(
+          formatId,
+          t("selectTimeSlots", { min: MIN_INDIVIDUAL_SLOTS, max: MAX_INDIVIDUAL_SLOTS }),
+        );
         return;
       }
     }
@@ -357,14 +354,14 @@ export function CoursePricingBlock({ courseId, formats, slug, cohorts = [] }: Pr
         return;
       }
       if (courseError.includes("already has access")) {
-        setCardNotice(formatId, COURSE_AVAILABLE_NOTICE);
+        setCardNotice(formatId, tHeroCta("courseAvailable"));
         return;
       }
       if (cohortError) {
         setCardNotice(formatId, cohortError);
         return;
       }
-      setCardNotice(formatId, apiError.message || apiError.detail || "Could not process your request.");
+      setCardNotice(formatId, apiError.message || apiError.detail || tHeroCta("genericError"));
     } finally {
       setPendingPlanId(null);
     }
@@ -373,10 +370,9 @@ export function CoursePricingBlock({ courseId, formats, slug, cohorts = [] }: Pr
   return (
     <section className="flex flex-col gap-8 sm:gap-10">
       <div className="flex flex-col gap-4">
-        <SectionBadge>Tuition Fees &amp; Payment Options</SectionBadge>
+        <SectionBadge>{t("tuitionBadge")}</SectionBadge>
         <p className="max-w-[1180px] text-lg text-(--color-text-primary) sm:text-xl lg:text-2xl">
-          Choose the format that best fits your goals and budget. We offer flexible payment plans
-          for your convenience.
+          {t("tuitionIntro")}
         </p>
       </div>
 
@@ -407,28 +403,28 @@ export function CoursePricingBlock({ courseId, formats, slug, cohorts = [] }: Pr
                   <div className="flex items-center gap-2">
                     <Icon className="h-6 w-6 text-(--color-text-primary) sm:h-8 sm:w-8" aria-hidden="true" />
                     <h3 className="text-2xl text-(--color-text-primary) sm:text-3xl lg:text-4xl">
-                      {FORMAT_LABEL[fmt.format_type]}
+                      {t(`formatLabel.${fmt.format_type}`)}
                     </h3>
                   </div>
                   <p className="max-w-[260px] text-center text-base text-(--color-text-primary)">
-                    {FORMAT_BLURB[fmt.format_type]}
+                    {t(`formatBlurb.${fmt.format_type}`)}
                   </p>
                 </div>
 
                 <div className="flex flex-col items-center gap-6 sm:gap-7">
-                  <PriceRow label="Full Price:">
+                  <PriceRow label={t("fullPrice")}>
                     <span className="font-(family-name:--font-accent) text-xl font-bold uppercase sm:text-2xl">
                       {formatPrice(plan.price, plan.currency)}
                     </span>
-                    <span className="text-base">(one-time payment)</span>
+                    <span className="text-base">{t("onePayment")}</span>
                   </PriceRow>
 
                   {plan.installment_count && plan.installment_amount && (
-                    <PriceRow label="Installment Plan:">
+                    <PriceRow label={t("installmentPlan")}>
                       <span className="font-(family-name:--font-accent) text-xl font-bold uppercase sm:text-2xl">
                         {formatPrice(plan.installment_amount, plan.currency)}
                       </span>
-                      <span className="text-base">({plan.installment_count} monthly payments)</span>
+                      <span className="text-base">{t("monthlyPayments", { count: plan.installment_count })}</span>
                     </PriceRow>
                   )}
                 </div>
@@ -468,12 +464,12 @@ export function CoursePricingBlock({ courseId, formats, slug, cohorts = [] }: Pr
                 style={{ boxShadow: "0 10px 30px rgba(0, 58, 255, 0.22)" }}
               >
                 {pendingPlanId === plan.id
-                  ? "Processing..."
+                  ? tHeroCta("processing")
                   : isGroup && availableCohorts.length === 0
-                    ? "No spots available"
+                    ? t("noSpots")
                     : Number(plan.price) === 0
-                      ? "Enroll for free"
-                      : "Buy now"}
+                      ? tHeroCta("enrollFree")
+                      : t("buyNow")}
               </GradientButton>
             </article>
           );

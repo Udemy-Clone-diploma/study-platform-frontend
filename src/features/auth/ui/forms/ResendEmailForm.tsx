@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { AuthField } from "@/features/auth/ui/AuthField";
 import { AccentButton } from "@/shared/ui/AccentButton";
 
@@ -12,12 +13,15 @@ interface ResendEmailFormProps {
 
 export function ResendEmailForm({
   onResend,
-  submitLabel = "Send",
-  successMessage = "Email sent. Please check your inbox or spam folder.",
+  submitLabel,
+  successMessage,
 }: ResendEmailFormProps) {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "sent" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const t = useTranslations("Auth");
+  const resolvedSubmitLabel = submitLabel ?? t("resendEmail.defaultSubmitLabel");
+  const resolvedSuccessMessage = successMessage ?? t("resendEmail.defaultSuccessMessage");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -29,13 +33,13 @@ export function ResendEmailForm({
       setStatus("sent");
     } catch (err: unknown) {
       const typedErr = err as { detail?: string; message?: string };
-      setErrorMessage(typedErr?.detail || typedErr?.message || "Something went wrong.");
+      setErrorMessage(typedErr?.detail || typedErr?.message || t("resendEmail.genericError"));
       setStatus("error");
     }
   }
 
   if (status === "sent") {
-    return <p className="text-sm text-[#247a4d]">{successMessage}</p>;
+    return <p className="text-sm text-[#247a4d]">{resolvedSuccessMessage}</p>;
   }
 
   return (
@@ -44,7 +48,7 @@ export function ResendEmailForm({
         id="resend-email"
         name="resend-email"
         type="email"
-        label="Email"
+        label={t("common.email")}
         placeholder="you@example.com"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
@@ -58,7 +62,7 @@ export function ResendEmailForm({
           type="submit"
           disabled={!email || status === "loading"}
         >
-          {status === "loading" ? "Sending" : submitLabel}
+          {status === "loading" ? t("common.sending") : resolvedSubmitLabel}
         </AccentButton>
       </div>
     </form>

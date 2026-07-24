@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { BadgeCheck, CircleAlert, CircleX, Search } from "lucide-react";
 import { verifyCertificate } from "@/entities/certificate";
@@ -25,6 +26,7 @@ export function CertificateVerifyView() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const serial = (searchParams.get("serial") ?? "").trim();
+  const t = useTranslations("CertificateVerify");
 
   const [input, setInput] = useState(serial);
   const [prevSerial, setPrevSerial] = useState(serial);
@@ -55,12 +57,12 @@ export function CertificateVerifyView() {
         else if (apiError.status === 429)
           setResult({
             kind: "error",
-            message: "Too many checks from this network. Please wait a few minutes and try again.",
+            message: t("tooManyChecks"),
           });
         else
           setResult({
             kind: "error",
-            message: apiError.message ?? "Could not check this certificate right now.",
+            message: apiError.message ?? t("genericError"),
           });
         setLoadedSerial(serial);
       });
@@ -87,7 +89,7 @@ export function CertificateVerifyView() {
             margin: "0 0 clamp(8px, 0.83vw, 12px)",
           }}
         >
-          Verify a certificate
+          {t("title")}
         </h1>
         <p
           className="text-(--color-text-secondary)"
@@ -98,8 +100,7 @@ export function CertificateVerifyView() {
             margin: "0 0 clamp(20px, 2.22vw, 32px)",
           }}
         >
-          Enter the serial printed on a Nexo4you certificate to confirm it is genuine and still
-          valid.
+          {t("description")}
         </p>
 
         <form onSubmit={handleSubmit} className="flex flex-wrap items-center" style={{ gap: 12 }}>
@@ -121,8 +122,8 @@ export function CertificateVerifyView() {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Certificate serial"
-              aria-label="Certificate serial"
+              placeholder={t("serialLabel")}
+              aria-label={t("serialLabel")}
               autoComplete="off"
               className="min-w-0 flex-1 bg-transparent font-mono outline-none"
               style={{
@@ -141,7 +142,7 @@ export function CertificateVerifyView() {
               fontSize: "clamp(14px, 1.11vw, 18px)",
             }}
           >
-            {loading ? "Checking…" : "Verify"}
+            {loading ? t("checking") : t("verify")}
           </AccentButton>
         </form>
 
@@ -151,15 +152,15 @@ export function CertificateVerifyView() {
             <ResultShell
               icon={<CircleAlert size={28} aria-hidden="true" />}
               accent="var(--color-text-secondary)"
-              title="No certificate found"
-              body="No certificate matches this serial. Check for typos, and remember that serials are issued by Nexo4you only."
+              title={t("notFoundTitle")}
+              body={t("notFoundBody")}
             />
           )}
           {shownResult?.kind === "error" && (
             <ResultShell
               icon={<CircleAlert size={28} aria-hidden="true" />}
               accent="var(--color-rejected)"
-              title="Could not check right now"
+              title={t("errorTitle")}
               body={shownResult.message}
             />
           )}
@@ -171,6 +172,16 @@ export function CertificateVerifyView() {
 
 function VerificationCard({ data }: { data: CertificateVerification }) {
   const revoked = data.status === "revoked";
+  const t = useTranslations("CertificateVerify");
+
+  const body = revoked
+    ? data.revoked_at
+      ? t("issuedAndRevokedOn", {
+          issuedDate: formatIssuedDate(data.issued_at),
+          revokedDate: formatIssuedDate(data.revoked_at),
+        })
+      : t("issuedAndRevoked", { issuedDate: formatIssuedDate(data.issued_at) })
+    : t("issuedOn", { date: formatIssuedDate(data.issued_at) });
 
   return (
     <ResultShell
@@ -182,24 +193,18 @@ function VerificationCard({ data }: { data: CertificateVerification }) {
         )
       }
       accent={revoked ? "var(--color-rejected)" : "var(--color-success)"}
-      title={revoked ? "This certificate is no longer valid" : "This certificate is genuine"}
-      body={
-        revoked
-          ? `It was issued on ${formatIssuedDate(data.issued_at)} and revoked${
-              data.revoked_at ? ` on ${formatIssuedDate(data.revoked_at)}` : ""
-            }.`
-          : `Issued on ${formatIssuedDate(data.issued_at)}.`
-      }
+      title={revoked ? t("revokedTitle") : t("validTitle")}
+      body={body}
     >
       <dl
         className="flex flex-col"
         style={{ gap: 10, margin: "clamp(16px, 1.67vw, 24px) 0 0", padding: 0 }}
       >
-        <DetailRow label="Student" value={data.student_name} />
-        <DetailRow label="Course" value={data.course_title} />
-        <DetailRow label="Serial" value={data.serial} mono />
+        <DetailRow label={t("student")} value={data.student_name} />
+        <DetailRow label={t("course")} value={data.course_title} />
+        <DetailRow label={t("serial")} value={data.serial} mono />
         {data.superseded_by_serial && (
-          <DetailRow label="Replaced by" value={data.superseded_by_serial} mono />
+          <DetailRow label={t("replacedBy")} value={data.superseded_by_serial} mono />
         )}
       </dl>
     </ResultShell>

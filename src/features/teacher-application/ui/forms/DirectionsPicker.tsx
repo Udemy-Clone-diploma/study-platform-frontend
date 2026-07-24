@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { getCategories, type Category } from "@/entities/course";
 
 interface DirectionsPickerProps {
@@ -11,6 +12,7 @@ interface DirectionsPickerProps {
 /** Multi-select of course categories ("directions") the applicant wants to teach. Moderator-review-only, not saved to the profile. */
 export function DirectionsPicker({ value, onChange }: DirectionsPickerProps) {
   const [categories, setCategories] = useState<Category[]>([]);
+  const t = useTranslations("TeacherApplication");
 
   useEffect(() => {
     let cancelled = false;
@@ -33,7 +35,7 @@ export function DirectionsPicker({ value, onChange }: DirectionsPickerProps) {
   return (
     <div className="space-y-2 text-left">
       <span className="block text-[1.1rem] font-medium tracking-[0.01em] text-[#1a171b]">
-        Directions you would like to teach
+        {t("directionsLabel")}
       </span>
       <div className="flex flex-wrap gap-2">
         {categories.map((category) => {

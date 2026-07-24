@@ -15,7 +15,8 @@
     "language": "Idioma",
     "cancel": "Cancelar",
     "categories": "Categorías",
-    "all": "Todo"
+    "all": "Todo",
+    "backToHome": "Volver al inicio"
   },
   "Header": {
     "openMenu": "Abrir menú",
@@ -280,5 +281,197 @@
     "noCoursesFound": "No se encontraron cursos.",
     "noPostsFound": "No se encontraron artículos.",
     "foundCount": "{count} encontrados"
+  },
+  "Auth": {
+    "common": {
+      "backToSignIn": "Volver a iniciar sesión",
+      "signIn": "Iniciar sesión",
+      "checkingLink": "Verificando enlace",
+      "pleaseWait": "Espera...",
+      "somethingWrong": "Algo salió mal",
+      "tryAgain": "Intentar de nuevo",
+      "saving": "Guardando",
+      "sending": "Enviando",
+      "email": "Correo electrónico",
+      "password": "Contraseña",
+      "confirmPassword": "Confirmar contraseña",
+      "sendAgain": "Enviar de nuevo"
+    },
+    "field": {
+      "hidePassword": "Ocultar contraseña",
+      "showPassword": "Mostrar contraseña"
+    },
+    "validation": {
+      "enterFirstName": "Introduce tu nombre",
+      "enterLastName": "Introduce tu apellido",
+      "enterEmail": "Introduce tu correo electrónico",
+      "enterValidEmail": "Introduce un correo electrónico válido",
+      "enterDateOfBirth": "Introduce tu fecha de nacimiento",
+      "enterValidDateOfBirth": "Introduce una fecha de nacimiento válida",
+      "enterPassword": "Introduce tu contraseña",
+      "passwordMinLength": "La contraseña debe tener al menos 8 caracteres",
+      "passwordLowercase": "La contraseña debe contener al menos una minúscula",
+      "passwordUppercase": "La contraseña debe contener al menos una mayúscula",
+      "passwordNumber": "La contraseña debe contener al menos un número",
+      "confirmPasswordRequired": "Confirma tu contraseña",
+      "passwordsDoNotMatch": "Las contraseñas no coinciden"
+    },
+    "genericFallbackError": "Algo salió mal. Inténtalo de nuevo.",
+    "login": {
+      "title": "Iniciar sesión",
+      "emailLabel": "Correo electrónico",
+      "passwordLabel": "Contraseña",
+      "signingIn": "Iniciando sesión",
+      "newHere": "¿Eres nuevo aquí?",
+      "signUpNow": "Regístrate",
+      "rememberMe": "Recordarme",
+      "resetPassword": "Restablecer contraseña",
+      "fallbackError": "No pudimos iniciar tu sesión. Inténtalo de nuevo."
+    },
+    "register": {
+      "title": "Registrarse",
+      "firstNameLabel": "Nombre",
+      "lastNameLabel": "Apellido",
+      "dateOfBirthLabel": "Fecha de nacimiento",
+      "emailLabel": "Correo electrónico",
+      "passwordLabel": "Contraseña",
+      "repeatPasswordLabel": "Repetir contraseña",
+      "textPlaceholder": "Texto",
+      "continue": "Continuar",
+      "creating": "Creando",
+      "signUp": "Registrarse",
+      "back": "Atrás",
+      "alreadyHaveAccount": "¿Ya tienes una cuenta?",
+      "signInNow": "Iniciar sesión",
+      "wantToTeach": "¿Quieres enseñar en la plataforma?",
+      "applyAsTeacher": "Postúlate como profesor",
+      "fallbackError": "No pudimos crear tu cuenta. Inténtalo de nuevo."
+    },
+    "resendEmail": {
+      "defaultSubmitLabel": "Enviar",
+      "defaultSuccessMessage": "Correo enviado. Revisa tu bandeja de entrada o spam.",
+      "genericError": "Algo salió mal."
+    },
+    "forgotPassword": {
+      "checkEmailTitle": "Revisa tu correo",
+      "checkEmailDescription": "Si existe una cuenta para <bold>{email}</bold>, hemos enviado un enlace para restablecer la contraseña.",
+      "resetTitle": "Restablecer contraseña",
+      "resetDescription": "Introduce el correo asociado a tu cuenta y te enviaremos un enlace para restablecerla.",
+      "sendLink": "Enviar enlace"
+    },
+    "resetPassword": {
+      "checkingDescription": "Estamos validando tu enlace de restablecimiento de contraseña.",
+      "invalidTitle": "Enlace no válido",
+      "sendNewLink": "Enviar nuevo enlace",
+      "resendSuccessMessage": "Si existe una cuenta, hemos enviado un nuevo correo. Revisa tu bandeja de entrada o spam.",
+      "successTitle": "Contraseña actualizada",
+      "successDescription": "Tu contraseña se ha cambiado correctamente.",
+      "newPasswordTitle": "Nueva contraseña",
+      "newPasswordDescription": "Elige una contraseña de al menos 8 caracteres, con una mayúscula, una minúscula y un número.",
+      "newPasswordLabel": "Nueva contraseña",
+      "passwordPlaceholder": "Al menos 8 caracteres",
+      "repeatPasswordPlaceholder": "Repite tu contraseña",
+      "savePassword": "Guardar contraseña",
+      "fallbackError": "No pudimos actualizar tu contraseña. Inténtalo de nuevo.",
+      "invalidLinkMessage": "Este enlace de restablecimiento no es válido o ha caducado."
+    },
+    "activateTeacher": {
+      "checkingDescription": "Estamos validando tu enlace de invitación.",
+      "invalidTitle": "Enlace no válido",
+      "resendInvitation": "Reenviar invitación",
+      "resendSuccessMessage": "Si hay una invitación pendiente para este correo, se ha reenviado. Revisa tu bandeja de entrada o spam.",
+      "successTitle": "Cuenta activada",
+      "successDescription": "Tu correo está confirmado y tu contraseña establecida. Ya puedes iniciar sesión como profesor.",
+      "setPasswordTitle": "Establece tu contraseña",
+      "setPasswordDescription": "Elige una contraseña de al menos 8 caracteres, con una mayúscula, una minúscula y un número. Esto también confirmará tu correo.",
+      "passwordPlaceholder": "Al menos 8 caracteres",
+      "repeatPasswordPlaceholder": "Repite tu contraseña",
+      "activateAccount": "Activar cuenta",
+      "fallbackError": "No pudimos activar tu cuenta. Inténtalo de nuevo.",
+      "invalidLinkMessage": "Este enlace de invitación no es válido o ha caducado."
+    },
+    "checkEmail": {
+      "title": "Revisa tu correo",
+      "description": "Hemos enviado un enlace de verificación a <bold>{email}</bold>.",
+      "yourEmailFallback": "tu correo",
+      "resentMessage": "Correo de verificación reenviado. Revisa tu bandeja de entrada.",
+      "genericError": "Algo salió mal. Inténtalo más tarde.",
+      "alreadyVerified": "¿Ya verificaste?",
+      "signIn": "Iniciar sesión"
+    },
+    "checkApplication": {
+      "title": "Solicitud enviada",
+      "description": "¡Gracias! Tu solicitud se ha enviado para revisión. Te escribiremos a <bold>{email}</bold> en cuanto un moderador tome una decisión.",
+      "youFallback": "ti"
+    },
+    "verifyEmail": {
+      "checkingDescription": "Estamos verificando tu dirección de correo.",
+      "successTitle": "Correo verificado",
+      "successFallbackDescription": "Tu correo se ha verificado correctamente.",
+      "redirecting": "Redirigiendo al inicio de sesión...",
+      "failedTitle": "Error de verificación",
+      "sendVerification": "Enviar verificación",
+      "invalidLinkMessage": "Enlace no válido o caducado."
+    }
+  },
+  "ComingSoon": {
+    "badge": "Próximamente",
+    "defaultPageName": "Esta página",
+    "description": "Esta página todavía está en desarrollo. ¡Estamos trabajando en ello!"
+  },
+  "Forbidden": {
+    "title": "Acceso denegado",
+    "description": "No tienes permiso para ver esta página."
+  },
+  "CertificateVerify": {
+    "tooManyChecks": "Demasiadas verificaciones desde esta red. Espera unos minutos e inténtalo de nuevo.",
+    "genericError": "No se pudo verificar este certificado en este momento.",
+    "title": "Verificar un certificado",
+    "description": "Introduce el número de serie impreso en un certificado de Nexo4you para confirmar que es auténtico y sigue vigente.",
+    "serialLabel": "Número de serie del certificado",
+    "checking": "Verificando…",
+    "verify": "Verificar",
+    "notFoundTitle": "No se encontró ningún certificado",
+    "notFoundBody": "Ningún certificado coincide con este número de serie. Revisa si hay errores; los números de serie solo los emite Nexo4you.",
+    "errorTitle": "No se pudo verificar en este momento",
+    "revokedTitle": "Este certificado ya no es válido",
+    "validTitle": "Este certificado es auténtico",
+    "issuedOn": "Emitido el {date}.",
+    "issuedAndRevokedOn": "Se emitió el {issuedDate} y se revocó el {revokedDate}.",
+    "issuedAndRevoked": "Se emitió el {issuedDate} y se revocó.",
+    "student": "Estudiante",
+    "course": "Curso",
+    "serial": "Número de serie",
+    "replacedBy": "Reemplazado por"
+  },
+  "TeacherApplication": {
+    "title": "Postularse como profesor",
+    "firstNameLabel": "Nombre",
+    "lastNameLabel": "Apellido",
+    "emailLabel": "Correo electrónico",
+    "phoneNumberLabel": "Número de teléfono",
+    "fieldOfStudyLabel": "Campo de estudio",
+    "yearsExperienceLabel": "Años de experiencia (opcional)",
+    "workExperienceLabel": "Experiencia laboral",
+    "bioLabel": "Biografía",
+    "directionsLabel": "Áreas que te gustaría enseñar",
+    "motivationLabel": "¿Qué te gustaría enseñar y por qué eres la persona adecuada para ello?",
+    "linkedinLabel": "LinkedIn (opcional)",
+    "instagramLabel": "Instagram (opcional)",
+    "behanceLabel": "Behance (opcional)",
+    "checkingEmail": "Verificando correo…",
+    "submitting": "Enviando",
+    "submitApplication": "Enviar solicitud",
+    "fallbackError": "No pudimos enviar tu solicitud. Inténtalo de nuevo.",
+    "emailUnavailable": "Este correo no se puede usar.",
+    "validation": {
+      "enterPhoneNumber": "Introduce un número de teléfono para que un moderador pueda contactarte",
+      "enterFieldOfStudy": "Introduce tu campo de estudio",
+      "describeExperience": "Describe tu experiencia laboral",
+      "writeShortBio": "Escribe una breve biografía",
+      "enterValidYears": "Introduce un número de años válido",
+      "tellUsWhyTeach": "Cuéntanos por qué quieres enseñar en la plataforma",
+      "enterValidUrl": "Introduce una URL válida"
+    }
   }
 }

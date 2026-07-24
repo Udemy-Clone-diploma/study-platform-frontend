@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { AccentButton } from "@/shared/ui/AccentButton";
 import {
@@ -22,6 +23,9 @@ const initialForm: PasswordResetFormData = { password: "", confirmPassword: "" }
 
 export default function ResetPasswordPage() {
   const { uidb64, token } = useParams<{ uidb64: string; token: string }>();
+  const t = useTranslations("Auth.resetPassword");
+  const tCommon = useTranslations("Auth.common");
+  const tValidation = useTranslations("Auth.validation");
 
   const [pageStatus, setPageStatus] = useState<PageStatus>("loading");
   const [pageMessage, setPageMessage] = useState("");
@@ -37,7 +41,7 @@ export default function ResetPasswordPage() {
     setFormData,
   } = useAuthForm<PasswordResetFormData>({
     initial: initialForm,
-    validate: validatePasswordResetForm,
+    validate: (data) => validatePasswordResetForm(data, tValidation),
     fieldKeys: ["password", "confirmPassword"],
     submit: async (data) => {
       try {
@@ -46,9 +50,7 @@ export default function ResetPasswordPage() {
       } catch (err: unknown) {
         const e = err as { detail?: string; message?: string };
         setPageStatus("error");
-        setPageMessage(
-          e?.detail || e?.message || "We could not update your password. Please try again.",
-        );
+        setPageMessage(e?.detail || e?.message || t("fallbackError"));
       }
     },
   });
@@ -62,7 +64,7 @@ export default function ResetPasswordPage() {
       } catch (err: unknown) {
         const e = err as { detail?: string; message?: string };
         setPageStatus("invalid");
-        setPageMessage(e?.detail || e?.message || "This reset link is invalid or expired.");
+        setPageMessage(e?.detail || e?.message || t("invalidLinkMessage"));
       }
     }
     checkToken();
@@ -70,26 +72,26 @@ export default function ResetPasswordPage() {
 
   if (pageStatus === "loading") {
     return (
-      <AuthPanel title="Checking Link" description="We are validating your password reset link.">
-        <p className="text-sm text-[#3e3840]">Please wait...</p>
+      <AuthPanel title={tCommon("checkingLink")} description={t("checkingDescription")}>
+        <p className="text-sm text-[#3e3840]">{tCommon("pleaseWait")}</p>
       </AuthPanel>
     );
   }
 
   if (pageStatus === "invalid") {
     return (
-      <AuthPanel title="Invalid Link" description={pageMessage}>
+      <AuthPanel title={t("invalidTitle")} description={pageMessage}>
         <div className="space-y-5">
           <ResendEmailForm
             onResend={async (email) => {
               await requestPasswordReset({ email });
             }}
-            submitLabel="Send New Link"
-            successMessage="If an account exists, we sent a new email. Please check your inbox or spam folder."
+            submitLabel={t("sendNewLink")}
+            successMessage={t("resendSuccessMessage")}
           />
           <p className="text-center text-[0.95rem] text-[#3e3840]">
             <Link href="/login" className="text-[#3557ff] transition hover:text-[#1937cb]">
-              Back to sign in
+              {tCommon("backToSignIn")}
             </Link>
           </p>
         </div>
@@ -99,9 +101,9 @@ export default function ResetPasswordPage() {
 
   if (pageStatus === "success") {
     return (
-      <AuthPanel title="Password Updated" description="Your password has been changed successfully.">
+      <AuthPanel title={t("successTitle")} description={t("successDescription")}>
         <AccentButton href="/login">
-          Sign In
+          {tCommon("signIn")}
         </AccentButton>
       </AuthPanel>
     );
@@ -109,7 +111,7 @@ export default function ResetPasswordPage() {
 
   if (pageStatus === "error") {
     return (
-      <AuthPanel title="Something Went Wrong" description={pageMessage}>
+      <AuthPanel title={tCommon("somethingWrong")} description={pageMessage}>
         <AccentButton
           type="button"
           onClick={() => {
@@ -117,7 +119,7 @@ export default function ResetPasswordPage() {
             setFormData(initialForm);
           }}
         >
-          Try Again
+          {tCommon("tryAgain")}
         </AccentButton>
       </AuthPanel>
     );
@@ -125,16 +127,16 @@ export default function ResetPasswordPage() {
 
   return (
     <AuthPanel
-      title="New Password"
-      description="Choose a password with at least 8 characters, one uppercase letter, one lowercase letter, and one number."
+      title={t("newPasswordTitle")}
+      description={t("newPasswordDescription")}
     >
       <form onSubmit={handleSubmit} className="space-y-7">
         <AuthField
           id="password"
           name="password"
           type="password"
-          label="New Password"
-          placeholder="At least 8 characters"
+          label={t("newPasswordLabel")}
+          placeholder={t("passwordPlaceholder")}
           value={formData.password}
           onChange={handleChange}
           error={errors.password}
@@ -147,8 +149,8 @@ export default function ResetPasswordPage() {
           id="confirmPassword"
           name="confirmPassword"
           type="password"
-          label="Confirm Password"
-          placeholder="Repeat your password"
+          label={tCommon("confirmPassword")}
+          placeholder={t("repeatPasswordPlaceholder")}
           value={formData.confirmPassword}
           onChange={handleChange}
           error={errors.confirmPassword}
@@ -161,7 +163,7 @@ export default function ResetPasswordPage() {
           type="submit"
           disabled={isSubmitting}
         >
-          {isSubmitting ? "Saving" : "Save Password"}
+          {isSubmitting ? tCommon("saving") : t("savePassword")}
         </AccentButton>
       </form>
     </AuthPanel>

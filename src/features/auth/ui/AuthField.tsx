@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 interface AuthFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string;
@@ -20,6 +21,7 @@ export function AuthField({
   ...props
 }: AuthFieldProps) {
   const resolvedType = type === "password" && showPassword ? "text" : type;
+  const t = useTranslations("Auth.field");
 
   return (
     <div className="space-y-2 text-left">
@@ -42,7 +44,7 @@ export function AuthField({
           <button
             type="button"
             onClick={onTogglePassword}
-            aria-label={showPassword ? "Hide password" : "Show password"}
+            aria-label={showPassword ? t("hidePassword") : t("showPassword")}
             className="mb-1 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[#78717a] transition hover:bg-black/5 hover:text-black"
           >
             <Image

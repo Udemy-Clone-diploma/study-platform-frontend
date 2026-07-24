@@ -2,6 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { useState, Suspense } from "react";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { AuthPanel, resendVerificationEmail } from "@/features/auth";
 import { AccentButton } from "@/shared/ui/AccentButton";
@@ -11,16 +12,18 @@ function CheckEmailContent() {
   const email = searchParams.get("email") || "";
   const [status, setStatus] = useState<"idle" | "loading" | "sent" | "error">("idle");
   const [message, setMessage] = useState("");
+  const t = useTranslations("Auth.checkEmail");
+  const tCommon = useTranslations("Auth.common");
 
   async function handleResend() {
     setStatus("loading");
     try {
       await resendVerificationEmail(email);
       setStatus("sent");
-      setMessage("Verification email sent again. Please check your inbox.");
+      setMessage(t("resentMessage"));
     } catch {
       setStatus("error");
-      setMessage("Something went wrong. Please try again later.");
+      setMessage(t("genericError"));
     }
   }
 
@@ -28,12 +31,11 @@ function CheckEmailContent() {
 
   return (
     <AuthPanel
-      title="Check Email"
-      description={
-        <>
-          We sent a verification link to <strong>{maskedEmail || "your email"}</strong>.
-        </>
-      }
+      title={t("title")}
+      description={t.rich("description", {
+        email: maskedEmail || t("yourEmailFallback"),
+        bold: (chunks) => <strong>{chunks}</strong>,
+      })}
     >
       <div className="space-y-5">
         {message ? (
@@ -47,13 +49,13 @@ function CheckEmailContent() {
           onClick={handleResend}
           disabled={!email || status === "loading" || status === "sent"}
         >
-          {status === "loading" ? "Sending" : "Send Again"}
+          {status === "loading" ? tCommon("sending") : tCommon("sendAgain")}
         </AccentButton>
 
         <p className="text-center text-[0.95rem] text-[#3e3840]">
-          Already verified?{" "}
+          {t("alreadyVerified")}{" "}
           <Link href="/login" className="text-[#3557ff] transition hover:text-[#1937cb]">
-            Sign in
+            {t("signIn")}
           </Link>
         </p>
       </div>

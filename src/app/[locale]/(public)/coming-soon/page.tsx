@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 
 export default async function ComingSoonPage({
@@ -6,7 +7,9 @@ export default async function ComingSoonPage({
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
     const { page } = await searchParams;
-    const pageName = typeof page === "string" && page.trim() ? page.trim() : "This page";
+    const t = await getTranslations("ComingSoon");
+    const tCommon = await getTranslations("Common");
+    const pageName = typeof page === "string" && page.trim() ? page.trim() : t("defaultPageName");
 
     return (
         <div
@@ -34,7 +37,7 @@ export default async function ComingSoonPage({
                         marginBottom: 16,
                     }}
                 >
-                    Coming soon
+                    {t("badge")}
                 </p>
 
                 <h1
@@ -60,7 +63,7 @@ export default async function ComingSoonPage({
                         marginBottom: 40,
                     }}
                 >
-                    Ця сторінка ще в розробці. Ми працюємо над нею!
+                    {t("description")}
                 </p>
 
                 <Link
@@ -80,7 +83,7 @@ export default async function ComingSoonPage({
                         textDecoration: "none",
                     }}
                 >
-                    На головну
+                    {tCommon("backToHome")}
                 </Link>
             </div>
         </div>

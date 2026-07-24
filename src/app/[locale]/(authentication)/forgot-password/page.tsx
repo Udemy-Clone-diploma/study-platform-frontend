@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { AuthField, AuthPanel, requestPasswordReset } from "@/features/auth";
 import { AccentButton } from "@/shared/ui/AccentButton";
@@ -10,10 +11,13 @@ export default function ForgotPasswordPage() {
   const [emailError, setEmailError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSent, setIsSent] = useState(false);
+  const t = useTranslations("Auth.forgotPassword");
+  const tCommon = useTranslations("Auth.common");
+  const tValidation = useTranslations("Auth.validation");
 
   function validateEmail(value: string): string {
-    if (!value.trim()) return "Enter your email";
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return "Enter a valid email";
+    if (!value.trim()) return tValidation("enterEmail");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return tValidation("enterValidEmail");
     return "";
   }
 
@@ -39,24 +43,23 @@ export default function ForgotPasswordPage() {
   if (isSent) {
     return (
       <AuthPanel
-        title="Check Email"
-        description={
-          <>
-            If an account exists for <strong>{email}</strong>, we sent a password reset link.
-          </>
-        }
+        title={t("checkEmailTitle")}
+        description={t.rich("checkEmailDescription", {
+          email,
+          bold: (chunks) => <strong>{chunks}</strong>,
+        })}
       >
         <div className="space-y-5">
           <AccentButton
             type="button"
             onClick={() => setIsSent(false)}
           >
-            Send Again
+            {tCommon("sendAgain")}
           </AccentButton>
 
           <p className="text-center text-[0.95rem] text-[#3e3840]">
             <Link href="/login" className="text-[#3557ff] transition hover:text-[#1937cb]">
-              Back to sign in
+              {tCommon("backToSignIn")}
             </Link>
           </p>
         </div>
@@ -66,15 +69,15 @@ export default function ForgotPasswordPage() {
 
   return (
     <AuthPanel
-      title="Reset Password"
-      description="Enter the email connected to your account and we will send a reset link."
+      title={t("resetTitle")}
+      description={t("resetDescription")}
     >
       <form onSubmit={handleSubmit} className="space-y-7">
         <AuthField
           id="email"
           name="email"
           type="email"
-          label="Email"
+          label={tCommon("email")}
           placeholder="you@example.com"
           value={email}
           onChange={(e) => {
@@ -90,12 +93,12 @@ export default function ForgotPasswordPage() {
             type="submit"
             disabled={isSubmitting}
           >
-            {isSubmitting ? "Sending" : "Send Link"}
+            {isSubmitting ? tCommon("sending") : t("sendLink")}
           </AccentButton>
 
           <p className="text-center text-[0.95rem] text-[#3e3840]">
             <Link href="/login" className="text-[#3557ff] transition hover:text-[#1937cb]">
-              Back to sign in
+              {tCommon("backToSignIn")}
             </Link>
           </p>
         </div>

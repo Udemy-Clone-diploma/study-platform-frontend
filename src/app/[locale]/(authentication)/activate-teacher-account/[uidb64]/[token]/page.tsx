@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { AccentButton } from "@/shared/ui/AccentButton";
 import {
@@ -22,6 +23,9 @@ const initialForm: PasswordResetFormData = { password: "", confirmPassword: "" }
 
 export default function ActivateTeacherAccountPage() {
   const { uidb64, token } = useParams<{ uidb64: string; token: string }>();
+  const t = useTranslations("Auth.activateTeacher");
+  const tCommon = useTranslations("Auth.common");
+  const tValidation = useTranslations("Auth.validation");
 
   const [pageStatus, setPageStatus] = useState<PageStatus>("loading");
   const [pageMessage, setPageMessage] = useState("");
@@ -32,7 +36,7 @@ export default function ActivateTeacherAccountPage() {
   const { formData, errors, isSubmitting, handleChange, handleSubmit } =
     useAuthForm<PasswordResetFormData>({
       initial: initialForm,
-      validate: validatePasswordResetForm,
+      validate: (data) => validatePasswordResetForm(data, tValidation),
       fieldKeys: ["password", "confirmPassword"],
       submit: async (data) => {
         try {
@@ -41,9 +45,7 @@ export default function ActivateTeacherAccountPage() {
         } catch (err: unknown) {
           const e = err as { detail?: string; message?: string };
           setPageStatus("error");
-          setPageMessage(
-            e?.detail || e?.message || "We could not activate your account. Please try again.",
-          );
+          setPageMessage(e?.detail || e?.message || t("fallbackError"));
         }
       },
     });
@@ -57,7 +59,7 @@ export default function ActivateTeacherAccountPage() {
       } catch (err: unknown) {
         const e = err as { detail?: string; message?: string };
         setPageStatus("invalid");
-        setPageMessage(e?.detail || e?.message || "This invitation link is invalid or expired.");
+        setPageMessage(e?.detail || e?.message || t("invalidLinkMessage"));
       }
     }
     checkToken();
@@ -65,33 +67,33 @@ export default function ActivateTeacherAccountPage() {
 
   if (pageStatus === "loading") {
     return (
-      <AuthPanel title="Checking Link" description="We are validating your invitation link.">
-        <p className="text-sm text-[#3e3840]">Please wait...</p>
+      <AuthPanel title={tCommon("checkingLink")} description={t("checkingDescription")}>
+        <p className="text-sm text-[#3e3840]">{tCommon("pleaseWait")}</p>
       </AuthPanel>
     );
   }
 
   if (pageStatus === "invalid") {
     return (
-      <AuthPanel title="Invalid Link" description={pageMessage}>
+      <AuthPanel title={t("invalidTitle")} description={pageMessage}>
         <div className="space-y-5">
           {!showResend ? (
             <AccentButton type="button" onClick={() => setShowResend(true)}>
-              Send Again
+              {tCommon("sendAgain")}
             </AccentButton>
           ) : (
             <ResendEmailForm
               onResend={async (email) => {
                 await resendTeacherInvitation(email);
               }}
-              submitLabel="Resend Invitation"
-              successMessage="If a pending invitation exists for this email, it has been resent. Please check your inbox or spam folder."
+              submitLabel={t("resendInvitation")}
+              successMessage={t("resendSuccessMessage")}
             />
           )}
 
           <p className="text-center text-[0.95rem] text-[#3e3840]">
             <Link href="/login" className="text-[#3557ff] transition hover:text-[#1937cb]">
-              Back to sign in
+              {tCommon("backToSignIn")}
             </Link>
           </p>
         </div>
@@ -102,19 +104,19 @@ export default function ActivateTeacherAccountPage() {
   if (pageStatus === "success") {
     return (
       <AuthPanel
-        title="Account Activated"
-        description="Your email is confirmed and your password is set. You can now sign in as a teacher."
+        title={t("successTitle")}
+        description={t("successDescription")}
       >
-        <AccentButton href="/login">Sign In</AccentButton>
+        <AccentButton href="/login">{tCommon("signIn")}</AccentButton>
       </AuthPanel>
     );
   }
 
   if (pageStatus === "error") {
     return (
-      <AuthPanel title="Something Went Wrong" description={pageMessage}>
+      <AuthPanel title={tCommon("somethingWrong")} description={pageMessage}>
         <AccentButton type="button" onClick={() => setPageStatus("form")}>
-          Try Again
+          {tCommon("tryAgain")}
         </AccentButton>
       </AuthPanel>
     );
@@ -122,16 +124,16 @@ export default function ActivateTeacherAccountPage() {
 
   return (
     <AuthPanel
-      title="Set Your Password"
-      description="Choose a password with at least 8 characters, one uppercase letter, one lowercase letter, and one number. This also confirms your email."
+      title={t("setPasswordTitle")}
+      description={t("setPasswordDescription")}
     >
       <form onSubmit={handleSubmit} className="space-y-7">
         <AuthField
           id="password"
           name="password"
           type="password"
-          label="Password"
-          placeholder="At least 8 characters"
+          label={tCommon("password")}
+          placeholder={t("passwordPlaceholder")}
           value={formData.password}
           onChange={handleChange}
           error={errors.password}
@@ -144,8 +146,8 @@ export default function ActivateTeacherAccountPage() {
           id="confirmPassword"
           name="confirmPassword"
           type="password"
-          label="Confirm Password"
-          placeholder="Repeat your password"
+          label={tCommon("confirmPassword")}
+          placeholder={t("repeatPasswordPlaceholder")}
           value={formData.confirmPassword}
           onChange={handleChange}
           error={errors.confirmPassword}
@@ -155,7 +157,7 @@ export default function ActivateTeacherAccountPage() {
         />
 
         <AccentButton type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Saving" : "Activate Account"}
+          {isSubmitting ? tCommon("saving") : t("activateAccount")}
         </AccentButton>
       </form>
     </AuthPanel>

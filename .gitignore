@@ -49,6 +49,9 @@ next-env.d.ts
 .idea/
 .claude/
 
+# local planning notes
+plans/
+
 # Python testing
 .pytest_cache/
 .coverage

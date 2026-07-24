@@ -59,6 +59,14 @@ const teacherItems: SidebarItem[] = [
     match: "startsWith",
   },
   {
+    id: "blog",
+    label: "My Articles",
+    href: "/teacher-dashboard/blog",
+    icon: "materials",
+    iconSrc: "/icons/book-navy.svg",
+    match: "startsWith",
+  },
+  {
     id: "statistics",
     label: "Statistics",
     href: "/teacher-dashboard/statistics",
@@ -185,6 +193,14 @@ const moderatorItems: SidebarItem[] = [
     match: "startsWith",
   },
   {
+    id: "teacher-applications",
+    label: "Applications",
+    href: "/moderator-dashboard/teacher-applications",
+    icon: "reports",
+    iconSrc: "/icons/copy-check-navy.svg",
+    match: "startsWith",
+  },
+  {
     id: "chats",
     label: "Chats",
     href: "/moderator-dashboard/chats",
@@ -205,6 +221,14 @@ const moderatorItems: SidebarItem[] = [
     label: "Reports",
     href: "/moderator-dashboard/reports",
     icon: "reports",
+    match: "startsWith",
+  },
+  {
+    id: "blog",
+    label: "Blog",
+    href: "/moderator-dashboard/blog",
+    icon: "materials",
+    iconSrc: "/icons/book-navy.svg",
     match: "startsWith",
   },
   {
@@ -235,6 +259,14 @@ const adminItems: SidebarItem[] = [
     match: "startsWith",
   },
   {
+    id: "teacher-applications",
+    label: "Applications",
+    href: "/admin/teacher-applications",
+    icon: "reports",
+    iconSrc: "/icons/copy-check-navy.svg",
+    match: "startsWith",
+  },
+  {
     id: "categories",
     label: "Categories",
     href: "/admin/categories",
@@ -260,11 +292,27 @@ const adminItems: SidebarItem[] = [
     match: "startsWith",
   },
   {
+    id: "certificates",
+    label: "Certificates",
+    href: "/admin/certificates",
+    icon: "certificates",
+    iconSrc: "/icons/certificate.svg",
+    match: "startsWith",
+  },
+  {
     id: "statistics",
     label: "Statistics",
     href: "/admin/statistics",
     icon: "statistics",
     iconSrc: "/icons/statistics.svg",
+    match: "startsWith",
+  },
+  {
+    id: "blog",
+    label: "Blog",
+    href: "/admin/blog",
+    icon: "materials",
+    iconSrc: "/icons/book-navy.svg",
     match: "startsWith",
   },
   {

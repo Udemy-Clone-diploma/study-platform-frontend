@@ -1,85 +1,16 @@
 "use client";
 
-import { useRef } from "react";
 import { SectionContainer } from "@/shared/ui/SectionContainer";
-import { StudentStoryCard, type StudentStory } from "@/features/users";
+import { useDragScroll } from "@/shared/lib/useDragScroll";
+import { StudentStoryCard } from "@/features/users";
+import type { ArticleListItem } from "@/entities/blog";
 
-const MOCK_STORIES: StudentStory[] = [
-    {
-        id: 1,
-        name: "Olivia Novak",
-        bio: "She left the medical field to start from scratch in design — and found a career that truly inspires her.",
-        image: null,
-    },
-    {
-        id: 2,
-        name: "Emma Carter",
-        bio: "From marketing assistant to UX/UI designer — a journey of turning routine work into creative problem-solving.",
-        image: null,
-    },
-    {
-        id: 3,
-        name: "Daniel Schmidt",
-        bio: "After years in finance, he chose a creative path — and found a new career in 3D design.",
-        image: null,
-    },
-    {
-        id: 4,
-        name: "Aisha Khan",
-        bio: "She turned her passion for organization into a career in project management.",
-        image: null,
-    },
-    {
-        id: 5,
-        name: "John Cho",
-        bio: "No prior tech background, but decided to learn coding — and built his first app within months.",
-        image: null,
-    },
-    {
-        id: 6,
-        name: "Taras Chub",
-        bio: "From uncertainty to confidence — how learning data analytics opened new career opportunities.",
-        image: null,
-    },
-];
+type Props = { articles: ArticleListItem[] };
 
-export function StudentStoriesSection() {
-    const scrollRef = useRef<HTMLDivElement>(null);
-    const isDown = useRef(false);
-    const isDragging = useRef(false);
-    const startX = useRef(0);
-    const scrollLeft = useRef(0);
+export function StudentStoriesSection({ articles }: Props) {
+    const { scrollRef, onPointerDown, onPointerMove, onPointerUp } = useDragScroll<HTMLDivElement>();
 
-    const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-        const el = scrollRef.current;
-        if (!el) return;
-        isDown.current = true;
-        isDragging.current = false;
-        startX.current = e.pageX;
-        scrollLeft.current = el.scrollLeft;
-    };
-
-    const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-        if (!isDown.current || !scrollRef.current) return;
-        const dx = e.pageX - startX.current;
-        if (!isDragging.current && Math.abs(dx) < 5) return;
-        if (!isDragging.current) {
-            isDragging.current = true;
-            scrollRef.current.setPointerCapture(e.pointerId);
-            scrollRef.current.style.cursor = "grabbing";
-        }
-        scrollRef.current.scrollLeft = scrollLeft.current - dx;
-    };
-
-    const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
-        isDown.current = false;
-        isDragging.current = false;
-        if (scrollRef.current) {
-            scrollRef.current.style.cursor = "grab";
-            if (scrollRef.current.hasPointerCapture(e.pointerId))
-                scrollRef.current.releasePointerCapture(e.pointerId);
-        }
-    };
+    if (articles.length === 0) return null;
 
     return (
         <section>
@@ -164,8 +95,8 @@ export function StudentStoriesSection() {
                 onPointerUp={onPointerUp}
             >
                 <div style={{ display: "flex", gap: "1.04vw", width: "max-content", paddingRight: "13vw" }}>
-                    {MOCK_STORIES.map((story) => (
-                        <StudentStoryCard key={story.id} story={story} />
+                    {articles.map((article) => (
+                        <StudentStoryCard key={article.id} article={article} />
                     ))}
                 </div>
             </div>

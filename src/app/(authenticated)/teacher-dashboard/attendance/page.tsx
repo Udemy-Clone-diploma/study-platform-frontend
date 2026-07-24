@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 import { PageShell } from "@/shared/ui/PageShell";
 import { PillSelect } from "@/shared/ui/PillSelect";
+import { DatePicker, todayISO } from "@/shared/ui/DatePicker";
 import {
   getTeacherCourses,
   getCohorts,
@@ -32,20 +32,6 @@ function getInitials(name: string): string {
   return name.split(" ").slice(0, 2).map((w) => w[0] ?? "").join("").toUpperCase();
 }
 
-function toIso(y: number, m: number, d: number): string {
-  return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-}
-
-function todayIso(): string {
-  const t = new Date();
-  return toIso(t.getFullYear(), t.getMonth() + 1, t.getDate());
-}
-
-function formatDateDisplay(iso: string): string {
-  const [y, m, d] = iso.split("-");
-  return `${d}.${m}.${y}`;
-}
-
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 type Mode = "group" | "individual";
@@ -55,226 +41,6 @@ const FORMAT_OPTIONS: { value: Mode; label: string }[] = [
   { value: "individual", label: "Individual" },
 ];
 
-// ── PillDropdown ──────────────────────────────────────────────────────────────
-
-// ── MiniCalendar ──────────────────────────────────────────────────────────────
-
-const WEEKDAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
-const MONTH_NAMES = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
-];
-
-interface MiniCalendarProps {
-  selectedDate: string | null;
-  sessionDates: Set<string>;
-  onSelect: (iso: string) => void;
-  onMonthChange: (year: number, month: number) => void;
-  year: number;
-  month: number;
-}
-
-function MiniCalendar({ selectedDate, sessionDates, onSelect, onMonthChange, year, month }: MiniCalendarProps) {
-  const firstDay = new Date(year, month - 1, 1).getDay();
-  const daysInMonth = new Date(year, month, 0).getDate();
-  const today = todayIso();
-
-  // 6-week grid (42 cells) — same approach as DatePicker
-  const cells = Array.from({ length: 42 }, (_, i) => {
-    const offset = i - firstDay;
-    if (offset < 0 || offset >= daysInMonth) return null;
-    return offset + 1;
-  });
-
-  function prev() {
-    const d = month === 1 ? { y: year - 1, m: 12 } : { y: year, m: month - 1 };
-    onMonthChange(d.y, d.m);
-  }
-  function next() {
-    const d = month === 12 ? { y: year + 1, m: 1 } : { y: year, m: month + 1 };
-    onMonthChange(d.y, d.m);
-  }
-
-  const navBtn: React.CSSProperties = {
-    display: "flex", alignItems: "center", justifyContent: "center",
-    width: 28, height: 28, borderRadius: "50%",
-    background: "none", border: "none", cursor: "pointer", color: "#111",
-  };
-
-  return (
-    <div style={{ userSelect: "none" }}>
-      {/* Month nav — matches DatePicker style */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-        <button type="button" onClick={prev} aria-label="Previous month" style={navBtn}>
-          <ChevronLeft style={{ width: 14, height: 14 }} />
-        </button>
-        <span style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(13px, 0.9vw, 15px)", color: "#111" }}>
-          {MONTH_NAMES[month - 1]} {year}
-        </span>
-        <button type="button" onClick={next} aria-label="Next month" style={navBtn}>
-          <ChevronRight style={{ width: 14, height: 14 }} />
-        </button>
-      </div>
-
-      {/* Day-of-week headers */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "4px 0", textAlign: "center", marginBottom: 2 }}>
-        {WEEKDAYS.map((d) => (
-          <span key={d} style={{ fontFamily: "var(--font-base)", fontSize: "0.75rem", fontWeight: 500, color: "#666" }}>
-            {d}
-          </span>
-        ))}
-      </div>
-
-      {/* Day grid — circular cells */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "4px 0", textAlign: "center" }}>
-        {cells.map((day, idx) => {
-          if (!day) return <div key={`e${idx}`} style={{ height: 32 }} />;
-          const iso = toIso(year, month, day);
-          const hasSession = sessionDates.has(iso);
-          const isSelected = iso === selectedDate;
-          const isClickable = hasSession && iso <= today;
-          const isFuture   = hasSession && iso > today;
-
-          const GRAD = "linear-gradient(135deg, #a7bafa, #fcc4c3, #fff4da)";
-
-          let bg: string;
-          let border: string;
-          let color: string;
-          let shadow: string;
-
-          if (!hasSession) {
-            bg = "none"; border = "none";
-            color = "#bbb"; shadow = "none";
-          } else if (isSelected) {
-            bg = GRAD; border = "none";
-            color = "#fff"; shadow = "0 4px 14px rgba(167,186,250,0.45)";
-          } else if (isFuture) {
-            // gradient border + grey fill
-            bg = `linear-gradient(#efefef, #efefef) padding-box, ${GRAD} border-box`;
-            border = "1.5px solid transparent";
-            color = "#999"; shadow = "none";
-          } else {
-            // clickable (past or today) — gradient border, white fill
-            bg = `linear-gradient(#fff, #fff) padding-box, ${GRAD} border-box`;
-            border = "1.5px solid transparent";
-            color = "var(--color-blue-dark)"; shadow = "none";
-          }
-
-          return (
-            <button
-              key={iso}
-              type="button"
-              onClick={() => { if (isClickable) onSelect(iso); }}
-              style={{
-                margin: "0 auto",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                width: 32, height: 32, borderRadius: "50%",
-                fontFamily: "var(--font-base)",
-                fontSize: "0.875rem",
-                fontWeight: isSelected ? 700 : 400,
-                cursor: isClickable ? "pointer" : "default",
-                background: bg,
-                border,
-                color,
-                boxShadow: shadow,
-                opacity: hasSession ? 1 : 0.35,
-                transition: "background 0.12s",
-              }}
-              onMouseEnter={e => {
-                if (!isSelected && isClickable)
-                  (e.currentTarget as HTMLButtonElement).style.background =
-                    `linear-gradient(#eef0ff, #eef0ff) padding-box, ${GRAD} border-box`;
-              }}
-              onMouseLeave={e => {
-                if (!isSelected)
-                  (e.currentTarget as HTMLButtonElement).style.background = bg;
-              }}
-            >
-              {day}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-// ── CalendarDropdown ──────────────────────────────────────────────────────────
-
-interface CalendarDropdownProps extends MiniCalendarProps {
-  disabled?: boolean;
-}
-
-function CalendarDropdown({ disabled = false, ...calProps }: CalendarDropdownProps) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    function onOutside(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener("mousedown", onOutside);
-    return () => document.removeEventListener("mousedown", onOutside);
-  }, [open]);
-
-  function handleSelect(iso: string) {
-    calProps.onSelect(iso);
-    setOpen(false);
-  }
-
-  return (
-    <div ref={ref} style={{ position: "relative" }}>
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={() => !disabled && setOpen((p) => !p)}
-        className="flex items-center bg-white text-(--color-text-primary) transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
-        style={{
-          height: "clamp(32px, 2.78vw, 40px)",
-          padding: "clamp(6px, 0.56vw, 8px) clamp(12px, 1.11vw, 16px)",
-          boxShadow: "0px 0px 4px rgba(72, 70, 70, 0.16)",
-          borderRadius: "clamp(16px, 1.39vw, 20px)",
-          fontFamily: "var(--font-base)",
-          fontSize: "clamp(13px, 1.11vw, 16px)",
-          whiteSpace: "nowrap",
-          gap: 8,
-        }}
-      >
-        <Calendar
-          style={{
-            width: "clamp(14px, 1.11vw, 16px)",
-            height: "clamp(14px, 1.11vw, 16px)",
-            flexShrink: 0,
-            color: "var(--color-blue)",
-          }}
-        />
-        <span>
-          {calProps.selectedDate ? formatDateDisplay(calProps.selectedDate) : "Select date"}
-        </span>
-      </button>
-
-      {open && (
-        <div
-          style={{
-            position: "absolute",
-            right: 0,
-            top: "calc(100% + 8px)",
-            zIndex: 50,
-            width: "min(88vw, 300px)",
-            background: "#fff",
-            borderRadius: 18,
-            border: "1px solid #dbe5ff",
-            boxShadow: "0 16px 42px rgba(83,98,153,0.20)",
-            padding: 16,
-          }}
-        >
-          <MiniCalendar {...calProps} onSelect={handleSelect} />
-        </div>
-      )}
-    </div>
-  );
-}
 
 // ── StudentAvatar ─────────────────────────────────────────────────────────────
 
@@ -360,6 +126,7 @@ export default function TeacherAttendancePage() {
 
   const [calYear, setCalYear]   = useState(now.getFullYear());
   const [calMonth, setCalMonth] = useState(now.getMonth() + 1);
+  const [calendarResetKey, setCalendarResetKey] = useState(0);
   const [sessionDates, setSessionDates] = useState<Set<string>>(new Set());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
@@ -490,6 +257,7 @@ export default function TeacherAttendancePage() {
     const t = new Date();
     setCalYear(t.getFullYear());
     setCalMonth(t.getMonth() + 1);
+    setCalendarResetKey((k) => k + 1);
   }
 
   const handleCourseChange = useCallback((slug: string) => {
@@ -522,7 +290,7 @@ export default function TeacherAttendancePage() {
     resetCalToToday();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleMonthChange = useCallback((y: number, m: number) => {
+  const handleCalendarViewChange = useCallback((y: number, m: number) => {
     setCalYear(y); setCalMonth(m);
   }, []);
 
@@ -696,15 +464,19 @@ export default function TeacherAttendancePage() {
           </div>
 
           {/* Right: date picker dropdown */}
-          <CalendarDropdown
-            selectedDate={selectedDate}
-            sessionDates={sessionDates}
-            onSelect={setSelectedDate}
-            onMonthChange={handleMonthChange}
-            year={calYear}
-            month={calMonth}
-            disabled={isCalDisabled}
-          />
+          <div style={{ width: "min(88vw, 220px)" }}>
+            <DatePicker
+              key={calendarResetKey}
+              size="sm"
+              value={selectedDate ?? ""}
+              onChange={setSelectedDate}
+              onViewChange={handleCalendarViewChange}
+              selectableDates={sessionDates}
+              max={todayISO()}
+              disabled={isCalDisabled}
+              placeholder="Select date"
+            />
+          </div>
         </div>
 
         {/* Table — full width, internally scrollable */}

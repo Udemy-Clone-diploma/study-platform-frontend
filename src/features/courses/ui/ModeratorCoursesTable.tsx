@@ -1,4 +1,5 @@
-import Image from "next/image";
+"use client";
+
 import Link from "next/link";
 import { ClipboardCheck, Eye, Star } from "lucide-react";
 import type {
@@ -8,15 +9,10 @@ import type {
   RejectedCourseRecord,
 } from "@/entities/course";
 import { DataTable, type DataTableColumn } from "@/shared/ui/DataTable";
+import { CourseThumb, formatCourseDate } from "./admin/CoursesTable";
 
 export type ModeratorCourseTab = "unassigned" | "review" | "needs_revision";
 export type ModeratorHistoryStatus = "approved" | "rejected";
-
-const LEVEL_FALLBACK: Record<CourseLevel, string> = {
-  beginner: "/icons/curses.svg",
-  intermediate: "/icons/world.png",
-  advanced: "/icons/statistics.svg",
-};
 
 const LEVEL_COLORS: Record<CourseLevel, string> = {
   beginner: "var(--color-blue)",
@@ -35,17 +31,8 @@ const STATUS_COLORS = {
 type HistoryRecord = ApprovedCourseRecord | RejectedCourseRecord;
 
 function humanize(value: string | null | undefined) {
-  if (!value) return "—";
+  if (!value) return "-";
   return value.replace(/_/g, " ").replace(/\b\w/g, (character) => character.toUpperCase());
-}
-
-function formatDate(value: string | null | undefined) {
-  if (!value) return "—";
-  return new Date(value).toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
 }
 
 function formatPrice(course: CourseListItem) {
@@ -77,37 +64,14 @@ function CourseStatusBadge({ status, color }: { status: string; color: string })
   );
 }
 
-function CourseThumbnail({
-  image,
-  level,
-  title,
-}: {
-  image: string | null | undefined;
-  level: string;
-  title: string;
-}) {
-  const fallback = LEVEL_FALLBACK[(level as CourseLevel) ?? "beginner"] ?? LEVEL_FALLBACK.beginner;
-  return (
-    <Image
-      src={image ?? fallback}
-      alt=""
-      width={44}
-      height={44}
-      unoptimized={Boolean(image)}
-      className="h-11 w-11 shrink-0 rounded-lg bg-(--color-brand-lavender-soft) object-contain"
-      title={title}
-    />
-  );
-}
-
 function CourseIdentity({ course, href }: { course: CourseListItem; href?: string }) {
   const content = (
     <>
-      <CourseThumbnail image={course.image} level={course.level} title={course.title} />
+      <CourseThumb image={course.image} title={course.title} />
       <div className="min-w-0">
         <p className="truncate font-semibold text-(--color-text-primary)">{course.title}</p>
         <p className="mt-0.5 truncate text-xs text-(--color-text-secondary)">
-          {course.subtitle || `${humanize(course.language)} · ${formatPrice(course)}`}
+          {course.subtitle || `${humanize(course.language)} - ${formatPrice(course)}`}
         </p>
       </div>
     </>
@@ -165,13 +129,14 @@ function currentCourseColumns(
       key: "teacher",
       label: "Teacher",
       flex: 1.7,
-      render: (course) => <span className="truncate">{course.teacher_name || "—"}</span>,
+      render: (course) => <span className="truncate">{course.teacher_name || "-"}</span>,
     },
     {
       key: "category",
       label: "Category",
       flex: 1.5,
-      render: (course) => <span className="truncate">{course.category?.name || "—"}</span>,
+      render: (course) =>
+        course.category?.name || <span className="text-(--color-text-secondary)">No category</span>,
     },
     {
       key: "level",
@@ -189,7 +154,7 @@ function currentCourseColumns(
       flex: 1.7,
       render: (course) => (
         <span className="block truncate">
-          {humanize(course.mode)} · {humanize(course.delivery_type)}
+          {humanize(course.mode)} - {humanize(course.delivery_type)}
         </span>
       ),
     },
@@ -277,7 +242,7 @@ export function ModeratorCoursesTable({
     <DataTable<CourseListItem>
       columns={currentCourseColumns(tab, onAssign)}
       rows={courses}
-      getRowKey={(course) => course.slug}
+      getRowKey={(course) => course.id}
       emptyMessage={emptyMessage}
       headerVariant="plain"
       showIndex={false}
@@ -289,11 +254,7 @@ export function ModeratorCoursesTable({
 function historyCourseIdentity(record: HistoryRecord) {
   return (
     <div className="flex min-w-0 items-center gap-3">
-      <CourseThumbnail
-        image={record.course_image_url}
-        level={record.course_level}
-        title={record.course_title}
-      />
+      <CourseThumb image={record.course_image_url} title={record.course_title} />
       <span className="min-w-0 truncate font-semibold text-(--color-text-primary)">
         {record.course_title}
       </span>
@@ -334,7 +295,10 @@ export function ModeratorHistoryTable({
       key: "category",
       label: "Category",
       flex: 1.8,
-      render: (record) => <span className="truncate">{record.course_category || "—"}</span>,
+      render: (record) =>
+        record.course_category || (
+          <span className="text-(--color-text-secondary)">No category</span>
+        ),
     },
     {
       key: "level",
@@ -342,11 +306,10 @@ export function ModeratorHistoryTable({
       flex: 1.2,
       headerAlign: "center",
       cellAlign: "center",
-      render: (record) => (
-        <span style={{ color: LEVEL_COLORS[(record.course_level as CourseLevel) ?? "beginner"] }}>
-          {humanize(record.course_level)}
-        </span>
-      ),
+      render: (record) => {
+        const level = record.course_level as CourseLevel;
+        return <span style={{ color: LEVEL_COLORS[level] }}>{humanize(record.course_level)}</span>;
+      },
     },
     {
       key: "changes",
@@ -365,7 +328,7 @@ export function ModeratorHistoryTable({
       headerAlign: "center",
       cellAlign: "center",
       render: (record) => (
-        <span className="whitespace-nowrap">{formatDate(historyDate(record, status))}</span>
+        <span className="whitespace-nowrap">{formatCourseDate(historyDate(record, status))}</span>
       ),
     },
     {

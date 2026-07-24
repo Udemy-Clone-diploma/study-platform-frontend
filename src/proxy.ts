@@ -42,7 +42,7 @@ const PROTECTED_ROUTES: RouteRule[] = [
   },
 ];
 
-const PUBLIC_PATHS = new Set(["/", "/login", "/register", "/admin/login"]);
+const PUBLIC_PATHS = new Set(["/", "/login", "/register", "/admin/login", "/verify"]);
 
 function isPublicPath(pathname: string): boolean {
   if (PUBLIC_PATHS.has(pathname)) return true;

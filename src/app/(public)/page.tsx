@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { getNewCourses, getPopularCourses, getTopReviews, getWishlistSlugs } from "@/entities/course";
 import { getTopTeachers } from "@/entities/user";
+import { getArticles } from "@/entities/blog";
 import { HeroSection } from "@/widgets/home/HeroSection";
 import { NewCoursesSection } from "@/widgets/home/NewCoursesSection";
 import { PopularCoursesSection } from "@/widgets/home/PopularCoursesSection";
@@ -13,12 +14,13 @@ import { TopMentorsSection } from "@/widgets/home/TopMentorsSection";
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-    const [newCourses, popularCourses, topTeachers, topReviews, wishlistedSlugs] = await Promise.all([
+    const [newCourses, popularCourses, topTeachers, topReviews, wishlistedSlugs, studentStories] = await Promise.all([
         getNewCourses().catch(() => []),
         getPopularCourses().catch(() => []),
         getTopTeachers().catch(() => []),
         getTopReviews().catch(() => []),
         getWishlistSlugs().catch(() => []),
+        getArticles({ category: "student-stories" }).catch(() => []),
     ]);
 
     return (
@@ -104,7 +106,7 @@ export default async function Home() {
                 <CategoriesSection />
                 <TopMentorsSection teachers={topTeachers} />
                 <StudentReviewsSection reviews={topReviews} />
-                <StudentStoriesSection />
+                <StudentStoriesSection articles={studentStories.slice(0, 8)} />
             </div>
         </main>
     );

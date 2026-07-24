@@ -78,6 +78,7 @@ export type Payment = {
   installment_id: number | null;
   installment_number: number | null;
   amount: string;
+  refunded_amount: string;
   currency: PricingPlan["currency"];
   status: PaymentStatus;
   payment_method: "stripe" | "manual";

@@ -1,0 +1,181 @@
+import Image from "next/image";
+import { getCourses, getWishlistSlugs, type CourseListItem } from "@/entities/course";
+import { getArticles } from "@/entities/blog";
+import { CourseCard } from "@/features/courses";
+import { ArticleCard } from "@/features/blog";
+import { SectionContainer } from "@/shared/ui/SectionContainer";
+import { GradientButton } from "@/shared/ui/GradientButton";
+
+export const dynamic = "force-dynamic";
+
+const RESULT_LIMIT = 6;
+
+const EMPTY_COURSES: CourseListItem[] = [];
+
+export default async function SiteSearchPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ search?: string }>;
+}) {
+  const { search } = await searchParams;
+  const query = search?.trim() ?? "";
+  const searchQS = query ? `?search=${encodeURIComponent(query)}` : "";
+
+  const [coursesPage, articles, wishlistedSlugs] = await Promise.all([
+    query ? getCourses({ search: query, page_size: RESULT_LIMIT }) : Promise.resolve({ count: 0, next: null, previous: null, results: EMPTY_COURSES }),
+    query ? getArticles({ search: query }) : Promise.resolve([]),
+    getWishlistSlugs().catch(() => []),
+  ]);
+
+  const wishlistSet = new Set(wishlistedSlugs);
+  const courses = coursesPage.results;
+  const courseCount = coursesPage.count;
+  const articleResults = articles.slice(0, RESULT_LIMIT);
+  const articleCount = articles.length;
+  const totalCount = courseCount + articleCount;
+
+  return (
+    <div className="relative isolate overflow-x-clip bg-(--color-bg)">
+      {/* Same background as /blog and /blog/all: Blog_Background.svg, painted at the top, not stretched. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10"
+        style={{
+          backgroundImage: "url('/backgrounds/Blog_Background.svg')",
+          backgroundSize: "100% auto",
+          backgroundPosition: "top center",
+          backgroundRepeat: "no-repeat",
+        }}
+      />
+
+      <SectionContainer style={{ paddingTop: "7.19vw", paddingBottom: "5vw" }}>
+        <div style={{ marginBottom: "2.5vw" }}>
+          <h1
+            style={{
+              fontFamily: "var(--font-base)",
+              fontWeight: 400,
+              fontSize: "3.125vw",
+              lineHeight: "3.75vw",
+              color: "var(--color-text-primary)",
+              margin: 0,
+              overflowWrap: "break-word",
+            }}
+          >
+            {query ? (
+              <>
+                Results for{" "}
+                <span className="bg-(--color-catalog-highlight) px-1 py-0.5 text-(--color-blue)">
+                  &ldquo;{query}&rdquo;
+                </span>
+              </>
+            ) : (
+              "Search"
+            )}
+          </h1>
+          {query && (
+            <p
+              style={{
+                fontFamily: "var(--font-base)",
+                fontWeight: 400,
+                fontSize: "1.25vw",
+                lineHeight: "1.5625vw",
+                color: "var(--color-text-secondary)",
+                margin: "1.04vw 0 0",
+              }}
+            >
+              {totalCount} {totalCount === 1 ? "result" : "results"} across courses and articles.
+            </p>
+          )}
+        </div>
+
+        {!query ? (
+          <p className="text-lg text-(--color-text-secondary)">Enter a search term to get started.</p>
+        ) : (
+          <>
+            <ResultSection
+              title="Courses"
+              count={courseCount}
+              viewAllHref={`/catalog${searchQS}`}
+              viewAllLabel="View all courses"
+            >
+              {courses.length === 0 ? (
+                <p className="text-(--color-text-secondary)">No courses found.</p>
+              ) : (
+                <div className="grid justify-center gap-6" style={{ gridTemplateColumns: "repeat(auto-fit, 456px)" }}>
+                  {courses.map((course) => (
+                    <CourseCard key={course.id} course={course} isWishlisted={wishlistSet.has(course.slug)} />
+                  ))}
+                </div>
+              )}
+            </ResultSection>
+
+            <ResultSection
+              title="Posts"
+              count={articleCount}
+              viewAllHref={`/blog/all${searchQS}`}
+              viewAllLabel="View all posts"
+            >
+              {articleResults.length === 0 ? (
+                <p className="text-(--color-text-secondary)">No posts found.</p>
+              ) : (
+                <div className="flex flex-wrap" style={{ gap: "1.04vw" }}>
+                  {articleResults.map((article) => (
+                    <ArticleCard key={article.id} article={article} />
+                  ))}
+                </div>
+              )}
+            </ResultSection>
+          </>
+        )}
+      </SectionContainer>
+    </div>
+  );
+}
+
+function ResultSection({
+  title,
+  count,
+  viewAllHref,
+  viewAllLabel,
+  children,
+}: {
+  title: string;
+  count: number;
+  viewAllHref: string;
+  viewAllLabel: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section style={{ marginBottom: "3.5vw" }}>
+      <div className="flex flex-wrap items-center justify-between" style={{ marginBottom: "1.5vw", gap: 12 }}>
+        <div className="flex items-baseline" style={{ gap: 10 }}>
+          <h2
+            style={{
+              fontFamily: "var(--font-base)",
+              fontWeight: 600,
+              fontSize: "1.67vw",
+              color: "var(--color-text-primary)",
+              margin: 0,
+            }}
+          >
+            {title}
+          </h2>
+          <span style={{ fontFamily: "var(--font-base)", fontSize: "0.9vw", color: "var(--color-text-secondary)" }}>
+            {count} found
+          </span>
+        </div>
+        <GradientButton href={viewAllHref}>
+          {viewAllLabel}
+          <Image
+            src="/icons/arrow-goto.png"
+            alt=""
+            width={14}
+            height={14}
+            style={{ width: "clamp(8px, 1.04vw, 14px)", height: "auto", flexShrink: 0 }}
+          />
+        </GradientButton>
+      </div>
+      {children}
+    </section>
+  );
+}

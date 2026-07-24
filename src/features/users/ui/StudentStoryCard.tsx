@@ -1,16 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { ArticleListItem } from "@/entities/blog";
 
-export type StudentStory = {
-    id: number;
-    name: string;
-    bio: string;
-    image: string | null;
-};
+type Props = { article: ArticleListItem };
 
-type Props = { story: StudentStory };
-
-export function StudentStoryCard({ story }: Props) {
+export function StudentStoryCard({ article }: Props) {
     return (
         <div
             style={{
@@ -26,10 +20,10 @@ export function StudentStoryCard({ story }: Props) {
             }}
         >
             {/* Background image*/}
-            {story.image ? (
+            {article.cover_image ? (
                 <Image
-                    src={story.image}
-                    alt={story.name}
+                    src={article.cover_image}
+                    alt={article.title}
                     fill
                     unoptimized
                     style={{ objectFit: "cover", objectPosition: "center top", zIndex: 0 }}
@@ -47,7 +41,7 @@ export function StudentStoryCard({ story }: Props) {
 
             {/* Arrow button — top right */}
             <Link
-                href="/coming-soon"
+                href={`/blog/${article.slug}`}
                 style={{
                     position: "relative",
                     zIndex: 2,
@@ -78,7 +72,8 @@ export function StudentStoryCard({ story }: Props) {
             </Link>
 
             {/* Bottom info panel */}
-            <div
+            <Link
+                href={`/blog/${article.slug}`}
                 style={{
                     position: "relative",
                     zIndex: 2,
@@ -96,9 +91,13 @@ export function StudentStoryCard({ story }: Props) {
                         fontSize: "1.04vw",
                         lineHeight: "1.3vw",
                         color: "var(--color-text-primary)",
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
                     }}
                 >
-                    {story.name}
+                    {article.title}
                 </span>
                 <span
                     style={{
@@ -107,11 +106,15 @@ export function StudentStoryCard({ story }: Props) {
                         fontSize: "0.73vw",
                         lineHeight: "0.9375vw",
                         color: "var(--color-text-primary)",
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
                     }}
                 >
-                    {story.bio}
+                    {article.subtitle}
                 </span>
-            </div>
+            </Link>
         </div>
     );
 }

@@ -1,16 +1,17 @@
 import Image from "next/image";
-import { Header } from "@/widgets/header";
-import { Footer } from "@/widgets/footer";
 import { AccentButton } from "@/shared/ui/AccentButton";
 
 const TITLE_GRADIENT = "linear-gradient(180deg, #4669DF 34%, rgba(70, 105, 223, 0) 100%)";
 
+// No Header/Footer here: this file is always rendered nested inside whichever layout was
+// already active (public or authenticated) when notFound() was called, so those already
+// supply the header/nav chrome. Rendering our own here doubled it (visible on any client-side
+// navigation to an invalid slug -- e.g. /blog/[slug], /courses/[slug], /profile/[userId]).
 export default function NotFound() {
   return (
-    <div className="relative flex min-h-screen flex-col">
+    <div className="relative flex flex-1 flex-col">
       <NotFoundBackground />
-      <Header />
-      <main className="relative flex flex-1 flex-col items-center justify-center gap-14 px-6 text-center">
+      <main className="relative flex flex-1 flex-col items-center justify-center gap-14 px-6 py-24 text-center">
         <span
           className="bg-clip-text font-(family-name:--font-base) leading-[0.8] text-transparent"
           style={{
@@ -34,7 +35,6 @@ export default function NotFound() {
           </AccentButton>
         </div>
       </main>
-      <Footer />
     </div>
   );
 }

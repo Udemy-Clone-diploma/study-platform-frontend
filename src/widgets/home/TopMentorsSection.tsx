@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { SectionContainer } from "@/shared/ui/SectionContainer";
 import { MentorCard, type Mentor } from "@/features/users";
 import type { TopTeacher } from "@/entities/user";
+
+const FEATURE_KEYS = ["experience", "support", "practice"] as const;
 
 type Props = { teachers: TopTeacher[] };
 
@@ -25,6 +28,11 @@ export function TopMentorsSection({ teachers }: Props) {
     const [current, setCurrent] = useState(0);
     const [prevIndex, setPrevIndex] = useState<number | null>(null);
     const router = useRouter();
+    const t = useTranslations("HomeMentors");
+    const features = FEATURE_KEYS.map((key) => ({
+        title: t(`features.${key}.title`),
+        body: t(`features.${key}.body`),
+    }));
 
     const mentors = teachers.map(toMentor);
     const total = mentors.length;
@@ -102,7 +110,7 @@ export function TopMentorsSection({ teachers }: Props) {
                                         color: "var(--color-blue)",
                                     }}
                                 >
-                                    EXPERTISE
+                                    {t("badge")}
                                 </span>
                             </div>
 
@@ -117,7 +125,7 @@ export function TopMentorsSection({ teachers }: Props) {
                                         margin: 0,
                                     }}
                                 >
-                                    Learn from the best
+                                    {t("heading")}
                                 </h2>
                                 <p
                                     className="text-[15px] md:text-[17px] lg:text-[1.25vw]"
@@ -129,8 +137,7 @@ export function TopMentorsSection({ teachers }: Props) {
                                         margin: 0,
                                     }}
                                 >
-                                    Our mentors are industry professionals ready to guide you
-                                    from beginner to pro with hands-on experience.
+                                    {t("description")}
                                 </p>
                             </div>
                         </div>
@@ -142,11 +149,7 @@ export function TopMentorsSection({ teachers }: Props) {
                                 gap: "clamp(16px, 1.67vw, 24px)",
                             }}
                         >
-                            {[
-                                { title: "Experience", body: "5+ years in real-world projects." },
-                                { title: "Support", body: "Direct chat access and homework feedback." },
-                                { title: "Practice", body: "Only trending cases and tools." },
-                            ].map(({ title, body }) => (
+                            {features.map(({ title, body }) => (
                                 <div
                                     key={title}
                                     className="items-center text-center sm:items-start sm:text-left"
@@ -254,7 +257,7 @@ export function TopMentorsSection({ teachers }: Props) {
                                     whiteSpace: "nowrap",
                                 }}
                             >
-                                Mentors of the Year
+                                {t("mentorsOfTheYear")}
                             </span>
                         </div>
                     </div>

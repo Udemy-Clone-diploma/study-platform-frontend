@@ -1,15 +1,16 @@
+import { getTranslations } from "next-intl/server";
 import { SectionContainer } from "@/shared/ui/SectionContainer";
 import { StudentReviewCard, type StudentReview } from "@/features/users";
 import type { TopReview } from "@/entities/course";
 
 type Props = { reviews: TopReview[] };
 
-function toStudentReview(review: TopReview): StudentReview {
+function toStudentReview(review: TopReview, studiedCourse: (course: string) => string): StudentReview {
     return {
         id: review.id,
         text: review.text,
         authorName: review.student.name,
-        authorRole: `Studied ${review.course.title}`,
+        authorRole: studiedCourse(review.course.title),
         authorAvatar: review.student.avatar,
     };
 }
@@ -27,9 +28,10 @@ function chunkPairs<T>(items: T[]): T[][] {
 const NARROW_CLASS = "lg:grow-[580]";
 const WIDE_CLASS = "lg:grow-[820]";
 
-export function StudentReviewsSection({ reviews }: Props) {
+export async function StudentReviewsSection({ reviews }: Props) {
     if (reviews.length === 0) return null;
-    const cards = reviews.map(toStudentReview);
+    const t = await getTranslations("HomeReviews");
+    const cards = reviews.map((review) => toStudentReview(review, (course) => t("studiedCourse", { course })));
 
     return (
         <section style={{ background: "var(--gradient-feedback)" }}>
@@ -71,7 +73,7 @@ export function StudentReviewsSection({ reviews }: Props) {
                                     color: "var(--color-blue)",
                                 }}
                             >
-                                FEEDBACK
+                                {t("badge")}
                             </span>
                         </div>
 
@@ -85,7 +87,7 @@ export function StudentReviewsSection({ reviews }: Props) {
                                     margin: 0,
                                 }}
                             >
-                                Loved by 10k+ students worldwide
+                                {t("heading")}
                             </h2>
                             <p
                                 className="text-[15px] leading-[19px] md:text-[17px] md:leading-[21px] lg:text-[1.25vw] lg:leading-[1.5625vw]"
@@ -96,8 +98,7 @@ export function StudentReviewsSection({ reviews }: Props) {
                                     margin: 0,
                                 }}
                             >
-                                Real people. Real feedback. No filters. Discover why learners
-                                from 50+ countries choose our platform every day.
+                                {t("description")}
                             </p>
                         </div>
                     </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Settings } from "lucide-react";
 import type { UserRole } from "@/entities/user";
@@ -23,15 +24,17 @@ type Props = {
  * directly under the description, plus an "all articles" gradient link in the top-right corner. */
 export function BlogHeroSection({ role }: Props) {
   const canManage = !!role && role in MANAGE_HREF;
+  const t = useTranslations("BlogHero");
+  const tCommon = useTranslations("Common");
 
   const manageRow = (
     <div className="flex items-center" style={{ gap: "10px" }}>
-      <GradientButton href="/blog/create">Add an Article</GradientButton>
+      <GradientButton href="/blog/create">{t("addArticle")}</GradientButton>
 
       <Link
         href={MANAGE_HREF[role!]!}
-        aria-label="Manage articles"
-        title="Manage articles"
+        aria-label={t("manageArticles")}
+        title={t("manageArticles")}
         className="flex shrink-0 items-center justify-center rounded-full transition hover:bg-(--color-brand-lavender-soft)"
         style={{
           width: "clamp(36px, 2.71vw, 44px)",
@@ -46,7 +49,7 @@ export function BlogHeroSection({ role }: Props) {
 
   const allButton = (
     <GradientButton href="/blog/all">
-      All
+      {tCommon("all")}
       <Image src="/icons/arrow-goto.png" alt="" width={14} height={14} style={arrowIconStyle} />
     </GradientButton>
   );
@@ -64,7 +67,11 @@ export function BlogHeroSection({ role }: Props) {
               margin: 0,
             }}
           >
-            Where <span className="bg-(--color-catalog-highlight) px-1 py-0.5 text-(--color-blue)">creativity</span> meets knowledge.
+            {t.rich("title", {
+              highlight: (chunks) => (
+                <span className="bg-(--color-catalog-highlight) px-1 py-0.5 text-(--color-blue)">{chunks}</span>
+              ),
+            })}
           </h1>
           <p
             className="text-[15px] leading-[19px] md:text-[18px] md:leading-[23px] lg:text-[clamp(15px,1.25vw,18px)] lg:leading-[clamp(19px,1.5625vw,22.5px)]"
@@ -75,7 +82,7 @@ export function BlogHeroSection({ role }: Props) {
               margin: 0,
             }}
           >
-            Explore articles, insights, and stories designed to inspire learning, innovation, and personal growth.
+            {t("description")}
           </p>
 
           {canManage && <div className="hidden lg:flex" style={{ marginTop: "0.52vw" }}>{manageRow}</div>}

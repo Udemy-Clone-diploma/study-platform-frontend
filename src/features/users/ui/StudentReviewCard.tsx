@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Flag } from "lucide-react";
 import { ReportReviewModal } from "@/shared/ui/ReportReviewModal";
 import { reportReview } from "@/entities/course";
@@ -23,6 +24,7 @@ type Props = {
 
 export function StudentReviewCard({ review, className = "" }: Props) {
     const [reporting, setReporting] = useState(false);
+    const t = useTranslations("StudentReviewCard");
 
     return (
         <div
@@ -42,8 +44,8 @@ export function StudentReviewCard({ review, className = "" }: Props) {
             <button
                 type="button"
                 onClick={() => setReporting(true)}
-                aria-label="Report review"
-                title="Report review"
+                aria-label={t("reportReview")}
+                title={t("reportReview")}
                 style={{
                     position: "absolute",
                     top: "0.83vw",

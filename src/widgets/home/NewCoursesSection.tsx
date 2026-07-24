@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { CourseListItem } from "@/entities/course";
 import { CourseCard } from "@/features/courses";
 import { SectionContainer } from "@/shared/ui/SectionContainer";
@@ -11,6 +12,7 @@ export function NewCoursesSection({ courses, wishlistedSlugs }: Props) {
     const wishlistSet = new Set(wishlistedSlugs);
     const doubled = [...courses, ...courses];
     const [paused, setPaused] = useState(false);
+    const t = useTranslations("HomeNewCourses");
 
     return (
         <section>
@@ -26,7 +28,7 @@ export function NewCoursesSection({ courses, wishlistedSlugs }: Props) {
                         color: "var(--color-text-primary)",
                     }}
                 >
-                    New courses
+                    {t("heading")}
                 </h2>
             </SectionContainer>
             <div style={{ overflow: "hidden", padding: "16px 0" }}>

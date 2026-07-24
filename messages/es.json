@@ -12,7 +12,10 @@
     "getStarted": "Empezar",
     "search": "Buscar",
     "user": "Usuario",
-    "language": "Idioma"
+    "language": "Idioma",
+    "cancel": "Cancelar",
+    "categories": "Categorías",
+    "all": "Todo"
   },
   "Header": {
     "openMenu": "Abrir menú",
@@ -40,5 +43,87 @@
   "LanguageSwitcher": {
     "selectLanguage": "Seleccionar idioma",
     "chooseLanguage": "Elige un idioma"
+  },
+  "HomeHero": {
+    "tags": ["Habilidades", "Networking", "Crecimiento"],
+    "title": "Educación de nueva generación",
+    "subtitle": "Una plataforma donde el conocimiento se convierte en resultados reales. Simple, flexible y directa.",
+    "rating": "Calificación de 4.9 con más de 10,000 estudiantes",
+    "continueLearning": "Continuar aprendiendo",
+    "verifiedByPartners": "Verificado por nuestros socios"
+  },
+  "HomeCategories": {
+    "badge": "Categorías",
+    "heading": "Elige tu campo de crecimiento",
+    "description": "Explora más de 6 categorías clave diseñadas para tu carrera profesional y tu desarrollo personal.",
+    "toCatalog": "Ir al catálogo",
+    "cards": {
+      "programming": { "title": "Programación de principiante a experto", "description": "Domina los lenguajes de programación más populares y crea tu propio software." },
+      "design": { "title": "Diseño y experiencia de usuario", "description": "Aprende a crear interfaces, gráficos y mundos visuales." },
+      "marketing": { "title": "Estrategia de marketing", "description": "Descubre cómo promocionar marcas y atraer a miles de clientes." },
+      "business": { "title": "Negocios", "description": "Adquiere experiencia en gestión, finanzas y optimización de procesos." },
+      "languages": { "title": "Idiomas", "description": "Aprende idiomas extranjeros para tu carrera, tus viajes y tu comunicación." },
+      "personalDevelopment": { "title": "Desarrollo personal", "description": "Mejora tu eficiencia personal, gestión del tiempo y liderazgo." }
+    }
+  },
+  "HomeBenefits": {
+    "tags": ["Mejora", "Práctica", "Flow", "Validado", "Pro"],
+    "heading": "Aprende. Conecta. Crece.",
+    "description": "Donde el conocimiento se encuentra con la carrera profesional. Elige tu ritmo: estudio a tu propio paso o sesiones en vivo con mentores. Certificados, exámenes y un calendario inteligente, todo para mejorar en un solo lugar.",
+    "cards": {
+      "accessibility": { "title": "Accesibilidad", "description": "Educación que se ajusta a tu presupuesto. Paga todo de una vez o elige un plan de cuotas cómodo. Controla todo tu calendario de pagos directamente desde tu panel." },
+      "connect": { "title": "Conecta", "description": "Mucho más que videoclases. Participa en chats privados o grupales con compañeros y mentores. Pregunta sobre cualquier lección con un solo clic." },
+      "result": { "title": "Resultado", "description": "Tu habilidad es tu moneda. Completa exámenes, obtén puntuaciones y descarga tu certificado oficial en PDF. Construye tu carrera con experiencia verificada." }
+    }
+  },
+  "HomeNewCourses": { "heading": "Cursos nuevos" },
+  "HomePopularCourses": { "heading": "Cursos populares" },
+  "HomeReviews": {
+    "badge": "OPINIONES",
+    "heading": "Elegido por más de 10 mil estudiantes en todo el mundo",
+    "description": "Personas reales. Opiniones reales. Sin filtros. Descubre por qué estudiantes de más de 50 países eligen nuestra plataforma cada día.",
+    "studiedCourse": "Estudió {course}"
+  },
+  "HomeMentors": {
+    "badge": "EXPERIENCIA",
+    "heading": "Aprende de los mejores",
+    "description": "Nuestros mentores son profesionales del sector listos para guiarte de principiante a experto con experiencia práctica.",
+    "mentorsOfTheYear": "Mentores del año",
+    "features": {
+      "experience": { "title": "Experiencia", "body": "Más de 5 años en proyectos reales." },
+      "support": { "title": "Apoyo", "body": "Acceso directo al chat y retroalimentación de tareas." },
+      "practice": { "title": "Práctica", "body": "Solo casos y herramientas de tendencia." }
+    }
+  },
+  "CourseCard": {
+    "students": "{count} estudiantes",
+    "addToWishlist": "Añadir a favoritos",
+    "removeFromWishlist": "Quitar de favoritos"
+  },
+  "StudentReviewCard": {
+    "reportReview": "Reportar reseña"
+  },
+  "ReportReviewModal": {
+    "title": "Reportar reseña",
+    "description": "Cuéntanos qué está mal con esta reseña.",
+    "placeholder": "Motivo del reporte…",
+    "genericError": "No se pudo enviar el reporte. Inténtalo de nuevo.",
+    "submit": "Enviar reporte"
+  },
+  "BlogHero": {
+    "title": "Donde la <highlight>creatividad</highlight> se encuentra con el conocimiento.",
+    "description": "Explora artículos, ideas e historias diseñados para inspirar el aprendizaje, la innovación y el crecimiento personal.",
+    "addArticle": "Añadir un artículo",
+    "manageArticles": "Gestionar artículos",
+    "noArticlesFound": "No se encontraron artículos."
+  },
+  "BlogSearch": {
+    "searchArticles": "Buscar artículos",
+    "clearSearch": "Borrar búsqueda"
+  },
+  "Pagination": {
+    "pagination": "Paginación",
+    "previousPage": "Página anterior",
+    "nextPage": "Página siguiente"
   }
 }

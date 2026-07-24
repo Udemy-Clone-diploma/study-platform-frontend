@@ -1,11 +1,10 @@
 import Image from "next/image";
+import { getTranslations } from "next-intl/server";
 import { getMe } from "@/entities/user";
 import { getAccessToken } from "@/shared/api/authCookies";
 import { SectionContainer } from "@/shared/ui/SectionContainer";
 import { AccentButton } from "@/shared/ui/AccentButton";
 import { ramp, fluid3 } from "@/shared/lib/fluidScale";
-
-const TAGS = ["Skills", "Networking", "Growth"];
 
 const PARTNERS = [
     { src: "/main/Clear Path Learning.png",  alt: "Clear Path Learning",  width: 195, height: 84 },
@@ -24,6 +23,9 @@ export async function HeroSection() {
     const isLoggedIn = !!accessToken;
     const user = isLoggedIn ? await getMe(accessToken).catch(() => null) : null;
     const isTeacher = user?.role === "teacher";
+    const t = await getTranslations("HomeHero");
+    const tCommon = await getTranslations("Common");
+    const TAGS = t.raw("tags") as string[];
 
     return (
         <section style={{ position: "relative", overflow: "hidden" }}>
@@ -73,7 +75,7 @@ export async function HeroSection() {
                                         color: "var(--color-text-primary)",
                                     }}
                                 >
-                                    Next-gen education
+                                    {t("title")}
                                 </h1>
                                 <p
                                     className="text-[15px] md:text-[18px] lg:text-[1.25vw]"
@@ -85,7 +87,7 @@ export async function HeroSection() {
                                         margin: 0,
                                     }}
                                 >
-                                    A platform where knowledge turns into real-world results. Simple, flexible, and straight to the point.
+                                    {t("subtitle")}
                                 </p>
                             </div>
 
@@ -112,7 +114,7 @@ export async function HeroSection() {
                                         color: "var(--color-text-primary)",
                                     }}
                                 >
-                                    4.9 rating from over 10,000 students
+                                    {t("rating")}
                                 </span>
                             </div>
 
@@ -122,8 +124,8 @@ export async function HeroSection() {
                         {!isTeacher && (
                             <div className="self-center lg:self-start">
                                 {isLoggedIn
-                                    ? <AccentButton href="/student-dashboard/courses" size="md" style={heroButtonStyle}>Continue Learning</AccentButton>
-                                    : <AccentButton href="/login" size="md" style={heroButtonStyle}>Get Started</AccentButton>
+                                    ? <AccentButton href="/student-dashboard/courses" size="md" style={heroButtonStyle}>{t("continueLearning")}</AccentButton>
+                                    : <AccentButton href="/login" size="md" style={heroButtonStyle}>{tCommon("getStarted")}</AccentButton>
                                 }
                             </div>
                         )}
@@ -141,7 +143,7 @@ export async function HeroSection() {
                                 color: "var(--color-text-primary)",
                             }}
                         >
-                            Verified by our partners
+                            {t("verifiedByPartners")}
                         </p>
                         <div className="flex w-full flex-nowrap items-center justify-center lg:justify-start" style={{ gap: "clamp(10px, 2.08vw, 30px)" }}>
                             {PARTNERS.map((p) => (

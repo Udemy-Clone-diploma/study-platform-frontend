@@ -1,27 +1,17 @@
+import { getTranslations } from "next-intl/server";
 import { SectionContainer } from "@/shared/ui/SectionContainer";
 import { UspCard } from "@/shared/ui/UspCard";
 
-const TAGS = ["Upgrade", "Hands-on", "Flow", "Validated", "Pro"];
+const USP_KEYS = ["accessibility", "connect", "result"] as const;
 
-const USP_CARDS = [
-    {
-        title: "Accessibility",
-        description:
-            "Education that fits your budget. Pay in full or choose a comfortable installment plan. Track your entire payment schedule directly in your dashboard.",
-    },
-    {
-        title: "Connect",
-        description:
-            "More than just video lectures. Engage in private or group chats with peers and mentors. Ask questions about any lesson with a single click.",
-    },
-    {
-        title: "Result",
-        description:
-            "Your skill is your currency. Complete tests, earn scores, and download your official PDF certificate. Build your career with verified expertise.",
-    },
-];
+export async function PlatformBenefitsSection() {
+    const t = await getTranslations("HomeBenefits");
+    const TAGS = t.raw("tags") as string[];
+    const USP_CARDS = USP_KEYS.map((key) => ({
+        title: t(`cards.${key}.title`),
+        description: t(`cards.${key}.description`),
+    }));
 
-export function PlatformBenefitsSection() {
     return (
         <section
             style={{
@@ -65,7 +55,7 @@ export function PlatformBenefitsSection() {
                                     margin: 0,
                                 }}
                             >
-                                Learn. Connect. Grow.
+                                {t("heading")}
                             </h2>
 
                             {/* Tag pill */}
@@ -113,9 +103,7 @@ export function PlatformBenefitsSection() {
                                 flex: 1,
                             }}
                         >
-                            Where knowledge meets career. Choose your flow: self-paced study
-                            or live sessions with mentors. Certificates, tests, and a smart
-                            calendar — everything for your upgrade in one tab.
+                            {t("description")}
                         </p>
                     </div>
 

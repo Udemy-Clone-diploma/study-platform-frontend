@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { getTranslations } from "next-intl/server";
 import { getArticles, getBlogCategories } from "@/entities/blog";
 import { ArticleCard, BlogAllPagination, BlogCategoryFilterBar, BlogSearch } from "@/features/blog";
 import { SectionContainer } from "@/shared/ui/SectionContainer";
@@ -15,9 +16,10 @@ export default async function AllArticlesPage({
   const { category, page: pageParam, search } = await searchParams;
   const page = Number.isInteger(Number(pageParam)) && Number(pageParam) > 0 ? Number(pageParam) : 1;
 
-  const [categories, articles] = await Promise.all([
+  const [categories, articles, t] = await Promise.all([
     getBlogCategories(),
     getArticles({ category, search }),
+    getTranslations("BlogHero"),
   ]);
 
   const totalPages = Math.max(1, Math.ceil(articles.length / PAGE_SIZE));
@@ -51,7 +53,11 @@ export default async function AllArticlesPage({
               margin: 0,
             }}
           >
-            Where <span className="bg-(--color-catalog-highlight) px-1 py-0.5 text-(--color-blue)">creativity</span> meets knowledge.
+            {t.rich("title", {
+              highlight: (chunks) => (
+                <span className="bg-(--color-catalog-highlight) px-1 py-0.5 text-(--color-blue)">{chunks}</span>
+              ),
+            })}
           </h1>
           <p
             className="text-[15px] leading-[19px] md:text-[18px] md:leading-[23px] lg:text-[clamp(15px,1.25vw,18px)] lg:leading-[clamp(19px,1.5625vw,22.5px)]"
@@ -62,7 +68,7 @@ export default async function AllArticlesPage({
               margin: 0,
             }}
           >
-            Explore articles, insights, and stories designed to inspire learning, innovation, and personal growth.
+            {t("description")}
           </p>
         </div>
 
@@ -80,7 +86,7 @@ export default async function AllArticlesPage({
         </div>
 
         {pageArticles.length === 0 ? (
-          <p className="mt-16 text-center text-lg text-(--color-text-secondary)">No articles found.</p>
+          <p className="mt-16 text-center text-lg text-(--color-text-secondary)">{t("noArticlesFound")}</p>
         ) : (
           <>
             <div className="flex flex-wrap justify-center lg:justify-start" style={{ gap: "1.04vw" }}>

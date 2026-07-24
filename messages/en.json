@@ -12,7 +12,10 @@
     "getStarted": "Get Started",
     "search": "Search",
     "user": "User",
-    "language": "Language"
+    "language": "Language",
+    "cancel": "Cancel",
+    "categories": "Categories",
+    "all": "All"
   },
   "Header": {
     "openMenu": "Open menu",
@@ -40,5 +43,87 @@
   "LanguageSwitcher": {
     "selectLanguage": "Select language",
     "chooseLanguage": "Choose a language"
+  },
+  "HomeHero": {
+    "tags": ["Skills", "Networking", "Growth"],
+    "title": "Next-gen education",
+    "subtitle": "A platform where knowledge turns into real-world results. Simple, flexible, and straight to the point.",
+    "rating": "4.9 rating from over 10,000 students",
+    "continueLearning": "Continue Learning",
+    "verifiedByPartners": "Verified by our partners"
+  },
+  "HomeCategories": {
+    "badge": "Categories",
+    "heading": "Choose your field of growth",
+    "description": "Explore 6+ core categories designed for professional career and personal success.",
+    "toCatalog": "To catalog",
+    "cards": {
+      "programming": { "title": "Programming Basics to Pro", "description": "Master trending coding languages and build your own software." },
+      "design": { "title": "Design Aesthetics & UX", "description": "Learn to create interfaces, graphics, and visual worlds." },
+      "marketing": { "title": "Marketing Strategy", "description": "Discover how to promote brands and attract thousands of clients." },
+      "business": { "title": "Business", "description": "Get expertise in management, finance, and process optimization." },
+      "languages": { "title": "Languages", "description": "Learn foreign languages for career, travel, and communication." },
+      "personalDevelopment": { "title": "Personal development", "description": "Boost your personal efficiency, time management, and leadership." }
+    }
+  },
+  "HomeBenefits": {
+    "tags": ["Upgrade", "Hands-on", "Flow", "Validated", "Pro"],
+    "heading": "Learn. Connect. Grow.",
+    "description": "Where knowledge meets career. Choose your flow: self-paced study or live sessions with mentors. Certificates, tests, and a smart calendar — everything for your upgrade in one tab.",
+    "cards": {
+      "accessibility": { "title": "Accessibility", "description": "Education that fits your budget. Pay in full or choose a comfortable installment plan. Track your entire payment schedule directly in your dashboard." },
+      "connect": { "title": "Connect", "description": "More than just video lectures. Engage in private or group chats with peers and mentors. Ask questions about any lesson with a single click." },
+      "result": { "title": "Result", "description": "Your skill is your currency. Complete tests, earn scores, and download your official PDF certificate. Build your career with verified expertise." }
+    }
+  },
+  "HomeNewCourses": { "heading": "New courses" },
+  "HomePopularCourses": { "heading": "Popular courses" },
+  "HomeReviews": {
+    "badge": "FEEDBACK",
+    "heading": "Loved by 10k+ students worldwide",
+    "description": "Real people. Real feedback. No filters. Discover why learners from 50+ countries choose our platform every day.",
+    "studiedCourse": "Studied {course}"
+  },
+  "HomeMentors": {
+    "badge": "EXPERTISE",
+    "heading": "Learn from the best",
+    "description": "Our mentors are industry professionals ready to guide you from beginner to pro with hands-on experience.",
+    "mentorsOfTheYear": "Mentors of the Year",
+    "features": {
+      "experience": { "title": "Experience", "body": "5+ years in real-world projects." },
+      "support": { "title": "Support", "body": "Direct chat access and homework feedback." },
+      "practice": { "title": "Practice", "body": "Only trending cases and tools." }
+    }
+  },
+  "CourseCard": {
+    "students": "{count} students",
+    "addToWishlist": "Add to wishlist",
+    "removeFromWishlist": "Remove from wishlist"
+  },
+  "StudentReviewCard": {
+    "reportReview": "Report review"
+  },
+  "ReportReviewModal": {
+    "title": "Report review",
+    "description": "Let us know what's wrong with this review.",
+    "placeholder": "Reason for reporting…",
+    "genericError": "Failed to report. Please try again.",
+    "submit": "Submit report"
+  },
+  "BlogHero": {
+    "title": "Where <highlight>creativity</highlight> meets knowledge.",
+    "description": "Explore articles, insights, and stories designed to inspire learning, innovation, and personal growth.",
+    "addArticle": "Add an Article",
+    "manageArticles": "Manage articles",
+    "noArticlesFound": "No articles found."
+  },
+  "BlogSearch": {
+    "searchArticles": "Search articles",
+    "clearSearch": "Clear search"
+  },
+  "Pagination": {
+    "pagination": "Pagination",
+    "previousPage": "Previous page",
+    "nextPage": "Next page"
   }
 }

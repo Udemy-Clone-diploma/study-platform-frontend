@@ -12,7 +12,10 @@
     "getStarted": "Loslegen",
     "search": "Suchen",
     "user": "Benutzer",
-    "language": "Sprache"
+    "language": "Sprache",
+    "cancel": "Abbrechen",
+    "categories": "Kategorien",
+    "all": "Alle"
   },
   "Header": {
     "openMenu": "Menü öffnen",
@@ -40,5 +43,87 @@
   "LanguageSwitcher": {
     "selectLanguage": "Sprache auswählen",
     "chooseLanguage": "Sprache wählen"
+  },
+  "HomeHero": {
+    "tags": ["Skills", "Networking", "Wachstum"],
+    "title": "Bildung der nächsten Generation",
+    "subtitle": "Eine Plattform, auf der Wissen zu echten Ergebnissen wird. Einfach, flexibel und auf den Punkt.",
+    "rating": "4,9 Bewertung von über 10.000 Studierenden",
+    "continueLearning": "Weiterlernen",
+    "verifiedByPartners": "Bestätigt von unseren Partnern"
+  },
+  "HomeCategories": {
+    "badge": "Kategorien",
+    "heading": "Wähle dein Wachstumsfeld",
+    "description": "Entdecke 6+ Kernkategorien für deine berufliche Laufbahn und persönliche Entwicklung.",
+    "toCatalog": "Zum Katalog",
+    "cards": {
+      "programming": { "title": "Programmieren von den Grundlagen bis zum Profi", "description": "Beherrsche gefragte Programmiersprachen und entwickle eigene Software." },
+      "design": { "title": "Design & UX", "description": "Lerne, Interfaces, Grafiken und visuelle Welten zu gestalten." },
+      "marketing": { "title": "Marketingstrategie", "description": "Erfahre, wie man Marken bewirbt und Tausende Kunden gewinnt." },
+      "business": { "title": "Wirtschaft", "description": "Erwerbe Fachwissen in Management, Finanzen und Prozessoptimierung." },
+      "languages": { "title": "Sprachen", "description": "Lerne Fremdsprachen für Beruf, Reisen und Kommunikation." },
+      "personalDevelopment": { "title": "Persönliche Entwicklung", "description": "Steigere deine persönliche Effizienz, dein Zeitmanagement und deine Führungsqualitäten." }
+    }
+  },
+  "HomeBenefits": {
+    "tags": ["Upgrade", "Praxis", "Flow", "Geprüft", "Pro"],
+    "heading": "Lernen. Vernetzen. Wachsen.",
+    "description": "Wo Wissen auf Karriere trifft. Wähle deinen Rhythmus: selbstbestimmtes Lernen oder Live-Sessions mit Mentoren. Zertifikate, Tests und ein smarter Kalender — alles für dein Upgrade an einem Ort.",
+    "cards": {
+      "accessibility": { "title": "Zugänglichkeit", "description": "Bildung, die zu deinem Budget passt. Zahle vollständig oder wähle eine bequeme Ratenzahlung. Behalte deinen gesamten Zahlungsplan direkt in deinem Dashboard im Blick." },
+      "connect": { "title": "Vernetzen", "description": "Mehr als nur Videovorlesungen. Tausche dich in privaten oder Gruppenchats mit Mitlernenden und Mentoren aus. Stelle Fragen zu jeder Lektion mit nur einem Klick." },
+      "result": { "title": "Ergebnis", "description": "Deine Fähigkeit ist deine Währung. Absolviere Tests, sammle Punkte und lade dein offizielles PDF-Zertifikat herunter. Baue deine Karriere mit verifizierter Expertise auf." }
+    }
+  },
+  "HomeNewCourses": { "heading": "Neue Kurse" },
+  "HomePopularCourses": { "heading": "Beliebte Kurse" },
+  "HomeReviews": {
+    "badge": "FEEDBACK",
+    "heading": "Von über 10.000 Studierenden weltweit geschätzt",
+    "description": "Echte Menschen. Echtes Feedback. Ohne Filter. Erfahre, warum Lernende aus über 50 Ländern sich täglich für unsere Plattform entscheiden.",
+    "studiedCourse": "Hat {course} studiert"
+  },
+  "HomeMentors": {
+    "badge": "EXPERTISE",
+    "heading": "Lerne von den Besten",
+    "description": "Unsere Mentoren sind Branchenprofis, die dich mit praktischer Erfahrung vom Anfänger zum Profi begleiten.",
+    "mentorsOfTheYear": "Mentoren des Jahres",
+    "features": {
+      "experience": { "title": "Erfahrung", "body": "5+ Jahre in realen Projekten." },
+      "support": { "title": "Unterstützung", "body": "Direkter Chat-Zugang und Feedback zu Hausaufgaben." },
+      "practice": { "title": "Praxis", "body": "Nur aktuelle Fallstudien und Tools." }
+    }
+  },
+  "CourseCard": {
+    "students": "{count} Studierende",
+    "addToWishlist": "Zur Wunschliste hinzufügen",
+    "removeFromWishlist": "Von der Wunschliste entfernen"
+  },
+  "StudentReviewCard": {
+    "reportReview": "Bewertung melden"
+  },
+  "ReportReviewModal": {
+    "title": "Bewertung melden",
+    "description": "Teile uns mit, was an dieser Bewertung nicht stimmt.",
+    "placeholder": "Grund der Meldung…",
+    "genericError": "Meldung fehlgeschlagen. Bitte versuche es erneut.",
+    "submit": "Meldung senden"
+  },
+  "BlogHero": {
+    "title": "Wo <highlight>Kreativität</highlight> auf Wissen trifft.",
+    "description": "Entdecke Artikel, Einblicke und Geschichten, die zum Lernen, zu Innovation und persönlichem Wachstum inspirieren.",
+    "addArticle": "Artikel hinzufügen",
+    "manageArticles": "Artikel verwalten",
+    "noArticlesFound": "Keine Artikel gefunden."
+  },
+  "BlogSearch": {
+    "searchArticles": "Artikel durchsuchen",
+    "clearSearch": "Suche löschen"
+  },
+  "Pagination": {
+    "pagination": "Seitennavigation",
+    "previousPage": "Vorherige Seite",
+    "nextPage": "Nächste Seite"
   }
 }

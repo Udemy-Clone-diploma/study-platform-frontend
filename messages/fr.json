@@ -12,7 +12,10 @@
     "getStarted": "Commencer",
     "search": "Rechercher",
     "user": "Utilisateur",
-    "language": "Langue"
+    "language": "Langue",
+    "cancel": "Annuler",
+    "categories": "Catégories",
+    "all": "Tout"
   },
   "Header": {
     "openMenu": "Ouvrir le menu",
@@ -40,5 +43,87 @@
   "LanguageSwitcher": {
     "selectLanguage": "Choisir la langue",
     "chooseLanguage": "Choisissez une langue"
+  },
+  "HomeHero": {
+    "tags": ["Compétences", "Réseau", "Croissance"],
+    "title": "L'éducation nouvelle génération",
+    "subtitle": "Une plateforme où le savoir se transforme en résultats concrets. Simple, flexible et efficace.",
+    "rating": "Note de 4,9 pour plus de 10 000 étudiants",
+    "continueLearning": "Continuer l'apprentissage",
+    "verifiedByPartners": "Vérifié par nos partenaires"
+  },
+  "HomeCategories": {
+    "badge": "Catégories",
+    "heading": "Choisissez votre domaine de développement",
+    "description": "Découvrez plus de 6 catégories essentielles conçues pour votre carrière et votre épanouissement personnel.",
+    "toCatalog": "Voir le catalogue",
+    "cards": {
+      "programming": { "title": "Programmation, des bases à l'expertise", "description": "Maîtrisez les langages de programmation tendance et créez vos propres logiciels." },
+      "design": { "title": "Design et expérience utilisateur", "description": "Apprenez à créer des interfaces, des graphismes et des univers visuels." },
+      "marketing": { "title": "Stratégie marketing", "description": "Découvrez comment promouvoir des marques et attirer des milliers de clients." },
+      "business": { "title": "Entreprise", "description": "Acquérez une expertise en gestion, finance et optimisation des processus." },
+      "languages": { "title": "Langues", "description": "Apprenez des langues étrangères pour votre carrière, vos voyages et vos échanges." },
+      "personalDevelopment": { "title": "Développement personnel", "description": "Améliorez votre efficacité personnelle, votre gestion du temps et votre leadership." }
+    }
+  },
+  "HomeBenefits": {
+    "tags": ["Progresser", "Pratique", "Flow", "Validé", "Pro"],
+    "heading": "Apprendre. Échanger. Grandir.",
+    "description": "Là où le savoir rencontre la carrière. Choisissez votre rythme : apprentissage autonome ou sessions en direct avec des mentors. Certificats, tests et calendrier intelligent — tout pour progresser, au même endroit.",
+    "cards": {
+      "accessibility": { "title": "Accessibilité", "description": "Une éducation adaptée à votre budget. Payez en totalité ou choisissez un plan d'échelonnement pratique. Suivez tout votre calendrier de paiement directement depuis votre tableau de bord." },
+      "connect": { "title": "Échanger", "description": "Bien plus que des vidéos. Discutez en privé ou en groupe avec vos pairs et vos mentors. Posez vos questions sur n'importe quelle leçon en un clic." },
+      "result": { "title": "Résultat", "description": "Votre compétence est votre monnaie. Passez des tests, obtenez des scores et téléchargez votre certificat PDF officiel. Construisez votre carrière avec une expertise vérifiée." }
+    }
+  },
+  "HomeNewCourses": { "heading": "Nouveaux cours" },
+  "HomePopularCourses": { "heading": "Cours populaires" },
+  "HomeReviews": {
+    "badge": "AVIS",
+    "heading": "Plébiscité par plus de 10 000 étudiants dans le monde",
+    "description": "De vraies personnes. De vrais avis. Sans filtre. Découvrez pourquoi des apprenants de plus de 50 pays choisissent notre plateforme chaque jour.",
+    "studiedCourse": "A suivi {course}"
+  },
+  "HomeMentors": {
+    "badge": "EXPERTISE",
+    "heading": "Apprenez auprès des meilleurs",
+    "description": "Nos mentors sont des professionnels du secteur prêts à vous accompagner du niveau débutant à expert grâce à une expérience pratique.",
+    "mentorsOfTheYear": "Mentors de l'année",
+    "features": {
+      "experience": { "title": "Expérience", "body": "5+ ans sur des projets concrets." },
+      "support": { "title": "Accompagnement", "body": "Accès direct au chat et retours sur vos devoirs." },
+      "practice": { "title": "Pratique", "body": "Uniquement des cas et outils actuels." }
+    }
+  },
+  "CourseCard": {
+    "students": "{count} étudiants",
+    "addToWishlist": "Ajouter aux favoris",
+    "removeFromWishlist": "Retirer des favoris"
+  },
+  "StudentReviewCard": {
+    "reportReview": "Signaler l'avis"
+  },
+  "ReportReviewModal": {
+    "title": "Signaler l'avis",
+    "description": "Indiquez-nous ce qui ne va pas avec cet avis.",
+    "placeholder": "Motif du signalement…",
+    "genericError": "Échec du signalement. Veuillez réessayer.",
+    "submit": "Envoyer le signalement"
+  },
+  "BlogHero": {
+    "title": "Là où la <highlight>créativité</highlight> rencontre le savoir.",
+    "description": "Découvrez des articles, des idées et des histoires conçus pour inspirer l'apprentissage, l'innovation et l'épanouissement personnel.",
+    "addArticle": "Ajouter un article",
+    "manageArticles": "Gérer les articles",
+    "noArticlesFound": "Aucun article trouvé."
+  },
+  "BlogSearch": {
+    "searchArticles": "Rechercher des articles",
+    "clearSearch": "Effacer la recherche"
+  },
+  "Pagination": {
+    "pagination": "Pagination",
+    "previousPage": "Page précédente",
+    "nextPage": "Page suivante"
   }
 }

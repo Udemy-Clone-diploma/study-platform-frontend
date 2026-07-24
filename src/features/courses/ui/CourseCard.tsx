@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { formatPrice, type CourseListItem } from "@/entities/course";
 import { Stars } from "./Stars";
@@ -38,6 +39,7 @@ export function CourseCard({ course, isWishlisted = false, href, onClick }: Prop
   const theme = LEVEL_THEME[course.level] ?? LEVEL_THEME.beginner;
   const [imageBroken, setImageBroken] = useState(false);
   const showImage = course.image && !imageBroken;
+  const t = useTranslations("CourseCard");
 
   const sharedStyle = {
     "--card-bg": theme.gradient,
@@ -85,7 +87,7 @@ export function CourseCard({ course, isWishlisted = false, href, onClick }: Prop
 
         <div className="mt-1 flex items-center justify-between gap-2">
           <span className="text-[clamp(14px,calc(13.51px+0.13vw),16px)] text-(--color-text-primary)">
-            {course.students_count.toLocaleString()} students
+            {t("students", { count: course.students_count.toLocaleString() })}
           </span>
           <Stars rating={course.rating_avg} />
         </div>

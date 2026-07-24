@@ -67,8 +67,10 @@ export type CourseListParams = {
   page_size?: number;
 };
 
-export async function getCategories(): Promise<Category[]> {
-  const { data } = await api.get<Category[] | Paginated<Category>>(CATEGORIES);
+export async function getCategories(locale?: string): Promise<Category[]> {
+  const { data } = await api.get<Category[] | Paginated<Category>>(CATEGORIES, {
+    params: locale ? { lang: locale } : undefined,
+  });
   return Array.isArray(data) ? data : data.results;
 }
 
@@ -77,6 +79,7 @@ export type CategoryListParams = {
   page?: number;
   page_size?: number;
   ordering?: string;
+  lang?: string;
 };
 
 export async function getCategoriesPage(
@@ -88,22 +91,45 @@ export async function getCategoriesPage(
     : data;
 }
 
+// Backend admin write shape: name/description are per-locale. name_en is required;
+// the rest fall back to it on read whenever left blank (apps.common.i18n).
 export type CategoryInput = {
-  name: string;
+  name_en: string;
+  name_uk?: string;
+  name_fr?: string;
+  name_es?: string;
+  name_de?: string;
   slug?: string;
-  description?: string;
+  description_en?: string;
+  description_uk?: string;
+  description_fr?: string;
+  description_es?: string;
+  description_de?: string;
 };
 
-export async function createCategory(body: CategoryInput): Promise<Category> {
-  const { data } = await api.post<Category>(CATEGORIES, body);
+export type CategoryDetail = CategoryInput & {
+  id: number;
+  slug: string;
+  courses_count?: number;
+  featured_order?: number | null;
+};
+
+/** Admin-only: every locale field for the edit form, unlike the public list's resolved shape. */
+export async function getCategory(id: number): Promise<CategoryDetail> {
+  const { data } = await api.get<CategoryDetail>(`${CATEGORIES}${id}/`);
+  return data;
+}
+
+export async function createCategory(body: CategoryInput): Promise<CategoryDetail> {
+  const { data } = await api.post<CategoryDetail>(CATEGORIES, body);
   return data;
 }
 
 export async function updateCategory(
   id: number,
   patch: Partial<CategoryInput> & { featured_order?: number | null },
-): Promise<Category> {
-  const { data } = await api.patch<Category>(`${CATEGORIES}${id}/`, patch);
+): Promise<CategoryDetail> {
+  const { data } = await api.patch<CategoryDetail>(`${CATEGORIES}${id}/`, patch);
   return data;
 }
 

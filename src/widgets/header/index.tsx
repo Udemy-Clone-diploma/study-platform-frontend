@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { getCategories } from "@/entities/course";
 import { getMe } from "@/entities/user";
@@ -26,9 +26,10 @@ type HeaderProps = {
 };
 
 export async function Header({ borderRadius = "0px 0px 20px 20px" }: HeaderProps) {
+    const locale = await getLocale();
     const [accessToken, categories, t] = await Promise.all([
         getAccessToken(),
-        getCategories().catch(() => []),
+        getCategories(locale).catch(() => []),
         getTranslations("Common"),
     ]);
 

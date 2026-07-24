@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { getArticles, getBlogCategories } from "@/entities/blog";
 import { ArticleCard, BlogAllPagination, BlogCategoryFilterBar, BlogSearch } from "@/features/blog";
 import { SectionContainer } from "@/shared/ui/SectionContainer";
@@ -16,8 +16,9 @@ export default async function AllArticlesPage({
   const { category, page: pageParam, search } = await searchParams;
   const page = Number.isInteger(Number(pageParam)) && Number(pageParam) > 0 ? Number(pageParam) : 1;
 
+  const locale = await getLocale();
   const [categories, articles, t] = await Promise.all([
-    getBlogCategories(),
+    getBlogCategories(locale),
     getArticles({ category, search }),
     getTranslations("BlogHero"),
   ]);

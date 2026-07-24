@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { getLocale } from "next-intl/server";
 import { getNewCourses, getPopularCourses, getTopReviews, getWishlistSlugs } from "@/entities/course";
 import { getTopTeachers } from "@/entities/user";
 import { getArticles, getBlogCategories } from "@/entities/blog";
@@ -14,6 +15,7 @@ import { TopMentorsSection } from "@/widgets/home/TopMentorsSection";
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
+    const locale = await getLocale();
     const [newCourses, popularCourses, topTeachers, topReviews, wishlistedSlugs, studentStories, blogCategories] = await Promise.all([
         getNewCourses().catch(() => []),
         getPopularCourses().catch(() => []),
@@ -21,7 +23,7 @@ export default async function Home() {
         getTopReviews().catch(() => []),
         getWishlistSlugs().catch(() => []),
         getArticles({ category: "student-stories" }).catch(() => []),
-        getBlogCategories().catch(() => []),
+        getBlogCategories(locale).catch(() => []),
     ]);
     const studentStoriesCategory = blogCategories.find((c) => c.slug === "student-stories") ?? null;
 

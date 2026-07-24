@@ -40,7 +40,7 @@ export function CategoriesTable({
       key: "name",
       label: "Category",
       flex: 1.8,
-      sortKey: "name",
+      sortKey: "name_en",
       render: (row) => (
         <div className="flex min-w-0 items-center" style={{ gap: "clamp(8px, 0.83vw, 12px)" }}>
           <CategoryTile name={row.name} slug={row.slug} />

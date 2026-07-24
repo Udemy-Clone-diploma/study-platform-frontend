@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { SlidersHorizontal } from "lucide-react";
 import {
@@ -98,7 +98,8 @@ async function loadCourses(
 
 async function loadCategories(): Promise<Category[]> {
   try {
-    return await getCategories();
+    const locale = await getLocale();
+    return await getCategories(locale);
   } catch {
     return [];
   }

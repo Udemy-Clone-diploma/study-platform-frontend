@@ -22,7 +22,7 @@ export function CategoriesAdminView() {
   const pageParam = Number(searchParams.get("page"));
   const page = Number.isInteger(pageParam) && pageParam > 1 ? pageParam : 1;
   const search = searchParams.get("search") ?? "";
-  const ordering = searchParams.get("ordering") ?? "name";
+  const ordering = searchParams.get("ordering") ?? "name_en";
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [count, setCount] = useState(0);
@@ -96,7 +96,9 @@ export function CategoriesAdminView() {
     setFeaturedError(null);
     try {
       const updated = await updateCategory(category.id, { featured_order: order });
-      setCategories((prev) => prev.map((c) => (c.id === updated.id ? { ...c, ...updated } : c)));
+      setCategories((prev) =>
+        prev.map((c) => (c.id === updated.id ? { ...c, featured_order: updated.featured_order } : c)),
+      );
     } catch (err) {
       setFeaturedError((err as ApiError).message ?? "Failed to update the featured order.");
     } finally {
@@ -182,7 +184,7 @@ export function CategoriesAdminView() {
               setDeleteTarget(category);
             }}
             currentSort={ordering}
-            onSortChange={(next) => updateParams({ ordering: next === "name" ? null : next })}
+            onSortChange={(next) => updateParams({ ordering: next === "name_en" ? null : next })}
           />
         </div>
 
@@ -214,11 +216,9 @@ export function CategoriesAdminView() {
         <CategoryFormModal
           category={editCategory}
           onClose={() => setEditCategory(null)}
-          onSaved={(updated) => {
+          onSaved={() => {
             setEditCategory(null);
-            setCategories((prev) =>
-              prev.map((c) => (c.id === updated.id ? { ...c, ...updated } : c)),
-            );
+            refresh();
           }}
         />
       )}

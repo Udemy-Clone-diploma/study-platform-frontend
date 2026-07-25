@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { X } from "lucide-react";
 import { formatMoney } from "@/entities/payment";
 import type { AdminPayment } from "@/entities/payment";

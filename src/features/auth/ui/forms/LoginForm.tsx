@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { getMe, getRoleHome } from "@/entities/user";
 import { loginUser } from "@/features/auth/api/authApi";
 import { validateLoginForm } from "@/features/auth/model/validation";
@@ -20,6 +21,8 @@ const initialForm: LoginFormData = {
 
 export function LoginForm() {
   const router = useRouter();
+  const t = useTranslations("Auth.login");
+  const tValidation = useTranslations("Auth.validation");
 
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
@@ -27,9 +30,9 @@ export function LoginForm() {
   const { formData, errors, apiError, isSubmitting, handleChange, handleSubmit } =
     useAuthForm<LoginFormData>({
       initial: initialForm,
-      validate: validateLoginForm,
+      validate: (data) => validateLoginForm(data, tValidation),
       fieldKeys: ["email", "password"],
-      fallbackError: "We could not sign you in. Please try again.",
+      fallbackError: t("fallbackError"),
       submit: async (data) => {
         const loginResponse = await loginUser({
           email: data.email.trim(),
@@ -42,18 +45,18 @@ export function LoginForm() {
         await setRoleCookie(user.role, rememberMe);
         await setRememberMeCookie(rememberMe);
 
-        router.push(getRoleHome(user.role));
+        router.push(getRoleHome(user.role), { locale: user.language });
       },
     });
 
   return (
-    <AuthShell contentClassName="max-w-[520px]">
+    <AuthShell contentClassName="max-w-[580px]" imageSrc="/backgrounds/login pic.svg">
       <form onSubmit={handleSubmit} className="mx-auto w-full">
         <div className="text-[#171417]">
         <div className="space-y-11">
           <div className="space-y-4 text-center">
             <h1 className="text-[2.45rem] font-medium tracking-[0.08em] text-[#171417] uppercase sm:text-[2.9rem]">
-              Sign In
+              {t("title")}
             </h1>
           </div>
 
@@ -61,7 +64,7 @@ export function LoginForm() {
             <AuthField
               id="email"
               name="email"
-              label="Email"
+              label={t("emailLabel")}
               type="email"
               value={formData.email}
               onChange={handleChange}
@@ -72,7 +75,7 @@ export function LoginForm() {
             <AuthField
               id="password"
               name="password"
-              label="Password"
+              label={t("passwordLabel")}
               type="password"
               value={formData.password}
               onChange={handleChange}
@@ -90,19 +93,19 @@ export function LoginForm() {
               type="submit"
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Signing In" : "Sign In"}
+              {isSubmitting ? t("signingIn") : t("title")}
             </AccentButton>
 
             <p className="text-center text-[0.95rem] text-[#3e3840]">
-              New here?{" "}
+              {t("newHere")}{" "}
               <Link href="/register" className="text-[#3557ff] transition hover:text-[#1937cb]">
-                Sign up now
+                {t("signUpNow")}
               </Link>
             </p>
           </div>
 
-          <div className="flex flex-col gap-5 text-[0.68rem] font-medium tracking-[0.26em] text-[#2f2b30] uppercase sm:flex-row sm:items-center sm:justify-between">
-            <label className="inline-flex cursor-pointer items-center gap-3 self-start">
+          <div className="flex flex-row items-center justify-between gap-5 text-[0.68rem] font-medium tracking-[0.26em] text-[#2f2b30] uppercase">
+            <label className="inline-flex cursor-pointer items-center gap-3">
               <span className="relative flex h-4 w-4 items-center justify-center">
                 <input
                   type="checkbox"
@@ -124,11 +127,11 @@ export function LoginForm() {
                   <path d="m2 6 2.2 2.2L10 2.5" />
                 </svg>
               </span>
-              <span>Remember Me</span>
+              <span>{t("rememberMe")}</span>
             </label>
 
             <Link href="/forgot-password" className="transition hover:text-black">
-              Reset Password
+              {t("resetPassword")}
             </Link>
           </div>
         </div>

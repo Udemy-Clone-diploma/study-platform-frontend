@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { Award, X } from "lucide-react";
 import { setCertificatePublic } from "@/entities/certificate";
 import type { Certificate, CertificateActor } from "@/entities/certificate";

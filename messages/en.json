@@ -1,0 +1,477 @@
+{
+  "Common": {
+    "home": "Home",
+    "blog": "Blog",
+    "catalog": "Catalog",
+    "allCourses": "All Courses",
+    "myCourses": "My Courses",
+    "profile": "Profile",
+    "myProfile": "My Profile",
+    "myOffice": "My Office",
+    "logout": "Exit",
+    "getStarted": "Get Started",
+    "search": "Search",
+    "user": "User",
+    "language": "Language",
+    "cancel": "Cancel",
+    "categories": "Categories",
+    "all": "All",
+    "backToHome": "Back to home"
+  },
+  "Header": {
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "closeSearch": "Close search"
+  },
+  "NotificationBell": {
+    "notifications": "Notifications",
+    "title": "Notification",
+    "closeNotifications": "Close notifications",
+    "empty": "You have no new messages",
+    "seeAll": "See all"
+  },
+  "Footer": {
+    "business": "Business",
+    "languages": "Languages",
+    "personalDevelopment": "Personal development",
+    "design": "Design",
+    "programming": "Programming",
+    "marketing": "Marketing"
+  },
+  "SearchBar": {
+    "placeholder": "Search courses & articles"
+  },
+  "LanguageSwitcher": {
+    "selectLanguage": "Select language",
+    "chooseLanguage": "Choose a language"
+  },
+  "HomeHero": {
+    "tags": ["Skills", "Networking", "Growth"],
+    "title": "Next-gen education",
+    "subtitle": "A platform where knowledge turns into real-world results. Simple, flexible, and straight to the point.",
+    "rating": "4.9 rating from over 10,000 students",
+    "continueLearning": "Continue Learning",
+    "verifiedByPartners": "Verified by our partners"
+  },
+  "HomeCategories": {
+    "badge": "Categories",
+    "heading": "Choose your field of growth",
+    "description": "Explore 6+ core categories designed for professional career and personal success.",
+    "toCatalog": "To catalog",
+    "cards": {
+      "programming": { "title": "Programming Basics to Pro", "description": "Master trending coding languages and build your own software." },
+      "design": { "title": "Design Aesthetics & UX", "description": "Learn to create interfaces, graphics, and visual worlds." },
+      "marketing": { "title": "Marketing Strategy", "description": "Discover how to promote brands and attract thousands of clients." },
+      "business": { "title": "Business", "description": "Get expertise in management, finance, and process optimization." },
+      "languages": { "title": "Languages", "description": "Learn foreign languages for career, travel, and communication." },
+      "personalDevelopment": { "title": "Personal development", "description": "Boost your personal efficiency, time management, and leadership." }
+    }
+  },
+  "HomeBenefits": {
+    "tags": ["Upgrade", "Hands-on", "Flow", "Validated", "Pro"],
+    "heading": "Learn. Connect. Grow.",
+    "description": "Where knowledge meets career. Choose your flow: self-paced study or live sessions with mentors. Certificates, tests, and a smart calendar — everything for your upgrade in one tab.",
+    "cards": {
+      "accessibility": { "title": "Accessibility", "description": "Education that fits your budget. Pay in full or choose a comfortable installment plan. Track your entire payment schedule directly in your dashboard." },
+      "connect": { "title": "Connect", "description": "More than just video lectures. Engage in private or group chats with peers and mentors. Ask questions about any lesson with a single click." },
+      "result": { "title": "Result", "description": "Your skill is your currency. Complete tests, earn scores, and download your official PDF certificate. Build your career with verified expertise." }
+    }
+  },
+  "HomeNewCourses": { "heading": "New courses" },
+  "HomePopularCourses": { "heading": "Popular courses" },
+  "HomeReviews": {
+    "badge": "FEEDBACK",
+    "heading": "Loved by 10k+ students worldwide",
+    "description": "Real people. Real feedback. No filters. Discover why learners from 50+ countries choose our platform every day.",
+    "studiedCourse": "Studied {course}"
+  },
+  "HomeMentors": {
+    "badge": "EXPERTISE",
+    "heading": "Learn from the best",
+    "description": "Our mentors are industry professionals ready to guide you from beginner to pro with hands-on experience.",
+    "mentorsOfTheYear": "Mentors of the Year",
+    "features": {
+      "experience": { "title": "Experience", "body": "5+ years in real-world projects." },
+      "support": { "title": "Support", "body": "Direct chat access and homework feedback." },
+      "practice": { "title": "Practice", "body": "Only trending cases and tools." }
+    }
+  },
+  "CourseCard": {
+    "free": "Free",
+    "students": "{count} students",
+    "addToWishlist": "Add to wishlist",
+    "removeFromWishlist": "Remove from wishlist"
+  },
+  "StudentReviewCard": {
+    "reportReview": "Report review"
+  },
+  "ReportReviewModal": {
+    "title": "Report review",
+    "description": "Let us know what's wrong with this review.",
+    "placeholder": "Reason for reporting…",
+    "genericError": "Failed to report. Please try again.",
+    "submit": "Submit report"
+  },
+  "BlogHero": {
+    "title": "Where <highlight>creativity</highlight> meets knowledge.",
+    "description": "Explore articles, insights, and stories designed to inspire learning, innovation, and personal growth.",
+    "addArticle": "Add an Article",
+    "manageArticles": "Manage articles",
+    "noArticlesFound": "No articles found."
+  },
+  "BlogSearch": {
+    "searchArticles": "Search articles",
+    "clearSearch": "Clear search"
+  },
+  "Pagination": {
+    "pagination": "Pagination",
+    "previousPage": "Previous page",
+    "nextPage": "Next page"
+  },
+  "Catalog": {
+    "errorLoadCourses": "Could not load courses.",
+    "allFilters": "All Filters",
+    "coursesUnavailable": "Courses are unavailable",
+    "noCoursesFound": "No courses found",
+    "tryAnotherFilters": "Try another set of filters.",
+    "resetFilters": "Reset filters"
+  },
+  "CatalogHero": {
+    "title": "<highlight>Expand your expertise</highlight> with world-class courses designed for your next career move."
+  },
+  "CourseSearch": {
+    "searchCourses": "Search courses",
+    "clearSearch": "Clear search"
+  },
+  "CategoryFilter": {
+    "noCategoriesYet": "No categories yet."
+  },
+  "CatalogFilters": {
+    "courseRating": "Course rating",
+    "inTheGroup": "In the group",
+    "fiveStarsOnly": "5 Stars only",
+    "andMore": "{rating} and more",
+    "difficultyLevel": "Difficulty level",
+    "courseLanguage": "Course language",
+    "courseType": "Course type",
+    "workshops": "Workshops",
+    "masterclasses": "Masterclasses",
+    "formatType": "Format type",
+    "priceRange": "Price range",
+    "promotions": "Promotions",
+    "sale": "Sale",
+    "min": "Min",
+    "minimumPrice": "Minimum price",
+    "max": "Max",
+    "maximumPrice": "Maximum price",
+    "apply": "Apply"
+  },
+  "CatalogEnums": {
+    "level": { "beginner": "Beginner", "intermediate": "Intermediate", "advanced": "Advanced" },
+    "language": { "english": "English", "ukrainian": "Ukrainian", "spanish": "Spanish" },
+    "mode": { "self_learning": "Self-study", "with_teacher": "Study with a teacher" },
+    "courseType": { "profession": "Profession", "qualification": "Advanced training", "knowledge": "Expanding knowledge" },
+    "formatType": { "self_paced": "Self-paced", "scheduled": "Scheduled", "individual": "Individual coaching", "group": "Group plan" }
+  },
+  "SortDropdown": {
+    "sortBy": "Sort by",
+    "options": {
+      "popularity": "By popularity",
+      "rating": "By rating",
+      "novelty": "By novelty",
+      "cheapFirst": "Cheap at first",
+      "expensiveFirst": "Expensive at first"
+    }
+  },
+  "CourseCurriculum": {
+    "heading": "Course Curriculum",
+    "summary": "{lessons, plural, one {# Video Lesson} other {# Video Lessons}} | {modules, plural, one {# Module} other {# Modules}}",
+    "noCurriculum": "No curriculum available yet."
+  },
+  "CourseModuleItem": {
+    "modulePrefix": "Module {number}",
+    "lessonPrefix": "Lesson {number}: {title}.",
+    "freePreview": "Free preview",
+    "mandatory": "Mandatory"
+  },
+  "CourseHero": {
+    "levelMeta": { "beginner": "Foundational training", "intermediate": "Intermediate training", "advanced": "Advanced training" },
+    "mode": { "with_teacher": "With a teacher", "self_learning": "Self-paced" },
+    "ratingLabel": "{rating} (based on {count}+ global reviews)",
+    "noReviewsYet": "No reviews yet",
+    "languageLabel": "Language: {language}"
+  },
+  "CourseHeroCTA": {
+    "courseAvailable": "The course is already available in My Courses.",
+    "freeEnrollmentSuccess": "Enrollment complete. You can start this course now.",
+    "studentOnly": "Enrollment is available only for students.",
+    "noPricingPlan": "This course does not have an available pricing plan.",
+    "continueLearning": "Continue learning",
+    "processing": "Processing...",
+    "enrollFree": "Enroll for free",
+    "choosePlan": "Choose a plan",
+    "genericError": "Could not process your request."
+  },
+  "CourseTeacher": {
+    "yearsExperience": "years in real-world projects",
+    "students": "students",
+    "partnerships": "partnerships with companies",
+    "teacherBadge": "Teacher"
+  },
+  "CourseFeedback": {
+    "badge": "Feedback",
+    "viewMore": "View more",
+    "noReviewsFull": "No reviews yet. Be the first to share your experience."
+  },
+  "CourseReviewCard": {
+    "ratingLabel": "{rating} out of 5 stars"
+  },
+  "CoursePricingBlock": {
+    "noSchedules": "No available schedules at this time.",
+    "group": "Group",
+    "selectSchedule": "Select a schedule",
+    "startsDate": "Starts {date}",
+    "spotsLeft": "{count, plural, one {# spot left} other {# spots left}}",
+    "loadingTimes": "Loading available times…",
+    "noSessions": "No available sessions at this time.",
+    "availableSessions": "Available sessions ({count})",
+    "pickSessions": "Pick {min}–{max} weekly sessions ({selected}/{max} selected)",
+    "selectScheduleFirst": "Please select a schedule first.",
+    "selectTimeSlots": "Please select {min}-{max} available time slots.",
+    "tuitionBadge": "Tuition Fees & Payment Options",
+    "tuitionIntro": "Choose the format that best fits your goals and budget. We offer flexible payment plans for your convenience.",
+    "formatLabel": { "self_paced": "Self-paced", "scheduled": "Scheduled", "individual": "Individual Coaching", "group": "Group Courses" },
+    "formatBlurb": {
+      "self_paced": "Learn at your own pace with lifetime access to all content",
+      "scheduled": "Follow a structured schedule with content unlocking over time",
+      "individual": "1-on-1 mentorship with a curriculum tailored to your pace",
+      "group": "Learn and collaborate with peers in a dynamic environment"
+    },
+    "fullPrice": "Full Price:",
+    "onePayment": "(one-time payment)",
+    "installmentPlan": "Installment Plan:",
+    "monthlyPayments": "({count} monthly payments)",
+    "noSpots": "No spots available",
+    "buyNow": "Buy now"
+  },
+  "CourseScheduleCard": {
+    "schedule": "Schedule",
+    "hoursPerWeek": "{hours} hours per week",
+    "hoursPerWeekRange": "{min}–{max} hours per week",
+    "groupOf": "Group of {count} people",
+    "group": "Group",
+    "monthsCount": "{count, plural, one {# Month} other {# Months}}",
+    "modulesLessons": "{modules, plural, one {# module} other {# modules}} | {lessons, plural, one {# lesson} other {# lessons}}",
+    "startDate": "Start date:"
+  },
+  "CourseReviewsView": {
+    "title": "Reviews of the \"{course}\" course",
+    "noReviews": "No reviews yet."
+  },
+  "Search": {
+    "resultsFor": "Results for <highlight>\"{query}\"</highlight>",
+    "searchHeading": "Search",
+    "resultsCount": "{count, plural, one {# result} other {# results}} across courses and articles.",
+    "enterSearchTerm": "Enter a search term to get started.",
+    "courses": "Courses",
+    "posts": "Posts",
+    "viewAllCourses": "View all courses",
+    "viewAllPosts": "View all posts",
+    "noCoursesFound": "No courses found.",
+    "noPostsFound": "No posts found.",
+    "foundCount": "{count} found"
+  },
+  "Auth": {
+    "common": {
+      "backToSignIn": "Back to sign in",
+      "signIn": "Sign In",
+      "checkingLink": "Checking Link",
+      "pleaseWait": "Please wait...",
+      "somethingWrong": "Something Went Wrong",
+      "tryAgain": "Try Again",
+      "saving": "Saving",
+      "sending": "Sending",
+      "email": "Email",
+      "password": "Password",
+      "confirmPassword": "Confirm Password",
+      "sendAgain": "Send Again"
+    },
+    "field": {
+      "hidePassword": "Hide password",
+      "showPassword": "Show password"
+    },
+    "validation": {
+      "enterFirstName": "Enter your first name",
+      "enterLastName": "Enter your last name",
+      "enterEmail": "Enter your email",
+      "enterValidEmail": "Enter a valid email",
+      "enterDateOfBirth": "Enter your date of birth",
+      "enterValidDateOfBirth": "Enter a valid date of birth",
+      "enterPassword": "Enter your password",
+      "passwordMinLength": "Password must contain at least 8 characters",
+      "passwordLowercase": "Password must contain at least one lowercase letter",
+      "passwordUppercase": "Password must contain at least one uppercase letter",
+      "passwordNumber": "Password must contain at least one number",
+      "confirmPasswordRequired": "Confirm your password",
+      "passwordsDoNotMatch": "Passwords do not match"
+    },
+    "genericFallbackError": "Something went wrong. Please try again.",
+    "login": {
+      "title": "Sign In",
+      "emailLabel": "Email",
+      "passwordLabel": "Password",
+      "signingIn": "Signing In",
+      "newHere": "New here?",
+      "signUpNow": "Sign up now",
+      "rememberMe": "Remember Me",
+      "resetPassword": "Reset Password",
+      "fallbackError": "We could not sign you in. Please try again."
+    },
+    "register": {
+      "title": "Sign Up",
+      "firstNameLabel": "First Name",
+      "lastNameLabel": "Last Name",
+      "dateOfBirthLabel": "Date of Birth",
+      "emailLabel": "Email",
+      "passwordLabel": "Password",
+      "repeatPasswordLabel": "Repeat Password",
+      "textPlaceholder": "Text",
+      "continue": "Continue",
+      "creating": "Creating",
+      "signUp": "Sign Up",
+      "back": "Back",
+      "alreadyHaveAccount": "Already have an account?",
+      "signInNow": "Sign in now",
+      "wantToTeach": "Want to teach on the platform?",
+      "applyAsTeacher": "Apply as a teacher",
+      "fallbackError": "We could not create your account. Please try again."
+    },
+    "resendEmail": {
+      "defaultSubmitLabel": "Send",
+      "defaultSuccessMessage": "Email sent. Please check your inbox or spam folder.",
+      "genericError": "Something went wrong."
+    },
+    "forgotPassword": {
+      "checkEmailTitle": "Check Email",
+      "checkEmailDescription": "If an account exists for <bold>{email}</bold>, we sent a password reset link.",
+      "resetTitle": "Reset Password",
+      "resetDescription": "Enter the email connected to your account and we will send a reset link.",
+      "sendLink": "Send Link"
+    },
+    "resetPassword": {
+      "checkingDescription": "We are validating your password reset link.",
+      "invalidTitle": "Invalid Link",
+      "sendNewLink": "Send New Link",
+      "resendSuccessMessage": "If an account exists, we sent a new email. Please check your inbox or spam folder.",
+      "successTitle": "Password Updated",
+      "successDescription": "Your password has been changed successfully.",
+      "newPasswordTitle": "New Password",
+      "newPasswordDescription": "Choose a password with at least 8 characters, one uppercase letter, one lowercase letter, and one number.",
+      "newPasswordLabel": "New Password",
+      "passwordPlaceholder": "At least 8 characters",
+      "repeatPasswordPlaceholder": "Repeat your password",
+      "savePassword": "Save Password",
+      "fallbackError": "We could not update your password. Please try again.",
+      "invalidLinkMessage": "This reset link is invalid or expired."
+    },
+    "activateTeacher": {
+      "checkingDescription": "We are validating your invitation link.",
+      "invalidTitle": "Invalid Link",
+      "resendInvitation": "Resend Invitation",
+      "resendSuccessMessage": "If a pending invitation exists for this email, it has been resent. Please check your inbox or spam folder.",
+      "successTitle": "Account Activated",
+      "successDescription": "Your email is confirmed and your password is set. You can now sign in as a teacher.",
+      "setPasswordTitle": "Set Your Password",
+      "setPasswordDescription": "Choose a password with at least 8 characters, one uppercase letter, one lowercase letter, and one number. This also confirms your email.",
+      "passwordPlaceholder": "At least 8 characters",
+      "repeatPasswordPlaceholder": "Repeat your password",
+      "activateAccount": "Activate Account",
+      "fallbackError": "We could not activate your account. Please try again.",
+      "invalidLinkMessage": "This invitation link is invalid or expired."
+    },
+    "checkEmail": {
+      "title": "Check Email",
+      "description": "We sent a verification link to <bold>{email}</bold>.",
+      "yourEmailFallback": "your email",
+      "resentMessage": "Verification email sent again. Please check your inbox.",
+      "genericError": "Something went wrong. Please try again later.",
+      "alreadyVerified": "Already verified?",
+      "signIn": "Sign in"
+    },
+    "checkApplication": {
+      "title": "Application Submitted",
+      "description": "Thanks! Your application has been sent for review. We will email <bold>{email}</bold> once a moderator makes a decision.",
+      "youFallback": "you"
+    },
+    "verifyEmail": {
+      "checkingDescription": "We are verifying your email address.",
+      "successTitle": "Email Verified",
+      "successFallbackDescription": "Your email has been verified successfully.",
+      "redirecting": "Redirecting to sign in...",
+      "failedTitle": "Verification Failed",
+      "sendVerification": "Send Verification",
+      "invalidLinkMessage": "Invalid or expired link."
+    }
+  },
+  "ComingSoon": {
+    "badge": "Coming soon",
+    "defaultPageName": "This page",
+    "description": "This page is still in development. We're working on it!"
+  },
+  "Forbidden": {
+    "title": "Access denied",
+    "description": "You don't have permission to view this page."
+  },
+  "CertificateVerify": {
+    "tooManyChecks": "Too many checks from this network. Please wait a few minutes and try again.",
+    "genericError": "Could not check this certificate right now.",
+    "title": "Verify a certificate",
+    "description": "Enter the serial printed on a Nexo4you certificate to confirm it is genuine and still valid.",
+    "serialLabel": "Certificate serial",
+    "checking": "Checking…",
+    "verify": "Verify",
+    "notFoundTitle": "No certificate found",
+    "notFoundBody": "No certificate matches this serial. Check for typos, and remember that serials are issued by Nexo4you only.",
+    "errorTitle": "Could not check right now",
+    "revokedTitle": "This certificate is no longer valid",
+    "validTitle": "This certificate is genuine",
+    "issuedOn": "Issued on {date}.",
+    "issuedAndRevokedOn": "It was issued on {issuedDate} and revoked on {revokedDate}.",
+    "issuedAndRevoked": "It was issued on {issuedDate} and revoked.",
+    "student": "Student",
+    "course": "Course",
+    "serial": "Serial",
+    "replacedBy": "Replaced by"
+  },
+  "TeacherApplication": {
+    "title": "Apply as a Teacher",
+    "firstNameLabel": "First Name",
+    "lastNameLabel": "Last Name",
+    "dateOfBirthLabel": "Date of Birth",
+    "emailLabel": "Email",
+    "phoneNumberLabel": "Phone Number",
+    "fieldOfStudyLabel": "Field of Study",
+    "yearsExperienceLabel": "Years of Experience (optional)",
+    "workExperienceLabel": "Work Experience",
+    "bioLabel": "Bio",
+    "directionsLabel": "Directions you would like to teach",
+    "motivationLabel": "What would you like to teach, and what makes you the right person to teach it?",
+    "linkedinLabel": "LinkedIn (optional)",
+    "instagramLabel": "Instagram (optional)",
+    "behanceLabel": "Behance (optional)",
+    "checkingEmail": "Checking email…",
+    "submitting": "Submitting",
+    "submitApplication": "Submit Application",
+    "fallbackError": "We could not submit your application. Please try again.",
+    "emailUnavailable": "This email cannot be used.",
+    "validation": {
+      "enterPhoneNumber": "Enter a phone number so a moderator can reach you",
+      "enterFieldOfStudy": "Enter your field of study",
+      "describeExperience": "Describe your work experience",
+      "writeShortBio": "Write a short bio",
+      "enterValidYears": "Enter a valid number of years",
+      "tellUsWhyTeach": "Tell us why you want to teach on the platform",
+      "enterValidUrl": "Enter a valid URL"
+    }
+  }
+}

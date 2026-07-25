@@ -8,18 +8,15 @@ type Props = {
 
 /**
  * Page content container. Caps content at 1420px and centres it with auto
- * margins. Side gutters scale with the viewport (5vw) but are clamped to a
- * minimum of 16px so small screens always have breathing room.
+ * margins. Below 1024px the side gutter is a flat 16px (content should hug
+ * the edge consistently on mobile/tablet); at 1024px+ it scales with the
+ * viewport (7vw) as before.
  */
 export function SectionContainer({ children, style, className = "" }: Props) {
     return (
         <div
-            className={className}
-            style={{
-                width: "min(1420px, 100% - max(32px, 7vw))",
-                marginInline: "auto",
-                ...style,
-            }}
+            className={`mx-auto w-[min(1420px,calc(100%-32px))] lg:w-[min(1420px,calc(100%-max(32px,7vw)))] ${className}`}
+            style={style}
         >
             {children}
         </div>

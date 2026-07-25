@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { ClipboardCheck, Eye, Star } from "lucide-react";
 import type {
   ApprovedCourseRecord,

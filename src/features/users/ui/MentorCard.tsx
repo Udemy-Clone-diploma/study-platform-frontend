@@ -27,7 +27,7 @@ export function MentorCard({ mentor, current, total, onPrev, onNext, onInfoClick
                 flexDirection: "column",
                 alignItems: "center",
                 gap: "1.04vw",
-                width: "23.96vw",
+                width: "clamp(280px, 23.96vw, 345px)",
                 flexShrink: 0,
             }}
         >
@@ -35,8 +35,8 @@ export function MentorCard({ mentor, current, total, onPrev, onNext, onInfoClick
             <div
                 style={{
                     position: "relative",
-                    width: "23.96vw",
-                    height: "27.08vw",
+                    width: "clamp(280px, 23.96vw, 345px)",
+                    height: "clamp(316px, 27.08vw, 390px)",
                     borderRadius: "1.25vw",
                     overflow: "hidden",
                     flexShrink: 0,

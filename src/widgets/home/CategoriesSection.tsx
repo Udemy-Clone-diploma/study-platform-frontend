@@ -1,51 +1,48 @@
 import Image from "next/image";
+import { getTranslations } from "next-intl/server";
 import { CategoryCard, type CategoryCardData } from "@/features/courses";
 import { GradientButton } from "@/shared/ui/GradientButton";
 import { SectionContainer } from "@/shared/ui/SectionContainer";
 
-const CATEGORIES: CategoryCardData[] = [
-    {
-        title: "Programming Basics to Pro",
-        description: "Master trending coding languages and build your own software.",
-        iconSrc: "/icons/code.png",
-        shadowColor: "0px 0px 22.9px var(--shadow-lavander)",
-    },
-    {
-        title: "Design Aesthetics & UX",
-        description: "Learn to create interfaces, graphics, and visual worlds.",
-        iconSrc: "/icons/Pen tool.png",
-        shadowColor: "0px 0px 22.9px var(--shadow-pink)",
-    },
-    {
-        title: "Marketing Strategy",
-        description: "Discover how to promote brands and attract thousands of clients.",
-        iconSrc: "/icons/bar-chart.png",
-        shadowColor: "0px 0px 22.9px var(--shadow-yellow)",
-    },
-    {
-        title: "Business",
-        description: "Get expertise in management, finance, and process optimization.",
-        iconSrc: "/icons/pie chart.png",
-        shadowColor: "0px 0px 22.9px var(--shadow-yellow-soft)",
-    },
-    {
-        title: "Languages",
-        description: "Learn foreign languages for career, travel, and communication.",
-        iconSrc: "/icons/world.png",
-        shadowColor: "0px 0px 22.9px var(--shadow-pink-soft)",
-    },
-    {
-        title: "Personal development",
-        description: "Boost your personal efficiency, time management, and leadership.",
-        iconSrc: "/icons/star 2.png",
-        shadowColor: "0px 0px 22.9px var(--shadow-lavander-soft)",
-    },
-];
+const CATEGORY_META = [
+    { key: "programming", iconSrc: "/icons/code.png", shadowColor: "0px 0px 22.9px var(--shadow-lavander)" },
+    { key: "design", iconSrc: "/icons/Pen tool.png", shadowColor: "0px 0px 22.9px var(--shadow-pink)" },
+    { key: "marketing", iconSrc: "/icons/bar-chart.png", shadowColor: "0px 0px 22.9px var(--shadow-yellow)" },
+    { key: "business", iconSrc: "/icons/pie chart.png", shadowColor: "0px 0px 22.9px var(--shadow-yellow-soft)" },
+    { key: "languages", iconSrc: "/icons/world.png", shadowColor: "0px 0px 22.9px var(--shadow-pink-soft)" },
+    { key: "personalDevelopment", iconSrc: "/icons/star 2.png", shadowColor: "0px 0px 22.9px var(--shadow-lavander-soft)" },
+] as const;
 
-const row1 = CATEGORIES.slice(0, 3);
-const row2 = CATEGORIES.slice(3, 6);
+export async function CategoriesSection() {
+    const t = await getTranslations("HomeCategories");
 
-export function CategoriesSection() {
+    const CATEGORIES: CategoryCardData[] = CATEGORY_META.map((meta) => ({
+        title: t(`cards.${meta.key}.title`),
+        description: t(`cards.${meta.key}.description`),
+        iconSrc: meta.iconSrc,
+        shadowColor: meta.shadowColor,
+    }));
+
+    const row1 = CATEGORIES.slice(0, 3);
+    const row2 = CATEGORIES.slice(3, 6);
+
+    const toCatalogButton = (
+        <GradientButton href="/catalog">
+            {t("toCatalog")}
+            <Image
+                src="/icons/arrow-goto.png"
+                alt=""
+                width={14}
+                height={14}
+                style={{
+                    width: "clamp(8px, 1.04vw, 14px)",
+                    height: "auto",
+                    flexShrink: 0,
+                }}
+            />
+        </GradientButton>
+    );
+
     return (
         <section style={{ position: "relative", overflow: "hidden" }}>
 
@@ -91,10 +88,9 @@ export function CategoriesSection() {
 
                 {/* Header */}
                 <div
+                    className="flex flex-col items-start lg:flex-row lg:items-end lg:justify-between"
                     style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "flex-end",
+                        gap: "24px",
                         marginBottom: "3.5vw",
                     }}
                 >
@@ -119,7 +115,7 @@ export function CategoriesSection() {
                                     textTransform: "uppercase",
                                 }}
                             >
-                                Categories
+                                {t("badge")}
                             </span>
                         </div>
 
@@ -134,9 +130,10 @@ export function CategoriesSection() {
                                     margin: 0,
                                 }}
                             >
-                                Choose your field of growth
+                                {t("heading")}
                             </h2>
                             <p
+                                className="max-w-full lg:max-w-[36.5vw]"
                                 style={{
                                     fontFamily: "var(--font-base)",
                                     fontWeight: 400,
@@ -144,44 +141,32 @@ export function CategoriesSection() {
                                     lineHeight: 1.25,
                                     color: "var(--color-text-secondary)",
                                     margin: 0,
-                                    maxWidth: "36.5vw",
                                 }}
                             >
-                                Explore 6+ core categories designed for professional career
-                                and personal success.
+                                {t("description")}
                             </p>
                         </div>
                     </div>
 
-                    <GradientButton href="/catalog">
-                        To catalog
-                        <Image
-                            src="/icons/arrow-goto.png"
-                            alt=""
-                            width={14}
-                            height={14}
-                            style={{
-                                width: "clamp(8px, 1.04vw, 14px)",
-                                height: "auto",
-                                flexShrink: 0,
-                            }}
-                        />
-                    </GradientButton>
+                    <div className="hidden lg:block">{toCatalogButton}</div>
                 </div>
 
                 {/* Staggered grid */}
-                <div style={{ display: "flex", flexDirection: "column", gap: "2.08vw" }}>
-                    <div style={{ display: "flex", gap: "1.04vw" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "clamp(16px, 2.08vw, 30px)" }}>
+                    <div className="flex flex-wrap justify-center lg:flex-nowrap lg:justify-start" style={{ gap: "clamp(16px, 1.04vw, 15px)" }}>
                         {row1.map((card) => (
                             <CategoryCard key={card.title} card={card} />
                         ))}
                     </div>
-                    <div style={{ display: "flex", gap: "1.04vw", justifyContent: "flex-end" }}>
+                    <div className="flex flex-wrap justify-center lg:flex-nowrap lg:justify-end" style={{ gap: "clamp(16px, 1.04vw, 15px)" }}>
                         {row2.map((card) => (
                             <CategoryCard key={card.title} card={card} />
                         ))}
                     </div>
                 </div>
+
+                {/* Mobile/tablet: "To catalog" CTA repeated below the card grid */}
+                <div className="mt-6 flex justify-center lg:hidden">{toCatalogButton}</div>
 
             </SectionContainer>
         </section>

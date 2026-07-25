@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link } from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { Check, ChevronDown, PartyPopper, TriangleAlert } from "lucide-react";
 import type { ApiError } from "@/shared/api/base";
 import { GradientButton } from "@/shared/ui/GradientButton";

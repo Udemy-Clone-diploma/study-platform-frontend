@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { getTranslations } from "next-intl/server";
 import type { CourseDetail, CourseReview } from "@/entities/course";
 import { SectionContainer } from "@/shared/ui/SectionContainer";
 import { CourseCurriculum } from "./CourseCurriculum";
@@ -12,8 +13,9 @@ import { PRICING_ANCHOR_ID } from "./pricingAnchor";
 type Props = { course: CourseDetail; reviews: CourseReview[] };
 
 /** Top-level composition for the /courses/[slug] page. */
-export function CourseDetailView({ course, reviews }: Props) {
+export async function CourseDetailView({ course, reviews }: Props) {
   const hasPricingPlans = course.delivery_formats.some(f => f.pricing);
+  const t = await getTranslations("CourseCurriculum");
 
   return (
     <div className="relative isolate overflow-x-clip bg-(--color-bg)">
@@ -59,24 +61,15 @@ export function CourseDetailView({ course, reviews }: Props) {
             <div className="lg:col-span-2">
               <div className="flex flex-col gap-2">
                 <h2 className="text-3xl text-(--color-text-primary) sm:text-4xl lg:text-6xl">
-                  Course Curriculum
+                  {t("heading")}
                 </h2>
                 <p className="text-xl text-(--color-text-secondary) sm:text-2xl lg:text-3xl">
-                  {course.lessons_count} Video Lessons | {course.modules.length}{" "}
-                  {course.modules.length === 1 ? "Module" : "Modules"}
+                  {t("summary", { lessons: course.lessons_count, modules: course.modules.length })}
                 </p>
               </div>
             </div>
-            <div className="lg:col-start-1">
-              <CourseCurriculum
-                course={course}
-                slug={course.slug}
-                hasPricing={hasPricingPlans}
-                hideHeading
-              />
-            </div>
             {course.cohorts.length > 0 && (
-              <div className="relative self-start lg:col-start-2">
+              <div className="relative self-start lg:col-start-2 lg:row-start-2">
                 {/* Branded ellipses behind the schedule card. Resize with w-/h-, move with top-/left-/bottom-. */}
                 <DecorBlob
                   className="top-1/2 left-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 opacity-40 blur-[70px]"
@@ -93,6 +86,14 @@ export function CourseDetailView({ course, reviews }: Props) {
                 />
               </div>
             )}
+            <div className="lg:col-start-1 lg:row-start-2">
+              <CourseCurriculum
+                course={course}
+                slug={course.slug}
+                hasPricing={hasPricingPlans}
+                hideHeading
+              />
+            </div>
           </section>
         </article>
       </SectionContainer>

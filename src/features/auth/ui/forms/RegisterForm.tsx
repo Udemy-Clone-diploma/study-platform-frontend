@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import {
   validateRegisterForm,
   validateRegisterIdentityStep,
@@ -28,6 +29,8 @@ const initialForm: RegisterFormData = {
 
 export function RegisterForm() {
   const router = useRouter();
+  const t = useTranslations("Auth.register");
+  const tValidation = useTranslations("Auth.validation");
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -45,10 +48,10 @@ export function RegisterForm() {
     setApiError,
   } = useAuthForm<RegisterFormData>({
     initial: initialForm,
-    validate: validateRegisterForm,
+    validate: (data) => validateRegisterForm(data, tValidation),
     fieldKeys: ["email", "firstName", "lastName", "password", "password_confirm"],
     fieldKeyMap: { first_name: "firstName", last_name: "lastName" },
-    fallbackError: "We could not create your account. Please try again.",
+    fallbackError: t("fallbackError"),
     submit: async (data) => {
       await registerUser({
         email: data.email.trim(),
@@ -68,7 +71,7 @@ export function RegisterForm() {
   function handleFormSubmit(event: React.FormEvent<HTMLFormElement>) {
     if (step === 1) {
       event.preventDefault();
-      const validationErrors = validateRegisterIdentityStep(formData);
+      const validationErrors = validateRegisterIdentityStep(formData, tValidation);
 
       if (Object.keys(validationErrors).length > 0) {
         setErrors(validationErrors);
@@ -89,7 +92,7 @@ export function RegisterForm() {
       <form onSubmit={handleFormSubmit} className="w-full">
         <div className="w-full space-y-8">
           <h1 className="text-center text-[2.05rem] font-normal tracking-[0.04em] text-[#0f0d10] uppercase">
-            Sign Up
+            {t("title")}
           </h1>
 
           {step === 1 ? (
@@ -98,8 +101,8 @@ export function RegisterForm() {
                 id="firstName"
                 name="firstName"
                 type="text"
-                label="First Name"
-                placeholder="Text"
+                label={t("firstNameLabel")}
+                placeholder={t("textPlaceholder")}
                 value={formData.firstName}
                 onChange={handleChange}
                 error={errors.firstName}
@@ -109,7 +112,7 @@ export function RegisterForm() {
               <DatePicker
                 variant="underline"
                 allowTyping
-                label="Date of Birth"
+                label={t("dateOfBirthLabel")}
                 max={todayISO()}
                 value={formData.dateOfBirth}
                 error={errors.dateOfBirth}
@@ -124,8 +127,8 @@ export function RegisterForm() {
                 id="lastName"
                 name="lastName"
                 type="text"
-                label="Last Name"
-                placeholder="Text"
+                label={t("lastNameLabel")}
+                placeholder={t("textPlaceholder")}
                 value={formData.lastName}
                 onChange={handleChange}
                 error={errors.lastName}
@@ -136,8 +139,8 @@ export function RegisterForm() {
                 id="email"
                 name="email"
                 type="email"
-                label="Email"
-                placeholder="Text"
+                label={t("emailLabel")}
+                placeholder={t("textPlaceholder")}
                 value={formData.email}
                 onChange={handleChange}
                 error={errors.email}
@@ -150,8 +153,8 @@ export function RegisterForm() {
                 id="password"
                 name="password"
                 type="password"
-                label="Password"
-                placeholder="Text"
+                label={t("passwordLabel")}
+                placeholder={t("textPlaceholder")}
                 value={formData.password}
                 onChange={handleChange}
                 error={errors.password}
@@ -164,8 +167,8 @@ export function RegisterForm() {
                 id="password_confirm"
                 name="password_confirm"
                 type="password"
-                label="Repeat Password"
-                placeholder="Text"
+                label={t("repeatPasswordLabel")}
+                placeholder={t("textPlaceholder")}
                 value={formData.password_confirm}
                 onChange={handleChange}
                 error={errors.password_confirm}
@@ -183,7 +186,7 @@ export function RegisterForm() {
               type="submit"
               disabled={isSubmitting}
             >
-              {step === 1 ? "Continue" : isSubmitting ? "Creating" : "Sign Up"}
+              {step === 1 ? t("continue") : isSubmitting ? t("creating") : t("signUp")}
             </AccentButton>
 
             {step === 2 ? (
@@ -196,21 +199,21 @@ export function RegisterForm() {
                 }}
                 className="text-[0.68rem] font-medium tracking-[0.26em] text-[#2f2b30] uppercase transition hover:text-black"
               >
-                Back
+                {t("back")}
               </button>
             ) : null}
 
             <p className="text-center text-[0.78rem] text-[#3e3840]">
-              Already have an account?{" "}
+              {t("alreadyHaveAccount")}{" "}
               <Link href="/login" className="text-[#3557ff] transition hover:text-[#1937cb]">
-                Sign in now
+                {t("signInNow")}
               </Link>
             </p>
 
             <p className="text-center text-[0.78rem] text-[#3e3840]">
-              Want to teach on the platform?{" "}
+              {t("wantToTeach")}{" "}
               <Link href="/register/teacher" className="text-[#3557ff] transition hover:text-[#1937cb]">
-                Apply as a teacher
+                {t("applyAsTeacher")}
               </Link>
             </p>
           </div>

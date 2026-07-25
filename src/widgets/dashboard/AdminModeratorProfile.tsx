@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { AlertCircle, ArrowLeft, Loader2 } from "lucide-react";
 import { getAdminModeratorDashboard, type ModeratorDashboardData } from "@/entities/user";

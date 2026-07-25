@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { ChevronIcon } from "./icons/ChevronIcon";
 
 interface PaginationProps {
@@ -39,10 +40,11 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
   const isFirst = currentPage <= 1;
   const isLast = currentPage >= totalPages;
   const items = buildPageItems(currentPage, totalPages);
+  const t = useTranslations("Pagination");
 
   return (
     <nav
-      aria-label="Pagination"
+      aria-label={t("pagination")}
       className="mx-auto flex w-fit items-center gap-12 rounded-3xl bg-white/60 px-2 py-1.5 text-(--color-text-primary)"
     >
       <button
@@ -50,7 +52,7 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
         onClick={() => onPageChange(currentPage - 1)}
         disabled={isFirst}
         className="flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-(--color-catalog-highlight) disabled:cursor-not-allowed disabled:opacity-40"
-        aria-label="Previous page"
+        aria-label={t("previousPage")}
       >
         <ChevronIcon direction="left" className="h-10 w-10" />
       </button>
@@ -89,7 +91,7 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
         onClick={() => onPageChange(currentPage + 1)}
         disabled={isLast}
         className="flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-(--color-catalog-highlight) disabled:cursor-not-allowed disabled:opacity-40"
-        aria-label="Next page"
+        aria-label={t("nextPage")}
       >
         <ChevronIcon direction="right" className="h-10 w-10" />
       </button>

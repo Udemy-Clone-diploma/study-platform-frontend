@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { getTranslations } from "next-intl/server";
 import type { CourseReview } from "@/entities/course";
 import { SectionContainer } from "@/shared/ui/SectionContainer";
 import { CourseReviewCard } from "./CourseReviewCard";
@@ -6,10 +7,12 @@ import { CourseReviewCard } from "./CourseReviewCard";
 type Props = { courseTitle: string; reviews: CourseReview[] };
 
 /** Full reviews page: title + a single column of wide review cards that zigzag left/right. */
-export function CourseReviewsView({ courseTitle, reviews }: Props) {
+export async function CourseReviewsView({ courseTitle, reviews }: Props) {
+  const t = await getTranslations("CourseReviewsView");
+
   return (
     <div
-      className="relative isolate overflow-hidden"
+      className="relative isolate flex-1 overflow-hidden"
       style={{ background: "var(--gradient-feedback)" }}
     >
       <Image
@@ -19,7 +22,7 @@ export function CourseReviewsView({ courseTitle, reviews }: Props) {
         width={1200}
         height={1200}
         sizes="80vw"
-        className="pointer-events-none absolute -left-[14%] bottom-[10%] -z-10 w-[60vw] max-w-[820px] min-w-[420px] select-none"
+        className="pointer-events-none absolute -left-[14%] bottom-[10%] -z-10 w-[45vw] min-w-[160px] max-w-[280px] select-none sm:min-w-[240px] sm:max-w-[420px] lg:w-[60vw] lg:min-w-[420px] lg:max-w-[820px]"
       />
       <Image
         src="/backgrounds/crystal.png"
@@ -28,13 +31,13 @@ export function CourseReviewsView({ courseTitle, reviews }: Props) {
         width={1000}
         height={1000}
         sizes="50vw"
-        className="pointer-events-none absolute -right-[8%] top-[18%] -z-10 w-[44vw] max-w-[620px] min-w-[320px] select-none"
+        className="pointer-events-none absolute -right-[8%] top-[18%] -z-10 w-[32vw] min-w-[120px] max-w-[200px] select-none sm:min-w-[180px] sm:max-w-[320px] lg:w-[44vw] lg:min-w-[320px] lg:max-w-[620px]"
       />
 
       <SectionContainer>
         <article className="flex flex-col gap-8 py-12 sm:gap-12 sm:py-16 lg:gap-16 lg:py-28">
           <h1 className="text-2xl text-(--color-text-primary) sm:text-3xl lg:text-5xl">
-            Reviews of the &ldquo;{courseTitle}&rdquo; course
+            {t("title", { course: courseTitle })}
           </h1>
 
           {reviews.length > 0 ? (
@@ -49,7 +52,7 @@ export function CourseReviewsView({ courseTitle, reviews }: Props) {
               ))}
             </ul>
           ) : (
-            <p className="text-base text-(--color-text-secondary) sm:text-lg">No reviews yet.</p>
+            <p className="text-base text-(--color-text-secondary) sm:text-lg">{t("noReviews")}</p>
           )}
         </article>
       </SectionContainer>

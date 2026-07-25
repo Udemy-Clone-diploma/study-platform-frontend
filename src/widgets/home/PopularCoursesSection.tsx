@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { CourseListItem } from "@/entities/course";
 import { CourseCard } from "@/features/courses";
 import { SectionContainer } from "@/shared/ui/SectionContainer";
@@ -11,20 +12,23 @@ export function PopularCoursesSection({ courses, wishlistedSlugs }: Props) {
     const wishlistSet = new Set(wishlistedSlugs);
     const doubled = [...courses, ...courses];
     const [paused, setPaused] = useState(false);
+    const t = useTranslations("HomePopularCourses");
 
     return (
         <section>
             <SectionContainer>
-                <h2 style={{
-                    fontFamily: "var(--font-base)",
-                    fontWeight: 400,
-                    fontSize: "2.5vw",
-                    lineHeight: 1.25,
-                    textAlign: "center",
-                    margin: "3%",
-                    color: "var(--color-text-primary)",
-                }}>
-                    Popular courses
+                <h2
+                    className="text-[24px] md:text-[30px] lg:text-[2.5vw]"
+                    style={{
+                        fontFamily: "var(--font-base)",
+                        fontWeight: 400,
+                        lineHeight: 1.25,
+                        textAlign: "center",
+                        margin: "3%",
+                        color: "var(--color-text-primary)",
+                    }}
+                >
+                    {t("heading")}
                 </h2>
             </SectionContainer>
             <div style={{ overflow: "hidden", padding:  "16px 0", marginBottom: "3%" }}>

@@ -1,0 +1,477 @@
+{
+  "Common": {
+    "home": "Inicio",
+    "blog": "Blog",
+    "catalog": "Catálogo",
+    "allCourses": "Todos los cursos",
+    "myCourses": "Mis cursos",
+    "profile": "Perfil",
+    "myProfile": "Mi perfil",
+    "myOffice": "Mi panel",
+    "logout": "Salir",
+    "getStarted": "Empezar",
+    "search": "Buscar",
+    "user": "Usuario",
+    "language": "Idioma",
+    "cancel": "Cancelar",
+    "categories": "Categorías",
+    "all": "Todo",
+    "backToHome": "Volver al inicio"
+  },
+  "Header": {
+    "openMenu": "Abrir menú",
+    "closeMenu": "Cerrar menú",
+    "closeSearch": "Cerrar búsqueda"
+  },
+  "NotificationBell": {
+    "notifications": "Notificaciones",
+    "title": "Notificación",
+    "closeNotifications": "Cerrar notificaciones",
+    "empty": "No tienes mensajes nuevos",
+    "seeAll": "Ver todo"
+  },
+  "Footer": {
+    "business": "Negocios",
+    "languages": "Idiomas",
+    "personalDevelopment": "Desarrollo personal",
+    "design": "Diseño",
+    "programming": "Programación",
+    "marketing": "Marketing"
+  },
+  "SearchBar": {
+    "placeholder": "Buscar cursos y artículos"
+  },
+  "LanguageSwitcher": {
+    "selectLanguage": "Seleccionar idioma",
+    "chooseLanguage": "Elige un idioma"
+  },
+  "HomeHero": {
+    "tags": ["Habilidades", "Networking", "Crecimiento"],
+    "title": "Educación de nueva generación",
+    "subtitle": "Una plataforma donde el conocimiento se convierte en resultados reales. Simple, flexible y directa.",
+    "rating": "Calificación de 4.9 con más de 10,000 estudiantes",
+    "continueLearning": "Continuar aprendiendo",
+    "verifiedByPartners": "Verificado por nuestros socios"
+  },
+  "HomeCategories": {
+    "badge": "Categorías",
+    "heading": "Elige tu campo de crecimiento",
+    "description": "Explora más de 6 categorías clave diseñadas para tu carrera profesional y tu desarrollo personal.",
+    "toCatalog": "Ir al catálogo",
+    "cards": {
+      "programming": { "title": "Programación de principiante a experto", "description": "Domina los lenguajes de programación más populares y crea tu propio software." },
+      "design": { "title": "Diseño y experiencia de usuario", "description": "Aprende a crear interfaces, gráficos y mundos visuales." },
+      "marketing": { "title": "Estrategia de marketing", "description": "Descubre cómo promocionar marcas y atraer a miles de clientes." },
+      "business": { "title": "Negocios", "description": "Adquiere experiencia en gestión, finanzas y optimización de procesos." },
+      "languages": { "title": "Idiomas", "description": "Aprende idiomas extranjeros para tu carrera, tus viajes y tu comunicación." },
+      "personalDevelopment": { "title": "Desarrollo personal", "description": "Mejora tu eficiencia personal, gestión del tiempo y liderazgo." }
+    }
+  },
+  "HomeBenefits": {
+    "tags": ["Mejora", "Práctica", "Flow", "Validado", "Pro"],
+    "heading": "Aprende. Conecta. Crece.",
+    "description": "Donde el conocimiento se encuentra con la carrera profesional. Elige tu ritmo: estudio a tu propio paso o sesiones en vivo con mentores. Certificados, exámenes y un calendario inteligente, todo para mejorar en un solo lugar.",
+    "cards": {
+      "accessibility": { "title": "Accesibilidad", "description": "Educación que se ajusta a tu presupuesto. Paga todo de una vez o elige un plan de cuotas cómodo. Controla todo tu calendario de pagos directamente desde tu panel." },
+      "connect": { "title": "Conecta", "description": "Mucho más que videoclases. Participa en chats privados o grupales con compañeros y mentores. Pregunta sobre cualquier lección con un solo clic." },
+      "result": { "title": "Resultado", "description": "Tu habilidad es tu moneda. Completa exámenes, obtén puntuaciones y descarga tu certificado oficial en PDF. Construye tu carrera con experiencia verificada." }
+    }
+  },
+  "HomeNewCourses": { "heading": "Cursos nuevos" },
+  "HomePopularCourses": { "heading": "Cursos populares" },
+  "HomeReviews": {
+    "badge": "OPINIONES",
+    "heading": "Elegido por más de 10 mil estudiantes en todo el mundo",
+    "description": "Personas reales. Opiniones reales. Sin filtros. Descubre por qué estudiantes de más de 50 países eligen nuestra plataforma cada día.",
+    "studiedCourse": "Estudió {course}"
+  },
+  "HomeMentors": {
+    "badge": "EXPERIENCIA",
+    "heading": "Aprende de los mejores",
+    "description": "Nuestros mentores son profesionales del sector listos para guiarte de principiante a experto con experiencia práctica.",
+    "mentorsOfTheYear": "Mentores del año",
+    "features": {
+      "experience": { "title": "Experiencia", "body": "Más de 5 años en proyectos reales." },
+      "support": { "title": "Apoyo", "body": "Acceso directo al chat y retroalimentación de tareas." },
+      "practice": { "title": "Práctica", "body": "Solo casos y herramientas de tendencia." }
+    }
+  },
+  "CourseCard": {
+    "free": "Gratis",
+    "students": "{count} estudiantes",
+    "addToWishlist": "Añadir a favoritos",
+    "removeFromWishlist": "Quitar de favoritos"
+  },
+  "StudentReviewCard": {
+    "reportReview": "Reportar reseña"
+  },
+  "ReportReviewModal": {
+    "title": "Reportar reseña",
+    "description": "Cuéntanos qué está mal con esta reseña.",
+    "placeholder": "Motivo del reporte…",
+    "genericError": "No se pudo enviar el reporte. Inténtalo de nuevo.",
+    "submit": "Enviar reporte"
+  },
+  "BlogHero": {
+    "title": "Donde la <highlight>creatividad</highlight> se encuentra con el conocimiento.",
+    "description": "Explora artículos, ideas e historias diseñados para inspirar el aprendizaje, la innovación y el crecimiento personal.",
+    "addArticle": "Añadir un artículo",
+    "manageArticles": "Gestionar artículos",
+    "noArticlesFound": "No se encontraron artículos."
+  },
+  "BlogSearch": {
+    "searchArticles": "Buscar artículos",
+    "clearSearch": "Borrar búsqueda"
+  },
+  "Pagination": {
+    "pagination": "Paginación",
+    "previousPage": "Página anterior",
+    "nextPage": "Página siguiente"
+  },
+  "Catalog": {
+    "errorLoadCourses": "No se pudieron cargar los cursos.",
+    "allFilters": "Todos los filtros",
+    "coursesUnavailable": "Los cursos no están disponibles",
+    "noCoursesFound": "No se encontraron cursos",
+    "tryAnotherFilters": "Prueba con otro conjunto de filtros.",
+    "resetFilters": "Restablecer filtros"
+  },
+  "CatalogHero": {
+    "title": "<highlight>Amplía tu experiencia</highlight> con cursos de primer nivel diseñados para tu próximo paso profesional."
+  },
+  "CourseSearch": {
+    "searchCourses": "Buscar cursos",
+    "clearSearch": "Borrar búsqueda"
+  },
+  "CategoryFilter": {
+    "noCategoriesYet": "Todavía no hay categorías."
+  },
+  "CatalogFilters": {
+    "courseRating": "Valoración del curso",
+    "inTheGroup": "En grupo",
+    "fiveStarsOnly": "Solo 5 estrellas",
+    "andMore": "{rating} o más",
+    "difficultyLevel": "Nivel de dificultad",
+    "courseLanguage": "Idioma del curso",
+    "courseType": "Tipo de curso",
+    "workshops": "Talleres",
+    "masterclasses": "Masterclasses",
+    "formatType": "Tipo de formato",
+    "priceRange": "Rango de precio",
+    "promotions": "Promociones",
+    "sale": "Oferta",
+    "min": "Mín",
+    "minimumPrice": "Precio mínimo",
+    "max": "Máx",
+    "maximumPrice": "Precio máximo",
+    "apply": "Aplicar"
+  },
+  "CatalogEnums": {
+    "level": { "beginner": "Principiante", "intermediate": "Intermedio", "advanced": "Avanzado" },
+    "language": { "english": "Inglés", "ukrainian": "Ucraniano", "spanish": "Español" },
+    "mode": { "self_learning": "Autoaprendizaje", "with_teacher": "Estudio con profesor" },
+    "courseType": { "profession": "Profesión", "qualification": "Formación avanzada", "knowledge": "Ampliar conocimientos" },
+    "formatType": { "self_paced": "A tu ritmo", "scheduled": "Programado", "individual": "Coaching individual", "group": "Plan grupal" }
+  },
+  "SortDropdown": {
+    "sortBy": "Ordenar por",
+    "options": {
+      "popularity": "Por popularidad",
+      "rating": "Por valoración",
+      "novelty": "Por novedad",
+      "cheapFirst": "Precio: menor primero",
+      "expensiveFirst": "Precio: mayor primero"
+    }
+  },
+  "CourseCurriculum": {
+    "heading": "Programa del curso",
+    "summary": "{lessons, plural, one {# lección en video} other {# lecciones en video}} | {modules, plural, one {# módulo} other {# módulos}}",
+    "noCurriculum": "Todavía no hay un programa disponible."
+  },
+  "CourseModuleItem": {
+    "modulePrefix": "Módulo {number}",
+    "lessonPrefix": "Lección {number}: {title}.",
+    "freePreview": "Vista previa gratuita",
+    "mandatory": "Obligatorio"
+  },
+  "CourseHero": {
+    "levelMeta": { "beginner": "Formación básica", "intermediate": "Formación intermedia", "advanced": "Formación avanzada" },
+    "mode": { "with_teacher": "Con un profesor", "self_learning": "A tu propio ritmo" },
+    "ratingLabel": "{rating} (basado en más de {count} reseñas globales)",
+    "noReviewsYet": "Todavía no hay reseñas",
+    "languageLabel": "Idioma: {language}"
+  },
+  "CourseHeroCTA": {
+    "courseAvailable": "El curso ya está disponible en Mis cursos.",
+    "freeEnrollmentSuccess": "Inscripción completada. Ya puedes empezar este curso.",
+    "studentOnly": "La inscripción solo está disponible para estudiantes.",
+    "noPricingPlan": "Este curso no tiene un plan de precios disponible.",
+    "continueLearning": "Continuar aprendiendo",
+    "processing": "Procesando...",
+    "enrollFree": "Inscribirse gratis",
+    "choosePlan": "Elegir un plan",
+    "genericError": "No se pudo procesar tu solicitud."
+  },
+  "CourseTeacher": {
+    "yearsExperience": "años en proyectos reales",
+    "students": "estudiantes",
+    "partnerships": "colaboraciones con empresas",
+    "teacherBadge": "Profesor"
+  },
+  "CourseFeedback": {
+    "badge": "Opiniones",
+    "viewMore": "Ver más",
+    "noReviewsFull": "Todavía no hay reseñas. Sé el primero en compartir tu experiencia."
+  },
+  "CourseReviewCard": {
+    "ratingLabel": "{rating} de 5 estrellas"
+  },
+  "CoursePricingBlock": {
+    "noSchedules": "No hay horarios disponibles por el momento.",
+    "group": "Grupo",
+    "selectSchedule": "Selecciona un horario",
+    "startsDate": "Comienza el {date}",
+    "spotsLeft": "{count, plural, one {queda # plaza} other {quedan # plazas}}",
+    "loadingTimes": "Cargando horarios disponibles…",
+    "noSessions": "No hay sesiones disponibles por el momento.",
+    "availableSessions": "Sesiones disponibles ({count})",
+    "pickSessions": "Elige entre {min} y {max} sesiones semanales ({selected}/{max} seleccionadas)",
+    "selectScheduleFirst": "Primero selecciona un horario.",
+    "selectTimeSlots": "Selecciona entre {min} y {max} franjas horarias disponibles.",
+    "tuitionBadge": "Tarifas y opciones de pago",
+    "tuitionIntro": "Elige el formato que mejor se adapte a tus objetivos y presupuesto. Ofrecemos planes de pago flexibles para tu comodidad.",
+    "formatLabel": { "self_paced": "A tu ritmo", "scheduled": "Programado", "individual": "Coaching individual", "group": "Cursos grupales" },
+    "formatBlurb": {
+      "self_paced": "Aprende a tu ritmo con acceso de por vida a todo el contenido",
+      "scheduled": "Sigue un cronograma estructurado con contenido que se desbloquea con el tiempo",
+      "individual": "Mentoría personalizada con un plan de estudios adaptado a tu ritmo",
+      "group": "Aprende y colabora con tus compañeros en un entorno dinámico"
+    },
+    "fullPrice": "Precio completo:",
+    "onePayment": "(pago único)",
+    "installmentPlan": "Plan de cuotas:",
+    "monthlyPayments": "({count} pagos mensuales)",
+    "noSpots": "No hay plazas disponibles",
+    "buyNow": "Comprar ahora"
+  },
+  "CourseScheduleCard": {
+    "schedule": "Horario",
+    "hoursPerWeek": "{hours} horas por semana",
+    "hoursPerWeekRange": "{min}–{max} horas por semana",
+    "groupOf": "Grupo de {count} personas",
+    "group": "Grupo",
+    "monthsCount": "{count, plural, one {# mes} other {# meses}}",
+    "modulesLessons": "{modules, plural, one {# módulo} other {# módulos}} | {lessons, plural, one {# lección} other {# lecciones}}",
+    "startDate": "Fecha de inicio:"
+  },
+  "CourseReviewsView": {
+    "title": "Reseñas del curso «{course}»",
+    "noReviews": "Todavía no hay reseñas."
+  },
+  "Search": {
+    "resultsFor": "Resultados para <highlight>«{query}»</highlight>",
+    "searchHeading": "Buscar",
+    "resultsCount": "{count, plural, one {# resultado} other {# resultados}} entre cursos y artículos.",
+    "enterSearchTerm": "Introduce un término de búsqueda para empezar.",
+    "courses": "Cursos",
+    "posts": "Artículos",
+    "viewAllCourses": "Ver todos los cursos",
+    "viewAllPosts": "Ver todos los artículos",
+    "noCoursesFound": "No se encontraron cursos.",
+    "noPostsFound": "No se encontraron artículos.",
+    "foundCount": "{count} encontrados"
+  },
+  "Auth": {
+    "common": {
+      "backToSignIn": "Volver a iniciar sesión",
+      "signIn": "Iniciar sesión",
+      "checkingLink": "Verificando enlace",
+      "pleaseWait": "Espera...",
+      "somethingWrong": "Algo salió mal",
+      "tryAgain": "Intentar de nuevo",
+      "saving": "Guardando",
+      "sending": "Enviando",
+      "email": "Correo electrónico",
+      "password": "Contraseña",
+      "confirmPassword": "Confirmar contraseña",
+      "sendAgain": "Enviar de nuevo"
+    },
+    "field": {
+      "hidePassword": "Ocultar contraseña",
+      "showPassword": "Mostrar contraseña"
+    },
+    "validation": {
+      "enterFirstName": "Introduce tu nombre",
+      "enterLastName": "Introduce tu apellido",
+      "enterEmail": "Introduce tu correo electrónico",
+      "enterValidEmail": "Introduce un correo electrónico válido",
+      "enterDateOfBirth": "Introduce tu fecha de nacimiento",
+      "enterValidDateOfBirth": "Introduce una fecha de nacimiento válida",
+      "enterPassword": "Introduce tu contraseña",
+      "passwordMinLength": "La contraseña debe tener al menos 8 caracteres",
+      "passwordLowercase": "La contraseña debe contener al menos una minúscula",
+      "passwordUppercase": "La contraseña debe contener al menos una mayúscula",
+      "passwordNumber": "La contraseña debe contener al menos un número",
+      "confirmPasswordRequired": "Confirma tu contraseña",
+      "passwordsDoNotMatch": "Las contraseñas no coinciden"
+    },
+    "genericFallbackError": "Algo salió mal. Inténtalo de nuevo.",
+    "login": {
+      "title": "Iniciar sesión",
+      "emailLabel": "Correo electrónico",
+      "passwordLabel": "Contraseña",
+      "signingIn": "Iniciando sesión",
+      "newHere": "¿Eres nuevo aquí?",
+      "signUpNow": "Regístrate",
+      "rememberMe": "Recordarme",
+      "resetPassword": "Restablecer contraseña",
+      "fallbackError": "No pudimos iniciar tu sesión. Inténtalo de nuevo."
+    },
+    "register": {
+      "title": "Registrarse",
+      "firstNameLabel": "Nombre",
+      "lastNameLabel": "Apellido",
+      "dateOfBirthLabel": "Fecha de nacimiento",
+      "emailLabel": "Correo electrónico",
+      "passwordLabel": "Contraseña",
+      "repeatPasswordLabel": "Repetir contraseña",
+      "textPlaceholder": "Texto",
+      "continue": "Continuar",
+      "creating": "Creando",
+      "signUp": "Registrarse",
+      "back": "Atrás",
+      "alreadyHaveAccount": "¿Ya tienes una cuenta?",
+      "signInNow": "Iniciar sesión",
+      "wantToTeach": "¿Quieres enseñar en la plataforma?",
+      "applyAsTeacher": "Postúlate como profesor",
+      "fallbackError": "No pudimos crear tu cuenta. Inténtalo de nuevo."
+    },
+    "resendEmail": {
+      "defaultSubmitLabel": "Enviar",
+      "defaultSuccessMessage": "Correo enviado. Revisa tu bandeja de entrada o spam.",
+      "genericError": "Algo salió mal."
+    },
+    "forgotPassword": {
+      "checkEmailTitle": "Revisa tu correo",
+      "checkEmailDescription": "Si existe una cuenta para <bold>{email}</bold>, hemos enviado un enlace para restablecer la contraseña.",
+      "resetTitle": "Restablecer contraseña",
+      "resetDescription": "Introduce el correo asociado a tu cuenta y te enviaremos un enlace para restablecerla.",
+      "sendLink": "Enviar enlace"
+    },
+    "resetPassword": {
+      "checkingDescription": "Estamos validando tu enlace de restablecimiento de contraseña.",
+      "invalidTitle": "Enlace no válido",
+      "sendNewLink": "Enviar nuevo enlace",
+      "resendSuccessMessage": "Si existe una cuenta, hemos enviado un nuevo correo. Revisa tu bandeja de entrada o spam.",
+      "successTitle": "Contraseña actualizada",
+      "successDescription": "Tu contraseña se ha cambiado correctamente.",
+      "newPasswordTitle": "Nueva contraseña",
+      "newPasswordDescription": "Elige una contraseña de al menos 8 caracteres, con una mayúscula, una minúscula y un número.",
+      "newPasswordLabel": "Nueva contraseña",
+      "passwordPlaceholder": "Al menos 8 caracteres",
+      "repeatPasswordPlaceholder": "Repite tu contraseña",
+      "savePassword": "Guardar contraseña",
+      "fallbackError": "No pudimos actualizar tu contraseña. Inténtalo de nuevo.",
+      "invalidLinkMessage": "Este enlace de restablecimiento no es válido o ha caducado."
+    },
+    "activateTeacher": {
+      "checkingDescription": "Estamos validando tu enlace de invitación.",
+      "invalidTitle": "Enlace no válido",
+      "resendInvitation": "Reenviar invitación",
+      "resendSuccessMessage": "Si hay una invitación pendiente para este correo, se ha reenviado. Revisa tu bandeja de entrada o spam.",
+      "successTitle": "Cuenta activada",
+      "successDescription": "Tu correo está confirmado y tu contraseña establecida. Ya puedes iniciar sesión como profesor.",
+      "setPasswordTitle": "Establece tu contraseña",
+      "setPasswordDescription": "Elige una contraseña de al menos 8 caracteres, con una mayúscula, una minúscula y un número. Esto también confirmará tu correo.",
+      "passwordPlaceholder": "Al menos 8 caracteres",
+      "repeatPasswordPlaceholder": "Repite tu contraseña",
+      "activateAccount": "Activar cuenta",
+      "fallbackError": "No pudimos activar tu cuenta. Inténtalo de nuevo.",
+      "invalidLinkMessage": "Este enlace de invitación no es válido o ha caducado."
+    },
+    "checkEmail": {
+      "title": "Revisa tu correo",
+      "description": "Hemos enviado un enlace de verificación a <bold>{email}</bold>.",
+      "yourEmailFallback": "tu correo",
+      "resentMessage": "Correo de verificación reenviado. Revisa tu bandeja de entrada.",
+      "genericError": "Algo salió mal. Inténtalo más tarde.",
+      "alreadyVerified": "¿Ya verificaste?",
+      "signIn": "Iniciar sesión"
+    },
+    "checkApplication": {
+      "title": "Solicitud enviada",
+      "description": "¡Gracias! Tu solicitud se ha enviado para revisión. Te escribiremos a <bold>{email}</bold> en cuanto un moderador tome una decisión.",
+      "youFallback": "ti"
+    },
+    "verifyEmail": {
+      "checkingDescription": "Estamos verificando tu dirección de correo.",
+      "successTitle": "Correo verificado",
+      "successFallbackDescription": "Tu correo se ha verificado correctamente.",
+      "redirecting": "Redirigiendo al inicio de sesión...",
+      "failedTitle": "Error de verificación",
+      "sendVerification": "Enviar verificación",
+      "invalidLinkMessage": "Enlace no válido o caducado."
+    }
+  },
+  "ComingSoon": {
+    "badge": "Próximamente",
+    "defaultPageName": "Esta página",
+    "description": "Esta página todavía está en desarrollo. ¡Estamos trabajando en ello!"
+  },
+  "Forbidden": {
+    "title": "Acceso denegado",
+    "description": "No tienes permiso para ver esta página."
+  },
+  "CertificateVerify": {
+    "tooManyChecks": "Demasiadas verificaciones desde esta red. Espera unos minutos e inténtalo de nuevo.",
+    "genericError": "No se pudo verificar este certificado en este momento.",
+    "title": "Verificar un certificado",
+    "description": "Introduce el número de serie impreso en un certificado de Nexo4you para confirmar que es auténtico y sigue vigente.",
+    "serialLabel": "Número de serie del certificado",
+    "checking": "Verificando…",
+    "verify": "Verificar",
+    "notFoundTitle": "No se encontró ningún certificado",
+    "notFoundBody": "Ningún certificado coincide con este número de serie. Revisa si hay errores; los números de serie solo los emite Nexo4you.",
+    "errorTitle": "No se pudo verificar en este momento",
+    "revokedTitle": "Este certificado ya no es válido",
+    "validTitle": "Este certificado es auténtico",
+    "issuedOn": "Emitido el {date}.",
+    "issuedAndRevokedOn": "Se emitió el {issuedDate} y se revocó el {revokedDate}.",
+    "issuedAndRevoked": "Se emitió el {issuedDate} y se revocó.",
+    "student": "Estudiante",
+    "course": "Curso",
+    "serial": "Número de serie",
+    "replacedBy": "Reemplazado por"
+  },
+  "TeacherApplication": {
+    "title": "Postularse como profesor",
+    "firstNameLabel": "Nombre",
+    "lastNameLabel": "Apellido",
+    "dateOfBirthLabel": "Fecha de nacimiento",
+    "emailLabel": "Correo electrónico",
+    "phoneNumberLabel": "Número de teléfono",
+    "fieldOfStudyLabel": "Campo de estudio",
+    "yearsExperienceLabel": "Años de experiencia (opcional)",
+    "workExperienceLabel": "Experiencia laboral",
+    "bioLabel": "Biografía",
+    "directionsLabel": "Áreas que te gustaría enseñar",
+    "motivationLabel": "¿Qué te gustaría enseñar y por qué eres la persona adecuada para ello?",
+    "linkedinLabel": "LinkedIn (opcional)",
+    "instagramLabel": "Instagram (opcional)",
+    "behanceLabel": "Behance (opcional)",
+    "checkingEmail": "Verificando correo…",
+    "submitting": "Enviando",
+    "submitApplication": "Enviar solicitud",
+    "fallbackError": "No pudimos enviar tu solicitud. Inténtalo de nuevo.",
+    "emailUnavailable": "Este correo no se puede usar.",
+    "validation": {
+      "enterPhoneNumber": "Introduce un número de teléfono para que un moderador pueda contactarte",
+      "enterFieldOfStudy": "Introduce tu campo de estudio",
+      "describeExperience": "Describe tu experiencia laboral",
+      "writeShortBio": "Escribe una breve biografía",
+      "enterValidYears": "Introduce un número de años válido",
+      "tellUsWhyTeach": "Cuéntanos por qué quieres enseñar en la plataforma",
+      "enterValidUrl": "Introduce una URL válida"
+    }
+  }
+}

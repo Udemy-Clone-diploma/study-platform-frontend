@@ -1,0 +1,477 @@
+{
+  "Common": {
+    "home": "Головна",
+    "blog": "Блог",
+    "catalog": "Каталог",
+    "allCourses": "Усі курси",
+    "myCourses": "Мої курси",
+    "profile": "Профіль",
+    "myProfile": "Мій профіль",
+    "myOffice": "Особистий кабінет",
+    "logout": "Вийти",
+    "getStarted": "Розпочати",
+    "search": "Пошук",
+    "user": "Користувач",
+    "language": "Мова",
+    "cancel": "Скасувати",
+    "categories": "Категорії",
+    "all": "Усі",
+    "backToHome": "На головну"
+  },
+  "Header": {
+    "openMenu": "Відкрити меню",
+    "closeMenu": "Закрити меню",
+    "closeSearch": "Закрити пошук"
+  },
+  "NotificationBell": {
+    "notifications": "Сповіщення",
+    "title": "Сповіщення",
+    "closeNotifications": "Закрити сповіщення",
+    "empty": "У вас немає нових повідомлень",
+    "seeAll": "Переглянути всі"
+  },
+  "Footer": {
+    "business": "Бізнес",
+    "languages": "Мови",
+    "personalDevelopment": "Особистий розвиток",
+    "design": "Дизайн",
+    "programming": "Програмування",
+    "marketing": "Маркетинг"
+  },
+  "SearchBar": {
+    "placeholder": "Пошук курсів і статей"
+  },
+  "LanguageSwitcher": {
+    "selectLanguage": "Обрати мову",
+    "chooseLanguage": "Оберіть мову"
+  },
+  "HomeHero": {
+    "tags": ["Навички", "Нетворкінг", "Розвиток"],
+    "title": "Освіта нового покоління",
+    "subtitle": "Платформа, де знання перетворюються на реальні результати. Просто, гнучко і по суті.",
+    "rating": "Рейтинг 4.9 від понад 10 000 студентів",
+    "continueLearning": "Продовжити навчання",
+    "verifiedByPartners": "Підтверджено нашими партнерами"
+  },
+  "HomeCategories": {
+    "badge": "Категорії",
+    "heading": "Оберіть напрямок свого розвитку",
+    "description": "Досліджуйте 6+ основних категорій для професійної кар'єри та особистого успіху.",
+    "toCatalog": "До каталогу",
+    "cards": {
+      "programming": { "title": "Програмування від основ до профі", "description": "Опануйте актуальні мови програмування та створюйте власне ПЗ." },
+      "design": { "title": "Дизайн та UX", "description": "Навчіться створювати інтерфейси, графіку та візуальні світи." },
+      "marketing": { "title": "Маркетингова стратегія", "description": "Дізнайтесь, як просувати бренди та залучати тисячі клієнтів." },
+      "business": { "title": "Бізнес", "description": "Здобудьте експертизу в менеджменті, фінансах та оптимізації процесів." },
+      "languages": { "title": "Мови", "description": "Вивчайте іноземні мови для кар'єри, подорожей і спілкування." },
+      "personalDevelopment": { "title": "Особистий розвиток", "description": "Підвищуйте особисту ефективність, тайм-менеджмент і лідерські якості." }
+    }
+  },
+  "HomeBenefits": {
+    "tags": ["Апгрейд", "Практика", "Потік", "Перевірено", "Профі"],
+    "heading": "Навчайся. Спілкуйся. Розвивайся.",
+    "description": "Там, де знання зустрічають кар'єру. Обирайте свій темп: самостійне навчання або живі сесії з менторами. Сертифікати, тести й розумний календар — усе для вашого апгрейду в одній вкладці.",
+    "cards": {
+      "accessibility": { "title": "Доступність", "description": "Освіта під ваш бюджет. Оплачуйте повністю або оберіть зручну розстрочку. Відстежуйте весь графік платежів прямо в кабінеті." },
+      "connect": { "title": "Зв'язок", "description": "Більше, ніж просто відеолекції. Спілкуйтесь в особистих або групових чатах з однодумцями та менторами. Ставте запитання щодо будь-якого уроку в один клік." },
+      "result": { "title": "Результат", "description": "Ваша навичка — ваша валюта. Проходьте тести, отримуйте бали та завантажуйте офіційний PDF-сертифікат. Будуйте кар'єру з підтвердженою експертизою." }
+    }
+  },
+  "HomeNewCourses": { "heading": "Нові курси" },
+  "HomePopularCourses": { "heading": "Популярні курси" },
+  "HomeReviews": {
+    "badge": "ВІДГУКИ",
+    "heading": "Улюблена платформа 10 тис.+ студентів по всьому світу",
+    "description": "Реальні люди. Реальні відгуки. Без фільтрів. Дізнайтесь, чому учні з 50+ країн щодня обирають нашу платформу.",
+    "studiedCourse": "Проходив(-ла) {course}"
+  },
+  "HomeMentors": {
+    "badge": "ЕКСПЕРТИЗА",
+    "heading": "Навчайтесь у кращих",
+    "description": "Наші ментори — це професіонали галузі, готові провести вас від новачка до профі з практичним досвідом.",
+    "mentorsOfTheYear": "Ментори року",
+    "features": {
+      "experience": { "title": "Досвід", "body": "5+ років у реальних проєктах." },
+      "support": { "title": "Підтримка", "body": "Прямий доступ до чату та зворотний зв'язок щодо домашніх завдань." },
+      "practice": { "title": "Практика", "body": "Лише актуальні кейси та інструменти." }
+    }
+  },
+  "CourseCard": {
+    "free": "Безкоштовно",
+    "students": "{count} студентів",
+    "addToWishlist": "Додати до списку бажань",
+    "removeFromWishlist": "Прибрати зі списку бажань"
+  },
+  "StudentReviewCard": {
+    "reportReview": "Поскаржитись на відгук"
+  },
+  "ReportReviewModal": {
+    "title": "Поскаржитись на відгук",
+    "description": "Повідомте, що не так із цим відгуком.",
+    "placeholder": "Причина скарги…",
+    "genericError": "Не вдалося надіслати скаргу. Спробуйте ще раз.",
+    "submit": "Надіслати скаргу"
+  },
+  "BlogHero": {
+    "title": "Там, де <highlight>творчість</highlight> зустрічає знання.",
+    "description": "Досліджуйте статті, інсайти та історії, створені, щоб надихати на навчання, інновації та особистий розвиток.",
+    "addArticle": "Додати статтю",
+    "manageArticles": "Керувати статтями",
+    "noArticlesFound": "Статей не знайдено."
+  },
+  "BlogSearch": {
+    "searchArticles": "Пошук статей",
+    "clearSearch": "Очистити пошук"
+  },
+  "Pagination": {
+    "pagination": "Пагінація",
+    "previousPage": "Попередня сторінка",
+    "nextPage": "Наступна сторінка"
+  },
+  "Catalog": {
+    "errorLoadCourses": "Не вдалося завантажити курси.",
+    "allFilters": "Усі фільтри",
+    "coursesUnavailable": "Курси недоступні",
+    "noCoursesFound": "Курсів не знайдено",
+    "tryAnotherFilters": "Спробуйте інший набір фільтрів.",
+    "resetFilters": "Скинути фільтри"
+  },
+  "CatalogHero": {
+    "title": "<highlight>Розширте свою експертизу</highlight> завдяки курсам світового рівня, створеним для вашого наступного кар'єрного кроку."
+  },
+  "CourseSearch": {
+    "searchCourses": "Пошук курсів",
+    "clearSearch": "Очистити пошук"
+  },
+  "CategoryFilter": {
+    "noCategoriesYet": "Категорій поки немає."
+  },
+  "CatalogFilters": {
+    "courseRating": "Рейтинг курсу",
+    "inTheGroup": "У групі",
+    "fiveStarsOnly": "Лише 5 зірок",
+    "andMore": "{rating} і вище",
+    "difficultyLevel": "Рівень складності",
+    "courseLanguage": "Мова курсу",
+    "courseType": "Тип курсу",
+    "workshops": "Воркшопи",
+    "masterclasses": "Майстер-класи",
+    "formatType": "Тип формату",
+    "priceRange": "Діапазон цін",
+    "promotions": "Акції",
+    "sale": "Знижка",
+    "min": "Від",
+    "minimumPrice": "Мінімальна ціна",
+    "max": "До",
+    "maximumPrice": "Максимальна ціна",
+    "apply": "Застосувати"
+  },
+  "CatalogEnums": {
+    "level": { "beginner": "Початковий", "intermediate": "Середній", "advanced": "Просунутий" },
+    "language": { "english": "Англійська", "ukrainian": "Українська", "spanish": "Іспанська" },
+    "mode": { "self_learning": "Самостійне навчання", "with_teacher": "Навчання з викладачем" },
+    "courseType": { "profession": "Професія", "qualification": "Підвищення кваліфікації", "knowledge": "Розширення знань" },
+    "formatType": { "self_paced": "У власному темпі", "scheduled": "За розкладом", "individual": "Індивідуальний коучинг", "group": "Груповий план" }
+  },
+  "SortDropdown": {
+    "sortBy": "Сортувати за",
+    "options": {
+      "popularity": "За популярністю",
+      "rating": "За рейтингом",
+      "novelty": "За новизною",
+      "cheapFirst": "Спочатку дешевші",
+      "expensiveFirst": "Спочатку дорожчі"
+    }
+  },
+  "CourseCurriculum": {
+    "heading": "Навчальна програма",
+    "summary": "{lessons, plural, one {# відеоурок} few {# відеоуроки} many {# відеоуроків} other {# відеоуроку}} | {modules, plural, one {# модуль} few {# модулі} many {# модулів} other {# модуля}}",
+    "noCurriculum": "Програму курсу ще не додано."
+  },
+  "CourseModuleItem": {
+    "modulePrefix": "Модуль {number}",
+    "lessonPrefix": "Урок {number}: {title}.",
+    "freePreview": "Безкоштовний перегляд",
+    "mandatory": "Обов'язково"
+  },
+  "CourseHero": {
+    "levelMeta": { "beginner": "Базова підготовка", "intermediate": "Середня підготовка", "advanced": "Поглиблена підготовка" },
+    "mode": { "with_teacher": "З викладачем", "self_learning": "У власному темпі" },
+    "ratingLabel": "{rating} (на основі {count}+ відгуків з усього світу)",
+    "noReviewsYet": "Ще немає відгуків",
+    "languageLabel": "Мова: {language}"
+  },
+  "CourseHeroCTA": {
+    "courseAvailable": "Курс уже доступний у розділі «Мої курси».",
+    "freeEnrollmentSuccess": "Запис завершено. Ви можете почати курс просто зараз.",
+    "studentOnly": "Записатися можуть лише студенти.",
+    "noPricingPlan": "Для цього курсу немає доступного тарифного плану.",
+    "continueLearning": "Продовжити навчання",
+    "processing": "Обробка...",
+    "enrollFree": "Записатися безкоштовно",
+    "choosePlan": "Обрати план",
+    "genericError": "Не вдалося обробити запит."
+  },
+  "CourseTeacher": {
+    "yearsExperience": "років у реальних проєктах",
+    "students": "студентів",
+    "partnerships": "партнерств із компаніями",
+    "teacherBadge": "Викладач"
+  },
+  "CourseFeedback": {
+    "badge": "Відгуки",
+    "viewMore": "Переглянути більше",
+    "noReviewsFull": "Ще немає відгуків. Будьте першими, хто поділиться враженнями."
+  },
+  "CourseReviewCard": {
+    "ratingLabel": "{rating} з 5 зірок"
+  },
+  "CoursePricingBlock": {
+    "noSchedules": "Наразі немає доступних розкладів.",
+    "group": "Група",
+    "selectSchedule": "Оберіть розклад",
+    "startsDate": "Початок {date}",
+    "spotsLeft": "{count, plural, one {залишилось # місце} few {залишилось # місця} many {залишилось # місць} other {залишилось # місця}}",
+    "loadingTimes": "Завантаження доступного часу…",
+    "noSessions": "Наразі немає доступних сесій.",
+    "availableSessions": "Доступні сесії ({count})",
+    "pickSessions": "Оберіть {min}–{max} щотижневих сесій ({selected}/{max} обрано)",
+    "selectScheduleFirst": "Спочатку оберіть розклад.",
+    "selectTimeSlots": "Оберіть {min}-{max} доступних часових слотів.",
+    "tuitionBadge": "Вартість навчання й способи оплати",
+    "tuitionIntro": "Оберіть формат, що найкраще відповідає вашим цілям і бюджету. Пропонуємо гнучкі плани оплати для вашої зручності.",
+    "formatLabel": { "self_paced": "У власному темпі", "scheduled": "За розкладом", "individual": "Індивідуальний коучинг", "group": "Групові курси" },
+    "formatBlurb": {
+      "self_paced": "Навчайтесь у власному темпі з довічним доступом до всього контенту",
+      "scheduled": "Дотримуйтесь структурованого розкладу з поступовим відкриттям контенту",
+      "individual": "Індивідуальний менторинг з програмою, адаптованою під ваш темп",
+      "group": "Навчайтесь і співпрацюйте з однодумцями в динамічному середовищі"
+    },
+    "fullPrice": "Повна вартість:",
+    "onePayment": "(одноразовий платіж)",
+    "installmentPlan": "План розстрочки:",
+    "monthlyPayments": "({count} щомісячних платежів)",
+    "noSpots": "Немає вільних місць",
+    "buyNow": "Купити зараз"
+  },
+  "CourseScheduleCard": {
+    "schedule": "Розклад",
+    "hoursPerWeek": "{hours} год/тиждень",
+    "hoursPerWeekRange": "{min}–{max} год/тиждень",
+    "groupOf": "Група з {count} осіб",
+    "group": "Група",
+    "monthsCount": "{count, plural, one {# місяць} few {# місяці} many {# місяців} other {# місяця}}",
+    "modulesLessons": "{modules, plural, one {# модуль} few {# модулі} many {# модулів} other {# модуля}} | {lessons, plural, one {# урок} few {# уроки} many {# уроків} other {# уроку}}",
+    "startDate": "Дата початку:"
+  },
+  "CourseReviewsView": {
+    "title": "Відгуки про курс «{course}»",
+    "noReviews": "Відгуків ще немає."
+  },
+  "Search": {
+    "resultsFor": "Результати для <highlight>«{query}»</highlight>",
+    "searchHeading": "Пошук",
+    "resultsCount": "{count, plural, one {# результат} few {# результати} many {# результатів} other {# результату}} серед курсів і статей.",
+    "enterSearchTerm": "Введіть пошуковий запит, щоб почати.",
+    "courses": "Курси",
+    "posts": "Статті",
+    "viewAllCourses": "Переглянути всі курси",
+    "viewAllPosts": "Переглянути всі статті",
+    "noCoursesFound": "Курсів не знайдено.",
+    "noPostsFound": "Статей не знайдено.",
+    "foundCount": "{count} знайдено"
+  },
+  "Auth": {
+    "common": {
+      "backToSignIn": "Повернутися до входу",
+      "signIn": "Увійти",
+      "checkingLink": "Перевірка посилання",
+      "pleaseWait": "Зачекайте...",
+      "somethingWrong": "Щось пішло не так",
+      "tryAgain": "Спробувати ще раз",
+      "saving": "Збереження",
+      "sending": "Надсилання",
+      "email": "Email",
+      "password": "Пароль",
+      "confirmPassword": "Підтвердити пароль",
+      "sendAgain": "Надіслати ще раз"
+    },
+    "field": {
+      "hidePassword": "Приховати пароль",
+      "showPassword": "Показати пароль"
+    },
+    "validation": {
+      "enterFirstName": "Введіть ім'я",
+      "enterLastName": "Введіть прізвище",
+      "enterEmail": "Введіть email",
+      "enterValidEmail": "Введіть коректний email",
+      "enterDateOfBirth": "Введіть дату народження",
+      "enterValidDateOfBirth": "Введіть коректну дату народження",
+      "enterPassword": "Введіть пароль",
+      "passwordMinLength": "Пароль має містити щонайменше 8 символів",
+      "passwordLowercase": "Пароль має містити хоча б одну малу літеру",
+      "passwordUppercase": "Пароль має містити хоча б одну велику літеру",
+      "passwordNumber": "Пароль має містити хоча б одну цифру",
+      "confirmPasswordRequired": "Підтвердіть пароль",
+      "passwordsDoNotMatch": "Паролі не збігаються"
+    },
+    "genericFallbackError": "Щось пішло не так. Спробуйте ще раз.",
+    "login": {
+      "title": "Увійти",
+      "emailLabel": "Email",
+      "passwordLabel": "Пароль",
+      "signingIn": "Вхід...",
+      "newHere": "Вперше тут?",
+      "signUpNow": "Зареєструватися",
+      "rememberMe": "Запам'ятати мене",
+      "resetPassword": "Скинути пароль",
+      "fallbackError": "Не вдалося увійти. Спробуйте ще раз."
+    },
+    "register": {
+      "title": "Реєстрація",
+      "firstNameLabel": "Ім'я",
+      "lastNameLabel": "Прізвище",
+      "dateOfBirthLabel": "Дата народження",
+      "emailLabel": "Email",
+      "passwordLabel": "Пароль",
+      "repeatPasswordLabel": "Повторіть пароль",
+      "textPlaceholder": "Текст",
+      "continue": "Продовжити",
+      "creating": "Створення...",
+      "signUp": "Зареєструватися",
+      "back": "Назад",
+      "alreadyHaveAccount": "Уже маєте акаунт?",
+      "signInNow": "Увійти",
+      "wantToTeach": "Хочете викладати на платформі?",
+      "applyAsTeacher": "Подати заявку викладача",
+      "fallbackError": "Не вдалося створити акаунт. Спробуйте ще раз."
+    },
+    "resendEmail": {
+      "defaultSubmitLabel": "Надіслати",
+      "defaultSuccessMessage": "Лист надіслано. Перевірте вхідні або папку спам.",
+      "genericError": "Щось пішло не так."
+    },
+    "forgotPassword": {
+      "checkEmailTitle": "Перевірте пошту",
+      "checkEmailDescription": "Якщо акаунт із <bold>{email}</bold> існує, ми надіслали посилання для скидання пароля.",
+      "resetTitle": "Скинути пароль",
+      "resetDescription": "Введіть email, пов'язаний з вашим акаунтом, і ми надішлемо посилання для скидання.",
+      "sendLink": "Надіслати посилання"
+    },
+    "resetPassword": {
+      "checkingDescription": "Перевіряємо ваше посилання для скидання пароля.",
+      "invalidTitle": "Недійсне посилання",
+      "sendNewLink": "Надіслати нове посилання",
+      "resendSuccessMessage": "Якщо такий акаунт існує, ми надіслали новий лист. Перевірте вхідні або папку спам.",
+      "successTitle": "Пароль оновлено",
+      "successDescription": "Ваш пароль успішно змінено.",
+      "newPasswordTitle": "Новий пароль",
+      "newPasswordDescription": "Оберіть пароль щонайменше з 8 символів, однією великою літерою, однією малою літерою та цифрою.",
+      "newPasswordLabel": "Новий пароль",
+      "passwordPlaceholder": "Щонайменше 8 символів",
+      "repeatPasswordPlaceholder": "Повторіть пароль",
+      "savePassword": "Зберегти пароль",
+      "fallbackError": "Не вдалося оновити пароль. Спробуйте ще раз.",
+      "invalidLinkMessage": "Це посилання недійсне або його термін дії минув."
+    },
+    "activateTeacher": {
+      "checkingDescription": "Перевіряємо ваше запрошення.",
+      "invalidTitle": "Недійсне посилання",
+      "resendInvitation": "Надіслати запрошення повторно",
+      "resendSuccessMessage": "Якщо для цього email є активне запрошення, ми надіслали його повторно. Перевірте вхідні або папку спам.",
+      "successTitle": "Акаунт активовано",
+      "successDescription": "Вашу пошту підтверджено, а пароль встановлено. Тепер ви можете увійти як викладач.",
+      "setPasswordTitle": "Встановіть пароль",
+      "setPasswordDescription": "Оберіть пароль щонайменше з 8 символів, однією великою літерою, однією малою літерою та цифрою. Це також підтвердить вашу пошту.",
+      "passwordPlaceholder": "Щонайменше 8 символів",
+      "repeatPasswordPlaceholder": "Повторіть пароль",
+      "activateAccount": "Активувати акаунт",
+      "fallbackError": "Не вдалося активувати акаунт. Спробуйте ще раз.",
+      "invalidLinkMessage": "Це запрошення недійсне або його термін дії минув."
+    },
+    "checkEmail": {
+      "title": "Перевірте пошту",
+      "description": "Ми надіслали посилання для підтвердження на <bold>{email}</bold>.",
+      "yourEmailFallback": "вашу пошту",
+      "resentMessage": "Лист підтвердження надіслано повторно. Перевірте вхідні.",
+      "genericError": "Щось пішло не так. Спробуйте пізніше.",
+      "alreadyVerified": "Уже підтвердили?",
+      "signIn": "Увійти"
+    },
+    "checkApplication": {
+      "title": "Заявку надіслано",
+      "description": "Дякуємо! Вашу заявку надіслано на розгляд. Ми напишемо на <bold>{email}</bold>, щойно модератор ухвалить рішення.",
+      "youFallback": "вас"
+    },
+    "verifyEmail": {
+      "checkingDescription": "Підтверджуємо вашу email-адресу.",
+      "successTitle": "Пошту підтверджено",
+      "successFallbackDescription": "Вашу пошту успішно підтверджено.",
+      "redirecting": "Перенаправлення на сторінку входу...",
+      "failedTitle": "Не вдалося підтвердити",
+      "sendVerification": "Надіслати підтвердження",
+      "invalidLinkMessage": "Посилання недійсне або його термін дії минув."
+    }
+  },
+  "ComingSoon": {
+    "badge": "Скоро",
+    "defaultPageName": "Ця сторінка",
+    "description": "Ця сторінка ще в розробці. Ми працюємо над нею!"
+  },
+  "Forbidden": {
+    "title": "Доступ заборонено",
+    "description": "У вас немає прав для перегляду цієї сторінки."
+  },
+  "CertificateVerify": {
+    "tooManyChecks": "Забагато перевірок з цієї мережі. Зачекайте кілька хвилин і спробуйте ще раз.",
+    "genericError": "Наразі не вдалося перевірити цей сертифікат.",
+    "title": "Перевірити сертифікат",
+    "description": "Введіть серійний номер, надрукований на сертифікаті Nexo4you, щоб підтвердити його справжність і чинність.",
+    "serialLabel": "Серійний номер сертифіката",
+    "checking": "Перевірка…",
+    "verify": "Перевірити",
+    "notFoundTitle": "Сертифікат не знайдено",
+    "notFoundBody": "Жоден сертифікат не відповідає цьому серійному номеру. Перевірте на помилки — серійні номери видає лише Nexo4you.",
+    "errorTitle": "Наразі не вдалося перевірити",
+    "revokedTitle": "Цей сертифікат більше не дійсний",
+    "validTitle": "Цей сертифікат справжній",
+    "issuedOn": "Видано {date}.",
+    "issuedAndRevokedOn": "Видано {issuedDate}, відкликано {revokedDate}.",
+    "issuedAndRevoked": "Видано {issuedDate}, відкликано.",
+    "student": "Студент",
+    "course": "Курс",
+    "serial": "Серійний номер",
+    "replacedBy": "Замінено на"
+  },
+  "TeacherApplication": {
+    "title": "Подати заявку викладача",
+    "firstNameLabel": "Ім'я",
+    "lastNameLabel": "Прізвище",
+    "dateOfBirthLabel": "Дата народження",
+    "emailLabel": "Email",
+    "phoneNumberLabel": "Номер телефону",
+    "fieldOfStudyLabel": "Галузь навчання",
+    "yearsExperienceLabel": "Років досвіду (необов'язково)",
+    "workExperienceLabel": "Досвід роботи",
+    "bioLabel": "Про себе",
+    "directionsLabel": "Напрямки, які хочете викладати",
+    "motivationLabel": "Що ви хотіли б викладати і чому саме ви підходите для цього?",
+    "linkedinLabel": "LinkedIn (необов'язково)",
+    "instagramLabel": "Instagram (необов'язково)",
+    "behanceLabel": "Behance (необов'язково)",
+    "checkingEmail": "Перевірка email…",
+    "submitting": "Надсилання",
+    "submitApplication": "Надіслати заявку",
+    "fallbackError": "Не вдалося надіслати заявку. Спробуйте ще раз.",
+    "emailUnavailable": "Цей email не можна використати.",
+    "validation": {
+      "enterPhoneNumber": "Введіть номер телефону, щоб модератор міг з вами зв'язатися",
+      "enterFieldOfStudy": "Введіть галузь навчання",
+      "describeExperience": "Опишіть свій досвід роботи",
+      "writeShortBio": "Напишіть коротко про себе",
+      "enterValidYears": "Введіть коректну кількість років",
+      "tellUsWhyTeach": "Розкажіть, чому хочете викладати на платформі",
+      "enterValidUrl": "Введіть коректний URL"
+    }
+  }
+}

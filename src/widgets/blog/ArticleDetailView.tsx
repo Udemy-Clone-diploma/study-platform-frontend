@@ -98,10 +98,16 @@ export function ArticleDetailView({ article, categories, currentUserId, currentU
                 {article.category.name}
               </span>
             )}
-            <h1 style={{ fontFamily: "var(--font-base)", fontWeight: 400, fontSize: "clamp(28px, 3.5vw, 48px)", lineHeight: 1.2, color: "var(--color-text-primary)", margin: 0, overflowWrap: "break-word" }}>
+            <h1
+              className="text-[28px] md:text-[36px] lg:text-[clamp(28px,3.5vw,48px)]"
+              style={{ fontFamily: "var(--font-base)", fontWeight: 400, lineHeight: 1.2, color: "var(--color-text-primary)", margin: 0, overflowWrap: "break-word" }}
+            >
               {renderHighlightedTitle(article.title)}
             </h1>
-            <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(15px, 1.4vw, 20px)", color: "var(--color-text-secondary)", margin: 0, overflowWrap: "break-word" }}>
+            <p
+              className="text-[15px] md:text-[17px] lg:text-[clamp(15px,1.4vw,20px)]"
+              style={{ fontFamily: "var(--font-base)", color: "var(--color-text-secondary)", margin: 0, overflowWrap: "break-word" }}
+            >
               {article.subtitle}
             </p>
           </div>
@@ -149,7 +155,8 @@ export function ArticleDetailView({ article, categories, currentUserId, currentU
         )}
 
         <div
-          style={{ fontFamily: "var(--font-base)", fontSize: "clamp(15px, 1.1vw, 17px)", lineHeight: 1.7, color: "var(--color-text-primary)", overflowWrap: "break-word" }}
+          className="text-[15px] md:text-[16px] lg:text-[clamp(15px,1.1vw,17px)]"
+          style={{ fontFamily: "var(--font-base)", lineHeight: 1.7, color: "var(--color-text-primary)", overflowWrap: "break-word" }}
           dangerouslySetInnerHTML={{ __html: sanitizeCourseHtml(article.body_html) }}
         />
       </SectionContainer>

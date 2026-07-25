@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { Pencil, Trash2 } from "lucide-react";
 import type { Category } from "@/entities/course";
 import { DataTable, type DataTableColumn } from "@/shared/ui/DataTable";
@@ -40,7 +40,7 @@ export function CategoriesTable({
       key: "name",
       label: "Category",
       flex: 1.8,
-      sortKey: "name",
+      sortKey: "name_en",
       render: (row) => (
         <div className="flex min-w-0 items-center" style={{ gap: "clamp(8px, 0.83vw, 12px)" }}>
           <CategoryTile name={row.name} slug={row.slug} />

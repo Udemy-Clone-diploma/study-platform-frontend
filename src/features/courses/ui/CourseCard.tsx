@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { formatPrice, type CourseListItem } from "@/entities/course";
 import { Stars } from "./Stars";
 import { WishlistButton } from "./WishlistButton";
@@ -38,6 +39,7 @@ export function CourseCard({ course, isWishlisted = false, href, onClick }: Prop
   const theme = LEVEL_THEME[course.level] ?? LEVEL_THEME.beginner;
   const [imageBroken, setImageBroken] = useState(false);
   const showImage = course.image && !imageBroken;
+  const t = useTranslations("CourseCard");
 
   const sharedStyle = {
     "--card-bg": theme.gradient,
@@ -50,12 +52,12 @@ export function CourseCard({ course, isWishlisted = false, href, onClick }: Prop
   const body = (
     <>
       <div className="flex shrink-0 items-start justify-between pr-10">
-        <span className="text-2xl font-medium leading-tight text-(--color-text-primary)">
-          {formatPrice(course)}
+        <span className="text-[clamp(18px,calc(16.54px+0.39vw),24px)] font-medium leading-tight text-(--color-text-primary)">
+          {formatPrice(course, t("free"))}
         </span>
       </div>
 
-      <div className="relative my-3 h-[136px] w-full shrink-0 overflow-hidden rounded-xl">
+      <div className="relative my-3 h-[clamp(100px,calc(91.26px+2.33vw),136px)] w-full shrink-0 overflow-hidden rounded-xl">
         {showImage ? (
           <Image
             src={course.image as string}
@@ -70,13 +72,13 @@ export function CourseCard({ course, isWishlisted = false, href, onClick }: Prop
       </div>
 
       <div className="mt-auto flex min-h-0 flex-col gap-1.5">
-        <h3 className="line-clamp-2 text-xl font-bold leading-tight uppercase text-(--color-text-primary)">
+        <h3 className="line-clamp-2 shrink-0 text-[clamp(16px,calc(15.03px+0.26vw),20px)] font-bold leading-tight uppercase text-(--color-text-primary)">
           {course.title}
         </h3>
 
         <div className="flex min-w-0 items-center">
           <span
-            className="inline-flex max-w-full items-center truncate rounded-md px-2 py-px font-(family-name:--font-accent) text-xs uppercase whitespace-nowrap sm:text-sm"
+            className="inline-flex max-w-full items-center truncate rounded-md px-2 py-px font-(family-name:--font-accent) text-[clamp(12px,calc(11.51px+0.13vw),14px)] uppercase whitespace-nowrap"
             style={{ background: theme.badgeBg, color: theme.badgeText }}
           >
             {course.teacher_name}
@@ -84,8 +86,8 @@ export function CourseCard({ course, isWishlisted = false, href, onClick }: Prop
         </div>
 
         <div className="mt-1 flex items-center justify-between gap-2">
-          <span className="text-base text-(--color-text-primary)">
-            {course.students_count.toLocaleString()} students
+          <span className="text-[clamp(14px,calc(13.51px+0.13vw),16px)] text-(--color-text-primary)">
+            {t("students", { count: course.students_count.toLocaleString() })}
           </span>
           <Stars rating={course.rating_avg} />
         </div>
@@ -94,7 +96,7 @@ export function CourseCard({ course, isWishlisted = false, href, onClick }: Prop
   );
 
   return (
-    <div className="relative h-[362px] w-[456px] shrink-0">
+    <div className="relative h-[clamp(300px,calc(284.95px+4.01vw),362px)] w-[clamp(300px,calc(262.14px+10.1vw),456px)] shrink-0">
       {onClick ? (
         <button type="button" onClick={onClick} className={`${sharedClass} text-left`} style={sharedStyle}>
           {body}

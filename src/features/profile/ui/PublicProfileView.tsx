@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { Star, X } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { createDirectChat } from "@/entities/chat";
 import type { PublicUserProfile, UserRole } from "@/entities/user";
 import { UserIdentityCard, type UserIdentitySocial } from "@/shared/ui/UserIdentityCard";

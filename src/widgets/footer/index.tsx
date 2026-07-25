@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { getTranslations } from "next-intl/server";
 
 const SOCIAL = [
     { name: "Instagram", src: "/social-media-icons/instagrm.png", href: "https://instagram.com" },
@@ -8,17 +9,16 @@ const SOCIAL = [
     { name: "Facebook",  src: "/social-media-icons/Facebook.png",  href: "https://facebook.com" },
 ];
 
-const LINKS_LEFT  = ["Business", "Languages", "Personal development"];
-const LINKS_RIGHT = ["Design", "Programming", "Marketing"];
+export async function Footer() {
+    const t = await getTranslations("Footer");
+    const LINKS_LEFT = [t("business"), t("languages"), t("personalDevelopment")];
+    const LINKS_RIGHT = [t("design"), t("programming"), t("marketing")];
 
-export function Footer() {
     return (
         <footer
             className="w-full shrink-0"
             style={{
-                backgroundImage: "url('/backgrounds/footer-bg-image.png')",
-                backgroundSize: "cover",
-                backgroundPosition: "center",
+                background: "var(--gradient-brand)",
                 borderRadius: "20px 20px 0 0",
                 overflowX: "clip",
             }}

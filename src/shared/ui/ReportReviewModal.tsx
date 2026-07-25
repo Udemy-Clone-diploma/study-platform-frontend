@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { ModalShell } from "./ModalShell";
 import { AccentButton } from "./AccentButton";
 import { WhiteButton } from "./WhiteButton";
@@ -17,6 +18,8 @@ export function ReportReviewModal({ onClose, onSubmit }: Props) {
   const [reason, setReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const t = useTranslations("ReportReviewModal");
+  const tCommon = useTranslations("Common");
 
   async function handleSubmit() {
     if (!reason.trim()) return;
@@ -26,7 +29,7 @@ export function ReportReviewModal({ onClose, onSubmit }: Props) {
       await onSubmit(reason.trim());
       onClose();
     } catch (err: unknown) {
-      setError((err as Partial<ApiError>).message ?? "Failed to report. Please try again.");
+      setError((err as Partial<ApiError>).message ?? t("genericError"));
     } finally {
       setSubmitting(false);
     }
@@ -35,7 +38,7 @@ export function ReportReviewModal({ onClose, onSubmit }: Props) {
   return (
     <ModalShell
       onClose={onClose}
-      title="Report review"
+      title={t("title")}
       width="clamp(320px, 30vw, 460px)"
       padding="clamp(20px, 2.08vw, 30px) clamp(20px, 2.08vw, 32px)"
       shadow="var(--shadow-modal)"
@@ -44,13 +47,13 @@ export function ReportReviewModal({ onClose, onSubmit }: Props) {
         className="font-(family-name:--font-base) font-normal text-(--color-text-secondary)"
         style={{ fontSize: "clamp(13px, 0.97vw, 16px)", lineHeight: 1.5, margin: "0 0 clamp(12px, 1vw, 16px)" }}
       >
-        Let us know what's wrong with this review.
+        {t("description")}
       </p>
 
       <textarea
         value={reason}
         onChange={(e) => setReason(e.target.value)}
-        placeholder="Reason for reporting…"
+        placeholder={t("placeholder")}
         rows={4}
         className="w-full resize-none rounded-lg border border-(--color-border-light) font-(family-name:--font-base) text-(--color-text-primary) focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-blue)"
         style={{ padding: "10px 12px", fontSize: "clamp(13px, 0.97vw, 15px)" }}
@@ -74,7 +77,7 @@ export function ReportReviewModal({ onClose, onSubmit }: Props) {
             padding: "0 clamp(16px, 1.25vw, 24px)",
           }}
         >
-          Cancel
+          {tCommon("cancel")}
         </WhiteButton>
         <AccentButton
           type="button"
@@ -83,7 +86,7 @@ export function ReportReviewModal({ onClose, onSubmit }: Props) {
           onClick={handleSubmit}
           style={{ fontSize: "clamp(12px, 0.78vw, 15px)", height: "clamp(34px, 2.08vw, 40px)" }}
         >
-          {submitting ? "…" : "Submit report"}
+          {submitting ? "…" : t("submit")}
         </AccentButton>
       </div>
     </ModalShell>

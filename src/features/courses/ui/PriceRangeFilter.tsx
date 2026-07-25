@@ -1,7 +1,9 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
 
 type Props = {
   initialMin?: string;
@@ -20,6 +22,7 @@ export function PriceRangeFilter({ initialMin = "", initialMax = "" }: Props) {
   const searchParams = useSearchParams();
   const [minValue, setMinValue] = useState(initialMin);
   const [maxValue, setMaxValue] = useState(initialMax);
+  const t = useTranslations("CatalogFilters");
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -50,8 +53,8 @@ export function PriceRangeFilter({ initialMin = "", initialMax = "" }: Props) {
           inputMode="decimal"
           value={minValue}
           onChange={(event) => setMinValue(event.target.value)}
-          placeholder="Min"
-          aria-label="Minimum price"
+          placeholder={t("min")}
+          aria-label={t("minimumPrice")}
           className="h-8 w-full rounded-[4px] border border-(--color-brand-lavender) bg-white px-2 text-[0.73rem] text-(--color-text-primary) outline-none focus:border-(--color-blue)"
         />
         <span aria-hidden="true" className="text-[0.73rem] text-(--color-text-secondary)">
@@ -64,8 +67,8 @@ export function PriceRangeFilter({ initialMin = "", initialMax = "" }: Props) {
           inputMode="decimal"
           value={maxValue}
           onChange={(event) => setMaxValue(event.target.value)}
-          placeholder="Max"
-          aria-label="Maximum price"
+          placeholder={t("max")}
+          aria-label={t("maximumPrice")}
           className="h-8 w-full rounded-[4px] border border-(--color-brand-lavender) bg-white px-2 text-[0.73rem] text-(--color-text-primary) outline-none focus:border-(--color-blue)"
         />
       </div>
@@ -73,7 +76,7 @@ export function PriceRangeFilter({ initialMin = "", initialMax = "" }: Props) {
         type="submit"
         className="h-8 w-full rounded-[4px] bg-(--color-text-primary) text-[0.73rem] font-medium text-white transition hover:bg-black/85"
       >
-        Apply
+        {t("apply")}
       </button>
     </form>
   );

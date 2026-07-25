@@ -1,5 +1,5 @@
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import type { ArticleListItem } from "@/entities/blog";
 
 type Props = { article: ArticleListItem };
@@ -9,8 +9,8 @@ export function StudentStoryCard({ article }: Props) {
         <div
             style={{
                 position: "relative",
-                width: "23.96vw",
-                height: "27.08vw",
+                width: "clamp(280px, 23.96vw, 345px)",
+                height: "clamp(316px, 27.08vw, 390px)",
                 borderRadius: "1.25vw",
                 overflow: "hidden",
                 flexShrink: 0,
@@ -85,11 +85,10 @@ export function StudentStoryCard({ article }: Props) {
                 }}
             >
                 <span
+                    className="text-[15px] leading-[19px] lg:text-[1.04vw] lg:leading-[1.3vw]"
                     style={{
                         fontFamily: "var(--font-base)",
                         fontWeight: 600,
-                        fontSize: "1.04vw",
-                        lineHeight: "1.3vw",
                         color: "var(--color-text-primary)",
                         display: "-webkit-box",
                         WebkitLineClamp: 2,
@@ -100,11 +99,10 @@ export function StudentStoryCard({ article }: Props) {
                     {article.title}
                 </span>
                 <span
+                    className="text-[12px] leading-[15px] lg:text-[0.73vw] lg:leading-[0.9375vw]"
                     style={{
                         fontFamily: "var(--font-base)",
                         fontWeight: 400,
-                        fontSize: "0.73vw",
-                        lineHeight: "0.9375vw",
                         color: "var(--color-text-primary)",
                         display: "-webkit-box",
                         WebkitLineClamp: 2,

@@ -1,9 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import type { ArticleListItem } from "@/entities/blog";
 import type { UserRole } from "@/entities/user";
+import { fluid3 } from "@/shared/lib/fluidScale";
 import { ArticleCardMenu, type ArticleMenuAction } from "./ArticleCardMenu";
 import { ARTICLE_STATUS_COLORS, ARTICLE_STATUS_LABELS } from "../model/articleStatus";
 
@@ -20,7 +21,8 @@ type Props = {
 };
 
 /** Square blog article card — cover image, gradient info panel, and an arrow link through to
- * the article page. Always a fixed 460x520 box regardless of the cover photo. */
+ * the article page. Fluidly sized between 280x316 (phone) and 460x520 (desktop), regardless
+ * of the cover photo. */
 export function ArticleCard({ article, currentUserId, currentUserRole, onAction }: Props) {
   const dateLabel = new Date(article.published_at ?? article.created_at).toLocaleDateString();
   const canManage = !!onAction;
@@ -32,8 +34,8 @@ export function ArticleCard({ article, currentUserId, currentUserRole, onAction 
     <div
       style={{
         position: "relative",
-        width: 460,
-        height: 520,
+        width: fluid3(375, 280, 1024, 400, 1920, 460),
+        height: fluid3(375, 316, 1024, 452, 1920, 520),
         borderRadius: 24,
         overflow: "hidden",
         flexShrink: 0,
@@ -131,10 +133,10 @@ export function ArticleCard({ article, currentUserId, currentUserRole, onAction 
           ) : (
             <div style={{ width: 22, height: 22, borderRadius: "50%", background: "var(--color-bg)" }} />
           )}
-          <span style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: 13, color: "var(--color-text-primary)" }}>
+          <span style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(12px, 1.27vw, 13px)", color: "var(--color-text-primary)" }}>
             {article.author.name}
           </span>
-          <span style={{ fontFamily: "var(--font-base)", fontSize: 12, color: "var(--color-text-primary)", opacity: 0.7 }}>
+          <span style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 1.17vw, 12px)", color: "var(--color-text-primary)", opacity: 0.7 }}>
             {dateLabel}
           </span>
         </div>
@@ -143,8 +145,8 @@ export function ArticleCard({ article, currentUserId, currentUserRole, onAction 
           style={{
             fontFamily: "var(--font-base)",
             fontWeight: 600,
-            fontSize: 20,
-            lineHeight: "25px",
+            fontSize: "clamp(15px, 1.953vw, 20px)",
+            lineHeight: 1.25,
             color: "var(--color-text-primary)",
             overflowWrap: "break-word",
           }}
@@ -155,8 +157,8 @@ export function ArticleCard({ article, currentUserId, currentUserRole, onAction 
           style={{
             fontFamily: "var(--font-base)",
             fontWeight: 400,
-            fontSize: 14,
-            lineHeight: "18px",
+            fontSize: "clamp(12px, 1.37vw, 14px)",
+            lineHeight: 1.3,
             color: "var(--color-text-primary)",
             display: "-webkit-box",
             WebkitLineClamp: 2,

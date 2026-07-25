@@ -17,8 +17,8 @@ export function CategoryCard({ card }: Props) {
                 background: "var(--color-bg)",
                 boxShadow: card.shadowColor,
                 borderRadius: "1.04vw",
-                width: "17.71vw",
-                height: "13.54vw",
+                width: "clamp(330px, 17.71vw, 340px)",
+                height: "clamp(210px, 13.54vw, 260px)",
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "center",
@@ -31,11 +31,11 @@ export function CategoryCard({ card }: Props) {
                 style={{
                     display: "flex",
                     flexDirection: "column",
-                    gap: "2.08vw",
-                    width: "13.9vw",
+                    gap: "clamp(16px, 2.08vw, 30px)",
+                    width: "clamp(260px, 13.9vw, 267px)",
                 }}
             >
-                <div style={{ width: "2.08vw", height: "2.08vw", position: "relative" }}>
+                <div style={{ width: "clamp(28px, 2.08vw, 40px)", height: "clamp(28px, 2.08vw, 40px)", position: "relative" }}>
                     <Image
                         src={card.iconSrc}
                         alt=""

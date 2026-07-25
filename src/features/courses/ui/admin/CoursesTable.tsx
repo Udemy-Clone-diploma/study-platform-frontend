@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { Ban, ExternalLink, LockOpen, Trash2 } from "lucide-react";
 import type { CourseListItem } from "@/entities/course";
 import { DataTable, type DataTableColumn } from "@/shared/ui/DataTable";

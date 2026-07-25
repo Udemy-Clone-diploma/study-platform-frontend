@@ -1,12 +1,15 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
 import { useState } from "react";
 
 export function SearchBar() {
     const router = useRouter();
     const [query, setQuery] = useState("");
+    const t = useTranslations("Common");
+    const tSearchBar = useTranslations("SearchBar");
 
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -30,7 +33,7 @@ export function SearchBar() {
         >
             <button
                 type="submit"
-                aria-label="Search"
+                aria-label={t("search")}
                 style={{ width: 32, height: 32, display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0, background: "transparent", border: "none", cursor: "pointer", padding: 0 }}
             >
                 <Image src="/icons/search.png" alt="" width={24} height={24} />
@@ -39,7 +42,7 @@ export function SearchBar() {
                 type="search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search courses & articles"
+                placeholder={tSearchBar("placeholder")}
                 className="flex-1 min-w-0 bg-transparent outline-none"
                 style={{
                     fontFamily: "var(--font-base)",

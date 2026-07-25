@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { EyeOff } from "lucide-react";
 import type { CourseLevel } from "@/entities/course";
 import { CourseCardMenu, type MenuAction, type TeacherCourseStatus } from "./CourseCardMenu";

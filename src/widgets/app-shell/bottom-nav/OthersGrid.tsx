@@ -1,5 +1,5 @@
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import type { SidebarItem } from "@/features/app-shell";
 import { SidebarIcon } from "@/shared/ui/icons/SidebarIcons";
 

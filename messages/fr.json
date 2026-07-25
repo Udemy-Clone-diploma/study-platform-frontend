@@ -1,0 +1,477 @@
+{
+  "Common": {
+    "home": "Accueil",
+    "blog": "Blog",
+    "catalog": "Catalogue",
+    "allCourses": "Tous les cours",
+    "myCourses": "Mes cours",
+    "profile": "Profil",
+    "myProfile": "Mon profil",
+    "myOffice": "Mon espace",
+    "logout": "Déconnexion",
+    "getStarted": "Commencer",
+    "search": "Rechercher",
+    "user": "Utilisateur",
+    "language": "Langue",
+    "cancel": "Annuler",
+    "categories": "Catégories",
+    "all": "Tout",
+    "backToHome": "Retour à l'accueil"
+  },
+  "Header": {
+    "openMenu": "Ouvrir le menu",
+    "closeMenu": "Fermer le menu",
+    "closeSearch": "Fermer la recherche"
+  },
+  "NotificationBell": {
+    "notifications": "Notifications",
+    "title": "Notification",
+    "closeNotifications": "Fermer les notifications",
+    "empty": "Vous n'avez aucun nouveau message",
+    "seeAll": "Tout voir"
+  },
+  "Footer": {
+    "business": "Entreprise",
+    "languages": "Langues",
+    "personalDevelopment": "Développement personnel",
+    "design": "Design",
+    "programming": "Programmation",
+    "marketing": "Marketing"
+  },
+  "SearchBar": {
+    "placeholder": "Rechercher des cours et des articles"
+  },
+  "LanguageSwitcher": {
+    "selectLanguage": "Choisir la langue",
+    "chooseLanguage": "Choisissez une langue"
+  },
+  "HomeHero": {
+    "tags": ["Compétences", "Réseau", "Croissance"],
+    "title": "L'éducation nouvelle génération",
+    "subtitle": "Une plateforme où le savoir se transforme en résultats concrets. Simple, flexible et efficace.",
+    "rating": "Note de 4,9 pour plus de 10 000 étudiants",
+    "continueLearning": "Continuer l'apprentissage",
+    "verifiedByPartners": "Vérifié par nos partenaires"
+  },
+  "HomeCategories": {
+    "badge": "Catégories",
+    "heading": "Choisissez votre domaine de développement",
+    "description": "Découvrez plus de 6 catégories essentielles conçues pour votre carrière et votre épanouissement personnel.",
+    "toCatalog": "Voir le catalogue",
+    "cards": {
+      "programming": { "title": "Programmation, des bases à l'expertise", "description": "Maîtrisez les langages de programmation tendance et créez vos propres logiciels." },
+      "design": { "title": "Design et expérience utilisateur", "description": "Apprenez à créer des interfaces, des graphismes et des univers visuels." },
+      "marketing": { "title": "Stratégie marketing", "description": "Découvrez comment promouvoir des marques et attirer des milliers de clients." },
+      "business": { "title": "Entreprise", "description": "Acquérez une expertise en gestion, finance et optimisation des processus." },
+      "languages": { "title": "Langues", "description": "Apprenez des langues étrangères pour votre carrière, vos voyages et vos échanges." },
+      "personalDevelopment": { "title": "Développement personnel", "description": "Améliorez votre efficacité personnelle, votre gestion du temps et votre leadership." }
+    }
+  },
+  "HomeBenefits": {
+    "tags": ["Progresser", "Pratique", "Flow", "Validé", "Pro"],
+    "heading": "Apprendre. Échanger. Grandir.",
+    "description": "Là où le savoir rencontre la carrière. Choisissez votre rythme : apprentissage autonome ou sessions en direct avec des mentors. Certificats, tests et calendrier intelligent — tout pour progresser, au même endroit.",
+    "cards": {
+      "accessibility": { "title": "Accessibilité", "description": "Une éducation adaptée à votre budget. Payez en totalité ou choisissez un plan d'échelonnement pratique. Suivez tout votre calendrier de paiement directement depuis votre tableau de bord." },
+      "connect": { "title": "Échanger", "description": "Bien plus que des vidéos. Discutez en privé ou en groupe avec vos pairs et vos mentors. Posez vos questions sur n'importe quelle leçon en un clic." },
+      "result": { "title": "Résultat", "description": "Votre compétence est votre monnaie. Passez des tests, obtenez des scores et téléchargez votre certificat PDF officiel. Construisez votre carrière avec une expertise vérifiée." }
+    }
+  },
+  "HomeNewCourses": { "heading": "Nouveaux cours" },
+  "HomePopularCourses": { "heading": "Cours populaires" },
+  "HomeReviews": {
+    "badge": "AVIS",
+    "heading": "Plébiscité par plus de 10 000 étudiants dans le monde",
+    "description": "De vraies personnes. De vrais avis. Sans filtre. Découvrez pourquoi des apprenants de plus de 50 pays choisissent notre plateforme chaque jour.",
+    "studiedCourse": "A suivi {course}"
+  },
+  "HomeMentors": {
+    "badge": "EXPERTISE",
+    "heading": "Apprenez auprès des meilleurs",
+    "description": "Nos mentors sont des professionnels du secteur prêts à vous accompagner du niveau débutant à expert grâce à une expérience pratique.",
+    "mentorsOfTheYear": "Mentors de l'année",
+    "features": {
+      "experience": { "title": "Expérience", "body": "5+ ans sur des projets concrets." },
+      "support": { "title": "Accompagnement", "body": "Accès direct au chat et retours sur vos devoirs." },
+      "practice": { "title": "Pratique", "body": "Uniquement des cas et outils actuels." }
+    }
+  },
+  "CourseCard": {
+    "free": "Gratuit",
+    "students": "{count} étudiants",
+    "addToWishlist": "Ajouter aux favoris",
+    "removeFromWishlist": "Retirer des favoris"
+  },
+  "StudentReviewCard": {
+    "reportReview": "Signaler l'avis"
+  },
+  "ReportReviewModal": {
+    "title": "Signaler l'avis",
+    "description": "Indiquez-nous ce qui ne va pas avec cet avis.",
+    "placeholder": "Motif du signalement…",
+    "genericError": "Échec du signalement. Veuillez réessayer.",
+    "submit": "Envoyer le signalement"
+  },
+  "BlogHero": {
+    "title": "Là où la <highlight>créativité</highlight> rencontre le savoir.",
+    "description": "Découvrez des articles, des idées et des histoires conçus pour inspirer l'apprentissage, l'innovation et l'épanouissement personnel.",
+    "addArticle": "Ajouter un article",
+    "manageArticles": "Gérer les articles",
+    "noArticlesFound": "Aucun article trouvé."
+  },
+  "BlogSearch": {
+    "searchArticles": "Rechercher des articles",
+    "clearSearch": "Effacer la recherche"
+  },
+  "Pagination": {
+    "pagination": "Pagination",
+    "previousPage": "Page précédente",
+    "nextPage": "Page suivante"
+  },
+  "Catalog": {
+    "errorLoadCourses": "Impossible de charger les cours.",
+    "allFilters": "Tous les filtres",
+    "coursesUnavailable": "Les cours sont indisponibles",
+    "noCoursesFound": "Aucun cours trouvé",
+    "tryAnotherFilters": "Essayez un autre ensemble de filtres.",
+    "resetFilters": "Réinitialiser les filtres"
+  },
+  "CatalogHero": {
+    "title": "<highlight>Développez votre expertise</highlight> grâce à des cours de classe mondiale conçus pour votre prochaine évolution de carrière."
+  },
+  "CourseSearch": {
+    "searchCourses": "Rechercher des cours",
+    "clearSearch": "Effacer la recherche"
+  },
+  "CategoryFilter": {
+    "noCategoriesYet": "Aucune catégorie pour l'instant."
+  },
+  "CatalogFilters": {
+    "courseRating": "Note du cours",
+    "inTheGroup": "En groupe",
+    "fiveStarsOnly": "5 étoiles uniquement",
+    "andMore": "{rating} et plus",
+    "difficultyLevel": "Niveau de difficulté",
+    "courseLanguage": "Langue du cours",
+    "courseType": "Type de cours",
+    "workshops": "Ateliers",
+    "masterclasses": "Masterclasses",
+    "formatType": "Type de format",
+    "priceRange": "Fourchette de prix",
+    "promotions": "Promotions",
+    "sale": "Promo",
+    "min": "Min",
+    "minimumPrice": "Prix minimum",
+    "max": "Max",
+    "maximumPrice": "Prix maximum",
+    "apply": "Appliquer"
+  },
+  "CatalogEnums": {
+    "level": { "beginner": "Débutant", "intermediate": "Intermédiaire", "advanced": "Avancé" },
+    "language": { "english": "Anglais", "ukrainian": "Ukrainien", "spanish": "Espagnol" },
+    "mode": { "self_learning": "Autoformation", "with_teacher": "Cours avec un formateur" },
+    "courseType": { "profession": "Profession", "qualification": "Formation avancée", "knowledge": "Élargir ses connaissances" },
+    "formatType": { "self_paced": "À son rythme", "scheduled": "Programmé", "individual": "Coaching individuel", "group": "Formule groupe" }
+  },
+  "SortDropdown": {
+    "sortBy": "Trier par",
+    "options": {
+      "popularity": "Par popularité",
+      "rating": "Par note",
+      "novelty": "Par nouveauté",
+      "cheapFirst": "Prix croissant",
+      "expensiveFirst": "Prix décroissant"
+    }
+  },
+  "CourseCurriculum": {
+    "heading": "Programme du cours",
+    "summary": "{lessons, plural, one {# leçon vidéo} other {# leçons vidéo}} | {modules, plural, one {# module} other {# modules}}",
+    "noCurriculum": "Aucun programme disponible pour le moment."
+  },
+  "CourseModuleItem": {
+    "modulePrefix": "Module {number}",
+    "lessonPrefix": "Leçon {number} : {title}.",
+    "freePreview": "Aperçu gratuit",
+    "mandatory": "Obligatoire"
+  },
+  "CourseHero": {
+    "levelMeta": { "beginner": "Formation de base", "intermediate": "Formation intermédiaire", "advanced": "Formation avancée" },
+    "mode": { "with_teacher": "Avec un formateur", "self_learning": "À son rythme" },
+    "ratingLabel": "{rating} (basé sur {count}+ avis dans le monde)",
+    "noReviewsYet": "Aucun avis pour le moment",
+    "languageLabel": "Langue : {language}"
+  },
+  "CourseHeroCTA": {
+    "courseAvailable": "Le cours est déjà disponible dans Mes cours.",
+    "freeEnrollmentSuccess": "Inscription terminée. Vous pouvez commencer ce cours dès maintenant.",
+    "studentOnly": "L'inscription est réservée aux étudiants.",
+    "noPricingPlan": "Ce cours n'a pas de formule tarifaire disponible.",
+    "continueLearning": "Continuer l'apprentissage",
+    "processing": "Traitement en cours...",
+    "enrollFree": "S'inscrire gratuitement",
+    "choosePlan": "Choisir une formule",
+    "genericError": "Impossible de traiter votre demande."
+  },
+  "CourseTeacher": {
+    "yearsExperience": "ans sur des projets concrets",
+    "students": "étudiants",
+    "partnerships": "partenariats avec des entreprises",
+    "teacherBadge": "Formateur"
+  },
+  "CourseFeedback": {
+    "badge": "Avis",
+    "viewMore": "Voir plus",
+    "noReviewsFull": "Aucun avis pour le moment. Soyez le premier à partager votre expérience."
+  },
+  "CourseReviewCard": {
+    "ratingLabel": "{rating} sur 5 étoiles"
+  },
+  "CoursePricingBlock": {
+    "noSchedules": "Aucun créneau disponible pour le moment.",
+    "group": "Groupe",
+    "selectSchedule": "Choisir un créneau",
+    "startsDate": "Débute le {date}",
+    "spotsLeft": "{count, plural, one {# place restante} other {# places restantes}}",
+    "loadingTimes": "Chargement des créneaux disponibles…",
+    "noSessions": "Aucune session disponible pour le moment.",
+    "availableSessions": "Sessions disponibles ({count})",
+    "pickSessions": "Choisissez {min}–{max} sessions hebdomadaires ({selected}/{max} sélectionnées)",
+    "selectScheduleFirst": "Veuillez d'abord choisir un créneau.",
+    "selectTimeSlots": "Veuillez choisir {min} à {max} créneaux disponibles.",
+    "tuitionBadge": "Frais de scolarité et modalités de paiement",
+    "tuitionIntro": "Choisissez le format qui correspond le mieux à vos objectifs et à votre budget. Nous proposons des plans de paiement flexibles pour votre confort.",
+    "formatLabel": { "self_paced": "À son rythme", "scheduled": "Programmé", "individual": "Coaching individuel", "group": "Cours en groupe" },
+    "formatBlurb": {
+      "self_paced": "Apprenez à votre rythme avec un accès à vie à tout le contenu",
+      "scheduled": "Suivez un programme structuré avec un contenu débloqué progressivement",
+      "individual": "Un accompagnement individuel avec un programme adapté à votre rythme",
+      "group": "Apprenez et collaborez avec vos pairs dans un environnement dynamique"
+    },
+    "fullPrice": "Prix plein :",
+    "onePayment": "(paiement unique)",
+    "installmentPlan": "Plan d'échelonnement :",
+    "monthlyPayments": "({count} paiements mensuels)",
+    "noSpots": "Aucune place disponible",
+    "buyNow": "Acheter maintenant"
+  },
+  "CourseScheduleCard": {
+    "schedule": "Planning",
+    "hoursPerWeek": "{hours} heures par semaine",
+    "hoursPerWeekRange": "{min}–{max} heures par semaine",
+    "groupOf": "Groupe de {count} personnes",
+    "group": "Groupe",
+    "monthsCount": "{count, plural, one {# mois} other {# mois}}",
+    "modulesLessons": "{modules, plural, one {# module} other {# modules}} | {lessons, plural, one {# leçon} other {# leçons}}",
+    "startDate": "Date de début :"
+  },
+  "CourseReviewsView": {
+    "title": "Avis sur le cours « {course} »",
+    "noReviews": "Aucun avis pour le moment."
+  },
+  "Search": {
+    "resultsFor": "Résultats pour <highlight>« {query} »</highlight>",
+    "searchHeading": "Recherche",
+    "resultsCount": "{count, plural, one {# résultat} other {# résultats}} parmi les cours et les articles.",
+    "enterSearchTerm": "Saisissez un terme de recherche pour commencer.",
+    "courses": "Cours",
+    "posts": "Articles",
+    "viewAllCourses": "Voir tous les cours",
+    "viewAllPosts": "Voir tous les articles",
+    "noCoursesFound": "Aucun cours trouvé.",
+    "noPostsFound": "Aucun article trouvé.",
+    "foundCount": "{count} trouvé(s)"
+  },
+  "Auth": {
+    "common": {
+      "backToSignIn": "Retour à la connexion",
+      "signIn": "Se connecter",
+      "checkingLink": "Vérification du lien",
+      "pleaseWait": "Veuillez patienter...",
+      "somethingWrong": "Un problème est survenu",
+      "tryAgain": "Réessayer",
+      "saving": "Enregistrement",
+      "sending": "Envoi en cours",
+      "email": "E-mail",
+      "password": "Mot de passe",
+      "confirmPassword": "Confirmer le mot de passe",
+      "sendAgain": "Renvoyer"
+    },
+    "field": {
+      "hidePassword": "Masquer le mot de passe",
+      "showPassword": "Afficher le mot de passe"
+    },
+    "validation": {
+      "enterFirstName": "Saisissez votre prénom",
+      "enterLastName": "Saisissez votre nom",
+      "enterEmail": "Saisissez votre e-mail",
+      "enterValidEmail": "Saisissez un e-mail valide",
+      "enterDateOfBirth": "Saisissez votre date de naissance",
+      "enterValidDateOfBirth": "Saisissez une date de naissance valide",
+      "enterPassword": "Saisissez votre mot de passe",
+      "passwordMinLength": "Le mot de passe doit contenir au moins 8 caractères",
+      "passwordLowercase": "Le mot de passe doit contenir au moins une minuscule",
+      "passwordUppercase": "Le mot de passe doit contenir au moins une majuscule",
+      "passwordNumber": "Le mot de passe doit contenir au moins un chiffre",
+      "confirmPasswordRequired": "Confirmez votre mot de passe",
+      "passwordsDoNotMatch": "Les mots de passe ne correspondent pas"
+    },
+    "genericFallbackError": "Une erreur est survenue. Veuillez réessayer.",
+    "login": {
+      "title": "Se connecter",
+      "emailLabel": "E-mail",
+      "passwordLabel": "Mot de passe",
+      "signingIn": "Connexion en cours",
+      "newHere": "Nouveau ici ?",
+      "signUpNow": "S'inscrire",
+      "rememberMe": "Se souvenir de moi",
+      "resetPassword": "Réinitialiser le mot de passe",
+      "fallbackError": "Impossible de vous connecter. Veuillez réessayer."
+    },
+    "register": {
+      "title": "S'inscrire",
+      "firstNameLabel": "Prénom",
+      "lastNameLabel": "Nom",
+      "dateOfBirthLabel": "Date de naissance",
+      "emailLabel": "E-mail",
+      "passwordLabel": "Mot de passe",
+      "repeatPasswordLabel": "Répéter le mot de passe",
+      "textPlaceholder": "Texte",
+      "continue": "Continuer",
+      "creating": "Création en cours",
+      "signUp": "S'inscrire",
+      "back": "Retour",
+      "alreadyHaveAccount": "Vous avez déjà un compte ?",
+      "signInNow": "Se connecter",
+      "wantToTeach": "Vous voulez enseigner sur la plateforme ?",
+      "applyAsTeacher": "Postuler comme formateur",
+      "fallbackError": "Impossible de créer votre compte. Veuillez réessayer."
+    },
+    "resendEmail": {
+      "defaultSubmitLabel": "Envoyer",
+      "defaultSuccessMessage": "E-mail envoyé. Vérifiez votre boîte de réception ou vos courriers indésirables.",
+      "genericError": "Une erreur est survenue."
+    },
+    "forgotPassword": {
+      "checkEmailTitle": "Vérifiez vos e-mails",
+      "checkEmailDescription": "Si un compte existe pour <bold>{email}</bold>, nous avons envoyé un lien de réinitialisation.",
+      "resetTitle": "Réinitialiser le mot de passe",
+      "resetDescription": "Saisissez l'e-mail associé à votre compte et nous vous enverrons un lien de réinitialisation.",
+      "sendLink": "Envoyer le lien"
+    },
+    "resetPassword": {
+      "checkingDescription": "Nous vérifions votre lien de réinitialisation du mot de passe.",
+      "invalidTitle": "Lien invalide",
+      "sendNewLink": "Envoyer un nouveau lien",
+      "resendSuccessMessage": "Si un compte existe, nous avons envoyé un nouvel e-mail. Vérifiez votre boîte de réception ou vos courriers indésirables.",
+      "successTitle": "Mot de passe mis à jour",
+      "successDescription": "Votre mot de passe a été modifié avec succès.",
+      "newPasswordTitle": "Nouveau mot de passe",
+      "newPasswordDescription": "Choisissez un mot de passe d'au moins 8 caractères, avec une majuscule, une minuscule et un chiffre.",
+      "newPasswordLabel": "Nouveau mot de passe",
+      "passwordPlaceholder": "Au moins 8 caractères",
+      "repeatPasswordPlaceholder": "Répétez votre mot de passe",
+      "savePassword": "Enregistrer le mot de passe",
+      "fallbackError": "Impossible de mettre à jour votre mot de passe. Veuillez réessayer.",
+      "invalidLinkMessage": "Ce lien de réinitialisation est invalide ou a expiré."
+    },
+    "activateTeacher": {
+      "checkingDescription": "Nous vérifions votre lien d'invitation.",
+      "invalidTitle": "Lien invalide",
+      "resendInvitation": "Renvoyer l'invitation",
+      "resendSuccessMessage": "Si une invitation est en attente pour cet e-mail, elle a été renvoyée. Vérifiez votre boîte de réception ou vos courriers indésirables.",
+      "successTitle": "Compte activé",
+      "successDescription": "Votre e-mail est confirmé et votre mot de passe est défini. Vous pouvez maintenant vous connecter en tant que formateur.",
+      "setPasswordTitle": "Définissez votre mot de passe",
+      "setPasswordDescription": "Choisissez un mot de passe d'au moins 8 caractères, avec une majuscule, une minuscule et un chiffre. Cela confirmera également votre e-mail.",
+      "passwordPlaceholder": "Au moins 8 caractères",
+      "repeatPasswordPlaceholder": "Répétez votre mot de passe",
+      "activateAccount": "Activer le compte",
+      "fallbackError": "Impossible d'activer votre compte. Veuillez réessayer.",
+      "invalidLinkMessage": "Ce lien d'invitation est invalide ou a expiré."
+    },
+    "checkEmail": {
+      "title": "Vérifiez vos e-mails",
+      "description": "Nous avons envoyé un lien de vérification à <bold>{email}</bold>.",
+      "yourEmailFallback": "votre e-mail",
+      "resentMessage": "L'e-mail de vérification a été renvoyé. Vérifiez votre boîte de réception.",
+      "genericError": "Une erreur est survenue. Veuillez réessayer plus tard.",
+      "alreadyVerified": "Déjà vérifié ?",
+      "signIn": "Se connecter"
+    },
+    "checkApplication": {
+      "title": "Candidature envoyée",
+      "description": "Merci ! Votre candidature a été envoyée pour examen. Nous écrirons à <bold>{email}</bold> dès qu'un modérateur aura pris une décision.",
+      "youFallback": "vous"
+    },
+    "verifyEmail": {
+      "checkingDescription": "Nous vérifions votre adresse e-mail.",
+      "successTitle": "E-mail vérifié",
+      "successFallbackDescription": "Votre e-mail a été vérifié avec succès.",
+      "redirecting": "Redirection vers la connexion...",
+      "failedTitle": "Échec de la vérification",
+      "sendVerification": "Envoyer la vérification",
+      "invalidLinkMessage": "Lien invalide ou expiré."
+    }
+  },
+  "ComingSoon": {
+    "badge": "Bientôt disponible",
+    "defaultPageName": "Cette page",
+    "description": "Cette page est encore en développement. Nous y travaillons !"
+  },
+  "Forbidden": {
+    "title": "Accès refusé",
+    "description": "Vous n'avez pas la permission de voir cette page."
+  },
+  "CertificateVerify": {
+    "tooManyChecks": "Trop de vérifications depuis ce réseau. Veuillez patienter quelques minutes et réessayer.",
+    "genericError": "Impossible de vérifier ce certificat pour le moment.",
+    "title": "Vérifier un certificat",
+    "description": "Saisissez le numéro de série imprimé sur un certificat Nexo4you pour confirmer son authenticité et sa validité.",
+    "serialLabel": "Numéro de série du certificat",
+    "checking": "Vérification…",
+    "verify": "Vérifier",
+    "notFoundTitle": "Aucun certificat trouvé",
+    "notFoundBody": "Aucun certificat ne correspond à ce numéro de série. Vérifiez les fautes de frappe ; les numéros de série ne sont émis que par Nexo4you.",
+    "errorTitle": "Vérification impossible pour le moment",
+    "revokedTitle": "Ce certificat n'est plus valide",
+    "validTitle": "Ce certificat est authentique",
+    "issuedOn": "Émis le {date}.",
+    "issuedAndRevokedOn": "Il a été émis le {issuedDate} et révoqué le {revokedDate}.",
+    "issuedAndRevoked": "Il a été émis le {issuedDate} et révoqué.",
+    "student": "Étudiant",
+    "course": "Cours",
+    "serial": "Numéro de série",
+    "replacedBy": "Remplacé par"
+  },
+  "TeacherApplication": {
+    "title": "Postuler comme formateur",
+    "firstNameLabel": "Prénom",
+    "lastNameLabel": "Nom",
+    "dateOfBirthLabel": "Date de naissance",
+    "emailLabel": "E-mail",
+    "phoneNumberLabel": "Numéro de téléphone",
+    "fieldOfStudyLabel": "Domaine d'étude",
+    "yearsExperienceLabel": "Années d'expérience (facultatif)",
+    "workExperienceLabel": "Expérience professionnelle",
+    "bioLabel": "Biographie",
+    "directionsLabel": "Domaines que vous souhaitez enseigner",
+    "motivationLabel": "Que souhaitez-vous enseigner et pourquoi êtes-vous la bonne personne pour cela ?",
+    "linkedinLabel": "LinkedIn (facultatif)",
+    "instagramLabel": "Instagram (facultatif)",
+    "behanceLabel": "Behance (facultatif)",
+    "checkingEmail": "Vérification de l'e-mail…",
+    "submitting": "Envoi en cours",
+    "submitApplication": "Envoyer la candidature",
+    "fallbackError": "Impossible d'envoyer votre candidature. Veuillez réessayer.",
+    "emailUnavailable": "Cet e-mail ne peut pas être utilisé.",
+    "validation": {
+      "enterPhoneNumber": "Saisissez un numéro de téléphone pour qu'un modérateur puisse vous joindre",
+      "enterFieldOfStudy": "Saisissez votre domaine d'étude",
+      "describeExperience": "Décrivez votre expérience professionnelle",
+      "writeShortBio": "Rédigez une courte biographie",
+      "enterValidYears": "Saisissez un nombre d'années valide",
+      "tellUsWhyTeach": "Dites-nous pourquoi vous voulez enseigner sur la plateforme",
+      "enterValidUrl": "Saisissez une URL valide"
+    }
+  }
+}

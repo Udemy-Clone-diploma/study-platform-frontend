@@ -3,7 +3,8 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "@/i18n/navigation";
 import { X } from "lucide-react";
 import { getCart, removeCartItem, type Cart, type CartItem } from "@/entities/cart";
 import { DAY_LABELS, enrollInFreeCourse, type DayOfWeek } from "@/entities/course";

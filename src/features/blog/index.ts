@@ -3,6 +3,8 @@ export * from "./ui/ArticleCard";
 export * from "./ui/ArticleCardMenu";
 export * from "./ui/ArticleDetailPanel";
 export * from "./ui/ArticleGrid";
+export * from "./ui/ArticleModerationSnapshotList";
+export * from "./ui/ArticleModerationSnapshotRow";
 export * from "./ui/ArticleRow";
 export * from "./ui/ArticleFormFields";
 export * from "./ui/ArticleFormModal";

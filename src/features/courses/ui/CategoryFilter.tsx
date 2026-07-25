@@ -1,6 +1,8 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
 import type { Category } from "@/entities/course";
 
 type Props = {
@@ -15,6 +17,8 @@ export function CategoryFilter({ categories, currentSlug }: Props) {
 
   const router = useRouter();
   const searchParams = useSearchParams();
+  const t = useTranslations("CategoryFilter");
+  const tCommon = useTranslations("Common");
 
   function selectCategory(slug: string | null) {
     const params = new URLSearchParams(searchParams.toString());
@@ -32,12 +36,15 @@ export function CategoryFilter({ categories, currentSlug }: Props) {
 
   if (items.length === 0) {
     return (
-      <p className="flex-1 text-xl text-(--color-text-secondary)">No categories yet.</p>
+      <p className="flex-1 text-xl text-(--color-text-secondary)">{t("noCategoriesYet")}</p>
     );
   }
 
   return (
-    <nav aria-label="Categories" className="flex flex-1 flex-wrap items-center gap-3">
+    <nav
+      aria-label={tCommon("categories")}
+      className="drag-scroll flex flex-1 flex-nowrap items-center gap-3 overflow-x-auto lg:flex-wrap lg:overflow-visible"
+    >
       {items.map((cat) => {
         const active = currentSlug === cat.slug;
         return (

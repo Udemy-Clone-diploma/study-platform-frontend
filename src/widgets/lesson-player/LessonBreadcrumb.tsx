@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { Check, ChevronDown } from "lucide-react";
 import type { CourseModule } from "@/entities/course";
 import { byOrder } from "@/entities/course";

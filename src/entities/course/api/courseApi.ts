@@ -14,12 +14,10 @@ import type { EnrollmentGrowthData, GrowthPeriod } from "../model/growth";
 import type { TeacherStudentDashboard } from "../model/studentDashboard";
 import type {
   ApprovedCourseRecord,
-  CourseDeliveryType,
   CourseDetail,
   CourseLanguage,
   CourseLevel,
   CourseListItem,
-  CourseMode,
   CourseStatus,
   CourseType,
   Paginated,
@@ -43,18 +41,16 @@ export async function getTeacherStudentDashboard(
 
 /**
  * Backend accepts these enum-like filters as comma-separated values
- * (e.g. `?delivery_type=self_paced,group`). Caller passes arrays; the API
+ * (e.g. `?format_type=self_paced,group`). Caller passes arrays; the API
  * function joins. Single-value filters (`category`, `rating_min`) stay
  * stringly-typed because the backend matches them exactly.
  */
 export type CourseListParams = {
   category?: string;
   course_type?: Array<CourseType>;
-  delivery_type?: Array<CourseDeliveryType>;
   is_on_sale?: boolean;
   language?: Array<CourseLanguage>;
   level?: Array<CourseLevel>;
-  mode?: Array<CourseMode>;
   ordering?: string;
   format_type?: Array<DeliveryFormatType>;
   price_min?: number;
@@ -67,8 +63,10 @@ export type CourseListParams = {
   page_size?: number;
 };
 
-export async function getCategories(): Promise<Category[]> {
-  const { data } = await api.get<Category[] | Paginated<Category>>(CATEGORIES);
+export async function getCategories(locale?: string): Promise<Category[]> {
+  const { data } = await api.get<Category[] | Paginated<Category>>(CATEGORIES, {
+    params: locale ? { lang: locale } : undefined,
+  });
   return Array.isArray(data) ? data : data.results;
 }
 
@@ -77,6 +75,7 @@ export type CategoryListParams = {
   page?: number;
   page_size?: number;
   ordering?: string;
+  lang?: string;
 };
 
 export async function getCategoriesPage(
@@ -88,22 +87,45 @@ export async function getCategoriesPage(
     : data;
 }
 
+// Backend admin write shape: name/description are per-locale. name_en is required;
+// the rest fall back to it on read whenever left blank (apps.common.i18n).
 export type CategoryInput = {
-  name: string;
+  name_en: string;
+  name_uk?: string;
+  name_fr?: string;
+  name_es?: string;
+  name_de?: string;
   slug?: string;
-  description?: string;
+  description_en?: string;
+  description_uk?: string;
+  description_fr?: string;
+  description_es?: string;
+  description_de?: string;
 };
 
-export async function createCategory(body: CategoryInput): Promise<Category> {
-  const { data } = await api.post<Category>(CATEGORIES, body);
+export type CategoryDetail = CategoryInput & {
+  id: number;
+  slug: string;
+  courses_count?: number;
+  featured_order?: number | null;
+};
+
+/** Admin-only: every locale field for the edit form, unlike the public list's resolved shape. */
+export async function getCategory(id: number): Promise<CategoryDetail> {
+  const { data } = await api.get<CategoryDetail>(`${CATEGORIES}${id}/`);
+  return data;
+}
+
+export async function createCategory(body: CategoryInput): Promise<CategoryDetail> {
+  const { data } = await api.post<CategoryDetail>(CATEGORIES, body);
   return data;
 }
 
 export async function updateCategory(
   id: number,
   patch: Partial<CategoryInput> & { featured_order?: number | null },
-): Promise<Category> {
-  const { data } = await api.patch<Category>(`${CATEGORIES}${id}/`, patch);
+): Promise<CategoryDetail> {
+  const { data } = await api.patch<CategoryDetail>(`${CATEGORIES}${id}/`, patch);
   return data;
 }
 
@@ -117,11 +139,9 @@ export async function getCourses(
   const params = {
     ...(filters.category ? { category: filters.category } : {}),
     ...(filters.course_type?.length ? { course_type: filters.course_type.join(",") } : {}),
-    ...(filters.delivery_type?.length ? { delivery_type: filters.delivery_type.join(",") } : {}),
     ...(filters.is_on_sale !== undefined ? { is_on_sale: filters.is_on_sale } : {}),
     ...(filters.language?.length ? { language: filters.language.join(",") } : {}),
     ...(filters.level?.length ? { level: filters.level.join(",") } : {}),
-    ...(filters.mode?.length ? { mode: filters.mode.join(",") } : {}),
     ...(filters.ordering ? { ordering: filters.ordering } : {}),
     ...(filters.format_type?.length ? { format_type: filters.format_type.join(",") } : {}),
     ...(filters.price_min !== undefined ? { price_min: filters.price_min } : {}),

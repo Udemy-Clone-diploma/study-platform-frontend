@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { usePathname } from "@/i18n/navigation";
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { LoadingLogo } from "@/shared/ui/LoadingLogo";
 import { subscribePageLoading } from "@/shared/lib/pageLoadingSignal";

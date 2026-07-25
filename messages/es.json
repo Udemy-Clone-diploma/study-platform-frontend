@@ -147,7 +147,6 @@
     "noCategoriesYet": "Todavía no hay categorías."
   },
   "CatalogFilters": {
-    "format": "Formato",
     "courseRating": "Valoración del curso",
     "inTheGroup": "En grupo",
     "fiveStarsOnly": "Solo 5 estrellas",
@@ -171,7 +170,6 @@
     "level": { "beginner": "Principiante", "intermediate": "Intermedio", "advanced": "Avanzado" },
     "language": { "english": "Inglés", "ukrainian": "Ucraniano", "spanish": "Español" },
     "mode": { "self_learning": "Autoaprendizaje", "with_teacher": "Estudio con profesor" },
-    "delivery": { "self_paced": "A tu ritmo", "scheduled": "Programado", "individual": "Individual", "group": "En grupo" },
     "courseType": { "profession": "Profesión", "qualification": "Formación avanzada", "knowledge": "Ampliar conocimientos" },
     "formatType": { "self_paced": "A tu ritmo", "scheduled": "Programado", "individual": "Coaching individual", "group": "Plan grupal" }
   },

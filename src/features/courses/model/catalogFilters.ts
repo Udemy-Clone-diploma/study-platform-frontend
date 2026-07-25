@@ -1,8 +1,6 @@
 import type {
-  CourseDeliveryType,
   CourseLanguage,
   CourseLevel,
-  CourseMode,
   CourseType,
   DeliveryFormatType,
 } from "@/entities/course";
@@ -14,12 +12,10 @@ export type CatalogSearchParams = {
 export type CatalogFilterState = {
   category?: string;
   course_type?: string;
-  delivery_type?: string;
   filtersOpen: boolean;
   is_on_sale?: boolean;
   language?: string;
   level?: string;
-  mode?: string;
   /** Comma-separated delivery format types (e.g. "group,individual"). */
   format_type?: string;
   /** Decimal-string lower bound on the cheapest plan price. Empty means unbounded. */
@@ -56,22 +52,6 @@ export function getLanguageLabels(t: EnumTranslator): Record<CourseLanguage, str
   };
 }
 
-export function getModeLabels(t: EnumTranslator): Record<CourseMode, string> {
-  return {
-    self_learning: t("mode.self_learning"),
-    with_teacher: t("mode.with_teacher"),
-  };
-}
-
-export function getDeliveryLabels(t: EnumTranslator): Record<CourseDeliveryType, string> {
-  return {
-    self_paced: t("delivery.self_paced"),
-    scheduled: t("delivery.scheduled"),
-    individual: t("delivery.individual"),
-    group: t("delivery.group"),
-  };
-}
-
 export function getCourseTypeLabels(t: EnumTranslator): Record<CourseType, string> {
   return {
     profession: t("courseType.profession"),
@@ -97,12 +77,10 @@ export function parseCatalogState(params: CatalogSearchParams): CatalogFilterSta
   return {
     category: firstParam(params.category),
     course_type: firstParam(params.course_type),
-    delivery_type: firstParam(params.delivery_type),
     filtersOpen: firstParam(params.filters) === "open",
     is_on_sale: firstParam(params.is_on_sale) === "true" ? true : undefined,
     language: firstParam(params.language),
     level: firstParam(params.level),
-    mode: firstParam(params.mode),
     format_type: firstParam(params.format_type),
     price_min: firstParam(params.price_min),
     price_max: firstParam(params.price_max),
@@ -129,6 +107,40 @@ export function isCatalogOptionChecked(
   return getCatalogValues(state, option.param).includes(option.value);
 }
 
+/** Whether every value in a group (e.g. the two format types under "Self-study") is selected. */
+export function isCatalogGroupChecked(
+  state: CatalogFilterState,
+  param: keyof CatalogFilterState,
+  groupValues: string[],
+) {
+  const current = getCatalogValues(state, param);
+  return groupValues.every((value) => current.includes(value));
+}
+
+/** Toggles a whole group of values for one param together: selects all when any are missing, clears all when fully selected. */
+export function buildCatalogGroupHref(
+  state: CatalogFilterState,
+  param: keyof CatalogFilterState,
+  groupValues: string[],
+) {
+  const current = new Set(getCatalogValues(state, param));
+  const allSelected = groupValues.every((value) => current.has(value));
+
+  for (const value of groupValues) {
+    if (allSelected) {
+      current.delete(value);
+    } else {
+      current.add(value);
+    }
+  }
+
+  const nextValue = Array.from(current).join(",");
+  return buildCatalogHref(state, {
+    [param]: nextValue || undefined,
+    filtersOpen: true,
+  } as Partial<CatalogFilterState>);
+}
+
 export function buildCatalogHref(
   state: CatalogFilterState,
   updates: Partial<CatalogFilterState> & { toggle?: CatalogFilterOption },
@@ -152,12 +164,10 @@ export function buildCatalogHref(
 
   if (next.category) params.set("category", next.category);
   if (next.course_type) params.set("course_type", next.course_type);
-  if (next.delivery_type) params.set("delivery_type", next.delivery_type);
   if (next.filtersOpen) params.set("filters", "open");
   if (next.is_on_sale) params.set("is_on_sale", "true");
   if (next.language) params.set("language", next.language);
   if (next.level) params.set("level", next.level);
-  if (next.mode) params.set("mode", next.mode);
   if (next.format_type) params.set("format_type", next.format_type);
   if (next.price_min) params.set("price_min", next.price_min);
   if (next.price_max) params.set("price_max", next.price_max);
@@ -173,11 +183,9 @@ export function resetCatalogFiltersHref(state: CatalogFilterState) {
   return buildCatalogHref(state, {
     category: undefined,
     course_type: undefined,
-    delivery_type: undefined,
     is_on_sale: undefined,
     language: undefined,
     level: undefined,
-    mode: undefined,
     format_type: undefined,
     price_min: undefined,
     price_max: undefined,

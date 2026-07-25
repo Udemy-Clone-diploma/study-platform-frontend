@@ -1,15 +1,15 @@
 import { getTranslations } from "next-intl/server";
 import type { Category } from "@/entities/course";
 import {
+  buildCatalogGroupHref,
   buildCatalogHref,
   getCourseTypeLabels,
-  getDeliveryLabels,
   type CatalogFilterOption,
   type CatalogFilterState,
+  isCatalogGroupChecked,
   isCatalogOptionChecked,
   getLanguageLabels,
   getLevelLabels,
-  getModeLabels,
   getFormatTypeLabels,
 } from "../model/catalogFilters";
 import { CatalogFilterCheckbox } from "./CatalogFilterCheckbox";
@@ -47,8 +47,6 @@ export async function CatalogFiltersSidebar({
     getTranslations("Common"),
     getTranslations("CatalogEnums"),
   ]);
-  const MODE_LABELS = getModeLabels(tEnums);
-  const DELIVERY_LABELS = getDeliveryLabels(tEnums);
   const LEVEL_LABELS = getLevelLabels(tEnums);
   const LANGUAGE_LABELS = getLanguageLabels(tEnums);
   const COURSE_TYPE_LABELS = getCourseTypeLabels(tEnums);
@@ -57,40 +55,34 @@ export async function CatalogFiltersSidebar({
   return (
     <aside className="absolute inset-x-0 top-0 z-20 rounded-[8px] bg-white px-6 py-6 shadow-[0_0_24px_rgba(167,186,250,0.35)] lg:static lg:inset-auto lg:z-auto">
       <div className="space-y-6">
-        <CollapsibleFilterSection title={t("format")}>
-          <ToggleOption
-            option={{ label: MODE_LABELS.self_learning, param: "mode", value: "self_learning" }}
-            state={state}
+        <CollapsibleFilterSection title={t("formatType")}>
+          <CatalogFilterCheckbox
+            checked={isCatalogGroupChecked(state, "format_type", ["self_paced", "scheduled"])}
+            href={buildCatalogGroupHref(state, "format_type", ["self_paced", "scheduled"])}
+            label={tEnums("mode.self_learning")}
           />
           <ToggleOption
-            option={{
-              label: DELIVERY_LABELS.self_paced,
-              param: "delivery_type",
-              value: "self_paced",
-            }}
+            option={{ label: FORMAT_TYPE_LABELS.self_paced, param: "format_type", value: "self_paced" }}
             state={state}
             inset
           />
           <ToggleOption
-            option={{ label: DELIVERY_LABELS.scheduled, param: "delivery_type", value: "scheduled" }}
+            option={{ label: FORMAT_TYPE_LABELS.scheduled, param: "format_type", value: "scheduled" }}
+            state={state}
+            inset
+          />
+          <CatalogFilterCheckbox
+            checked={isCatalogGroupChecked(state, "format_type", ["individual", "group"])}
+            href={buildCatalogGroupHref(state, "format_type", ["individual", "group"])}
+            label={tEnums("mode.with_teacher")}
+          />
+          <ToggleOption
+            option={{ label: FORMAT_TYPE_LABELS.individual, param: "format_type", value: "individual" }}
             state={state}
             inset
           />
           <ToggleOption
-            option={{ label: MODE_LABELS.with_teacher, param: "mode", value: "with_teacher" }}
-            state={state}
-          />
-          <ToggleOption
-            option={{
-              label: DELIVERY_LABELS.individual,
-              param: "delivery_type",
-              value: "individual",
-            }}
-            state={state}
-            inset
-          />
-          <ToggleOption
-            option={{ label: DELIVERY_LABELS.group, param: "delivery_type", value: "group" }}
+            option={{ label: FORMAT_TYPE_LABELS.group, param: "format_type", value: "group" }}
             state={state}
             inset
           />
@@ -168,17 +160,6 @@ export async function CatalogFiltersSidebar({
             label={t("masterclasses")}
             inset
           />
-        </CollapsibleFilterSection>
-
-        <CollapsibleFilterSection title={t("formatType")}>
-          {(Object.entries(FORMAT_TYPE_LABELS) as [string, string][]).map(([value, label]) => (
-            <ToggleOption
-              key={value}
-              option={{ label, param: "format_type", value }}
-              state={state}
-              inset
-            />
-          ))}
         </CollapsibleFilterSection>
 
         <CollapsibleFilterSection title={t("priceRange")}>

@@ -6,10 +6,8 @@ import {
   getCategories,
   getCourses,
   type Category,
-  type CourseDeliveryType,
   type CourseLanguage,
   type CourseLevel,
-  type CourseMode,
   type CourseType,
   type DeliveryFormatType,
 } from "@/entities/course";
@@ -64,11 +62,9 @@ async function loadCourses(
     const data = await getCourses({
       category: state.category,
       course_type: splitFilter<CourseType>(state.course_type),
-      delivery_type: splitFilter<CourseDeliveryType>(state.delivery_type),
       is_on_sale: state.is_on_sale,
       language: splitFilter<CourseLanguage>(state.language),
       level: splitFilter<CourseLevel>(state.level),
-      mode: splitFilter<CourseMode>(state.mode),
       ordering,
       format_type: splitFilter<DeliveryFormatType>(state.format_type),
       price_min: state.price_min ? Number(state.price_min) : undefined,
@@ -105,6 +101,91 @@ async function loadCategories(): Promise<Category[]> {
   }
 }
 
+/**
+ * Everything that depends on the filtered/paginated course list: sidebar,
+ * card grid, and pagination. Kept in its own Suspense boundary so changing a
+ * filter only re-suspends this slice of the page instead of the whole route
+ * (which would otherwise fall back to the route's generic loading.tsx).
+ */
+async function CatalogResults({
+  categories,
+  state,
+  page,
+  ordering,
+}: {
+  categories: Category[];
+  state: CatalogFilterState;
+  page: number;
+  ordering: string | undefined;
+}) {
+  const t = await getTranslations("Catalog");
+
+  const [{ courses, count, error }, wishlistedSlugs] = await Promise.all([
+    loadCourses(state, page, ordering, t("errorLoadCourses")),
+    getWishlistSlugs().catch(() => []),
+  ]);
+  const wishlistSet = new Set(wishlistedSlugs);
+
+  const totalPages = Math.max(1, Math.ceil(count / PAGE_SIZE));
+  const showPagination = !error && courses.length > 0;
+
+  return (
+    <>
+      <div className={`relative grid gap-5 ${state.filtersOpen ? "lg:grid-cols-[460px_1fr]" : ""}`}>
+        {state.filtersOpen ? (
+          <CatalogFiltersSidebar categories={categories} state={state} />
+        ) : null}
+
+        <section>
+          {error ? (
+            <div className="rounded-[8px] border border-red-200 bg-red-50 p-6 text-red-800 shadow-sm">
+              <h3 className="text-xl font-semibold">{t("coursesUnavailable")}</h3>
+              <p className="mt-2 text-sm">{error}</p>
+            </div>
+          ) : courses.length === 0 ? (
+            <div className="rounded-[8px] bg-white p-10 text-center shadow-[0_8px_22px_rgba(76,68,87,0.12)]">
+              <h3 className="text-xl font-semibold">{t("noCoursesFound")}</h3>
+              <p className="mt-2 text-(--color-text-secondary)">{t("tryAnotherFilters")}</p>
+              <Link
+                href={resetCatalogFiltersHref(state)}
+                scroll={false}
+                className="mt-6 inline-flex rounded-full bg-(--color-text-primary) px-6 py-2 text-sm font-medium text-white"
+              >
+                {t("resetFilters")}
+              </Link>
+            </div>
+          ) : (
+            <div className="flex flex-wrap justify-center gap-4">
+              {courses.map((course) => (
+                <CourseCard key={course.id} course={course} isWishlisted={wishlistSet.has(course.slug)} />
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
+
+      {showPagination ? (
+        <div className="mt-auto pt-10">
+          <CatalogPagination currentPage={page} totalPages={totalPages} />
+        </div>
+      ) : null}
+    </>
+  );
+}
+
+function CatalogResultsSkeleton() {
+  return (
+    <div className="flex flex-wrap justify-center gap-4">
+      {Array.from({ length: 6 }).map((_, index) => (
+        <div
+          key={index}
+          className="h-[360px] w-[300px] animate-pulse rounded-[8px] bg-(--color-bg-surface)"
+        />
+      ))}
+    </div>
+  );
+}
+
 export default async function CatalogPage({
   searchParams,
 }: {
@@ -115,17 +196,7 @@ export default async function CatalogPage({
   const currentPage = parsePage(params);
   const ordering = firstParam(params.sort);
   const t = await getTranslations("Catalog");
-
-  const [{ courses, count, error }, categories, wishlistedSlugs] = await Promise.all([
-    loadCourses(state, currentPage, ordering, t("errorLoadCourses")),
-    loadCategories(),
-    getWishlistSlugs().catch(() => []),
-  ]);
-  const wishlistSet = new Set(wishlistedSlugs);
-
-  const totalPages = Math.max(1, Math.ceil(count / PAGE_SIZE));
-
-  const showPagination = !error && courses.length > 0;
+  const categories = await loadCategories();
 
   return (
     <div className="bg-catalog-page flex min-h-screen w-full flex-col text-(--color-text-primary)">
@@ -143,7 +214,7 @@ export default async function CatalogPage({
         </div>
 
         {/* Figma spec: 150px gap from search row to filter bar (desktop only; tighter below lg). */}
-        <div className="mt-10 flex flex-col gap-6 lg:mt-37.5 lg:gap-14">
+        <div className="mt-10 flex flex-1 flex-col gap-6 lg:mt-37.5 lg:gap-14">
           <div className="flex items-center justify-between gap-4">
             <Link
               href={buildCatalogHref(state, { filtersOpen: !state.filtersOpen })}
@@ -163,47 +234,10 @@ export default async function CatalogPage({
             </Suspense>
           </div>
 
-          <div className={`relative grid gap-5 ${state.filtersOpen ? "lg:grid-cols-[460px_1fr]" : ""}`}>
-            {state.filtersOpen ? (
-              <CatalogFiltersSidebar categories={categories} state={state} />
-            ) : null}
-
-            <section>
-              {error ? (
-                <div className="rounded-[8px] border border-red-200 bg-red-50 p-6 text-red-800 shadow-sm">
-                  <h3 className="text-xl font-semibold">{t("coursesUnavailable")}</h3>
-                  <p className="mt-2 text-sm">{error}</p>
-                </div>
-              ) : courses.length === 0 ? (
-                <div className="rounded-[8px] bg-white p-10 text-center shadow-[0_8px_22px_rgba(76,68,87,0.12)]">
-                  <h3 className="text-xl font-semibold">{t("noCoursesFound")}</h3>
-                  <p className="mt-2 text-(--color-text-secondary)">{t("tryAnotherFilters")}</p>
-                  <Link
-                    href={resetCatalogFiltersHref(state)}
-                    scroll={false}
-                    className="mt-6 inline-flex rounded-full bg-(--color-text-primary) px-6 py-2 text-sm font-medium text-white"
-                  >
-                    {t("resetFilters")}
-                  </Link>
-                </div>
-              ) : (
-                <div className="flex flex-wrap justify-center gap-4">
-                  {courses.map((course) => (
-                    <CourseCard key={course.id} course={course} isWishlisted={wishlistSet.has(course.slug)} />
-                  ))}
-                </div>
-              )}
-            </section>
-          </div>
-        </div>
-
-        {showPagination ? (
-          <Suspense>
-            <div className="mt-auto pt-10">
-              <CatalogPagination currentPage={currentPage} totalPages={totalPages} />
-            </div>
+          <Suspense fallback={<CatalogResultsSkeleton />}>
+            <CatalogResults categories={categories} state={state} page={currentPage} ordering={ordering} />
           </Suspense>
-        ) : null}
+        </div>
       </div>
     </div>
   );

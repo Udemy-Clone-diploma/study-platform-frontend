@@ -147,7 +147,6 @@
     "noCategoriesYet": "Noch keine Kategorien."
   },
   "CatalogFilters": {
-    "format": "Format",
     "courseRating": "Kursbewertung",
     "inTheGroup": "In der Gruppe",
     "fiveStarsOnly": "Nur 5 Sterne",
@@ -171,7 +170,6 @@
     "level": { "beginner": "Anfänger", "intermediate": "Mittelstufe", "advanced": "Fortgeschritten" },
     "language": { "english": "Englisch", "ukrainian": "Ukrainisch", "spanish": "Spanisch" },
     "mode": { "self_learning": "Selbststudium", "with_teacher": "Lernen mit Lehrkraft" },
-    "delivery": { "self_paced": "Im eigenen Tempo", "scheduled": "Nach Zeitplan", "individual": "Einzeln", "group": "In der Gruppe" },
     "courseType": { "profession": "Beruf", "qualification": "Weiterbildung", "knowledge": "Wissenserweiterung" },
     "formatType": { "self_paced": "Im eigenen Tempo", "scheduled": "Nach Zeitplan", "individual": "Einzelcoaching", "group": "Gruppenplan" }
   },

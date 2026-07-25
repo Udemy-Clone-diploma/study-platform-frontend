@@ -14,12 +14,10 @@ import type { EnrollmentGrowthData, GrowthPeriod } from "../model/growth";
 import type { TeacherStudentDashboard } from "../model/studentDashboard";
 import type {
   ApprovedCourseRecord,
-  CourseDeliveryType,
   CourseDetail,
   CourseLanguage,
   CourseLevel,
   CourseListItem,
-  CourseMode,
   CourseStatus,
   CourseType,
   Paginated,
@@ -43,18 +41,16 @@ export async function getTeacherStudentDashboard(
 
 /**
  * Backend accepts these enum-like filters as comma-separated values
- * (e.g. `?delivery_type=self_paced,group`). Caller passes arrays; the API
+ * (e.g. `?format_type=self_paced,group`). Caller passes arrays; the API
  * function joins. Single-value filters (`category`, `rating_min`) stay
  * stringly-typed because the backend matches them exactly.
  */
 export type CourseListParams = {
   category?: string;
   course_type?: Array<CourseType>;
-  delivery_type?: Array<CourseDeliveryType>;
   is_on_sale?: boolean;
   language?: Array<CourseLanguage>;
   level?: Array<CourseLevel>;
-  mode?: Array<CourseMode>;
   ordering?: string;
   format_type?: Array<DeliveryFormatType>;
   price_min?: number;
@@ -143,11 +139,9 @@ export async function getCourses(
   const params = {
     ...(filters.category ? { category: filters.category } : {}),
     ...(filters.course_type?.length ? { course_type: filters.course_type.join(",") } : {}),
-    ...(filters.delivery_type?.length ? { delivery_type: filters.delivery_type.join(",") } : {}),
     ...(filters.is_on_sale !== undefined ? { is_on_sale: filters.is_on_sale } : {}),
     ...(filters.language?.length ? { language: filters.language.join(",") } : {}),
     ...(filters.level?.length ? { level: filters.level.join(",") } : {}),
-    ...(filters.mode?.length ? { mode: filters.mode.join(",") } : {}),
     ...(filters.ordering ? { ordering: filters.ordering } : {}),
     ...(filters.format_type?.length ? { format_type: filters.format_type.join(",") } : {}),
     ...(filters.price_min !== undefined ? { price_min: filters.price_min } : {}),

@@ -177,10 +177,7 @@ export function MobileHeaderMenu({ isLoggedIn, categories, role }: Props) {
                 <div className="h-px w-full bg-white" />
                 <button
                   type="button"
-                  onClick={() => {
-                    closeAll();
-                    setLanguageModalOpen(true);
-                  }}
+                  onClick={() => setLanguageModalOpen(true)}
                   className="dropdown-link flex items-center justify-center"
                   style={{
                     ...subItemStyle,

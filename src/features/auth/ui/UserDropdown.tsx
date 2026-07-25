@@ -6,8 +6,9 @@ import { useTranslations } from "next-intl";
 import { Globe } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { useRouter } from "@/i18n/navigation";
-import { getRoleCourses, getRoleHome, type UserRole } from "@/entities/user";
+import { getRoleCourses, getRoleHome, type UserLanguage, type UserRole } from "@/entities/user";
 import { logout } from "@/features/auth/actions/logout";
+import { updateMe } from "@/features/auth/api/authApi";
 import { useLocaleSwitcher } from "@/shared/lib/useLocaleSwitcher";
 import { LanguageModal } from "@/shared/ui/LanguageModal";
 
@@ -168,7 +169,14 @@ export function UserDropdown({ firstName, role, avatar }: { firstName: string | 
                 </div>
             )}
 
-            {languageModalOpen && <LanguageModal onClose={() => setLanguageModalOpen(false)} />}
+            {languageModalOpen && (
+                <LanguageModal
+                    onClose={() => setLanguageModalOpen(false)}
+                    onLocaleChange={(next) => {
+                        updateMe({ language: next as UserLanguage }).catch(() => {});
+                    }}
+                />
+            )}
         </div>
     );
 }

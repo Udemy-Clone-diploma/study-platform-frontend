@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { usePathname, useRouter } from "@/i18n/navigation";
 import { updateMe, uploadAvatar, uploadTeacherSignature, updateTeacherProfile, updateStudentProfile, withAuth } from "@/features/auth";
 import { getMe } from "@/entities/user";
 import type { UserData, UserLanguage, TeacherProfile, StudentProfile } from "@/entities/user";
@@ -40,6 +41,8 @@ function socialFromUser(user: UserData): SocialLinks {
 }
 
 function ProfilePage() {
+    const router = useRouter();
+    const pathname = usePathname();
     const [user, setUser]               = useState<UserData | null>(null);
     const [loading, setLoading]         = useState(true);
     const [editing, setEditing]         = useState(false);
@@ -146,6 +149,7 @@ function ProfilePage() {
         if (!editing) {
             const updated = await updateMe({ language: lang });
             setUser(updated);
+            router.replace(pathname, { locale: lang });
         }
     }
 
@@ -206,6 +210,9 @@ function ProfilePage() {
             setSignatureFile(null);
             setSignaturePreview(null);
             setEditing(false);
+            if (updated.language !== user?.language) {
+                router.replace(pathname, { locale: updated.language });
+            }
         } finally {
             setSaving(false);
         }

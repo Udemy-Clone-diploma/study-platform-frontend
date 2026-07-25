@@ -6,10 +6,13 @@ import { useLocaleSwitcher } from "@/shared/lib/useLocaleSwitcher";
 
 type Props = {
   onClose: () => void;
+  /** Called with the chosen locale in addition to switching the site language
+   * (e.g. to persist it as the logged-in user's preference). */
+  onLocaleChange?: (locale: string) => void;
 };
 
 /** "Choose a language" modal — grid of locales, current one shown in a bordered box. */
-export function LanguageModal({ onClose }: Props) {
+export function LanguageModal({ onClose, onLocaleChange }: Props) {
   const { locale, options, switchTo } = useLocaleSwitcher();
   const t = useTranslations("LanguageSwitcher");
 
@@ -36,6 +39,7 @@ export function LanguageModal({ onClose }: Props) {
               type="button"
               onClick={() => {
                 switchTo(option.value);
+                onLocaleChange?.(option.value);
                 onClose();
               }}
               aria-current={isSelected}

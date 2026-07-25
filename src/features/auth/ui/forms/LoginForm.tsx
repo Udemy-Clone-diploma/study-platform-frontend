@@ -45,7 +45,7 @@ export function LoginForm() {
         await setRoleCookie(user.role, rememberMe);
         await setRememberMeCookie(rememberMe);
 
-        router.push(getRoleHome(user.role));
+        router.push(getRoleHome(user.role), { locale: user.language });
       },
     });
 

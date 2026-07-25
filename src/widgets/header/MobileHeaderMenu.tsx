@@ -8,8 +8,9 @@ import { Link } from "@/i18n/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { ChevronDown, Globe, Menu, Search, X } from "lucide-react";
 import type { Category } from "@/entities/course";
-import { getRoleCourses, getRoleHome, type UserRole } from "@/entities/user";
+import { getRoleCourses, getRoleHome, type UserLanguage, type UserRole } from "@/entities/user";
 import { logout } from "@/features/auth/actions/logout";
+import { updateMe } from "@/features/auth/api/authApi";
 import { NotificationBell } from "@/features/notifications";
 import { AccentButton } from "@/shared/ui/AccentButton";
 import { LanguageSwitcher } from "@/shared/ui/LanguageSwitcher";
@@ -257,7 +258,18 @@ export function MobileHeaderMenu({ isLoggedIn, categories, role }: Props) {
         </CollapseRows>
       </div>
 
-      {languageModalOpen && <LanguageModal onClose={() => setLanguageModalOpen(false)} />}
+      {languageModalOpen && (
+        <LanguageModal
+          onClose={() => setLanguageModalOpen(false)}
+          onLocaleChange={
+            isLoggedIn
+              ? (next) => {
+                  updateMe({ language: next as UserLanguage }).catch(() => {});
+                }
+              : undefined
+          }
+        />
+      )}
     </div>
   );
 }

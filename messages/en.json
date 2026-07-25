@@ -97,6 +97,7 @@
     }
   },
   "CourseCard": {
+    "free": "Free",
     "students": "{count} students",
     "addToWishlist": "Add to wishlist",
     "removeFromWishlist": "Remove from wishlist"

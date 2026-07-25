@@ -53,7 +53,7 @@ export function CourseCard({ course, isWishlisted = false, href, onClick }: Prop
     <>
       <div className="flex shrink-0 items-start justify-between pr-10">
         <span className="text-[clamp(18px,calc(16.54px+0.39vw),24px)] font-medium leading-tight text-(--color-text-primary)">
-          {formatPrice(course)}
+          {formatPrice(course, t("free"))}
         </span>
       </div>
 

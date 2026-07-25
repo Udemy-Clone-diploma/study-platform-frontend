@@ -97,6 +97,7 @@
     }
   },
   "CourseCard": {
+    "free": "Безкоштовно",
     "students": "{count} студентів",
     "addToWishlist": "Додати до списку бажань",
     "removeFromWishlist": "Прибрати зі списку бажань"

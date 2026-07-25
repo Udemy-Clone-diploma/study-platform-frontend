@@ -97,6 +97,7 @@
     }
   },
   "CourseCard": {
+    "free": "Gratuit",
     "students": "{count} étudiants",
     "addToWishlist": "Ajouter aux favoris",
     "removeFromWishlist": "Retirer des favoris"

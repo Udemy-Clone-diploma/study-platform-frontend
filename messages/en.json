@@ -18,6 +18,20 @@
     "all": "All",
     "backToHome": "Back to home"
   },
+  "Metadata": {
+    "title": "Nexo4you",
+    "description": "Course marketplace platform for online learning"
+  },
+  "ErrorPage": {
+    "title": "Something went wrong",
+    "description": "An unexpected error occurred. Try again or go back to the homepage.",
+    "retry": "Try again"
+  },
+  "NotFoundPage": {
+    "title": "Page not found",
+    "description": "We couldn't find the page you are looking for",
+    "backHome": "Back home"
+  },
   "Header": {
     "openMenu": "Open menu",
     "closeMenu": "Close menu",

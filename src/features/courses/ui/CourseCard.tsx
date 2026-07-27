@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { formatPrice, type CourseListItem } from "@/entities/course";
 import { Stars } from "./Stars";
@@ -40,6 +40,7 @@ export function CourseCard({ course, isWishlisted = false, href, onClick }: Prop
   const [imageBroken, setImageBroken] = useState(false);
   const showImage = course.image && !imageBroken;
   const t = useTranslations("CourseCard");
+  const locale = useLocale();
 
   const sharedStyle = {
     "--card-bg": theme.gradient,
@@ -53,7 +54,7 @@ export function CourseCard({ course, isWishlisted = false, href, onClick }: Prop
     <>
       <div className="flex shrink-0 items-start justify-between pr-10">
         <span className="text-[clamp(18px,calc(16.54px+0.39vw),24px)] font-medium leading-tight text-(--color-text-primary)">
-          {formatPrice(course, t("free"))}
+          {formatPrice(course, t("free"), locale)}
         </span>
       </div>
 

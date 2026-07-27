@@ -18,6 +18,20 @@
     "all": "Alle",
     "backToHome": "Zurück zur Startseite"
   },
+  "Metadata": {
+    "title": "Nexo4you",
+    "description": "Lernplattform für Online-Kurse"
+  },
+  "ErrorPage": {
+    "title": "Etwas ist schiefgelaufen",
+    "description": "Ein unerwarteter Fehler ist aufgetreten. Versuchen Sie es erneut oder kehren Sie zur Startseite zurück.",
+    "retry": "Erneut versuchen"
+  },
+  "NotFoundPage": {
+    "title": "Seite nicht gefunden",
+    "description": "Wir konnten die gesuchte Seite nicht finden",
+    "backHome": "Zurück zur Startseite"
+  },
   "Header": {
     "openMenu": "Menü öffnen",
     "closeMenu": "Menü schließen",

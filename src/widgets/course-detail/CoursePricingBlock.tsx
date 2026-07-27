@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { BookOpen, Check, ChevronDown, Clock, User, Users } from "lucide-react";
 // ChevronDown used inside CohortPicker and IndividualSlotPicker collapsible headers
@@ -32,16 +32,16 @@ const FORMAT_ICON: Record<DeliveryFormatType, React.ComponentType<{ className?: 
   group:       Users,
 };
 
-function formatPrice(price: string, currency: string): string {
-  return new Intl.NumberFormat("en-US", {
+function formatPrice(price: string, currency: string, locale: string): string {
+  return new Intl.NumberFormat(locale, {
     style: "currency",
     currency,
     maximumFractionDigits: 0,
   }).format(Number(price));
 }
 
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+function formatDate(iso: string, locale: string): string {
+  return new Date(iso).toLocaleDateString(locale, { month: "short", day: "numeric", year: "numeric" });
 }
 
 /** Cohort radio list shown inside a group format card. Starts collapsed. */
@@ -59,6 +59,7 @@ function CohortPicker({
   onOpenChange: (v: boolean) => void;
 }) {
   const t = useTranslations("CoursePricingBlock");
+  const locale = useLocale();
 
   if (cohorts.length === 0) {
     return (
@@ -108,7 +109,7 @@ function CohortPicker({
                   </span>
                   {c.start_date && (
                     <span className="text-xs text-(--color-text-secondary)">
-                      {t("startsDate", { date: formatDate(c.start_date) })}
+                      {t("startsDate", { date: formatDate(c.start_date, locale) })}
                     </span>
                   )}
                   {spotsLeft !== null && (
@@ -264,6 +265,7 @@ export function CoursePricingBlock({ courseId, formats, slug, cohorts = [] }: Pr
   const router = useRouter();
   const t = useTranslations("CoursePricingBlock");
   const tHeroCta = useTranslations("CourseHeroCTA");
+  const locale = useLocale();
   const [pendingPlanId, setPendingPlanId] = useState<number | null>(null);
   const [cardNotices, setCardNotices] = useState<Record<number, string>>({});
   const [cohortPickerOpen, setCohortPickerOpen] = useState<Record<number, boolean>>({});
@@ -414,7 +416,7 @@ export function CoursePricingBlock({ courseId, formats, slug, cohorts = [] }: Pr
                 <div className="flex flex-col items-center gap-6 sm:gap-7">
                   <PriceRow label={t("fullPrice")}>
                     <span className="font-(family-name:--font-accent) text-xl font-bold uppercase sm:text-2xl">
-                      {formatPrice(plan.price, plan.currency)}
+                      {formatPrice(plan.price, plan.currency, locale)}
                     </span>
                     <span className="text-base">{t("onePayment")}</span>
                   </PriceRow>
@@ -422,7 +424,7 @@ export function CoursePricingBlock({ courseId, formats, slug, cohorts = [] }: Pr
                   {plan.installment_count && plan.installment_amount && (
                     <PriceRow label={t("installmentPlan")}>
                       <span className="font-(family-name:--font-accent) text-xl font-bold uppercase sm:text-2xl">
-                        {formatPrice(plan.installment_amount, plan.currency)}
+                        {formatPrice(plan.installment_amount, plan.currency, locale)}
                       </span>
                       <span className="text-base">{t("monthlyPayments", { count: plan.installment_count })}</span>
                     </PriceRow>

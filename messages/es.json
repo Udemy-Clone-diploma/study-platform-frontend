@@ -18,6 +18,20 @@
     "all": "Todo",
     "backToHome": "Volver al inicio"
   },
+  "Metadata": {
+    "title": "Nexo4you",
+    "description": "Plataforma de cursos online"
+  },
+  "ErrorPage": {
+    "title": "Algo salió mal",
+    "description": "Se produjo un error inesperado. Inténtalo de nuevo o vuelve al inicio.",
+    "retry": "Intentar de nuevo"
+  },
+  "NotFoundPage": {
+    "title": "Página no encontrada",
+    "description": "No pudimos encontrar la página que buscas",
+    "backHome": "Volver al inicio"
+  },
   "Header": {
     "openMenu": "Abrir menú",
     "closeMenu": "Cerrar menú",

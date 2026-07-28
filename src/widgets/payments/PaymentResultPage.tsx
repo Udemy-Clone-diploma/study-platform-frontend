@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
 import { getEnrolledCourses } from "@/entities/course";
@@ -28,6 +29,7 @@ function hasEnrollmentForOrder(order: Order, enrolledCourseIds: Set<number>): bo
 }
 
 export function PaymentResultPage({ mode }: { mode: ResultMode }) {
+  const t = useTranslations("PaymentResultPage");
   const searchParams = useSearchParams();
   const orderId = Number(searchParams.get("order_id"));
   const paymentId = Number(searchParams.get("payment_id"));
@@ -129,12 +131,12 @@ export function PaymentResultPage({ mode }: { mode: ResultMode }) {
   ]);
 
   const isFailed = mode === "failed" || state === "failed";
-  const title = isFailed ? "Payment was not completed." : "Payment is being confirmed.";
+  const title = isFailed ? t("titleFailed") : t("titleConfirming");
   const description = isFailed
-    ? "Try again when you are ready. No course access is activated until the backend confirms payment."
+    ? t("descriptionFailed")
     : state === "confirmed"
-      ? "Payment confirmed. Your course access is active."
-      : "Your course access will be activated shortly.";
+      ? t("descriptionConfirmed")
+      : t("descriptionPending");
 
   async function handleReceiptDownload() {
     if (receiptLoading || !hasValidPaymentId) return;
@@ -153,7 +155,7 @@ export function PaymentResultPage({ mode }: { mode: ResultMode }) {
       link.remove();
       window.setTimeout(() => window.URL.revokeObjectURL(url), 0);
     } catch {
-      setReceiptError("Could not download receipt.");
+      setReceiptError(t("errorDownloadReceipt"));
     } finally {
       setReceiptLoading(false);
     }
@@ -162,7 +164,9 @@ export function PaymentResultPage({ mode }: { mode: ResultMode }) {
   return (
     <main className="min-h-[calc(100vh-76px)] bg-[linear-gradient(120deg,#FFFFFF_0%,#FFF7F2_32%,rgba(252,196,195,0.38)_58%,#FFFFFF_100%)] px-4 py-8 sm:px-10">
       <section className="mx-auto flex min-h-[460px] w-full max-w-[720px] flex-col justify-center rounded-[16px] bg-white px-6 py-10 shadow-[0_0_15px_rgba(0,0,0,0.18)] md:px-[60px]">
-        <p className="mb-3 font-mono text-[11px] uppercase text-[#6A6A6A]">Tuition payment</p>
+        <p className="mb-3 font-mono text-[11px] uppercase text-[#6A6A6A]">
+          {t("tuitionPayment")}
+        </p>
         <h1 className="font-mono text-[22px] font-semibold text-[#121212]">{title}</h1>
         <p className="mt-4 max-w-[560px] font-mono text-[13px] leading-5 text-[#121212]">
           {description}
@@ -170,14 +174,12 @@ export function PaymentResultPage({ mode }: { mode: ResultMode }) {
 
         {mode === "success" && state !== "confirmed" && !isFailed ? (
           <p className="mt-4 font-mono text-[11px] text-[#6A6A6A]">
-            Checking backend confirmation{state === "pending" ? "..." : "."}
+            {state === "pending" ? t("checkingConfirmationPending") : t("checkingConfirmation")}
           </p>
         ) : null}
 
         {state === "missing" ? (
-          <p className="mt-4 font-mono text-[11px] text-[#B42318]">
-            Order id is missing, so the page cannot check payment status.
-          </p>
+          <p className="mt-4 font-mono text-[11px] text-[#B42318]">{t("orderIdMissing")}</p>
         ) : null}
 
         <div className="mt-8 flex flex-wrap gap-3">
@@ -186,7 +188,7 @@ export function PaymentResultPage({ mode }: { mode: ResultMode }) {
               href="/student-dashboard/courses"
               className="inline-flex h-9 min-w-[150px] items-center justify-center rounded-full bg-black px-5 font-mono text-[12px] text-white transition-colors hover:bg-[#252525]"
             >
-              Go to My Courses
+              {t("goToMyCourses")}
             </Link>
           ) : null}
           {state === "confirmed" && receiptAvailable ? (
@@ -196,20 +198,20 @@ export function PaymentResultPage({ mode }: { mode: ResultMode }) {
               disabled={receiptLoading}
               className="inline-flex h-9 min-w-[150px] items-center justify-center rounded-full border border-[#003AFF] px-5 font-mono text-[12px] text-[#003AFF] transition-colors hover:bg-[#EEF3FF] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {receiptLoading ? "Downloading..." : "Download receipt"}
+              {receiptLoading ? t("downloading") : t("downloadReceipt")}
             </button>
           ) : null}
           <Link
             href="/student-dashboard/payment?tab=card"
             className="inline-flex h-9 min-w-[140px] items-center justify-center rounded-full border border-[#003AFF] px-5 font-mono text-[12px] text-[#003AFF] transition-colors hover:bg-[#EEF3FF]"
           >
-            {isFailed ? "Try again" : "Back to payment"}
+            {isFailed ? t("tryAgain") : t("backToPayment")}
           </Link>
           <Link
             href="/student-dashboard/payment?tab=history"
             className="inline-flex h-9 min-w-[150px] items-center justify-center rounded-full border border-[#D9D9D9] px-5 font-mono text-[12px] text-[#121212] transition-colors hover:border-[#003AFF] hover:text-[#003AFF]"
           >
-            Payment history
+            {t("paymentHistory")}
           </Link>
         </div>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import type { GradedQuestion } from "@/entities/course";
 
@@ -30,6 +31,7 @@ const pillBase =
   "flex w-full items-center justify-between rounded-xl p-4 font-(family-name:--font-base) text-xl leading-[25px]";
 
 export function QuizQuestionCard(props: Props) {
+  const t = useTranslations("Quiz");
   const questionType = props.mode === "answer" ? props.questionType : props.graded.question_type;
   const text = props.mode === "answer" ? props.text : props.graded.text;
   const isChoice = questionType === "single_choice" || questionType === "multiple_choice";
@@ -38,7 +40,7 @@ export function QuizQuestionCard(props: Props) {
     <div className="flex flex-col gap-5 rounded-[20px] bg-(--color-quiz-card-bg) px-10 py-5 shadow-(--shadow-quiz-card)">
       <div className="flex flex-col gap-2">
         <span className="font-(family-name:--font-base) text-2xl leading-[30px] text-(--color-black)">
-          Question {props.index + 1}
+          {t("question", { number: props.index + 1 })}
         </span>
         <p className="font-(family-name:--font-base) text-xl leading-[25px] text-(--color-black)">
           {text}
@@ -198,11 +200,6 @@ function ChoiceReview({ graded, single }: { graded: GradedQuestion; single: bool
 
 type QuizSelectOption = { value: string; label: string };
 
-const trueFalseOptions: QuizSelectOption[] = [
-  { value: "true", label: "True" },
-  { value: "false", label: "False" },
-];
-
 function QuizSelect({
   options,
   value,
@@ -276,17 +273,23 @@ function TrueFalseAnswer({
   value: boolean | null;
   onChange: (v: boolean | null) => void;
 }) {
+  const t = useTranslations("Quiz");
+  const trueFalseOptions: QuizSelectOption[] = [
+    { value: "true", label: t("true") },
+    { value: "false", label: t("false") },
+  ];
   return (
     <QuizSelect
       options={trueFalseOptions}
       value={value === null ? "" : String(value)}
       onChange={(v) => onChange(v === "true")}
-      placeholder="Select your answer"
+      placeholder={t("selectAnswer")}
     />
   );
 }
 
 function TrueFalseReview({ graded }: { graded: GradedQuestion }) {
+  const t = useTranslations("Quiz");
   const answered = graded.answer_bool != null;
   const bg = graded.is_correct
     ? "bg-(--color-quiz-correct)"
@@ -296,12 +299,12 @@ function TrueFalseReview({ graded }: { graded: GradedQuestion }) {
   return (
     <div className="flex flex-col gap-2">
       <div className={`${pillBase} ${bg} text-(--color-black)`}>
-        <span>{answered ? (graded.answer_bool ? "True" : "False") : "Not answered"}</span>
+        <span>{answered ? (graded.answer_bool ? t("true") : t("false")) : t("notAnswered")}</span>
         <ChevronRight className="h-8 w-8 shrink-0 rotate-90 text-(--color-black)" aria-hidden="true" />
       </div>
       {!graded.is_correct && graded.correct_bool != null && (
         <span className="font-(family-name:--font-base) text-base text-(--color-quiz-correct-soft)">
-          Correct answer: {graded.correct_bool ? "True" : "False"}
+          {t("correctAnswer", { value: graded.correct_bool ? t("true") : t("false") })}
         </span>
       )}
     </div>
@@ -309,18 +312,20 @@ function TrueFalseReview({ graded }: { graded: GradedQuestion }) {
 }
 
 function ShortAnswer({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const t = useTranslations("Quiz");
   return (
     <input
       type="text"
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      placeholder="Enter your answer..."
+      placeholder={t("enterAnswer")}
       className={`quiz-answer-input ${pillBase} bg-(--color-input-bg) text-(--color-text-primary) outline-none`}
     />
   );
 }
 
 function ShortAnswerReview({ graded }: { graded: GradedQuestion }) {
+  const t = useTranslations("Quiz");
   const answer = graded.answer_text?.trim() ?? "";
   const bg = graded.is_correct ? "bg-(--color-quiz-correct)" : "bg-(--color-brand-pink)";
   const correct = graded.accepted_answers?.length
@@ -329,11 +334,11 @@ function ShortAnswerReview({ graded }: { graded: GradedQuestion }) {
   return (
     <div className="flex flex-col gap-2">
       <div className={`${pillBase} ${bg} text-(--color-black)`}>
-        <span>{answer || "No answer"}</span>
+        <span>{answer || t("noAnswer")}</span>
       </div>
       {correct && (
         <span className="font-(family-name:--font-base) text-base text-(--color-quiz-correct-soft)">
-          Correct answer: {correct}
+          {t("correctAnswer", { value: correct })}
         </span>
       )}
     </div>

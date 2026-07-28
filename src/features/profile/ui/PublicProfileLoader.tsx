@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
 import { getPublicUserProfile, type PublicUserProfile } from "@/entities/user";
@@ -16,6 +17,7 @@ type Props = {
 
 /** Loads an authenticated public profile in the browser and renders request states. */
 export function PublicProfileLoader({ userId, modal = false, onClose }: Props) {
+  const t = useTranslations("PublicProfile");
   const router = useRouter();
   const [profile, setProfile] = useState<PublicUserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -47,8 +49,8 @@ export function PublicProfileLoader({ userId, modal = false, onClose }: Props) {
         if (!active) return;
         setError(
           requestError.status === 404
-            ? "This profile is unavailable."
-            : requestError.detail || requestError.message || "Could not load this profile.",
+            ? t("profileUnavailableBody")
+            : requestError.detail || requestError.message || t("couldNotLoad"),
         );
       })
       .finally(() => {
@@ -58,19 +60,19 @@ export function PublicProfileLoader({ userId, modal = false, onClose }: Props) {
     return () => {
       active = false;
     };
-  }, [userId]);
+  }, [userId, t]);
 
   const content = loading ? (
     <div className="flex min-h-138 items-center justify-center px-6 text-(--color-text-secondary)">
-      <Loader2 aria-label="Loading profile" className="h-8 w-8 animate-spin" />
+      <Loader2 aria-label={t("loadingProfile")} className="h-8 w-8 animate-spin" />
     </div>
   ) : !profile ? (
     <div className="flex min-h-72 items-center justify-center px-6 py-12 text-center">
       <div className="max-w-md p-6">
-        <h1 className="text-2xl font-bold text-(--color-text-primary)">Profile unavailable</h1>
-        <p className="mt-3 text-(--color-text-secondary)">
-          {error || "Could not load this profile."}
-        </p>
+        <h1 className="text-2xl font-bold text-(--color-text-primary)">
+          {t("profileUnavailable")}
+        </h1>
+        <p className="mt-3 text-(--color-text-secondary)">{error || t("couldNotLoad")}</p>
       </div>
     </div>
   ) : (
@@ -90,7 +92,9 @@ export function PublicProfileLoader({ userId, modal = false, onClose }: Props) {
       <ModalShell
         onClose={closeProfile}
         ariaLabel={
-          profile ? `Profile of ${profile.first_name} ${profile.last_name}`.trim() : "User profile"
+          profile
+            ? t("profileOf", { name: `${profile.first_name} ${profile.last_name}`.trim() })
+            : t("userProfile")
         }
         width="min(420px, calc(100vw - 32px))"
         padding="0"
@@ -105,7 +109,7 @@ export function PublicProfileLoader({ userId, modal = false, onClose }: Props) {
   if (loading) {
     return (
       <div className="flex min-h-full items-center justify-center px-6 py-20 text-(--color-text-secondary)">
-        <Loader2 aria-label="Loading profile" className="h-8 w-8 animate-spin" />
+        <Loader2 aria-label={t("loadingProfile")} className="h-8 w-8 animate-spin" />
       </div>
     );
   }
@@ -114,10 +118,10 @@ export function PublicProfileLoader({ userId, modal = false, onClose }: Props) {
     return (
       <div className="flex min-h-full items-center justify-center px-6 py-20 text-center">
         <div className="max-w-md rounded-2xl bg-(--color-bg) p-8 shadow-(--shadow-card)">
-          <h1 className="text-2xl font-bold text-(--color-text-primary)">Profile unavailable</h1>
-          <p className="mt-3 text-(--color-text-secondary)">
-            {error || "Could not load this profile."}
-          </p>
+          <h1 className="text-2xl font-bold text-(--color-text-primary)">
+            {t("profileUnavailable")}
+          </h1>
+          <p className="mt-3 text-(--color-text-secondary)">{error || t("couldNotLoad")}</p>
         </div>
       </div>
     );

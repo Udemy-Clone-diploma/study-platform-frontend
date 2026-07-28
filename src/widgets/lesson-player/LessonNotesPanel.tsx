@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import type { CourseLevel } from "@/entities/course";
 import { readLessonNote, updateLessonNoteMetadata, writeLessonNote } from "@/features/learning";
 
@@ -27,6 +28,7 @@ export function LessonNotesPanel({
   lessonTitle,
   lessonOrder,
 }: Props) {
+  const t = useTranslations("LessonNotes");
   const ref = useRef<HTMLTextAreaElement>(null);
   const savedValueRef = useRef("");
   const [canSave, setCanSave] = useState(false);
@@ -97,8 +99,8 @@ export function LessonNotesPanel({
         ref={ref}
         defaultValue=""
         onChange={handleChange}
-        placeholder="Take a note"
-        aria-label="Lesson note"
+        placeholder={t("placeholder")}
+        aria-label={t("ariaLabel")}
         className="flex-1 resize-none bg-transparent font-(family-name:--font-base) text-base leading-normal text-(--color-text-primary) placeholder:text-(--color-draft) focus:outline-none"
       />
       <button
@@ -112,12 +114,12 @@ export function LessonNotesPanel({
         }`}
       >
         {status === "saving"
-          ? "Saving..."
+          ? t("saving")
           : status === "error"
-            ? "Try again"
+            ? t("tryAgain")
             : status === "saved"
-              ? "Saved"
-              : "Save"}
+              ? t("saved")
+              : t("save")}
       </button>
     </aside>
   );

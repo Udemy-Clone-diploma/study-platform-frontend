@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { CalendarDays, Check, ChevronLeft, ChevronRight, Download, Video } from "lucide-react";
@@ -60,6 +61,8 @@ export function LessonPlayerView({
   initialProgress = null,
   isMock = false,
 }: Props) {
+  const t = useTranslations("LessonPlayer");
+  const tContentTabs = useTranslations("LessonContentTabs");
   const router = useRouter();
   const [course, setCourse] = useState<CourseDetail | null>(initialCourse ?? null);
   const [lesson, setLesson] = useState<CourseLesson | null>(initialLesson ?? null);
@@ -115,7 +118,7 @@ export function LessonPlayerView({
           router.replace(`/courses/${slug}`);
           return;
         }
-        setError(apiError.message ?? "Could not load this lesson.");
+        setError(apiError.message ?? t("errorLoadLesson"));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -124,7 +127,7 @@ export function LessonPlayerView({
     return () => {
       cancelled = true;
     };
-  }, [slug, lessonId, router, initialCourse, initialLesson]);
+  }, [slug, lessonId, router, initialCourse, initialLesson, t]);
 
   // Record "last opened" so the resume CTA points here. Mock seeds from storage.
   useEffect(() => {
@@ -179,7 +182,7 @@ export function LessonPlayerView({
       )
       .catch((err: Partial<ApiError>) => {
         setProgress(previous);
-        setCompleteError(err.message ?? "Could not update completion status.");
+        setCompleteError(err.message ?? t("errorUpdateCompletion"));
       });
   };
 
@@ -201,7 +204,15 @@ export function LessonPlayerView({
       : null;
 
   // One tab per renderable content block (video / reading / test), in order.
-  const tabs = useMemo(() => buildLessonTabs(lesson?.items ?? []), [lesson]);
+  const tabs = useMemo(
+    () =>
+      buildLessonTabs(lesson?.items ?? [], {
+        video: tContentTabs("video"),
+        text: tContentTabs("reading"),
+        test: tContentTabs("test"),
+      }),
+    [lesson, tContentTabs],
+  );
 
   // User's tab choice; reset on lesson change so each lesson opens at its first block.
   const [selectedTabId, setSelectedTabId] = useState<number | null>(null);
@@ -219,7 +230,7 @@ export function LessonPlayerView({
   if (loading) {
     return (
       <p role="status" className="p-8 text-center text-lg text-(--color-text-secondary)">
-        Loading lesson...
+        {t("loadingLesson")}
       </p>
     );
   }
@@ -306,19 +317,19 @@ export function LessonPlayerView({
                       on the last content tab; earlier tabs advance to the next one instead. */}
                   {nextTab ? (
                     <GradientButton onClick={() => setSelectedTabId(nextTab.id)}>
-                      Go to {nextTab.label}
+                      {t("goTo", { label: nextTab.label })}
                     </GradientButton>
                   ) : (
                     <CompleteCheckbox
                       checked={isCompleted}
                       disabled={!progress}
-                      label="Mark as complete"
+                      label={t("markAsComplete")}
                       onToggle={handleToggleComplete}
                     />
                   )}
                   {nextLesson && isLastTab && (
                     <GradientButton href={`/learn/${slug}/${nextLesson.id}`}>
-                      Next lesson
+                      {t("nextLesson")}
                     </GradientButton>
                   )}
                 </div>
@@ -355,11 +366,12 @@ export function LessonPlayerView({
 
 /** "Previous" / "Next" lesson stepper; renders muted and inert at the course ends. */
 function LessonNavLink({ href, direction }: { href?: string; direction: "prev" | "next" }) {
+  const t = useTranslations("LessonPlayer");
   const isPrev = direction === "prev";
   const content = (
     <>
       {isPrev && <ChevronLeft className="h-5 w-5" aria-hidden="true" />}
-      {isPrev ? "Previous" : "Next"}
+      {isPrev ? t("previous") : t("next")}
       {!isPrev && <ChevronRight className="h-5 w-5" aria-hidden="true" />}
     </>
   );
@@ -382,6 +394,7 @@ function LessonNavLink({ href, direction }: { href?: string; direction: "prev" |
 
 /** Renders the active content block: a video, a reading body, or a test summary. */
 function LessonContent({ item }: { item: LessonItem | null }) {
+  const t = useTranslations("LessonPlayer");
   if (item?.item_type === "video" && item.video_url) {
     return (
       <div className="overflow-hidden rounded-2xl bg-black">
@@ -392,7 +405,7 @@ function LessonContent({ item }: { item: LessonItem | null }) {
   if (item?.item_type === "text" && item.body_html) {
     return <CourseDescription html={item.body_html} />;
   }
-  return <p className="text-(--color-text-secondary)">No content available for this lesson yet.</p>;
+  return <p className="text-(--color-text-secondary)">{t("noContentYet")}</p>;
 }
 
 /** Custom checkbox that toggles lesson completion. */
@@ -435,10 +448,11 @@ function CompleteCheckbox({
 
 /** Live sessions the teacher has scheduled for this lesson (via the calendar). */
 function LessonSessionsList({ sessions }: { sessions: LessonSession[] }) {
+  const t = useTranslations("LessonPlayer");
   return (
     <div className="flex flex-col gap-4 border-t border-(--color-text-primary)/10 pt-6">
       <h2 className="font-(family-name:--font-base) text-lg font-semibold text-(--color-text-primary)">
-        Live sessions
+        {t("liveSessions")}
       </h2>
       <ul className="flex flex-col gap-3">
         {sessions.map((session) => (
@@ -452,8 +466,10 @@ function LessonSessionsList({ sessions }: { sessions: LessonSession[] }) {
 }
 
 function LessonSessionCard({ session }: { session: LessonSession }) {
+  const t = useTranslations("LessonPlayer");
+  const locale = useLocale();
   const date = new Date(`${session.date}T00:00:00`);
-  const dateLabel = date.toLocaleDateString(undefined, {
+  const dateLabel = date.toLocaleDateString(locale, {
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -485,10 +501,10 @@ function LessonSessionCard({ session }: { session: LessonSession }) {
           style={{ background: "var(--gradient-brand)" }}
         >
           <Video className="h-4 w-4" aria-hidden="true" />
-          Join live session
+          {t("joinLiveSession")}
         </a>
       ) : (
-        <span className="text-sm text-(--color-text-secondary)">Meeting link not shared yet</span>
+        <span className="text-sm text-(--color-text-secondary)">{t("meetingLinkNotShared")}</span>
       )}
     </div>
   );
@@ -496,10 +512,11 @@ function LessonSessionCard({ session }: { session: LessonSession }) {
 
 /** "Materials" download list for a lesson's attached documents. */
 function LessonDocuments({ documents }: { documents: LessonDocument[] }) {
+  const t = useTranslations("LessonPlayer");
   return (
     <div className="flex flex-col gap-3 border-t border-(--color-text-primary)/10 pt-6">
       <h2 className="font-(family-name:--font-base) text-lg font-semibold text-(--color-text-primary)">
-        Materials
+        {t("materials")}
       </h2>
       <ul className="flex flex-col gap-2">
         {documents.map((doc) => (

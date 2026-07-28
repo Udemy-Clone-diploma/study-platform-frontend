@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { Check, ChevronDown, PartyPopper, TriangleAlert } from "lucide-react";
@@ -37,6 +38,7 @@ function getScrollParent(node: HTMLElement | null): HTMLElement {
  * and certificate/ratings cards; a down arrow scrolls to the per-module list.
  */
 export function CourseProgressView({ course, initialProgress = null, isMock = false }: Props) {
+  const t = useTranslations("CourseProgress");
   const router = useRouter();
   const { progress, error } = useCourseProgress(course.slug, initialProgress, isMock);
   const detailRef = useRef<HTMLDivElement>(null);
@@ -55,7 +57,7 @@ export function CourseProgressView({ course, initialProgress = null, isMock = fa
       router.replace("/student-dashboard/courses");
     } catch (err) {
       const apiError = err as Partial<ApiError>;
-      setCompletionError(apiError.message ?? "Could not complete the course.");
+      setCompletionError(apiError.message ?? t("errorCompleteCourse"));
       setCompleting(false);
     }
   }
@@ -97,15 +99,14 @@ export function CourseProgressView({ course, initialProgress = null, isMock = fa
                 <div className="flex max-w-[680px] flex-col gap-4">
                   <div className="flex flex-col gap-1">
                     <h1 className="font-(family-name:--font-base) text-3xl leading-tight text-(--color-text-primary) lg:text-5xl">
-                      Your Progress
+                      {t("yourProgress")}
                     </h1>
                     <p className="font-(family-name:--font-base) text-2xl text-(--color-text-secondary) lg:text-[2rem]">
-                      Course completion
+                      {t("courseCompletion")}
                     </p>
                   </div>
                   <p className="font-(family-name:--font-base) text-base leading-snug text-(--color-text-primary) lg:text-2xl">
-                    This shows how much of the course content you have completed. Please note that
-                    some materials may not have been published yet.
+                    {t("progressDescription")}
                   </p>
                 </div>
                 <ProgressDonut percent={percent} />
@@ -163,7 +164,7 @@ export function CourseProgressView({ course, initialProgress = null, isMock = fa
               }
               className="group flex flex-col items-center gap-1 rounded-2xl px-6 py-3 font-(family-name:--font-accent) text-sm uppercase text-(--color-text-primary) transition-colors hover:bg-(--color-brand-lavender)/20"
             >
-              See lesson completion
+              {t("seeLessonCompletion")}
               <ChevronDown
                 aria-hidden="true"
                 className="h-6 w-6 transition-transform group-hover:animate-bounce"
@@ -175,10 +176,10 @@ export function CourseProgressView({ course, initialProgress = null, isMock = fa
         <div ref={detailRef} className="flex scroll-mt-24 snap-start flex-col gap-6">
           <header className="flex flex-col gap-1">
             <h2 className="font-(family-name:--font-base) text-2xl font-semibold text-(--color-text-primary) lg:text-3xl">
-              Lesson completion
+              {t("lessonCompletion")}
             </h2>
             <p className="font-(family-name:--font-base) text-base text-(--color-text-secondary)">
-              {completedCount} of {lessonsTotal} lessons completed ({percent}%)
+              {t("lessonsCompletedSummary", { completed: completedCount, total: lessonsTotal, percent })}
             </p>
           </header>
 
@@ -192,11 +193,11 @@ export function CourseProgressView({ course, initialProgress = null, isMock = fa
               >
                 <header className="flex flex-wrap items-center gap-3">
                   <span className="inline-flex items-center justify-center rounded-[20px] bg-(--color-brand-lavender-soft) px-3 py-0.5 font-(family-name:--font-base) font-semibold text-(--color-blue)">
-                    Module {mod.order}
+                    {t("module", { order: mod.order })}
                   </span>
                   <h3 className="text-xl font-semibold text-(--color-text-primary)">{mod.title}</h3>
                   <span className="ml-auto text-sm text-(--color-text-secondary)">
-                    {doneInModule} / {lessons.length} done
+                    {t("doneOfTotal", { done: doneInModule, total: lessons.length })}
                   </span>
                 </header>
                 <ul className="flex flex-col gap-1">
@@ -219,14 +220,14 @@ export function CourseProgressView({ course, initialProgress = null, isMock = fa
                             <Check className="h-3 w-3" />
                           </span>
                           <span className="text-(--color-text-primary) group-hover:underline">
-                            Lesson {l.order}: {l.title}
+                            {t("lessonWithTitle", { order: l.order, title: l.title })}
                           </span>
                           {l.is_mandatory && (
                             <span className="flex-shrink-0 rounded-full bg-(--color-brand-yellow) px-3 py-0.5 font-(family-name:--font-accent) text-xs uppercase text-(--color-text-primary)">
-                              Mandatory
+                              {t("mandatory")}
                             </span>
                           )}
-                          {isDone && <span className="sr-only">Completed</span>}
+                          {isDone && <span className="sr-only">{t("completed")}</span>}
                         </Link>
                       </li>
                     );
@@ -243,6 +244,7 @@ export function CourseProgressView({ course, initialProgress = null, isMock = fa
 
 /** Completion donut: gray track + blue arc, "{percent}% compiled" centered. */
 function ProgressDonut({ percent }: { percent: number }) {
+  const t = useTranslations("CourseProgress");
   const radius = 88;
   const circumference = 2 * Math.PI * radius;
   const filled = (percent / 100) * circumference;
@@ -250,7 +252,7 @@ function ProgressDonut({ percent }: { percent: number }) {
     <div
       className="relative h-[200px] w-[200px] shrink-0 self-center"
       role="img"
-      aria-label={`${percent}% of the course completed`}
+      aria-label={t("completionAriaLabel", { percent })}
     >
       <svg viewBox="0 0 200 200" className="h-full w-full -rotate-90">
         <circle
@@ -274,7 +276,7 @@ function ProgressDonut({ percent }: { percent: number }) {
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center text-(--color-text-primary)">
         <span className="font-(family-name:--font-accent) text-5xl leading-none">{percent}%</span>
-        <span className="font-(family-name:--font-base) text-base lg:text-xl">compiled</span>
+        <span className="font-(family-name:--font-base) text-base lg:text-xl">{t("compiled")}</span>
       </div>
     </div>
   );
@@ -282,6 +284,7 @@ function ProgressDonut({ percent }: { percent: number }) {
 
 /** 980px score bar: yellow current-score marker (lesson-completion %), black passing-score marker, and a passing-threshold tick inside the bar. */
 function ScoreBar({ percent, passing }: { percent: number; passing: number }) {
+  const t = useTranslations("CourseProgress");
   return (
     <div className="relative w-full max-w-[980px] py-16">
       <div className="relative w-full">
@@ -291,7 +294,7 @@ function ScoreBar({ percent, passing }: { percent: number; passing: number }) {
           style={{ left: `${percent}%` }}
         >
           <span className="whitespace-nowrap font-(family-name:--font-base) text-base text-(--color-text-primary)">
-            Your current score
+            {t("yourCurrentScore")}
           </span>
           <span className="relative mt-2 rounded-md bg-(--color-brand-yellow) px-3 py-1 font-(family-name:--font-accent) text-2xl text-(--color-text-primary)">
             {percent}%
@@ -328,7 +331,7 @@ function ScoreBar({ percent, passing }: { percent: number; passing: number }) {
             {passing}%
           </span>
           <span className="mt-2 whitespace-nowrap font-(family-name:--font-base) text-base text-(--color-text-primary)">
-            Passing score
+            {t("passingScore")}
           </span>
         </div>
       </div>
@@ -338,11 +341,12 @@ function ScoreBar({ percent, passing }: { percent: number; passing: number }) {
 
 /** Glass alert shown for group/individual enrollments: completion is the teacher's call, not a self-service action. */
 function TeacherCompletionAlert() {
+  const t = useTranslations("CourseProgress");
   return (
     <div className="mx-auto flex w-fit items-center gap-2 rounded-[20px] bg-(--color-white-20) px-6 py-4 shadow-[inset_0_2px_4px_0_var(--color-white-85)] backdrop-blur-sm">
       <TriangleAlert aria-hidden="true" className="h-6 w-6 shrink-0 text-(--color-text-primary)" />
       <p className="font-(family-name:--font-base) text-base uppercase text-(--color-text-primary)">
-        Your teacher will mark this course as completed
+        {t("teacherWillMark")}
       </p>
     </div>
   );
@@ -350,12 +354,12 @@ function TeacherCompletionAlert() {
 
 /** Glass "passing grade required" alert. */
 function PassingAlert({ passing }: { passing: number }) {
+  const t = useTranslations("CourseProgress");
   return (
     <div className="mx-auto flex w-fit items-center gap-2 rounded-[20px] bg-(--color-white-20) px-6 py-4 shadow-[inset_0_2px_4px_0_var(--color-white-85)] backdrop-blur-sm">
       <TriangleAlert aria-hidden="true" className="h-6 w-6 shrink-0 text-(--color-text-primary)" />
       <p className="font-(family-name:--font-base) text-base uppercase text-(--color-text-primary)">
-        A passing grade of {passing}% and all mandatory lessons completed are required to
-        complete this course
+        {t("passingRequirement", { passing })}
       </p>
     </div>
   );
@@ -371,16 +375,17 @@ function CompleteCourseCta({
   error: string | null;
   onComplete: () => void;
 }) {
+  const t = useTranslations("CourseProgress");
   return (
     <div className="mx-auto flex w-fit flex-col items-center gap-3 rounded-[20px] bg-(--color-white-20) px-6 py-4 shadow-[inset_0_2px_4px_0_var(--color-white-85)] backdrop-blur-sm">
       <div className="flex items-center gap-2">
         <PartyPopper aria-hidden="true" className="h-6 w-6 shrink-0 text-(--color-text-primary)" />
         <p className="font-(family-name:--font-base) text-base uppercase text-(--color-text-primary)">
-          You have met this course&apos;s completion requirements
+          {t("requirementsMet")}
         </p>
       </div>
       <GradientButton type="button" onClick={onComplete} disabled={loading}>
-        {loading ? "Completing…" : "Complete course"}
+        {loading ? t("completing") : t("completeCourse")}
       </GradientButton>
       {error && (
         <p role="status" className="text-sm text-(--color-pink-dark)">
@@ -393,14 +398,14 @@ function CompleteCourseCta({
 
 /** White "Certificate status" card with a lavender glow. */
 function CertificateCard({ passing }: { passing: number }) {
+  const t = useTranslations("CourseProgress");
   return (
     <div className="flex flex-col items-center gap-2 rounded-[20px] bg-white p-8 text-center shadow-[0_0_11px_var(--color-brand-lavender)] lg:p-10">
       <h2 className="font-(family-name:--font-base) text-2xl font-medium text-(--color-text-primary) lg:text-4xl">
-        Certificate status
+        {t("certificateStatus")}
       </h2>
       <p className="font-(family-name:--font-base) text-base text-(--color-text-primary)">
-        To receive a certificate for this course, you must achieve a passing grade of {passing}%
-        and complete all mandatory lessons
+        {t("certificateDescription", { passing })}
       </p>
     </div>
   );
@@ -415,12 +420,13 @@ type StatsRowProps = {
 
 /** Shared "average + counts" body used by the tests and homework cards. */
 function StatsRow({ average, averageFormat, stats }: StatsRowProps) {
+  const t = useTranslations("CourseProgress");
   const averageLabel =
     average == null ? "—" : averageFormat === "percent" ? `${average}%` : average.toFixed(1);
   return (
     <>
       <p className="font-(family-name:--font-base) text-base text-(--color-text-primary) lg:text-2xl">
-        Average score: {averageLabel}
+        {t("averageScore", { value: averageLabel })}
       </p>
       <ul className="flex flex-wrap gap-x-6 gap-y-1">
         {stats.map((s) => (
@@ -450,24 +456,25 @@ function TestsStatsCard({
   skipped: number;
   total: number;
 }) {
+  const t = useTranslations("CourseProgress");
   return (
     <div className="flex flex-col gap-2 rounded-[20px] bg-(--color-brand-pink) p-5">
       <h2 className="font-(family-name:--font-base) text-2xl text-(--color-text-primary) lg:text-4xl">
-        Tests
+        {t("tests")}
       </h2>
       {total === 0 ? (
         <p className="font-(family-name:--font-base) text-base text-(--color-text-primary) lg:text-2xl">
-          This course has no tests yet.
+          {t("noTestsYet")}
         </p>
       ) : (
         <StatsRow
           average={average}
           averageFormat="percent"
           stats={[
-            { label: "Passed", value: passed },
-            { label: "Failed", value: failed },
-            { label: "Not taken", value: skipped },
-            { label: "Total", value: total },
+            { label: t("passed"), value: passed },
+            { label: t("failed"), value: failed },
+            { label: t("notTaken"), value: skipped },
+            { label: t("total"), value: total },
           ]}
         />
       )}
@@ -487,23 +494,24 @@ function HomeworkStatsCard({
   ungraded: number;
   total: number;
 }) {
+  const t = useTranslations("CourseProgress");
   return (
     <div className="flex flex-col gap-2 rounded-[20px] bg-(--color-brand-lavender-soft) p-5">
       <h2 className="font-(family-name:--font-base) text-2xl text-(--color-text-primary) lg:text-4xl">
-        Homework
+        {t("homework")}
       </h2>
       {total === 0 ? (
         <p className="font-(family-name:--font-base) text-base text-(--color-text-primary) lg:text-2xl">
-          No homework assigned yet.
+          {t("noHomeworkYet")}
         </p>
       ) : (
         <StatsRow
           average={average}
           averageFormat="raw"
           stats={[
-            { label: "Graded", value: graded },
-            { label: "Not graded", value: ungraded },
-            { label: "Total", value: total },
+            { label: t("graded"), value: graded },
+            { label: t("notGraded"), value: ungraded },
+            { label: t("total"), value: total },
           ]}
         />
       )}

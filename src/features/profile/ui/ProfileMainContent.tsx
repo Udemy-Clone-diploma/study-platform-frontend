@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { AccentButton } from "@/shared/ui/AccentButton";
 
 type Props = {
@@ -17,6 +18,7 @@ export function ProfileMainContent({
     showSaveButton = true,
     onSave, children,
 }: Props) {
+    const t = useTranslations("Profile");
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: "1.5vw" }}>
 
@@ -27,7 +29,7 @@ export function ProfileMainContent({
                     fontSize: "2.083vw", color: "var(--color-text-primary)",
                     lineHeight: 1.25, margin: 0,
                 }}>
-                    My profile
+                    {t("title")}
                 </h1>
                 {showSubtitle && (
                     <p style={{
@@ -35,7 +37,7 @@ export function ProfileMainContent({
                         fontFamily: "var(--font-base)", fontSize: "1.04vw", fontWeight: 500,
                         color: "var(--color-text-primary)", letterSpacing: "-0.011em",
                     }}>
-                        Please fill in your details. This will help us provide you with even better course recommendations.
+                        {t("subtitle")}
                     </p>
                 )}
             </div>
@@ -47,7 +49,7 @@ export function ProfileMainContent({
                     marginBottom: "0.417vw", letterSpacing: "-0.011em",
                 }}>
                     <span style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "1.04vw", color: "var(--color-text-primary)" }}>
-                        Profile completion
+                        {t("completion")}
                     </span>
                     <span style={{ fontFamily: "var(--font-accent)", fontWeight: 700, fontSize: "1.25vw", color: "var(--color-blue)" }}>
                         {completionPercent}%
@@ -71,7 +73,7 @@ export function ProfileMainContent({
             {editing && showSaveButton && (
                 <div>
                     <AccentButton size="md" onClick={onSave} disabled={saving}>
-                        {saving ? "Saving..." : "Save"}
+                        {saving ? t("saving") : t("save")}
                     </AccentButton>
                 </div>
             )}

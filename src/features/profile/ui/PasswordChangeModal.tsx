@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Eye, EyeOff } from "lucide-react";
 import { ModalShell } from "@/shared/ui/ModalShell";
 import { changePassword } from "@/features/auth";
@@ -26,6 +27,7 @@ const LINE_INPUT: React.CSSProperties = {
 
 /** Password change modal shown from the profile page. */
 export function PasswordChangeModal({ onClose }: Props) {
+    const t = useTranslations("PasswordChangeModal");
     const [oldPassword, setOldPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [showOld, setShowOld] = useState(false);
@@ -36,7 +38,7 @@ export function PasswordChangeModal({ onClose }: Props) {
     async function handleSave() {
         setError(null);
         if (!oldPassword || !newPassword) {
-            setError("Please fill in both fields.");
+            setError(t("errorBothFields"));
             return;
         }
         setSaving(true);
@@ -44,7 +46,7 @@ export function PasswordChangeModal({ onClose }: Props) {
             await changePassword({ old_password: oldPassword, new_password: newPassword });
             onClose();
         } catch {
-            setError("Incorrect current password or invalid new password.");
+            setError(t("errorIncorrect"));
         } finally {
             setSaving(false);
         }
@@ -56,13 +58,13 @@ export function PasswordChangeModal({ onClose }: Props) {
 
                 {/* Old Password */}
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.625vw" }}>
-                    <span style={LABEL_STYLE}>Old Password</span>
+                    <span style={LABEL_STYLE}>{t("oldPassword")}</span>
                     <div style={{ position: "relative" }}>
                         <input
                             type={showOld ? "text" : "password"}
                             value={oldPassword}
                             onChange={e => setOldPassword(e.target.value)}
-                            placeholder="Text"
+                            placeholder={t("textPlaceholder")}
                             style={LINE_INPUT}
                         />
                         <button
@@ -75,7 +77,7 @@ export function PasswordChangeModal({ onClose }: Props) {
                                 display: "flex", alignItems: "center",
                                 color: "var(--color-text-secondary)",
                             }}
-                            aria-label={showOld ? "Hide password" : "Show password"}
+                            aria-label={showOld ? t("hidePassword") : t("showPassword")}
                         >
                             {showOld ? <EyeOff size={18} /> : <Eye size={18} />}
                         </button>
@@ -84,13 +86,13 @@ export function PasswordChangeModal({ onClose }: Props) {
 
                 {/* New Password */}
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.625vw" }}>
-                    <span style={LABEL_STYLE}>New Password</span>
+                    <span style={LABEL_STYLE}>{t("newPassword")}</span>
                     <div style={{ position: "relative" }}>
                         <input
                             type={showNew ? "text" : "password"}
                             value={newPassword}
                             onChange={e => setNewPassword(e.target.value)}
-                            placeholder="Text"
+                            placeholder={t("textPlaceholder")}
                             style={LINE_INPUT}
                         />
                         <button
@@ -103,7 +105,7 @@ export function PasswordChangeModal({ onClose }: Props) {
                                 display: "flex", alignItems: "center",
                                 color: "var(--color-text-secondary)",
                             }}
-                            aria-label={showNew ? "Hide password" : "Show password"}
+                            aria-label={showNew ? t("hidePassword") : t("showPassword")}
                         >
                             {showNew ? <EyeOff size={18} /> : <Eye size={18} />}
                         </button>
@@ -132,6 +134,7 @@ export function PasswordChangeModal({ onClose }: Props) {
                             fontWeight: 700,
                             fontSize: "1.04vw",
                             letterSpacing: "0.08em",
+                            textTransform: "uppercase",
                             border: "none",
                             borderRadius: "6.25vw",
                             padding: "0.625vw 3.125vw",
@@ -140,7 +143,7 @@ export function PasswordChangeModal({ onClose }: Props) {
                             transition: "opacity 0.2s",
                         }}
                     >
-                        {saving ? "Saving..." : "SAVE"}
+                        {saving ? t("saving") : t("save")}
                     </button>
                 </div>
             </div>

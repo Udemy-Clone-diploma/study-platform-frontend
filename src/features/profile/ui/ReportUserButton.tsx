@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Check, Flag } from "lucide-react";
 import { ReportUserModal } from "./ReportUserModal";
 
@@ -18,6 +19,7 @@ export function ReportUserButton({
   initiallyReported = false,
   variant = "default",
 }: Props) {
+  const t = useTranslations("ReportUser");
   const [modalOpen, setModalOpen] = useState(false);
   const [reported, setReported] = useState(initiallyReported);
 
@@ -43,7 +45,7 @@ export function ReportUserButton({
         ) : (
           <Flag aria-hidden="true" className="h-4 w-4" />
         )}
-        {reported ? "Report sent" : "Report user"}
+        {reported ? t("reportSent") : t("reportUser")}
       </button>
 
       {modalOpen ? (

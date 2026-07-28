@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { Star, X } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
 import { createDirectChat } from "@/entities/chat";
@@ -10,20 +11,13 @@ import { UserIdentityCard, type UserIdentitySocial } from "@/shared/ui/UserIdent
 import { PROFILE_SOCIALS } from "../model/socialLinks";
 import { ReportUserButton } from "./ReportUserButton";
 
-const ROLE_LABELS: Record<UserRole, string> = {
-  student: "Student",
-  teacher: "Teacher",
-  moderator: "Moderator",
-  administrator: "Administrator",
-};
-
-function displayValue(value: string | number | null | undefined) {
-  if (value === null || value === undefined || value === "") return "Not specified";
+function displayValue(value: string | number | null | undefined, notSpecified: string) {
+  if (value === null || value === undefined || value === "") return notSpecified;
   return String(value);
 }
 
-function formatMemberSince(value: string) {
-  return new Intl.DateTimeFormat("en-GB", {
+function formatMemberSince(value: string, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
     month: "long",
     year: "numeric",
   }).format(new Date(value));
@@ -40,37 +34,50 @@ function userInitials(profile: PublicUserProfile) {
 function ProfileValue({
   label,
   value,
+  notSpecified,
 }: {
   label: string;
   value: string | number | null | undefined;
+  notSpecified: string;
 }) {
   return (
     <div className="flex min-w-0 flex-col gap-1">
       <dt className="text-sm font-semibold text-(--color-text-secondary)">{label}</dt>
       <dd className="break-words text-base font-semibold text-(--color-text-primary) [overflow-wrap:anywhere]">
-        {displayValue(value)}
+        {displayValue(value, notSpecified)}
       </dd>
     </div>
   );
 }
 
-function ProfileText({ label, value }: { label: string; value: string | null | undefined }) {
+function ProfileText({
+  label,
+  value,
+  notSpecified,
+}: {
+  label: string;
+  value: string | null | undefined;
+  notSpecified: string;
+}) {
   return (
     <div>
       <h2 className="text-lg font-bold text-(--color-text-primary)">{label}</h2>
       <p className="mt-2 break-words whitespace-pre-wrap text-base leading-7 text-(--color-text-secondary) [overflow-wrap:anywhere]">
-        {displayValue(value)}
+        {displayValue(value, notSpecified)}
       </p>
     </div>
   );
 }
 
 function RoleSpecificDetails({ profile }: { profile: PublicUserProfile }) {
+  const t = useTranslations("PublicProfile");
+  const notSpecified = t("notSpecified");
+
   if (!profile.profile) {
     if (profile.role === "administrator") return null;
     return (
       <p className="rounded-xl bg-(--color-white-50) p-5 text-(--color-text-secondary)">
-        This user has not added public profile details yet.
+        {t("noDetailsYet")}
       </p>
     );
   }
@@ -80,8 +87,16 @@ function RoleSpecificDetails({ profile }: { profile: PublicUserProfile }) {
     return (
       <div className="space-y-7">
         <dl className="grid gap-5 sm:grid-cols-2">
-          <ProfileValue label="Specialization" value={profile.profile.specialization} />
-          <ProfileValue label="Professional experience" value={profile.profile.experience} />
+          <ProfileValue
+            label={t("specialization")}
+            value={profile.profile.specialization}
+            notSpecified={notSpecified}
+          />
+          <ProfileValue
+            label={t("professionalExperience")}
+            value={profile.profile.experience}
+            notSpecified={notSpecified}
+          />
         </dl>
 
         <div className="grid gap-3 sm:grid-cols-3">
@@ -91,29 +106,31 @@ function RoleSpecificDetails({ profile }: { profile: PublicUserProfile }) {
                 aria-hidden="true"
                 className="h-4 w-4 fill-(--color-gold) text-(--color-gold)"
               />
-              Rating
+              {t("rating")}
             </div>
             <p className="mt-2 text-2xl font-bold text-(--color-text-primary)">
-              {rating > 0 ? rating.toFixed(1) : "Not rated"}
+              {rating > 0 ? rating.toFixed(1) : t("notRated")}
             </p>
           </div>
           <div className="rounded-xl bg-(--color-white-50) p-4 shadow-(--shadow-usp-glass)">
             <p className="text-sm font-semibold text-(--color-text-secondary)">
-              Years of experience
+              {t("yearsOfExperience")}
             </p>
             <p className="mt-2 text-2xl font-bold text-(--color-text-primary)">
-              {displayValue(profile.profile.years_experience)}
+              {displayValue(profile.profile.years_experience, notSpecified)}
             </p>
           </div>
           <div className="rounded-xl bg-(--color-white-50) p-4 shadow-(--shadow-usp-glass)">
-            <p className="text-sm font-semibold text-(--color-text-secondary)">Partnerships</p>
+            <p className="text-sm font-semibold text-(--color-text-secondary)">
+              {t("partnerships")}
+            </p>
             <p className="mt-2 text-2xl font-bold text-(--color-text-primary)">
-              {displayValue(profile.profile.partnerships_count)}
+              {displayValue(profile.profile.partnerships_count, notSpecified)}
             </p>
           </div>
         </div>
 
-        <ProfileText label="About" value={profile.profile.bio} />
+        <ProfileText label={t("about")} value={profile.profile.bio} notSpecified={notSpecified} />
       </div>
     );
   }
@@ -122,9 +139,17 @@ function RoleSpecificDetails({ profile }: { profile: PublicUserProfile }) {
     return (
       <div className="space-y-7">
         <dl className="grid gap-5 sm:grid-cols-2">
-          <ProfileValue label="Education level" value={profile.profile.education_level} />
+          <ProfileValue
+            label={t("educationLevel")}
+            value={profile.profile.education_level}
+            notSpecified={notSpecified}
+          />
         </dl>
-        <ProfileText label="Learning goals" value={profile.profile.learning_goals} />
+        <ProfileText
+          label={t("learningGoals")}
+          value={profile.profile.learning_goals}
+          notSpecified={notSpecified}
+        />
       </div>
     );
   }
@@ -132,7 +157,11 @@ function RoleSpecificDetails({ profile }: { profile: PublicUserProfile }) {
   if (profile.role === "moderator") {
     return (
       <dl className="grid gap-5 sm:grid-cols-2">
-        <ProfileValue label="Moderator level" value={profile.profile.level} />
+        <ProfileValue
+          label={t("moderatorLevel")}
+          value={profile.profile.level}
+          notSpecified={notSpecified}
+        />
       </dl>
     );
   }
@@ -154,11 +183,20 @@ export function PublicProfileView({
   onClose,
   dismissBeforeNavigation = false,
 }: Props) {
+  const t = useTranslations("PublicProfile");
+  const locale = useLocale();
   const router = useRouter();
   const [messaging, setMessaging] = useState(false);
   const [messageError, setMessageError] = useState("");
-  const fullName = `${profile.first_name} ${profile.last_name}`.trim() || `User #${profile.id}`;
+  const fullName =
+    `${profile.first_name} ${profile.last_name}`.trim() || t("userNumber", { id: profile.id });
   const socialLinks = PROFILE_SOCIALS.filter((social) => Boolean(profile[social.key]));
+  const roleLabels: Record<UserRole, string> = {
+    student: t("roles.student"),
+    teacher: t("roles.teacher"),
+    moderator: t("roles.moderator"),
+    administrator: t("roles.administrator"),
+  };
 
   async function sendMessage() {
     setMessaging(true);
@@ -168,7 +206,7 @@ export function PublicProfileView({
       if (dismissBeforeNavigation) onClose?.();
       router.push(`/student-dashboard/chats?chat=${chat.id}`);
     } catch {
-      setMessageError("The conversation could not be opened. Try again.");
+      setMessageError(t("conversationError"));
       setMessaging(false);
     }
   }
@@ -189,13 +227,13 @@ export function PublicProfileView({
           socials={compactSocials}
           onMessage={() => void sendMessage()}
           messaging={messaging}
-          messageLabel={messageError ? "Try again" : "Send message"}
+          messageLabel={messageError ? t("tryAgain") : t("sendMessage")}
           topLeftAction={
             onClose ? (
               <button
                 type="button"
                 onClick={onClose}
-                aria-label="Close profile"
+                aria-label={t("closeProfile")}
                 className="flex h-7 w-7 items-center justify-center rounded-full text-(--color-text-primary) transition hover:bg-(--color-bg-surface) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-blue)"
               >
                 <X aria-hidden="true" className="h-5 w-5" />
@@ -254,12 +292,14 @@ export function PublicProfileView({
             {fullName}
           </h1>
           <span className="mt-3 rounded-full bg-(--color-badge-lavender) px-4 py-1.5 text-sm font-semibold text-(--color-blue-dark)">
-            {ROLE_LABELS[profile.role]}
+            {roleLabels[profile.role]}
           </span>
 
           {socialLinks.length > 0 ? (
             <div className="mt-7">
-              <p className="text-sm font-semibold text-(--color-text-secondary)">Social media</p>
+              <p className="text-sm font-semibold text-(--color-text-secondary)">
+                {t("socialMedia")}
+              </p>
               <div className="mt-3 flex justify-center gap-4">
                 {socialLinks.map((social) => (
                   <a
@@ -267,7 +307,7 @@ export function PublicProfileView({
                     href={profile[social.key]}
                     target="_blank"
                     rel="noopener noreferrer"
-                    aria-label={`Open ${fullName}'s ${social.label}`}
+                    aria-label={t("openSocial", { name: fullName, social: social.label })}
                     className="rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-blue)"
                   >
                     <Image
@@ -302,16 +342,30 @@ export function PublicProfileView({
         <div className="border-t border-(--color-border-light) px-6 py-8 sm:px-10 lg:border-l-0 lg:border-t-0 lg:px-12 lg:py-12">
           <div>
             <p className="font-(family-name:--font-accent) text-sm font-semibold uppercase tracking-wider text-(--color-blue)">
-              Public profile
+              {t("publicProfile")}
             </p>
-            <h2 className="mt-2 text-3xl font-bold text-(--color-text-primary)">About the user</h2>
+            <h2 className="mt-2 text-3xl font-bold text-(--color-text-primary)">
+              {t("aboutUser")}
+            </h2>
           </div>
 
           <dl className="mt-8 grid gap-5 border-b border-(--color-border-light) pb-7 sm:grid-cols-2">
-            <ProfileValue label="Role" value={ROLE_LABELS[profile.role]} />
-            <ProfileValue label="Member since" value={formatMemberSince(profile.date_joined)} />
+            <ProfileValue
+              label={t("role")}
+              value={roleLabels[profile.role]}
+              notSpecified={t("notSpecified")}
+            />
+            <ProfileValue
+              label={t("memberSince")}
+              value={formatMemberSince(profile.date_joined, locale)}
+              notSpecified={t("notSpecified")}
+            />
             {profile.role === "administrator" && profile.email ? (
-              <ProfileValue label="Email" value={profile.email} />
+              <ProfileValue
+                label={t("email")}
+                value={profile.email}
+                notSpecified={t("notSpecified")}
+              />
             ) : null}
           </dl>
 

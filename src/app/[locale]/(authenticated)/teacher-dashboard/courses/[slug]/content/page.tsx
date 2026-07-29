@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import { useRouter } from "@/i18n/navigation";
@@ -49,6 +50,7 @@ type LessonModalState =
   | { open: true; mode: "edit"; moduleId: number; lesson: CourseLesson };
 
 export default function CourseContentPage() {
+  const t = useTranslations("CourseContentPage");
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
 
@@ -102,7 +104,7 @@ export default function CourseContentPage() {
     } catch { /* best-effort */ }
   }
 
-  const title = course?.title || "Untitled Course";
+  const title = course?.title || t("untitledCourse");
   const hasModules = moduleList.length > 0;
   const hasLesson = moduleList.some((m) => m.lessons.length > 0);
 
@@ -250,7 +252,7 @@ export default function CourseContentPage() {
             marginBottom: "clamp(4px, 0.42vw, 8px)",
           }}
         >
-          Course Content
+          {t("courseContent")}
         </h2>
         <p
           style={{
@@ -264,9 +266,9 @@ export default function CourseContentPage() {
         >
           {isPendingEditMode
             ? isLocked
-              ? "Your changes are under moderation review."
-              : "You are editing a published course. Changes will be applied after moderation."
-            : "Create modules, lessons, and assessments for your course"}
+              ? t("subtitleLocked")
+              : t("subtitleEditing")
+            : t("subtitleDefault")}
         </p>
 
         <SectionCard>
@@ -280,12 +282,12 @@ export default function CourseContentPage() {
                   color: "var(--color-text-primary)",
                 }}
               >
-                Course Content
+                {t("courseContent")}
               </span>
               {!isLocked && (
                 <AccentButton type="button" size="md" style={{ gap: "8px" }} onClick={openAddModal}>
                   <Plus size={20} />
-                  Add Module
+                  {t("addModule")}
                 </AccentButton>
               )}
             </div>
@@ -300,17 +302,17 @@ export default function CourseContentPage() {
                     <Image src="/icons/moduls.svg" alt="" width={100} height={100} unoptimized aria-hidden="true" />
                     <div className="flex flex-col items-center" style={{ gap: "8px" }}>
                       <span style={{ fontFamily: "var(--font-base)", fontWeight: 700, fontSize: "clamp(14px, 1.04vw, 20px)", color: "var(--color-text-primary)", textAlign: "center" }}>
-                        No modules yet
+                        {t("noModulesYet")}
                       </span>
                       <span style={{ fontFamily: "var(--font-base)", fontWeight: 500, fontSize: "clamp(13px, 1.04vw, 20px)", color: "var(--color-text-secondary)", letterSpacing: "-0.011em", textAlign: "center" }}>
-                        Create your first module to start building your course structure
+                        {t("noModulesDescription")}
                       </span>
                     </div>
                   </div>
                   {!isLocked && (
                     <GradientButton type="button" style={{ gap: "8px" }} onClick={openAddModal}>
                       <Plus size={20} />
-                      Create Your First Module
+                      {t("createFirstModule")}
                     </GradientButton>
                   )}
                 </div>
@@ -336,9 +338,9 @@ export default function CourseContentPage() {
             {/* Moderator content feedback */}
             {moderationReview && (() => {
               const ACTION_MAP: Record<string, { label: string; color: string }> = {
-                approved:       { label: "Approved",          color: "var(--color-success)" },
-                needs_revision: { label: "Requires Revision", color: "var(--color-warning)" },
-                rejected:       { label: "Rejected",          color: "var(--color-rejected)" },
+                approved:       { label: t("statusApproved"),      color: "var(--color-success)" },
+                needs_revision: { label: t("statusNeedsRevision"), color: "var(--color-warning)" },
+                rejected:       { label: t("statusRejected"),      color: "var(--color-rejected)" },
               };
               const actionInfo = moderationReview.content_action ? ACTION_MAP[moderationReview.content_action] : undefined;
               return (
@@ -355,19 +357,19 @@ export default function CourseContentPage() {
               style={{ marginTop: "clamp(8px, 0.63vw, 12px)" }}
             >
               <WhiteButton onClick={() => router.push(`/teacher-dashboard/courses/${slug}/edit`)}>
-                Back to Basics
+                {t("backToBasics")}
               </WhiteButton>
 
               {isPendingEditMode ? (
                 <div className="flex items-center" style={{ gap: "clamp(8px, 0.83vw, 12px)" }}>
                   {!isLocked && (
                     <WhiteButton onClick={handleDiscardChanges}>
-                      Discard Changes
+                      {t("discardChanges")}
                     </WhiteButton>
                   )}
                   {isLocked ? (
                     <GradientButton type="button" onClick={() => router.push("/teacher-dashboard/courses")} style={{ gap: 12 }}>
-                      Back to My Courses
+                      {t("backToMyCourses")}
                     </GradientButton>
                   ) : (
                     <GradientButton
@@ -376,7 +378,7 @@ export default function CourseContentPage() {
                       onClick={handleGoToReview}
                       style={{ gap: 12 }}
                     >
-                      Continue to Review &amp; Publish
+                      {t("continueToReviewAndPublish")}
                       <ArrowUpRight size={20} aria-hidden="true" />
                     </GradientButton>
                   )}
@@ -388,7 +390,7 @@ export default function CourseContentPage() {
                   onClick={() => router.push(`/teacher-dashboard/courses/${slug}/review`)}
                   style={{ gap: 12 }}
                 >
-                  Continue to Review &amp; Publish
+                  {t("continueToReviewAndPublish")}
                   <ArrowUpRight size={20} aria-hidden="true" />
                 </GradientButton>
               )}

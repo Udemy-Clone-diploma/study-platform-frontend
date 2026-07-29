@@ -1,7 +1,9 @@
-const STEPS = [
-  { name: "Basics", sub: "Course information" },
-  { name: "Course Content", sub: "Modules, lessons & tests" },
-  { name: "Review & Submit", sub: "Review changes" },
+import { useTranslations } from "next-intl";
+
+const STEP_KEYS = [
+  { nameKey: "stepBasicsName", subKey: "stepBasicsSub" },
+  { nameKey: "stepContentName", subKey: "stepContentSub" },
+  { nameKey: "stepReviewName", subKey: "stepReviewSub" },
 ];
 
 const ACTIVE_COLORS: { bg: string; text: string }[] = [
@@ -18,7 +20,10 @@ const DONE_COLORS = {
 type Props = { currentStep: 0 | 1 | 2; steps?: { name: string; sub: string }[] };
 
 /** 3-step progress indicator shared by all course-creation and course-edit pages. */
-export function CourseCreationStepper({ currentStep, steps = STEPS }: Props) {
+export function CourseCreationStepper({ currentStep, steps }: Props) {
+  const t = useTranslations("CourseCreationStepper");
+  const resolvedSteps =
+    steps ?? STEP_KEYS.map(({ nameKey, subKey }) => ({ name: t(nameKey), sub: t(subKey) }));
   return (
     <div
       className="rounded-2xl bg-white"
@@ -29,7 +34,7 @@ export function CourseCreationStepper({ currentStep, steps = STEPS }: Props) {
       }}
     >
       <div className="flex items-start justify-between">
-        {steps.map((step, i) => {
+        {resolvedSteps.map((step, i) => {
           const isDone   = i < currentStep;
           const isActive = i === currentStep;
           const colors   = isActive ? ACTIVE_COLORS[i] : isDone ? DONE_COLORS : null;

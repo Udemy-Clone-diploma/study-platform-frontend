@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
@@ -30,22 +31,32 @@ import type { CourseListItem, CourseLevel, CourseStatus, RejectedCourseRecord } 
 import type { ApiError } from "@/shared/api/base";
 
 const TABS = [
-  "All",
-  "Active",
-  "Drafts",
-  "Pending moderation",
-  "For review",
-  "Completed",
-  "Rejected",
+  "all",
+  "active",
+  "drafts",
+  "pendingModeration",
+  "forReview",
+  "completed",
+  "rejected",
 ] as const;
 type Tab = (typeof TABS)[number];
 
+const TAB_LABEL_KEYS: Record<Tab, string> = {
+  all: "tabAll",
+  active: "tabActive",
+  drafts: "tabDrafts",
+  pendingModeration: "tabPendingModeration",
+  forReview: "tabForReview",
+  completed: "tabCompleted",
+  rejected: "tabRejected",
+};
+
 const TAB_STATUSES: Partial<Record<Tab, CourseStatus[]>> = {
-  Active: ["published", "hidden"],
-  Drafts: ["draft"],
-  "Pending moderation": ["review"],
-  "For review": ["needs_revision"],
-  Completed: ["archived"],
+  active: ["published", "hidden"],
+  drafts: ["draft"],
+  pendingModeration: ["review"],
+  forReview: ["needs_revision"],
+  completed: ["archived"],
 };
 
 function resolveCardStatus(course: CourseListItem): TeacherCourseStatus {
@@ -75,9 +86,9 @@ const LEVEL_ICON: Record<CourseLevel, string> = {
 
 const CURRENT_YEAR = new Date().getFullYear();
 
-function getCourseMonthLabel(course: CourseListItem): string {
+function getCourseMonthLabel(course: CourseListItem, locale: string): string {
   const date = new Date(course.created_at);
-  const monthName = date.toLocaleString("en-US", { month: "long" });
+  const monthName = date.toLocaleString(locale, { month: "long" });
   return date.getFullYear() === CURRENT_YEAR ? monthName : `${monthName} ${date.getFullYear()}`;
 }
 
@@ -100,6 +111,7 @@ function RejectedCourseCard({
   onView: () => void;
   onMoveToDraft: () => void;
 }) {
+  const t = useTranslations("TeacherCoursesPage");
   const [menuOpen, setMenuOpen] = useState(false);
   const triggerRef  = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -159,7 +171,7 @@ function RejectedCourseCard({
         <button
           ref={triggerRef}
           type="button"
-          aria-label="Course options"
+          aria-label={t("courseOptionsAriaLabel")}
           aria-expanded={menuOpen}
           onClick={(e) => { e.stopPropagation(); setMenuOpen((v) => !v); }}
           className="flex shrink-0 items-center justify-center rounded transition-opacity hover:opacity-60"
@@ -180,7 +192,7 @@ function RejectedCourseCard({
               onClick={() => { setMenuOpen(false); onMoveToDraft(); }}
             >
               <span className="flex-1 text-left font-(family-name:--font-accent) font-medium uppercase" style={{ fontSize: "clamp(12px, 0.97vw, 16px)", lineHeight: "20px" }}>
-                Return to Draft
+                {t("returnToDraft")}
               </span>
               <RotateCcw size={18} />
             </button>
@@ -194,13 +206,15 @@ function RejectedCourseCard({
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function TeacherCoursesPage() {
+  const t = useTranslations("TeacherCoursesPage");
+  const locale = useLocale();
   const router = useRouter();
   const [courses, setCourses] = useState<CourseListItem[]>([]);
   const [rejectedCourses, setRejectedCourses] = useState<RejectedCourseRecord[]>([]);
   const [viewRejected, setViewRejected] = useState<RejectedCourseRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [activeTab, setActiveTab] = useState<Tab>("All");
+  const [activeTab, setActiveTab] = useState<Tab>("all");
   const [statusError, setStatusError] = useState<{ currentStatus: string } | null>(null);
 
   const refresh = useCallback(() => {
@@ -224,9 +238,9 @@ export default function TeacherCoursesPage() {
         setCourses(main.results);
         setRejectedCourses(rejected.results);
       })
-      .catch((err: Partial<ApiError>) => setError(err.message ?? "Failed to load courses."))
+      .catch((err: Partial<ApiError>) => setError(err.message ?? t("errorLoad")))
       .finally(() => setLoading(false));
-  }, []);
+  }, [t]);
 
   function updateStatus(slug: string, newStatus: CourseStatus) {
     setCourses((prev) => prev.map((c) => (c.slug === slug ? { ...c, status: newStatus } : c)));
@@ -248,7 +262,7 @@ export default function TeacherCoursesPage() {
       // Card stays in Rejected tab — it's permanent history.
       const updated = await getTeacherCourses();
       setCourses(updated.results);
-      setActiveTab("Drafts");
+      setActiveTab("drafts");
     } catch (err: unknown) {
       const apiErr = err as { status?: number; fields?: Record<string, unknown> };
       if (apiErr.status === 409) {
@@ -279,19 +293,19 @@ export default function TeacherCoursesPage() {
   const filtered = courses
     .filter((course) => course.status !== "rejected")
     .filter((course) => {
-      if (activeTab === "All") return true;
+      if (activeTab === "all") return true;
       const { status, pending_edit_status } = course;
       const isPub = status === "published" || status === "hidden";
-      if (activeTab === "Active") {
+      if (activeTab === "active") {
         return isPub && !pending_edit_status;
       }
-      if (activeTab === "Drafts") {
+      if (activeTab === "drafts") {
         return status === "draft" || (isPub && pending_edit_status === "draft");
       }
-      if (activeTab === "Pending moderation") {
+      if (activeTab === "pendingModeration") {
         return status === "review" || (isPub && pending_edit_status === "pending");
       }
-      if (activeTab === "For review") {
+      if (activeTab === "forReview") {
         return status === "needs_revision" || (isPub && pending_edit_status === "needs_revision");
       }
       const allowed = TAB_STATUSES[activeTab];
@@ -300,7 +314,7 @@ export default function TeacherCoursesPage() {
     })
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
-  const months = [...new Set(filtered.map(getCourseMonthLabel))];
+  const months = [...new Set(filtered.map((course) => getCourseMonthLabel(course, locale)))];
 
   function handleTabChange(tab: Tab) {
     setActiveTab(tab);
@@ -316,7 +330,7 @@ export default function TeacherCoursesPage() {
           style={{ marginBottom: "clamp(16px, 2.22vw, 32px)", gap: "clamp(12px, 1.11vw, 16px)" }}
         >
           <nav
-            aria-label="Course filter"
+            aria-label={t("courseFilterAriaLabel")}
             className="flex flex-wrap items-center"
             style={{ gap: "clamp(16px, 1.67vw, 40px)" }}
           >
@@ -333,7 +347,7 @@ export default function TeacherCoursesPage() {
                 ].join(" ")}
                 style={{ fontSize: "clamp(14px, 1.39vw, 24px)" }}
               >
-                {tab}
+                {t(TAB_LABEL_KEYS[tab])}
               </button>
             ))}
           </nav>
@@ -349,7 +363,7 @@ export default function TeacherCoursesPage() {
               gap: "clamp(8px, 0.83vw, 12px)",
             }}
           >
-            Add Course
+            {t("addCourse")}
             <Image
               src="/icons/add.svg"
               alt=""
@@ -361,12 +375,14 @@ export default function TeacherCoursesPage() {
         </div>
 
         {loading ? (
-          <p className="mt-16 text-center text-lg text-(--color-text-secondary)">Loading...</p>
+          <p className="mt-16 text-center text-lg text-(--color-text-secondary)">{t("loading")}</p>
         ) : error ? (
           <p className="mt-16 text-center text-lg text-red-500">{error}</p>
-        ) : activeTab === "Rejected" ? (
+        ) : activeTab === "rejected" ? (
           rejectedCourses.length === 0 ? (
-            <p className="mt-16 text-center text-lg text-(--color-text-secondary)">No rejected courses.</p>
+            <p className="mt-16 text-center text-lg text-(--color-text-secondary)">
+              {t("noRejectedCourses")}
+            </p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" style={{ gap: "clamp(8px, 1.11vw, 16px)" }}>
               {rejectedCourses.map((record) => (
@@ -381,7 +397,7 @@ export default function TeacherCoursesPage() {
           )
         ) : months.length === 0 ? (
           <p className="mt-16 text-center text-lg text-(--color-text-secondary)">
-            No courses found.
+            {t("noCoursesFound")}
           </p>
         ) : (
           months.map((month) => (
@@ -397,7 +413,7 @@ export default function TeacherCoursesPage() {
                 style={{ gap: "clamp(8px, 1.11vw, 16px)" }}
               >
                 {filtered
-                  .filter((c) => getCourseMonthLabel(c) === month)
+                  .filter((c) => getCourseMonthLabel(c, locale) === month)
                   .map((course) => (
                     <TeacherCourseCard
                       key={course.id}
@@ -432,23 +448,23 @@ export default function TeacherCoursesPage() {
 
       {statusError && (
         <ModalShell
-          title="Cannot return to draft"
+          title={t("cannotReturnToDraft")}
           width="clamp(360px, 30vw, 480px)"
           onClose={() => setStatusError(null)}
         >
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <p style={{ fontFamily: "var(--font-base)", fontSize: 14, color: "var(--color-text-secondary)", margin: 0 }}>
-              This course is no longer rejected.
+              {t("noLongerRejected")}
             </p>
             <p style={{ fontFamily: "var(--font-base)", fontSize: 14, color: "var(--color-text-primary)", margin: 0 }}>
-              Current status:{" "}
+              {t("currentStatus")}{" "}
               <strong style={{ textTransform: "capitalize" }}>
                 {statusError.currentStatus.replace(/_/g, " ")}
               </strong>
             </p>
             <div style={{ paddingTop: 8 }}>
               <AccentButton type="button" size="md" onClick={() => setStatusError(null)}>
-                OK
+                {t("ok")}
               </AccentButton>
             </div>
           </div>

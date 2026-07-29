@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { MoreVertical, Pencil, Send, Trash2, RotateCcw, Archive, ArchiveRestore, Eye } from "lucide-react";
 
 export type TeacherCourseStatus =
@@ -28,7 +29,7 @@ export type MenuAction =
   | "discard-changes";
 
 type MenuItem = {
-  label: string;
+  labelKey: string;
   action: MenuAction;
   Icon: React.ElementType;
   danger?: boolean;
@@ -36,45 +37,45 @@ type MenuItem = {
 
 const MENU_BY_STATUS: Record<TeacherCourseStatus, MenuItem[]> = {
   draft: [
-    { label: "Edit",              action: "edit",    Icon: Pencil },
-    { label: "Submit for Review", action: "publish", Icon: Send   },
-    { label: "Delete",            action: "delete",  Icon: Trash2, danger: true },
+    { labelKey: "edit",              action: "edit",    Icon: Pencil },
+    { labelKey: "submitForReview",   action: "publish", Icon: Send   },
+    { labelKey: "delete",            action: "delete",  Icon: Trash2, danger: true },
   ],
   pending_moderation: [
-    { label: "Withdraw from Moderation", action: "withdraw", Icon: RotateCcw },
+    { labelKey: "withdrawFromModeration", action: "withdraw", Icon: RotateCcw },
   ],
   needs_revision: [
-    { label: "Withdraw from Moderation", action: "withdraw",  Icon: RotateCcw },
-    { label: "Edit",                     action: "edit",      Icon: Pencil   },
-    { label: "Re-submit for Review",     action: "publish",   Icon: Send     },
+    { labelKey: "withdrawFromModeration", action: "withdraw",  Icon: RotateCcw },
+    { labelKey: "edit",                   action: "edit",      Icon: Pencil   },
+    { labelKey: "resubmitForReview",      action: "publish",   Icon: Send     },
   ],
   active: [
-    { label: "Edit",    action: "edit",    Icon: Pencil  },
-    { label: "Archive", action: "archive", Icon: Archive },
+    { labelKey: "edit",    action: "edit",    Icon: Pencil  },
+    { labelKey: "archive", action: "archive", Icon: Archive },
   ],
   /** Published + draft pending edit (saved but not submitted) */
   active_draft_edit: [
-    { label: "Edit Changes",          action: "edit-changes",    Icon: Pencil   },
-    { label: "Submit Changes",        action: "submit-changes",  Icon: Send     },
-    { label: "Discard Changes",       action: "discard-changes", Icon: Trash2, danger: true },
+    { labelKey: "editChanges",    action: "edit-changes",    Icon: Pencil   },
+    { labelKey: "submitChanges",  action: "submit-changes",  Icon: Send     },
+    { labelKey: "discardChanges", action: "discard-changes", Icon: Trash2, danger: true },
   ],
   /** Published + pending edit submitted for moderation (locked) */
   active_pending_edit: [
-    { label: "Withdraw from Moderation", action: "withdraw-edit", Icon: RotateCcw },
+    { labelKey: "withdrawFromModeration", action: "withdraw-edit", Icon: RotateCcw },
   ],
   /** Published + edit returned by moderator */
   active_needs_revision: [
-    { label: "Edit Changes",    action: "edit-changes",   Icon: Pencil },
-    { label: "Submit Changes",  action: "submit-changes", Icon: Send   },
-    { label: "Discard Changes", action: "discard-changes", Icon: Trash2, danger: true },
+    { labelKey: "editChanges",    action: "edit-changes",   Icon: Pencil },
+    { labelKey: "submitChanges",  action: "submit-changes", Icon: Send   },
+    { labelKey: "discardChanges", action: "discard-changes", Icon: Trash2, danger: true },
   ],
   hidden: [
-    { label: "Edit",    action: "edit",    Icon: Pencil      },
-    { label: "Open",    action: "open",    Icon: Eye         },
-    { label: "Archive", action: "archive", Icon: Archive     },
+    { labelKey: "edit",    action: "edit",    Icon: Pencil      },
+    { labelKey: "open",    action: "open",    Icon: Eye         },
+    { labelKey: "archive", action: "archive", Icon: Archive     },
   ],
   completed: [
-    { label: "Unarchive", action: "unarchive", Icon: ArchiveRestore },
+    { labelKey: "unarchive", action: "unarchive", Icon: ArchiveRestore },
   ],
 };
 
@@ -85,6 +86,7 @@ type Props = {
 
 /** Self-contained ⋮ trigger + dropdown for a teacher course card. */
 export function CourseCardMenu({ status, onAction }: Props) {
+  const t = useTranslations("TeacherCourseCard");
   const [open, setOpen] = useState(false);
   const triggerRef  = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -92,8 +94,8 @@ export function CourseCardMenu({ status, onAction }: Props) {
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
-      const t = e.target as Node;
-      if (dropdownRef.current?.contains(t) || triggerRef.current?.contains(t)) return;
+      const target = e.target as Node;
+      if (dropdownRef.current?.contains(target) || triggerRef.current?.contains(target)) return;
       setOpen(false);
     };
     document.addEventListener("mousedown", handler);
@@ -112,7 +114,7 @@ export function CourseCardMenu({ status, onAction }: Props) {
       {/* ⋮ trigger */}
       <button
         ref={triggerRef}
-        aria-label="Course options"
+        aria-label={t("courseOptionsAriaLabel")}
         aria-expanded={open}
         onClick={(e) => {
           e.preventDefault();
@@ -167,7 +169,7 @@ export function CourseCardMenu({ status, onAction }: Props) {
                 className="flex-1 text-left font-(family-name:--font-accent) font-medium uppercase"
                 style={{ fontSize: "clamp(12px, 0.97vw, 16px)", lineHeight: "20px" }}
               >
-                {item.label}
+                {t(item.labelKey)}
               </span>
               <item.Icon size={18} />
             </button>

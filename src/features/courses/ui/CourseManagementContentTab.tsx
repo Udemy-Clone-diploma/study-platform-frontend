@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { Astroid, ChevronDown, FileText, Upload, X } from "lucide-react";
 import type {
   CourseDetail, CourseLesson, CourseModule, CourseTest, LessonDocument, LessonItem,
@@ -61,15 +62,17 @@ function ModalHeader({ title, onClose }: { title: string; onClose: () => void })
   );
 }
 
-function fmt(iso: string) {
-  return new Date(iso).toLocaleString("uk-UA", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+function fmt(iso: string, locale: string) {
+  return new Date(iso).toLocaleString(locale, { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
 function ItemMeta({ item }: { item: LessonItem }) {
+  const t = useTranslations("CourseManagementContentTab");
+  const locale = useLocale();
   const chips: { label: string; value: string }[] = [];
-  if (item.duration_minutes) chips.push({ label: "Duration", value: `${item.duration_minutes} min` });
-  if (item.created_at)       chips.push({ label: "Created",  value: fmt(item.created_at) });
-  if (item.updated_at)       chips.push({ label: "Updated",  value: fmt(item.updated_at) });
+  if (item.duration_minutes) chips.push({ label: t("durationLabel"), value: t("minutesShort", { count: item.duration_minutes }) });
+  if (item.created_at)       chips.push({ label: t("createdLabel"), value: fmt(item.created_at, locale) });
+  if (item.updated_at)       chips.push({ label: t("updatedLabel"), value: fmt(item.updated_at, locale) });
   if (!chips.length) return null;
   return (
     <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 12px", marginBottom: "clamp(14px, 1.04vw, 20px)", paddingBottom: "clamp(12px, 0.83vw, 16px)", borderBottom: "1px solid var(--color-border-light)" }}>
@@ -85,14 +88,15 @@ function ItemMeta({ item }: { item: LessonItem }) {
 // ── Text modal ────────────────────────────────────────────────────────────────
 
 function TextModal({ item, onClose }: { item: LessonItem; onClose: () => void }) {
+  const t = useTranslations("CourseManagementContentTab");
   return (
     <Modal onClose={onClose}>
-      <ModalHeader title="Text content" onClose={onClose} />
+      <ModalHeader title={t("textContent")} onClose={onClose} />
       <ItemMeta item={item} />
       {item.body_html ? (
         <div style={{ fontFamily: F, fontSize: "clamp(13px, 0.9vw, 16px)", color: "var(--color-text-primary)", lineHeight: 1.75 }} dangerouslySetInnerHTML={{ __html: item.body_html }} />
       ) : (
-        <p style={{ fontFamily: F, color: "var(--color-text-muted)" }}>No content.</p>
+        <p style={{ fontFamily: F, color: "var(--color-text-muted)" }}>{t("noContent")}</p>
       )}
     </Modal>
   );
@@ -101,16 +105,17 @@ function TextModal({ item, onClose }: { item: LessonItem; onClose: () => void })
 // ── Video modal ───────────────────────────────────────────────────────────────
 
 function VideoModal({ item, onClose }: { item: LessonItem; onClose: () => void }) {
+  const t = useTranslations("CourseManagementContentTab");
   const url   = item.video_url ?? "";
   const embed = url ? youtubeEmbed(url) : null;
   return (
     <Modal wide onClose={onClose}>
-      <ModalHeader title={item.original_video_name ?? "Video"} onClose={onClose} />
+      <ModalHeader title={item.original_video_name ?? t("video")} onClose={onClose} />
       <ItemMeta item={item} />
       {!url ? (
-        <p style={{ fontFamily: F, color: "var(--color-text-muted)" }}>No video uploaded.</p>
+        <p style={{ fontFamily: F, color: "var(--color-text-muted)" }}>{t("noVideoUploaded")}</p>
       ) : embed ? (
-        <iframe src={embed} title="video" allowFullScreen style={{ width: "100%", aspectRatio: "16 / 9", border: "none", borderRadius: 12 }} />
+        <iframe src={embed} title={t("video")} allowFullScreen style={{ width: "100%", aspectRatio: "16 / 9", border: "none", borderRadius: 12 }} />
       ) : (
         <video src={url} controls style={{ width: "100%", borderRadius: 12 }} />
       )}
@@ -121,6 +126,7 @@ function VideoModal({ item, onClose }: { item: LessonItem; onClose: () => void }
 // ── Test modal ────────────────────────────────────────────────────────────────
 
 function TestModal({ item, test, onClose }: { item: LessonItem; test: CourseTest; onClose: () => void }) {
+  const t = useTranslations("CourseManagementContentTab");
   const [revealed, setRevealed] = useState(false);
 
   return (
@@ -130,10 +136,10 @@ function TestModal({ item, test, onClose }: { item: LessonItem; test: CourseTest
 
       <div style={{ display: "flex", gap: 8, marginBottom: test.description ? "clamp(10px, 0.69vw, 12px)" : "clamp(16px, 1.25vw, 24px)" }}>
         <span style={{ fontFamily: FA, fontSize: "clamp(10px, 0.63vw, 12px)", background: "var(--color-brand-lavender-soft)", color: "var(--color-blue-dark)", borderRadius: 99, padding: "2px 10px" }}>
-          {test.questions.length} questions
+          {t("questionsCount", { count: test.questions.length })}
         </span>
         <span style={{ fontFamily: FA, fontSize: "clamp(10px, 0.63vw, 12px)", background: "rgba(28,187,67,0.1)", color: "var(--color-success)", borderRadius: 99, padding: "2px 10px" }}>
-          Pass: {test.passing_score}%
+          {t("passLabel", { score: test.passing_score })}
         </span>
       </div>
 
@@ -157,7 +163,7 @@ function TestModal({ item, test, onClose }: { item: LessonItem; test: CourseTest
                   return (
                     <div key={oi} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 14px", borderRadius: 10, background: correct ? "rgba(28,187,67,0.08)" : "var(--color-input-bg)", border: `1px solid ${correct ? "var(--color-success)" : "transparent"}`, fontFamily: F, fontSize: "clamp(12px, 0.83vw, 15px)", color: correct ? "var(--color-success)" : "var(--color-text-primary)", transition: "all 0.2s" }}>
                       <span>{opt}</span>
-                      {correct && <span style={{ fontWeight: 700, fontSize: "clamp(10px, 0.63vw, 12px)" }}>✓ Correct</span>}
+                      {correct && <span style={{ fontWeight: 700, fontSize: "clamp(10px, 0.63vw, 12px)" }}>✓ {t("correct")}</span>}
                     </div>
                   );
                 })}
@@ -170,7 +176,7 @@ function TestModal({ item, test, onClose }: { item: LessonItem; test: CourseTest
                   const correct = revealed && val === q.correct_bool;
                   return (
                     <div key={String(val)} style={{ padding: "7px 20px", borderRadius: 99, background: correct ? "rgba(28,187,67,0.08)" : "var(--color-input-bg)", border: `1px solid ${correct ? "var(--color-success)" : "transparent"}`, fontFamily: F, fontWeight: 500, fontSize: "clamp(12px, 0.83vw, 15px)", color: correct ? "var(--color-success)" : "var(--color-text-secondary)", transition: "all 0.2s" }}>
-                      {val ? "True" : "False"}
+                      {val ? t("trueLabel") : t("falseLabel")}
                     </div>
                   );
                 })}
@@ -179,7 +185,7 @@ function TestModal({ item, test, onClose }: { item: LessonItem; test: CourseTest
 
             {q.question_type === "open" && revealed && q.sample_answer && (
               <div style={{ padding: "10px 14px", borderRadius: 10, background: "rgba(28,187,67,0.07)", border: "1px solid var(--color-success)" }}>
-                <p style={{ fontFamily: F, fontWeight: 600, fontSize: "clamp(11px, 0.73vw, 13px)", color: "var(--color-success)", margin: "0 0 4px" }}>Sample answer:</p>
+                <p style={{ fontFamily: F, fontWeight: 600, fontSize: "clamp(11px, 0.73vw, 13px)", color: "var(--color-success)", margin: "0 0 4px" }}>{t("sampleAnswerLabel")}</p>
                 <p style={{ fontFamily: F, fontSize: "clamp(12px, 0.83vw, 15px)", color: "var(--color-text-primary)", margin: 0 }}>{q.sample_answer}</p>
               </div>
             )}
@@ -193,7 +199,7 @@ function TestModal({ item, test, onClose }: { item: LessonItem; test: CourseTest
           onClick={() => setRevealed(v => !v)}
           style={{ fontFamily: F, fontWeight: 600, fontSize: "clamp(13px, 0.83vw, 15px)", padding: "clamp(8px, 0.63vw, 12px) clamp(18px, 1.46vw, 24px)", borderRadius: 999, cursor: "pointer", transition: "all 0.15s", background: revealed ? "var(--color-text-primary)" : "var(--color-bg)", color: revealed ? "white" : "var(--color-text-primary)", border: "1.5px solid var(--color-text-primary)" }}
         >
-          {revealed ? "Hide answers" : "Show correct answers"}
+          {revealed ? t("hideAnswers") : t("showCorrectAnswers")}
         </button>
       </div>
     </Modal>
@@ -210,21 +216,24 @@ type ModalState =
 
 // ── Item badge config ─────────────────────────────────────────────────────────
 
-const BADGE: Record<string, { bg: string; color: string; label: string }> = {
-  text:  { bg: "var(--color-brand-lavender-soft)", color: "var(--color-blue-dark)", label: "Text"  },
-  video: { bg: "rgba(28,187,67,0.1)",              color: "var(--color-success)",   label: "Video" },
-  test:  { bg: "rgba(255,141,40,0.1)",             color: "var(--color-warning)",   label: "Test"  },
+const BADGE_STYLE: Record<string, { bg: string; color: string }> = {
+  text:  { bg: "var(--color-brand-lavender-soft)", color: "var(--color-blue-dark)" },
+  video: { bg: "rgba(28,187,67,0.1)",              color: "var(--color-success)"   },
+  test:  { bg: "rgba(255,141,40,0.1)",             color: "var(--color-warning)"   },
 };
 
 // ── Item row (inside expanded lesson) ─────────────────────────────────────────
 
 function ItemRow({ item, onOpen }: { item: LessonItem; onOpen: () => void }) {
+  const t = useTranslations("CourseManagementContentTab");
   const [hovered, setHovered] = useState(false);
-  const badge = BADGE[item.item_type] ?? BADGE.text;
+  const badge = BADGE_STYLE[item.item_type] ?? BADGE_STYLE.text;
+  const badgeLabel =
+    item.item_type === "test" ? t("badgeTest") : item.item_type === "video" ? t("badgeVideo") : t("badgeText");
   const title =
-    item.item_type === "test"  ? (item.test?.title ?? "Test")
-    : item.item_type === "video" ? (item.original_video_name ?? "Video")
-    : "Text content";
+    item.item_type === "test"  ? (item.test?.title ?? t("testFallback"))
+    : item.item_type === "video" ? (item.original_video_name ?? t("video"))
+    : t("textContent");
 
   return (
     <button
@@ -235,7 +244,7 @@ function ItemRow({ item, onOpen }: { item: LessonItem; onOpen: () => void }) {
       style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "clamp(7px, 0.52vw, 10px) clamp(20px, 1.67vw, 28px)", background: hovered ? "var(--color-input-bg)" : "none", border: "none", borderRadius: 10, cursor: "pointer", transition: "background 0.12s", textAlign: "left" }}
     >
       <span style={{ background: badge.bg, color: badge.color, borderRadius: 6, padding: "2px 8px", fontFamily: FA, fontWeight: 600, fontSize: "clamp(10px, 0.63vw, 12px)", flexShrink: 0 }}>
-        {badge.label}
+        {badgeLabel}
       </span>
       <span style={{ fontFamily: F, fontSize: "clamp(13px, 0.9vw, 16px)", color: "var(--color-text-primary)" }}>
         {title}
@@ -255,6 +264,7 @@ function MaterialsSection({
   lessonId: number;
   onChange: (documents: LessonDocument[]) => void;
 }) {
+  const t = useTranslations("CourseManagementContentTab");
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<LessonDocument | null>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
@@ -283,7 +293,7 @@ function MaterialsSection({
   return (
     <div style={{ paddingLeft: "clamp(20px, 1.67vw, 24px)", paddingTop: 6, paddingBottom: 4, display: "flex", flexDirection: "column", gap: 6 }}>
       <span style={{ fontFamily: FA, fontWeight: 600, fontSize: "clamp(10px, 0.63vw, 12px)", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-        Materials
+        {t("materials")}
       </span>
 
       {documents.map(doc => (
@@ -304,7 +314,7 @@ function MaterialsSection({
             onClick={() => handleDelete(doc.id)}
             className="flex shrink-0 items-center justify-center rounded-full transition hover:bg-red-50"
             style={{ width: 24, height: 24, border: "none", background: "transparent", cursor: "pointer" }}
-            aria-label="Remove material"
+            aria-label={t("removeMaterial")}
           >
             <X size={14} style={{ color: "var(--color-text-secondary)" }} />
           </button>
@@ -313,7 +323,7 @@ function MaterialsSection({
 
       {documents.length === 0 && (
         <p style={{ fontFamily: F, fontSize: "clamp(12px, 0.73vw, 14px)", color: "var(--color-text-muted)", margin: 0 }}>
-          No additional materials.
+          {t("noAdditionalMaterials")}
         </p>
       )}
 
@@ -325,7 +335,7 @@ function MaterialsSection({
         style={{ gap: 6, height: "clamp(28px, 2.22vw, 32px)", background: "var(--color-bg)", border: "1px solid var(--color-draft)", borderRadius: 20, fontFamily: FA, fontWeight: 500, fontSize: "clamp(11px, 0.73vw, 13px)", color: "var(--color-text-primary)", cursor: uploading ? "default" : "pointer", opacity: uploading ? 0.6 : 1, padding: "0 clamp(10px, 0.83vw, 14px)" }}
       >
         <Upload size={14} />
-        {uploading ? "Uploading…" : "Add Material"}
+        {uploading ? t("uploading") : t("addMaterial")}
       </button>
       <input
         ref={docInputRef}
@@ -358,6 +368,7 @@ function LessonAccordion({
   onOpen: (item: LessonItem) => void;
   onUpdated: (lesson: CourseLesson) => void;
 }) {
+  const t = useTranslations("CourseManagementContentTab");
   const [expanded, setExpanded] = useState(false);
   const [items, setItems]       = useState<LessonItem[] | null>(lesson.items !== undefined ? lesson.items : null);
   const [documents, setDocuments] = useState<LessonDocument[]>(lesson.documents ?? []);
@@ -401,13 +412,13 @@ function LessonAccordion({
 
           {lesson.duration_minutes ? (
             <span style={{ fontFamily: F, fontSize: "clamp(11px, 0.73vw, 13px)", color: "var(--color-text-muted)", flexShrink: 0 }}>
-              {lesson.duration_minutes} min
+              {t("minutesShort", { count: lesson.duration_minutes })}
             </span>
           ) : null}
         </button>
 
         <label
-          title="Required to complete the course"
+          title={t("requiredTooltip")}
           style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0, cursor: savingMandatory ? "default" : "pointer", opacity: savingMandatory ? 0.6 : 1 }}
         >
           <input
@@ -417,14 +428,14 @@ function LessonAccordion({
             onChange={handleMandatoryChange}
           />
           <span style={{ fontFamily: F, fontSize: "clamp(11px, 0.73vw, 13px)", color: "var(--color-text-secondary)" }}>
-            Mandatory
+            {t("mandatory")}
           </span>
         </label>
 
         <button
           type="button"
           onClick={toggle}
-          aria-label={expanded ? "Collapse lesson" : "Expand lesson"}
+          aria-label={expanded ? t("collapseLesson") : t("expandLesson")}
           style={{ display: "flex", flexShrink: 0, background: "none", border: "none", cursor: "pointer", padding: 0 }}
         >
           <ChevronDown size={16} style={{ color: "var(--color-text-muted)", transform: expanded ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
@@ -434,9 +445,9 @@ function LessonAccordion({
       {expanded && (
         <div style={{ paddingLeft: "clamp(20px, 1.67vw, 24px)", paddingTop: 4, display: "flex", flexDirection: "column", gap: 2 }}>
           {loading ? (
-            <p style={{ fontFamily: F, fontSize: "clamp(12px, 0.73vw, 14px)", color: "var(--color-text-muted)", margin: 0 }}>Loading…</p>
+            <p style={{ fontFamily: F, fontSize: "clamp(12px, 0.73vw, 14px)", color: "var(--color-text-muted)", margin: 0 }}>{t("loading")}</p>
           ) : (items ?? []).length === 0 ? (
-            <p style={{ fontFamily: F, fontSize: "clamp(12px, 0.73vw, 14px)", color: "var(--color-text-muted)", margin: 0 }}>No items in this lesson.</p>
+            <p style={{ fontFamily: F, fontSize: "clamp(12px, 0.73vw, 14px)", color: "var(--color-text-muted)", margin: 0 }}>{t("noItemsInLesson")}</p>
           ) : (
             (items ?? []).map(item => (
               <ItemRow key={item.id} item={item} onOpen={() => onOpen(item)} />
@@ -471,6 +482,7 @@ function ModuleAccordion({
   onOpen: (modal: ModalState) => void;
   onLessonUpdated: (moduleId: number, lesson: CourseLesson) => void;
 }) {
+  const t = useTranslations("CourseManagementContentTab");
   function openItem(item: LessonItem) {
     if (item.item_type === "text")  onOpen({ kind: "text",  item });
     if (item.item_type === "video") onOpen({ kind: "video", item });
@@ -485,7 +497,7 @@ function ModuleAccordion({
         style={{ display: "flex", alignItems: "center", gap: 12, width: "100%", background: "none", border: "none", cursor: "pointer", textAlign: "left" }}
       >
         <span style={{ background: "var(--color-brand-lavender-soft)", borderRadius: 20, padding: "0 12px", fontFamily: FA, fontWeight: 600, fontSize: "clamp(14px, 1.39vw, 20px)", lineHeight: "clamp(22px, 1.74vw, 25px)", color: "var(--color-blue)", flexShrink: 0, whiteSpace: "nowrap" as const }}>
-          Module {module.order ?? index + 1}
+          {t("moduleLabel", { number: module.order ?? index + 1 })}
         </span>
 
         <span style={{ fontFamily: FA, fontWeight: 600, fontSize: "clamp(14px, 1.39vw, 20px)", color: "var(--color-text-primary)", flex: 1 }}>
@@ -510,7 +522,7 @@ function ModuleAccordion({
 
           {module.lessons.length === 0 && (
             <p style={{ fontFamily: F, fontSize: "clamp(12px, 0.73vw, 14px)", color: "var(--color-text-muted)", margin: 0 }}>
-              No content in this module yet.
+              {t("noContentInModule")}
             </p>
           )}
         </div>
@@ -529,6 +541,7 @@ type Props = {
 
 /** Module accordion with expandable lessons, per-item modals (text / video / test). */
 export function CourseManagementContentTab({ course, slug, onLessonUpdated }: Props) {
+  const t = useTranslations("CourseManagementContentTab");
   const allIds = course.modules.map(m => m.id);
   const [openModules, setOpenModules] = useState<Set<number>>(new Set());
   const [modal, setModal]             = useState<ModalState>(null);
@@ -548,16 +561,16 @@ export function CourseManagementContentTab({ course, slug, onLessonUpdated }: Pr
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "clamp(16px, 1.25vw, 24px)" }}>
         <div>
           <h2 style={{ fontFamily: F, fontWeight: 700, fontSize: "clamp(18px, 1.25vw, 24px)", color: "var(--color-text-primary)", margin: "0 0 4px" }}>
-            Course Structure
+            {t("courseStructure")}
           </h2>
           <p style={{ fontFamily: F, fontSize: "clamp(12px, 0.83vw, 15px)", color: "var(--color-text-muted)", margin: 0 }}>
-            {course.modules.length} module{course.modules.length !== 1 ? "s" : ""} · expand a lesson to browse items
+            {t("modulesSubtitle", { count: course.modules.length })}
           </p>
         </div>
 
         {allIds.length > 0 && (
           <GradientButton type="button" onClick={() => setOpenModules(allOpen ? new Set() : new Set(allIds))}>
-            {allOpen ? "Close all" : "Open all"}
+            {allOpen ? t("closeAll") : t("openAll")}
           </GradientButton>
         )}
       </div>
@@ -565,7 +578,7 @@ export function CourseManagementContentTab({ course, slug, onLessonUpdated }: Pr
       {/* Module list */}
       {course.modules.length === 0 ? (
         <p style={{ fontFamily: F, fontSize: "clamp(13px, 0.83vw, 15px)", color: "var(--color-text-muted)" }}>
-          No modules yet.
+          {t("noModulesYet")}
         </p>
       ) : (
         <div>

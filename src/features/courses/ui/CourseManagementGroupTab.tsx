@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { AlertTriangle, Check, ChevronDown, Lock, LockOpen, Pencil, Trash2, UserMinus } from "lucide-react";
 import { AddButton } from "@/shared/ui/AddButton";
 import { ModalShell } from "@/shared/ui/ModalShell";
@@ -9,7 +10,7 @@ import type { CourseDetail } from "@/entities/course";
 import type { CourseCohort } from "@/entities/course/model/cohort";
 import type { CohortMember, EnrolledStudent } from "@/entities/course/model/cohortGroup";
 import type { CohortSchedule, CohortSchedulePayload, DayOfWeek } from "@/entities/course/model/schedule";
-import { DAY_LABELS } from "@/entities/course/model/schedule";
+import { DAY_KEYS } from "@/entities/course/model/schedule";
 import type { ScheduleConflictPersonalEvent, ScheduleConflicts } from "@/entities/course/api/scheduleApi";
 import type { CohortInput } from "@/entities/course";
 import {
@@ -61,9 +62,12 @@ const ERR: React.CSSProperties = {
   color: "var(--color-pink-dark)", marginTop: 4,
 };
 
-const DAYS = (Object.keys(DAY_LABELS) as unknown as DayOfWeek[]).map(d => ({
-  value: Number(d) as DayOfWeek, label: DAY_LABELS[Number(d) as DayOfWeek],
-}));
+const DAY_VALUES = Object.keys(DAY_KEYS).map(Number) as DayOfWeek[];
+
+function useDayOptions(): { value: DayOfWeek; label: string }[] {
+  const tDays = useTranslations("Days");
+  return DAY_VALUES.map(d => ({ value: d, label: tDays(DAY_KEYS[d]) }));
+}
 
 function fmtTime(t: string) { return t.slice(0, 5); }
 function padTwo(n: number) { return String(n).padStart(2, "0"); }
@@ -111,6 +115,7 @@ const HOURS   = Array.from({ length: 24 }, (_, i) => i);
 const MINUTES = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
 
 function TimePicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const t = useTranslations("CourseManagementGroupTab");
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -140,12 +145,12 @@ function TimePicker({ value, onChange }: { value: string; onChange: (v: string) 
       </button>
       {open && (
         <div style={{ position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: 200, background: "var(--color-bg)", borderRadius: 16, padding: "10px 12px 14px", boxShadow: "var(--shadow-card)", minWidth: 200 }}>
-          <div style={{ fontFamily: "var(--font-base)", fontSize: "clamp(10px, 0.63vw, 11px)", fontWeight: 600, color: "var(--color-text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>Hour</div>
+          <div style={{ fontFamily: "var(--font-base)", fontSize: "clamp(10px, 0.63vw, 11px)", fontWeight: 600, color: "var(--color-text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>{t("hour")}</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 2, marginBottom: 10 }}>
             {HOURS.map(h => <button key={h} type="button" onClick={() => pick(h, mm)} style={cell(h === hh)}>{padTwo(h)}</button>)}
           </div>
           <div style={{ height: 1, background: "var(--color-border-light)", marginBottom: 10 }} />
-          <div style={{ fontFamily: "var(--font-base)", fontSize: "clamp(10px, 0.63vw, 11px)", fontWeight: 600, color: "var(--color-text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>Min</div>
+          <div style={{ fontFamily: "var(--font-base)", fontSize: "clamp(10px, 0.63vw, 11px)", fontWeight: 600, color: "var(--color-text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>{t("min")}</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 2 }}>
             {MINUTES.map(m => <button key={m} type="button" onClick={() => pick(hh, m)} style={cell(m === mm)}>{padTwo(m)}</button>)}
           </div>
@@ -161,6 +166,7 @@ function AddStudentDropdown({ enrolledStudents, takenIds, onAdd }: {
   takenIds: Set<number>;
   onAdd: (enrollmentId: number) => Promise<void>;
 }) {
+  const t = useTranslations("CourseManagementGroupTab");
   const [open, setOpen]     = useState(false);
   const [search, setSearch] = useState("");
   const [adding, setAdding] = useState<number | null>(null);
@@ -191,19 +197,19 @@ function AddStudentDropdown({ enrolledStudents, takenIds, onAdd }: {
 
   return (
     <div ref={rootRef} style={{ position: "relative", display: "inline-block" }}>
-      <AddButton onClick={() => setOpen(v => !v)}>Add student</AddButton>
+      <AddButton onClick={() => setOpen(v => !v)}>{t("addStudent")}</AddButton>
       {open && (
         <div ref={panelRef} onMouseDown={e => e.stopPropagation()}
           style={{ position: "absolute", top: "calc(100% + 8px)", left: 0, zIndex: 50, background: "#fff", borderRadius: 16, boxShadow: "0 8px 32px rgba(83,98,153,0.18)", border: "1px solid var(--color-border-light)", width: "clamp(240px, 22vw, 320px)", overflow: "hidden" }}>
           <div style={{ padding: "10px 12px", borderBottom: "1px solid var(--color-border-light)" }}>
             <input ref={inputRef} value={search} onChange={e => setSearch(e.target.value)}
-              placeholder="Search by name or email…"
+              placeholder={t("searchPlaceholder")}
               style={{ fontFamily: "var(--font-base)", fontSize: "clamp(12px, 0.78vw, 14px)", color: "var(--color-text-primary)", background: "var(--color-bg)", borderRadius: 999, border: "1px solid var(--color-text-primary)", padding: "6px 14px", width: "100%", outline: "none", boxSizing: "border-box" as const }} />
           </div>
           <div onMouseDown={e => e.preventDefault()} style={{ maxHeight: 240, overflowY: "auto", padding: "6px 0 12px" }}>
             {available.length === 0 ? (
               <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(12px, 0.78vw, 14px)", color: "var(--color-text-muted)", textAlign: "center", padding: "18px 14px", margin: 0 }}>
-                {enrolledStudents.length === 0 ? "No enrolled students yet" : "No matches"}
+                {enrolledStudents.length === 0 ? t("noEnrolledStudentsYet") : t("noMatches")}
               </p>
             ) : available.map(s => (
               <button key={s.enrollment_id} type="button" onClick={async () => {
@@ -243,6 +249,7 @@ function memberInitials(name: string): string {
 }
 
 function MemberRow({ member, onRemove }: { member: CohortMember; onRemove: (id: number) => Promise<void> }) {
+  const t = useTranslations("CourseManagementGroupTab");
   const [removing, setRemoving] = useState(false);
   const avatarSize = "clamp(28px, 2.22vw, 32px)";
   return (
@@ -264,7 +271,7 @@ function MemberRow({ member, onRemove }: { member: CohortMember; onRemove: (id: 
         </div>
       </div>
       <button type="button" onClick={async () => { setRemoving(true); try { await onRemove(member.id); } finally { setRemoving(false); } }}
-        disabled={removing} title="Remove from cohort"
+        disabled={removing} title={t("removeFromCohort")}
         style={{ background: "none", border: "none", cursor: removing ? "not-allowed" : "pointer", color: "var(--color-pink-dark)", display: "flex", alignItems: "center", padding: 4, borderRadius: 6, opacity: removing ? 0.5 : 1 }}>
         <UserMinus size={15} />
       </button>
@@ -278,6 +285,7 @@ function CohortScheduleRow({ entry, onDelete, onEdit }: {
   onDelete: (id: number) => Promise<void>;
   onEdit: (e: CohortSchedule) => void;
 }) {
+  const t = useTranslations("CourseManagementGroupTab");
   const [deleting, setDeleting] = useState(false);
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", borderRadius: 10, background: "var(--color-bg)", border: "1px solid var(--color-border-light)" }}>
@@ -285,11 +293,11 @@ function CohortScheduleRow({ entry, onDelete, onEdit }: {
         {entry.day_of_week_display} &middot; {fmtTime(entry.start_time)} &ndash; {fmtTime(entry.end_time)}
       </span>
       <div style={{ display: "flex", gap: 2 }}>
-        <button type="button" onClick={() => onEdit(entry)} title="Edit"
+        <button type="button" onClick={() => onEdit(entry)} title={t("edit")}
           style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-text-secondary)", display: "flex", alignItems: "center", padding: 4, borderRadius: 6 }}>
           <Pencil size={14} />
         </button>
-        <button type="button" title="Delete" disabled={deleting}
+        <button type="button" title={t("delete")} disabled={deleting}
           onClick={async () => { setDeleting(true); try { await onDelete(entry.id); } finally { setDeleting(false); } }}
           style={{ background: "none", border: "none", cursor: deleting ? "not-allowed" : "pointer", color: "var(--color-pink-dark)", display: "flex", alignItems: "center", padding: 4, borderRadius: 6, opacity: deleting ? 0.4 : 1 }}>
           <Trash2 size={14} />
@@ -308,6 +316,9 @@ function CohortScheduleForm({ initial, onSave, onCancel, slug, cohortId, exclude
   cohortId: number;
   excludeScheduleId?: number;
 }) {
+  const t = useTranslations("CourseManagementGroupTab");
+  const tSchedule = useTranslations("CourseManagementScheduleTab");
+  const days = useDayOptions();
   const [day, setDay]     = useState<DayOfWeek>(initial?.day_of_week ?? 0);
   const [start, setStart] = useState(initial ? fmtTime(initial.start_time) : "09:00");
   const [end, setEnd]     = useState(initial ? fmtTime(initial.end_time)   : "10:00");
@@ -324,7 +335,7 @@ function CohortScheduleForm({ initial, onSave, onCancel, slug, cohortId, exclude
 
   const handleSubmit = async (e: { preventDefault(): void }) => {
     e.preventDefault();
-    if (end <= start) { setErr("End time must be after start time."); return; }
+    if (end <= start) { setErr(t("errorEndAfterStart")); return; }
     setSaving(true); setErr(null);
     try {
       const payload: CohortSchedulePayload = { day_of_week: day, start_time: start, end_time: end };
@@ -343,7 +354,7 @@ function CohortScheduleForm({ initial, onSave, onCancel, slug, cohortId, exclude
         await onSave(payload);
       }
     } catch (ex: unknown) {
-      setErr((ex as { message?: string })?.message ?? "Failed to save.");
+      setErr((ex as { message?: string })?.message ?? t("errorSaveFailed"));
     } finally {
       setSaving(false);
     }
@@ -395,7 +406,7 @@ function CohortScheduleForm({ initial, onSave, onCancel, slug, cohortId, exclude
       await onSave(conflictModal.payload);
       setConflictModal(null);
     } catch (ex: unknown) {
-      setErr((ex as { message?: string })?.message ?? "Failed to save.");
+      setErr((ex as { message?: string })?.message ?? t("errorSaveFailed"));
       setConflictModal(null);
     } finally {
       setModalSaving(false);
@@ -409,7 +420,7 @@ function CohortScheduleForm({ initial, onSave, onCancel, slug, cohortId, exclude
       await onSave(conflictModal.payload);
       setConflictModal(null);
     } catch (ex: unknown) {
-      setErr((ex as { message?: string })?.message ?? "Failed to save.");
+      setErr((ex as { message?: string })?.message ?? t("errorSaveFailed"));
       setConflictModal(null);
     } finally {
       setModalSaving(false);
@@ -433,16 +444,16 @@ function CohortScheduleForm({ initial, onSave, onCancel, slug, cohortId, exclude
     <>
       <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
-          <div><label style={LABEL}>Day</label><PillSelect options={DAYS} value={day} onChange={v => setDay(v as DayOfWeek)} /></div>
-          <div><label style={LABEL}>Start time</label><TimePicker value={start} onChange={setStart} /></div>
-          <div><label style={LABEL}>End time</label><TimePicker value={end} onChange={setEnd} /></div>
+          <div><label style={LABEL}>{t("day")}</label><PillSelect options={days} value={day} onChange={v => setDay(v as DayOfWeek)} /></div>
+          <div><label style={LABEL}>{t("startTime")}</label><TimePicker value={start} onChange={setStart} /></div>
+          <div><label style={LABEL}>{t("endTime")}</label><TimePicker value={end} onChange={setEnd} /></div>
         </div>
         {err && <p style={ERR}>{err}</p>}
         <div style={{ display: "flex", gap: 8 }}>
           <button type="submit" disabled={saving} style={{ ...SUBMIT_BTN, opacity: saving ? 0.7 : 1, cursor: saving ? "not-allowed" : "pointer" }}>
-            <Check size={13} /> {saving ? "Checking…" : "Save"}
+            <Check size={13} /> {saving ? t("checking") : t("save")}
           </button>
-          <button type="button" onClick={onCancel} style={CANCEL_BTN}>Cancel</button>
+          <button type="button" onClick={onCancel} style={CANCEL_BTN}>{t("cancel")}</button>
         </div>
       </form>
 
@@ -455,7 +466,7 @@ function CohortScheduleForm({ initial, onSave, onCancel, slug, cohortId, exclude
         return (
           <ModalShell
             onClose={() => !modalSaving && !eventLoading && setConflictModal(null)}
-            title="Schedule conflicts"
+            title={tSchedule("scheduleConflicts")}
             icon={<AlertTriangle size={18} style={{ color: "var(--color-pink-dark)" }} />}
             width="clamp(560px, 52vw, 740px)"
           >
@@ -464,7 +475,7 @@ function CohortScheduleForm({ initial, onSave, onCancel, slug, cohortId, exclude
               {/* Group / individual — informational */}
               {conflictModal.info.group.length > 0 && (
                 <div>
-                  <p style={{ ...LABEL, marginBottom: 6 }}>Group sessions</p>
+                  <p style={{ ...LABEL, marginBottom: 6 }}>{tSchedule("groupSessions")}</p>
                   {conflictModal.info.group.map(c => (
                     <div key={c.id} style={ROW}>
                       {c.course_title}{c.cohort_name ? ` — ${c.cohort_name}` : ""}
@@ -475,7 +486,7 @@ function CohortScheduleForm({ initial, onSave, onCancel, slug, cohortId, exclude
               )}
               {conflictModal.info.individual.length > 0 && (
                 <div>
-                  <p style={{ ...LABEL, marginBottom: 6 }}>Individual sessions</p>
+                  <p style={{ ...LABEL, marginBottom: 6 }}>{tSchedule("individualSessions")}</p>
                   {conflictModal.info.individual.map(c => (
                     <div key={c.id} style={ROW}>
                       {c.course_title}&nbsp;<span style={MUTED}>{c.start_time}–{c.end_time}</span>
@@ -487,14 +498,14 @@ function CohortScheduleForm({ initial, onSave, onCancel, slug, cohortId, exclude
               {/* Weekly unavailability blocks */}
               {hasPersonalBlocks && (
                 <div>
-                  <p style={{ ...LABEL, marginBottom: 6 }}>Personal unavailability blocks</p>
+                  <p style={{ ...LABEL, marginBottom: 6 }}>{tSchedule("personalUnavailabilityBlocks")}</p>
                   {conflictModal.info.personal.map(b => (
                     <div key={b.id} style={ROW}>
-                      {b.reason || "Personal block"}&nbsp;<span style={MUTED}>{b.start_time}–{b.end_time}</span>
+                      {b.reason || tSchedule("personalBlockFallback")}&nbsp;<span style={MUTED}>{b.start_time}–{b.end_time}</span>
                     </div>
                   ))}
                   <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.7vw, 12px)", color: "var(--color-text-muted)", margin: "6px 0 0" }}>
-                    These blocks must be deleted before saving.
+                    {tSchedule("blocksMustBeDeleted")}
                   </p>
                 </div>
               )}
@@ -502,7 +513,7 @@ function CohortScheduleForm({ initial, onSave, onCancel, slug, cohortId, exclude
               {/* Personal calendar events — per-event actions */}
               {pendingEvents.length > 0 && (
                 <div>
-                  <p style={{ ...LABEL, marginBottom: 6 }}>Personal events</p>
+                  <p style={{ ...LABEL, marginBottom: 6 }}>{tSchedule("personalEvents")}</p>
                   {pendingEvents.map(ev => {
                     const isLoading = eventLoading === ev.id;
                     const isRescheduling = rescheduleState?.eventId === ev.id;
@@ -512,7 +523,7 @@ function CohortScheduleForm({ initial, onSave, onCancel, slug, cohortId, exclude
                           <span>
                             <strong>{ev.title}</strong>
                             &nbsp;<span style={MUTED}>{ev.date} · {ev.start_time}–{ev.end_time}</span>
-                            {!ev.is_owner && <span style={{ ...MUTED, marginLeft: 6 }}>(invited)</span>}
+                            {!ev.is_owner && <span style={{ ...MUTED, marginLeft: 6 }}>{tSchedule("invited")}</span>}
                           </span>
                           <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
                             {ev.is_owner ? (
@@ -523,7 +534,7 @@ function CohortScheduleForm({ initial, onSave, onCancel, slug, cohortId, exclude
                                   onClick={() => setRescheduleState(isRescheduling ? null : { eventId: ev.id, date: ev.date, start: ev.start_time, end: ev.end_time })}
                                   style={ACTION_BTN()}
                                 >
-                                  {isRescheduling ? "Cancel" : "Reschedule"}
+                                  {isRescheduling ? tSchedule("cancel") : tSchedule("reschedule")}
                                 </button>
                                 <button
                                   type="button"
@@ -531,7 +542,7 @@ function CohortScheduleForm({ initial, onSave, onCancel, slug, cohortId, exclude
                                   onClick={() => handleDeleteEvent(ev)}
                                   style={ACTION_BTN(true)}
                                 >
-                                  {isLoading ? "…" : "Delete"}
+                                  {isLoading ? "…" : tSchedule("delete")}
                                 </button>
                               </>
                             ) : (
@@ -541,7 +552,7 @@ function CohortScheduleForm({ initial, onSave, onCancel, slug, cohortId, exclude
                                 onClick={() => handleDeclineEvent(ev)}
                                 style={ACTION_BTN(true)}
                               >
-                                {isLoading ? "…" : "Decline invite"}
+                                {isLoading ? "…" : tSchedule("declineInvite")}
                               </button>
                             )}
                           </div>
@@ -552,17 +563,17 @@ function CohortScheduleForm({ initial, onSave, onCancel, slug, cohortId, exclude
                             <div>
                               <DatePicker
                                 size="sm"
-                                label="New date"
+                                label={tSchedule("newDate")}
                                 value={rescheduleState.date}
                                 onChange={value => setRescheduleState(s => s ? { ...s, date: value } : s)}
                               />
                             </div>
                             <div>
-                              <label style={LABEL}>Start</label>
+                              <label style={LABEL}>{tSchedule("start")}</label>
                               <TimePicker value={rescheduleState.start} onChange={v => setRescheduleState(s => s ? { ...s, start: v } : s)} />
                             </div>
                             <div>
-                              <label style={LABEL}>End</label>
+                              <label style={LABEL}>{tSchedule("end")}</label>
                               <TimePicker value={rescheduleState.end} onChange={v => setRescheduleState(s => s ? { ...s, end: v } : s)} />
                             </div>
                             <button
@@ -571,7 +582,7 @@ function CohortScheduleForm({ initial, onSave, onCancel, slug, cohortId, exclude
                               onClick={() => handleRescheduleEvent(ev)}
                               style={{ ...SUBMIT_BTN, opacity: isLoading ? 0.7 : 1 }}
                             >
-                              {isLoading ? "Saving…" : "Confirm"}
+                              {isLoading ? tSchedule("saving") : tSchedule("confirm")}
                             </button>
                           </div>
                         )}
@@ -584,14 +595,14 @@ function CohortScheduleForm({ initial, onSave, onCancel, slug, cohortId, exclude
               {/* Bottom hint when blocked */}
               {blocked && (
                 <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.7vw, 12px)", color: "var(--color-text-muted)", margin: 0 }}>
-                  Resolve all personal events and blocks to continue.
+                  {tSchedule("resolveAllToContinue")}
                 </p>
               )}
 
               {/* Session conflict hard-block notice */}
               {hasSessionConflicts && !hasPendingEvents && (
                 <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.72vw, 13px)", color: "var(--color-danger)", margin: 0 }}>
-                  Resolve the conflicting sessions above before saving.
+                  {tSchedule("resolveSessionsAbove")}
                 </p>
               )}
 
@@ -604,7 +615,7 @@ function CohortScheduleForm({ initial, onSave, onCancel, slug, cohortId, exclude
                     disabled={modalSaving || hasPendingEvents}
                     style={{ ...SUBMIT_BTN, background: "var(--color-pink-dark)", opacity: (modalSaving || hasPendingEvents) ? 0.5 : 1, cursor: (modalSaving || hasPendingEvents) ? "not-allowed" : "pointer" }}
                   >
-                    {modalSaving ? "Saving…" : "Delete blocks & Save"}
+                    {modalSaving ? tSchedule("saving") : tSchedule("deleteBlocksAndSave")}
                   </button>
                 )}
                 {!blocked && !hasSessionConflicts && (
@@ -614,7 +625,7 @@ function CohortScheduleForm({ initial, onSave, onCancel, slug, cohortId, exclude
                     disabled={modalSaving}
                     style={{ ...SUBMIT_BTN, opacity: modalSaving ? 0.7 : 1, cursor: modalSaving ? "not-allowed" : "pointer" }}
                   >
-                    {modalSaving ? "Saving…" : "Save"}
+                    {modalSaving ? tSchedule("saving") : tSchedule("save")}
                   </button>
                 )}
                 <button
@@ -623,7 +634,7 @@ function CohortScheduleForm({ initial, onSave, onCancel, slug, cohortId, exclude
                   disabled={modalSaving}
                   style={CANCEL_BTN}
                 >
-                  Cancel
+                  {tSchedule("cancel")}
                 </button>
               </div>
             </div>
@@ -648,6 +659,7 @@ function CohortForm({
   onSave: (c: CourseCohort) => void;
   onCancel: () => void;
 }) {
+  const t = useTranslations("CourseManagementGroupTab");
   const isEdit = !!initial?.id;
   const [name, setName]           = useState(initial?.name ?? "");
   const [startDate, setStartDate] = useState(initial?.start_date ?? "");
@@ -679,7 +691,7 @@ function CohortForm({
         : await createCohort(slug, payload);
       onSave(result);
     } catch (e: unknown) {
-      setError((e as { message?: string })?.message ?? "Failed to save.");
+      setError((e as { message?: string })?.message ?? t("errorSaveFailed"));
     } finally {
       setSaving(false);
     }
@@ -694,35 +706,35 @@ function CohortForm({
     }}>
       {!isEdit && (
         <span style={{ fontFamily: "var(--font-base)", fontWeight: 700, fontSize: "clamp(13px, 0.83vw, 15px)", color: "var(--color-text-primary)" }}>
-          New cohort
+          {t("newCohort")}
         </span>
       )}
       <div>
-        <label style={LABEL}>Group name</label>
+        <label style={LABEL}>{t("groupName")}</label>
         <input
           type="text" value={name}
           onChange={e => setName(e.target.value)}
-          placeholder="e.g. Group A (Mon/Wed)"
+          placeholder={t("groupNamePlaceholder")}
           style={FINPUT}
         />
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
         <div>
-          <DatePicker size="sm" label="Start date" value={startDate} onChange={setStartDate} />
+          <DatePicker size="sm" label={t("startDateLabel")} value={startDate} onChange={setStartDate} />
         </div>
         <div>
-          <DatePicker size="sm" label="Enroll deadline" value={deadline} onChange={setDeadline} />
+          <DatePicker size="sm" label={t("enrollDeadline")} value={deadline} onChange={setDeadline} />
         </div>
         <div>
-          <label style={LABEL}>Duration (months)</label>
+          <label style={LABEL}>{t("durationMonths")}</label>
           <input type="number" min={0} value={duration} onChange={e => setDuration(e.target.value)} placeholder="0" style={FINPUT} />
         </div>
         <div>
-          <label style={LABEL}>Hours / week</label>
+          <label style={LABEL}>{t("hoursPerWeek")}</label>
           <input type="number" min={0} value={hpw} onChange={e => setHpw(e.target.value)} placeholder="0" style={FINPUT} />
         </div>
         <div>
-          <label style={LABEL}>Max group size</label>
+          <label style={LABEL}>{t("maxGroupSize")}</label>
           <input type="number" min={1} value={groupSize} onChange={e => setGroupSize(e.target.value)} placeholder="—" style={FINPUT} />
         </div>
       </div>
@@ -732,9 +744,9 @@ function CohortForm({
           type="button" onClick={handleSubmit} disabled={saving}
           style={{ ...SUBMIT_BTN, opacity: saving ? 0.7 : 1, cursor: saving ? "not-allowed" : "pointer" }}
         >
-          <Check size={13} /> {saving ? (isEdit ? "Saving…" : "Creating…") : (isEdit ? "Save changes" : "Create cohort")}
+          <Check size={13} /> {saving ? (isEdit ? t("saving") : t("creating")) : (isEdit ? t("saveChanges") : t("createCohort"))}
         </button>
-        <button type="button" onClick={onCancel} style={CANCEL_BTN}>Cancel</button>
+        <button type="button" onClick={onCancel} style={CANCEL_BTN}>{t("cancel")}</button>
       </div>
     </div>
   );
@@ -751,6 +763,7 @@ function GroupCohortCard({ cohort, slug, formatId, takenIds, onMembersChanged, o
   onDeleted: (id: number) => void;
   onUpdated: (c: CourseCohort) => void;
 }) {
+  const t = useTranslations("CourseManagementGroupTab");
   const [localCohort, setLocalCohort] = useState<CourseCohort>(cohort);
   const [expanded, setExpanded]     = useState(false);
   const [editing, setEditing]       = useState(false);
@@ -832,12 +845,12 @@ function GroupCohortCard({ cohort, slug, formatId, takenIds, onMembersChanged, o
   };
 
   const meta: string[] = [];
-  if (localCohort.start_date) meta.push(`Starts ${localCohort.start_date}`);
-  if (localCohort.enrollment_deadline) meta.push(`Enroll by ${localCohort.enrollment_deadline}`);
-  if (localCohort.duration_months) meta.push(`${localCohort.duration_months} mo`);
-  if (localCohort.hours_per_week) meta.push(`${localCohort.hours_per_week} h/wk`);
+  if (localCohort.start_date) meta.push(t("startsOn", { date: localCohort.start_date }));
+  if (localCohort.enrollment_deadline) meta.push(t("enrollBy", { date: localCohort.enrollment_deadline }));
+  if (localCohort.duration_months) meta.push(t("monthsShort", { count: localCohort.duration_months }));
+  if (localCohort.hours_per_week) meta.push(t("hoursPerWeekShort", { count: localCohort.hours_per_week }));
 
-  const statusLabel = isFull ? "Full" : effectivelyClosed ? "Closed" : "Open";
+  const statusLabel = isFull ? t("statusFull") : effectivelyClosed ? t("statusClosed") : t("statusOpen");
   const statusColor = isFull ? "var(--color-text-muted)" : effectivelyClosed ? "var(--color-rejected)" : "var(--color-success)";
   const statusBg    = isFull ? "var(--color-bg)" : effectivelyClosed ? "#fff3f3" : "#f0faf0";
   const statusBdr   = isFull ? "var(--color-border-light)" : effectivelyClosed ? "#ffc5c5" : "#b8e6b8";
@@ -869,7 +882,7 @@ function GroupCohortCard({ cohort, slug, formatId, takenIds, onMembersChanged, o
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span style={{ fontFamily: "var(--font-base)", fontWeight: 700, fontSize: "clamp(14px, 0.97vw, 18px)", color: "var(--color-text-primary)" }}>
-              {localCohort.name || "Unnamed cohort"}
+              {localCohort.name || t("unnamedCohort")}
             </span>
             <span style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(10px, 0.63vw, 12px)", color: statusColor, background: statusBg, border: `1px solid ${statusBdr}`, borderRadius: 999, padding: "2px 10px" }}>
               {statusLabel}
@@ -881,26 +894,26 @@ function GroupCohortCard({ cohort, slug, formatId, takenIds, onMembersChanged, o
             </span>
           )}
           <span style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.72vw, 13px)", color: "var(--color-text-muted)" }}>
-            {members.length} student{members.length !== 1 ? "s" : ""}
+            {t("studentsCount", { count: members.length })}
             {localCohort.group_size ? ` / ${localCohort.group_size}` : ""}
-            {schedules.length > 0 ? ` · ${schedules.length} session${schedules.length !== 1 ? "s" : ""}` : ""}
+            {schedules.length > 0 ? ` · ${t("sessionsCount", { count: schedules.length })}` : ""}
           </span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <button type="button" onClick={handleToggleOpen} disabled={toggling || isFull}
-            title={isFull ? "Group is full" : effectivelyClosed ? "Open enrollment" : "Close enrollment"}
+            title={isFull ? t("groupIsFull") : effectivelyClosed ? t("openEnrollment") : t("closeEnrollment")}
             style={{ ...ICON_BTN, color: !effectivelyClosed && !isFull ? "var(--color-success)" : "var(--color-text-muted)", cursor: toggling || isFull ? "not-allowed" : "pointer", opacity: toggling ? 0.5 : 1 }}>
             {effectivelyClosed || isFull ? <Lock size={15} /> : <LockOpen size={15} />}
           </button>
           <button type="button"
             onClick={e => { e.stopPropagation(); setEditing(v => !v); setExpanded(true); }}
-            title={editing ? "Cancel edit" : "Edit cohort"}
+            title={editing ? t("cancelEdit") : t("editCohort")}
             style={{ ...ICON_BTN, color: editing ? "var(--color-blue)" : "var(--color-text-secondary)" }}>
             <Pencil size={14} />
           </button>
           <button type="button"
             onClick={e => { e.stopPropagation(); setDeleting(true); }}
-            title="Delete cohort"
+            title={t("deleteCohort")}
             style={{ ...ICON_BTN, color: "var(--color-pink-dark)" }}>
             <Trash2 size={14} />
           </button>
@@ -924,11 +937,13 @@ function GroupCohortCard({ cohort, slug, formatId, takenIds, onMembersChanged, o
 
       {/* Delete confirm modal */}
       {deleting && (
-        <ModalShell onClose={() => !deleteBusy && setDeleting(false)} title="Delete cohort?" width="clamp(320px, 28vw, 420px)">
+        <ModalShell onClose={() => !deleteBusy && setDeleting(false)} title={t("deleteCohortTitle")} width="clamp(320px, 28vw, 420px)">
           <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(12px, 0.78vw, 14px)", color: "var(--color-text-secondary)", margin: 0, lineHeight: 1.6 }}>
-            This will permanently delete <strong>{localCohort.name || "this cohort"}</strong>
-            {members.length > 0 && ` and remove its ${members.length} student${members.length !== 1 ? "s" : ""}`}.
-            This action cannot be undone.
+            {t.rich("deleteConfirmMessage", {
+              name: localCohort.name || t("thisCohort"),
+              membersClause: members.length > 0 ? t("andRemoveStudents", { count: members.length }) : "",
+              strong: chunks => <strong>{chunks}</strong>,
+            })}
           </p>
           {deleteError && (
             <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.72vw, 13px)", color: "var(--color-pink-dark)", marginTop: 8, marginBottom: 0 }}>
@@ -937,7 +952,7 @@ function GroupCohortCard({ cohort, slug, formatId, takenIds, onMembersChanged, o
           )}
           <div style={{ display: "flex", gap: 8, marginTop: 18, justifyContent: "flex-end" }}>
             <button type="button" onClick={() => setDeleting(false)} disabled={deleteBusy}
-              style={{ ...CANCEL_BTN, opacity: deleteBusy ? 0.5 : 1 }}>Cancel</button>
+              style={{ ...CANCEL_BTN, opacity: deleteBusy ? 0.5 : 1 }}>{t("cancel")}</button>
             <button type="button" disabled={deleteBusy}
               onClick={async () => {
                 setDeleteBusy(true);
@@ -947,13 +962,13 @@ function GroupCohortCard({ cohort, slug, formatId, takenIds, onMembersChanged, o
                   setDeleting(false);
                   onDeleted(cohort.id);
                 } catch (e: unknown) {
-                  setDeleteError((e as { message?: string })?.message ?? "Failed to delete.");
+                  setDeleteError((e as { message?: string })?.message ?? t("errorDeleteFailed"));
                 } finally {
                   setDeleteBusy(false);
                 }
               }}
               style={{ ...SUBMIT_BTN, background: "var(--color-pink-dark)", opacity: deleteBusy ? 0.7 : 1, cursor: deleteBusy ? "not-allowed" : "pointer" }}>
-              {deleteBusy ? "Deleting…" : "Delete"}
+              {deleteBusy ? t("deleting") : t("delete")}
             </button>
           </div>
         </ModalShell>
@@ -966,8 +981,8 @@ function GroupCohortCard({ cohort, slug, formatId, takenIds, onMembersChanged, o
 
           {/* Sub-tab switcher */}
           <div style={{ display: "flex", gap: 4, marginBottom: 14, background: "var(--color-bg)", borderRadius: 999, padding: 4, alignSelf: "flex-start", width: "fit-content" }}>
-            {subTabBtn("students", `Students (${members.length})`)}
-            {subTabBtn("schedule", `Schedule (${schedules.length})`)}
+            {subTabBtn("students", t("studentsTab", { count: members.length }))}
+            {subTabBtn("schedule", t("scheduleTab", { count: schedules.length }))}
           </div>
 
           {/* Students sub-tab */}
@@ -977,12 +992,12 @@ function GroupCohortCard({ cohort, slug, formatId, takenIds, onMembersChanged, o
                 members.map(m => <MemberRow key={m.id} member={m} onRemove={handleRemoveMember} />)
               ) : (
                 <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(12px, 0.78vw, 14px)", color: "var(--color-text-muted)" }}>
-                  No students yet
+                  {t("noStudentsYet")}
                 </p>
               )}
               {!canAdd && (
                 <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.72vw, 13px)", color: "var(--color-text-muted)", fontStyle: "italic" }}>
-                  {isFull ? "Group is full" : "Enrollment is closed"}
+                  {isFull ? t("groupIsFull") : t("enrollmentClosed")}
                 </p>
               )}
               {canAdd && enrolledLoaded && (
@@ -990,7 +1005,7 @@ function GroupCohortCard({ cohort, slug, formatId, takenIds, onMembersChanged, o
               )}
               {canAdd && !enrolledLoaded && (
                 <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(12px, 0.78vw, 14px)", color: "var(--color-text-muted)" }}>
-                  Loading students…
+                  {t("loadingStudents")}
                 </p>
               )}
             </div>
@@ -1000,10 +1015,10 @@ function GroupCohortCard({ cohort, slug, formatId, takenIds, onMembersChanged, o
           {subTab === "schedule" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {!schedulesLoaded && (
-                <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(12px, 0.78vw, 14px)", color: "var(--color-text-muted)" }}>Loading…</p>
+                <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(12px, 0.78vw, 14px)", color: "var(--color-text-muted)" }}>{t("loading")}</p>
               )}
               {schedulesLoaded && schedules.length === 0 && !addingSchedule && (
-                <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(12px, 0.78vw, 14px)", color: "var(--color-text-muted)" }}>No sessions scheduled yet.</p>
+                <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(12px, 0.78vw, 14px)", color: "var(--color-text-muted)" }}>{t("noSessionsScheduled")}</p>
               )}
               {schedulesLoaded && schedules.map(s =>
                 editingSchedule?.id === s.id ? (
@@ -1028,7 +1043,7 @@ function GroupCohortCard({ cohort, slug, formatId, takenIds, onMembersChanged, o
               )}
               {schedulesLoaded && !addingSchedule && !editingSchedule && (
                 <AddButton onClick={() => setAddingSchedule(true)} style={{ alignSelf: "flex-start" }}>
-                  Add session
+                  {t("addSession")}
                 </AddButton>
               )}
             </div>
@@ -1047,6 +1062,7 @@ export function CourseManagementGroupTab({ course, slug, onCohortsChanged }: {
   slug: string;
   onCohortsChanged?: (cohorts: CourseCohort[]) => void;
 }) {
+  const t = useTranslations("CourseManagementGroupTab");
   const [cohorts, setCohorts] = useState<CourseCohort[]>(course.cohorts ?? []);
   const [adding, setAdding]   = useState(false);
   const [takenIds, setTakenIds] = useState<Set<number>>(
@@ -1091,7 +1107,7 @@ export function CourseManagementGroupTab({ course, slug, onCohortsChanged }: {
       {/* Toolbar */}
       <div style={{ display: "flex", justifyContent: "flex-end" }}>
         {groupFormatId && !adding && (
-          <AddButton onClick={() => setAdding(true)}>Add cohort</AddButton>
+          <AddButton onClick={() => setAdding(true)}>{t("addCohort")}</AddButton>
         )}
       </div>
 
@@ -1111,12 +1127,12 @@ export function CourseManagementGroupTab({ course, slug, onCohortsChanged }: {
       {cohorts.length === 0 && !adding && (
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "clamp(160px, 14vw, 220px)", gap: 8 }}>
           <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(14px, 0.97vw, 18px)", fontWeight: 600, color: "var(--color-text-primary)" }}>
-            No cohorts yet
+            {t("noCohortsYet")}
           </p>
           <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(12px, 0.83vw, 15px)", color: "var(--color-text-secondary)", textAlign: "center", maxWidth: 360 }}>
             {groupFormatId
-              ? "Use the Add cohort button above to create your first group."
-              : "Configure a Group delivery format in the Format & Price tab first."}
+              ? t("noCohortsHintWithFormat")
+              : t("noCohortsHintNoFormat")}
           </p>
         </div>
       )}

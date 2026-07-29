@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { ChevronDown } from "lucide-react";
 import type { CourseDetail, CourseLanguage, CourseType } from "@/entities/course";
 import { updateCourse, downloadCertificatePreview } from "@/entities/course";
@@ -62,20 +63,8 @@ const INPUT: React.CSSProperties = {
 
 // ── Select + option lists ──────────────────────────────────────────────────────
 
-const LANGUAGES: { value: CourseLanguage; label: string }[] = [
-  { value: "english",   label: "English" },
-  { value: "ukrainian", label: "Ukrainian" },
-  { value: "spanish",   label: "Spanish" },
-];
-
-const COURSE_TYPES: { value: CourseType; label: string }[] = [
-  { value: "profession",    label: "Profession" },
-  { value: "qualification", label: "Qualification" },
-  { value: "knowledge",     label: "Knowledge" },
-];
-
-const LANG_LABEL = Object.fromEntries(LANGUAGES.map(o => [o.value, o.label]));
-const TYPE_LABEL = Object.fromEntries(COURSE_TYPES.map(o => [o.value, o.label]));
+const LANGUAGE_IDS: CourseLanguage[] = ["english", "ukrainian", "spanish"];
+const COURSE_TYPE_IDS: CourseType[] = ["profession", "qualification", "knowledge"];
 
 // ── Custom select (profile-style) ─────────────────────────────────────────────
 
@@ -145,6 +134,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
+  const t = useTranslations("CourseManagementInfoTab");
   const pill = (opt: boolean): React.CSSProperties => ({
     padding: "clamp(5px, 0.42vw, 8px) clamp(18px, 1.46vw, 26px)",
     borderRadius: 999,
@@ -162,7 +152,7 @@ function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) =>
     <div style={{ display: "flex", gap: 8 }}>
       {([true, false] as const).map(opt => (
         <button key={String(opt)} type="button" onClick={() => onChange(opt)} style={pill(opt)}>
-          {opt ? "Yes" : "No"}
+          {opt ? t("yes") : t("no")}
         </button>
       ))}
     </div>
@@ -192,6 +182,10 @@ type Props = {
 
 /** Editable course settings that aren't part of the creation basics. */
 export function CourseManagementInfoTab({ course, slug, onCourseUpdated }: Props) {
+  const t = useTranslations("CourseManagementInfoTab");
+  const LANGUAGES = LANGUAGE_IDS.map(value => ({ value, label: t(`language.${value}`) }));
+  const COURSE_TYPES = COURSE_TYPE_IDS.map(value => ({ value, label: t(`courseType.${value}`) }));
+
   const init = (): Form => ({
     subtitle:                course.subtitle ?? "",
     language:                course.language,
@@ -232,7 +226,7 @@ export function CourseManagementInfoTab({ course, slug, onCourseUpdated }: Props
       const apiError = err as ApiError;
       const certificateField = apiError.fields?.with_certificate ?? apiError.fields?.certificate_description;
       const certificateMsg = Array.isArray(certificateField) ? certificateField[0] : certificateField;
-      setSaveErr(certificateMsg ?? apiError.message ?? "Failed to save. Try again.");
+      setSaveErr(certificateMsg ?? apiError.message ?? t("errorSave"));
     } finally {
       setSaving(false);
     }
@@ -252,7 +246,7 @@ export function CourseManagementInfoTab({ course, slug, onCourseUpdated }: Props
       window.open(url, "_blank");
       window.setTimeout(() => window.URL.revokeObjectURL(url), 60_000);
     } catch {
-      setPreviewErr("Could not generate certificate preview.");
+      setPreviewErr(t("errorPreview"));
     } finally {
       setPreviewing(false);
     }
@@ -265,18 +259,18 @@ export function CourseManagementInfoTab({ course, slug, onCourseUpdated }: Props
       {/* Header */}
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, marginBottom: "clamp(20px, 1.67vw, 32px)" }}>
         <div>
-          <h2 style={HEADING}>Course Settings</h2>
+          <h2 style={HEADING}>{t("title")}</h2>
           <p style={{ ...HINT, marginTop: 4 }}>
-            Fields not covered in the creation basics — update them here anytime.
+            {t("subtitleHint")}
           </p>
         </div>
         {!editing ? (
-          <AccentButton type="button" size="sm" onClick={startEdit}>Edit</AccentButton>
+          <AccentButton type="button" size="sm" onClick={startEdit}>{t("edit")}</AccentButton>
         ) : (
           <div style={{ display: "flex", gap: "clamp(8px, 0.69vw, 12px)", flexShrink: 0 }}>
-            <WhiteButton onClick={cancelEdit} icon={null}>Cancel</WhiteButton>
+            <WhiteButton onClick={cancelEdit} icon={null}>{t("cancel")}</WhiteButton>
             <AccentButton type="button" size="sm" disabled={saving} onClick={save}>
-              {saving ? "Saving…" : "Save"}
+              {saving ? t("saving") : t("save")}
             </AccentButton>
           </div>
         )}
@@ -286,32 +280,32 @@ export function CourseManagementInfoTab({ course, slug, onCourseUpdated }: Props
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "clamp(20px, 1.67vw, 32px) clamp(40px, 8.75vw, 140px)" }}>
 
         {/* Row 1: Language | Course Type */}
-        <Field label="Language">
+        <Field label={t("language.label")}>
           {editing
             ? <CourseSelect options={LANGUAGES} value={form.language} onChange={v => set("language", v)} />
-            : <span style={VALUE}>{LANG_LABEL[course.language] ?? course.language}</span>
+            : <span style={VALUE}>{t(`language.${course.language}`)}</span>
           }
         </Field>
 
-        <Field label="Course Type">
+        <Field label={t("courseType.label")}>
           {editing
             ? <CourseSelect options={COURSE_TYPES} value={form.course_type} onChange={v => set("course_type", v)} />
-            : <span style={VALUE}>{TYPE_LABEL[course.course_type] ?? course.course_type}</span>
+            : <span style={VALUE}>{t(`courseType.${course.course_type}`)}</span>
           }
         </Field>
 
         {divider}
 
         {/* Row 2: Certificate | On Sale */}
-        <Field label="Certificate">
+        <Field label={t("certificate")}>
           {editing
             ? <Toggle value={form.with_certificate} onChange={v => set("with_certificate", v)} />
-            : <span style={VALUE}>{course.with_certificate ? "Yes" : "No"}</span>
+            : <span style={VALUE}>{course.with_certificate ? t("yes") : t("no")}</span>
           }
           {!editing && course.with_certificate && (
             <div style={{ marginTop: "clamp(6px, 0.42vw, 8px)" }}>
               <WhiteButton type="button" icon={null} onClick={previewCertificate} disabled={previewing}>
-                {previewing ? "Generating…" : "Preview certificate"}
+                {previewing ? t("generating") : t("previewCertificate")}
               </WhiteButton>
               {previewErr && (
                 <p style={{ marginTop: 4, fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.63vw, 13px)", color: "var(--color-danger)" }}>
@@ -322,21 +316,21 @@ export function CourseManagementInfoTab({ course, slug, onCourseUpdated }: Props
           )}
         </Field>
 
-        <Field label="On Sale">
+        <Field label={t("onSale")}>
           {editing
             ? <Toggle value={form.is_on_sale} onChange={v => set("is_on_sale", v)} />
-            : <span style={VALUE}>{course.is_on_sale ? "Yes" : "No"}</span>
+            : <span style={VALUE}>{course.is_on_sale ? t("yes") : t("no")}</span>
           }
         </Field>
 
         {(editing ? form.with_certificate : course.with_certificate) && (
           <div style={{ gridColumn: "1 / -1" }}>
-            <Field label="Certificate Description">
+            <Field label={t("certificateDescription")}>
               {editing
                 ? <textarea
                     value={form.certificate_description}
                     onChange={e => set("certificate_description", e.target.value)}
-                    placeholder="What did the student master? Printed on the certificate…"
+                    placeholder={t("certificateDescriptionPlaceholder")}
                     rows={3}
                     style={{ ...INPUT, borderRadius: 20, resize: "vertical" }}
                   />
@@ -344,7 +338,7 @@ export function CourseManagementInfoTab({ course, slug, onCourseUpdated }: Props
               }
               {!editing && (
                 <p style={{ ...HINT, marginTop: 4 }}>
-                  Required before the certificate can be enabled — printed on the certificate PDF.
+                  {t("certificateDescriptionHint")}
                 </p>
               )}
             </Field>
@@ -354,7 +348,7 @@ export function CourseManagementInfoTab({ course, slug, onCourseUpdated }: Props
         {divider}
 
         {/* Row 3: Passing score */}
-        <Field label="Passing Score (%)">
+        <Field label={t("passingScore")}>
           {editing
             ? <input
                 type="number"
@@ -372,12 +366,12 @@ export function CourseManagementInfoTab({ course, slug, onCourseUpdated }: Props
 
         {/* Subtitle — full width */}
         <div style={{ gridColumn: "1 / -1" }}>
-          <Field label="Subtitle">
+          <Field label={t("subtitle")}>
             {editing
               ? <input
                   value={form.subtitle}
                   onChange={e => set("subtitle", e.target.value)}
-                  placeholder="A short tagline shown under the course title…"
+                  placeholder={t("subtitlePlaceholder")}
                   style={INPUT}
                 />
               : <span style={VALUE}>{course.subtitle || "—"}</span>
@@ -385,7 +379,7 @@ export function CourseManagementInfoTab({ course, slug, onCourseUpdated }: Props
           </Field>
           {!editing && (
             <p style={{ ...HINT, marginTop: 4 }}>
-              Not the same as the short description — this is an optional marketing hook under the title.
+              {t("subtitleFieldHint")}
             </p>
           )}
         </div>

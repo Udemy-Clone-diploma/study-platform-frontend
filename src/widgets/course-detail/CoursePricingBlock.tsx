@@ -8,7 +8,7 @@ import { BookOpen, Check, ChevronDown, Clock, User, Users } from "lucide-react";
 import { addCartItem } from "@/entities/cart";
 import type { CourseCohort } from "@/entities/course/model/cohort";
 import type { CourseDeliveryFormat, DeliveryFormatType } from "@/entities/course";
-import { DAY_LABELS, enrollInFreeCourse, getScheduleSlots } from "@/entities/course";
+import { DAY_KEYS, enrollInFreeCourse, getScheduleSlots } from "@/entities/course";
 import type { ScheduleSlot } from "@/entities/course";
 import type { ApiError } from "@/shared/api/base";
 import { AUTH_COOKIE_NAMES } from "@/shared/api/config/authCookies";
@@ -155,6 +155,7 @@ function IndividualSlotPicker({
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const t = useTranslations("CoursePricingBlock");
+  const tDays = useTranslations("Days");
 
   useEffect(() => {
     getScheduleSlots(slug, formatId)
@@ -226,7 +227,7 @@ function IndividualSlotPicker({
           {days.map(d => (
             <div key={d} className="flex flex-col gap-1.5">
               <span className="text-xs font-semibold text-(--color-text-secondary) uppercase tracking-wide">
-                {DAY_LABELS[d as keyof typeof DAY_LABELS]}
+                {tDays(DAY_KEYS[d as keyof typeof DAY_KEYS])}
               </span>
               <div className="flex flex-wrap gap-1.5">
                 {byDay[d].map(s => {

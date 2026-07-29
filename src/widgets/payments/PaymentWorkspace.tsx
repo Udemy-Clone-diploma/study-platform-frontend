@@ -8,7 +8,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { X } from "lucide-react";
 import { getCart, removeCartItem, type Cart, type CartItem } from "@/entities/cart";
-import { DAY_LABELS, enrollInFreeCourse, type DayOfWeek } from "@/entities/course";
+import { DAY_KEYS, enrollInFreeCourse, type DayOfWeek } from "@/entities/course";
 import {
   createInstallmentPaymentIntent,
   createPaymentIntent,
@@ -72,6 +72,7 @@ function formatMoney(
 /** Group name / chosen weekly slots + start date, shown under the course title in the cart. */
 function getCartItemMeta(
   item: CartItem,
+  tDays: (key: string) => string,
   t: (key: string, values?: Record<string, string>) => string,
   locale: string,
 ): string | null {
@@ -84,7 +85,7 @@ function getCartItemMeta(
 
   if (item.pricing_plan_kind === "individual" && item.schedule_slots.length > 0) {
     const slots = item.schedule_slots
-      .map((s) => `${DAY_LABELS[s.day_of_week as DayOfWeek]} ${s.start_time}–${s.end_time}`)
+      .map((s) => `${tDays(DAY_KEYS[s.day_of_week as DayOfWeek])} ${s.start_time}–${s.end_time}`)
       .join(", ");
     return t("sessions", { slots });
   }
@@ -379,6 +380,7 @@ function CartPaymentPanel({
   onPay: () => void;
 }) {
   const t = useTranslations("PaymentWorkspace");
+  const tDays = useTranslations("Days");
   const locale = useLocale();
 
   if (loading) {
@@ -420,7 +422,7 @@ function CartPaymentPanel({
             const gradient = CART_CARD_GRADIENT[item.course.level] ?? CART_CARD_GRADIENT.beginner;
 
             const isRemoving = removingItemId === item.id;
-            const meta = getCartItemMeta(item, t, locale);
+            const meta = getCartItemMeta(item, tDays, t, locale);
 
             return (
               <label

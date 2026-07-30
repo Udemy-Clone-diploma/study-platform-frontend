@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { type FormEvent, type ReactNode, useEffect, useId, useMemo, useRef, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { ChevronDown, ClipboardList, Paperclip, X } from "lucide-react";
 import {
   byOrder,
@@ -20,8 +21,11 @@ import {
 } from "@/entities/homework";
 import { QuizQuestionCard, QuizWindow, type AnswerState } from "@/features/quiz";
 import type { ApiError } from "@/shared/api/base";
+import { formatDate } from "@/shared/lib/time";
 import { GradientButton } from "@/shared/ui/GradientButton";
 import { PageShell } from "@/shared/ui/PageShell";
+
+type Translator = (key: string, values?: Record<string, string | number>) => string;
 
 type TaskTypeFilter = "all" | "task" | "test";
 type StatusFilter = "all" | "to_do" | "overdue" | "completed" | "submitted" | "reviewed";
@@ -31,31 +35,42 @@ type FilterOption<T extends string = string> = {
   label: string;
 };
 
-const TASK_TYPE_OPTIONS: FilterOption<TaskTypeFilter>[] = [
-  { value: "all", label: "All Task Types" },
-  { value: "task", label: "Tasks" },
-  { value: "test", label: "Tests" },
+const STATUS_FILTER_VALUES: StatusFilter[] = [
+  "all",
+  "to_do",
+  "overdue",
+  "completed",
+  "submitted",
+  "reviewed",
 ];
 
-const STATUS_OPTIONS: FilterOption<StatusFilter>[] = [
-  { value: "all", label: "Status" },
-  { value: "to_do", label: "To Do" },
-  { value: "overdue", label: "Overdue" },
-  { value: "completed", label: "Completed" },
-  { value: "submitted", label: "Submitted" },
-  { value: "reviewed", label: "Reviewed" },
-];
-
-function compactDateLabel(value: string | null): string {
-  if (!value) return "";
-  return new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "2-digit" })
-    .format(new Date(value))
-    .replace(/\//g, ".");
+function taskTypeOptions(t: Translator): FilterOption<TaskTypeFilter>[] {
+  return [
+    { value: "all", label: t("taskTypeAll") },
+    { value: "task", label: t("taskTypeTask") },
+    { value: "test", label: t("taskTypeTest") },
+  ];
 }
 
-function cardDeadlineLabel(value: string | null): string {
-  if (!value) return "No deadline";
-  return compactDateLabel(value);
+function statusOptions(t: Translator): FilterOption<StatusFilter>[] {
+  return [
+    { value: "all", label: t("statusFilterLabel") },
+    { value: "to_do", label: t("statusToDo") },
+    { value: "overdue", label: t("statusOverdue") },
+    { value: "completed", label: t("statusCompleted") },
+    { value: "submitted", label: t("statusSubmitted") },
+    { value: "reviewed", label: t("statusReviewed") },
+  ];
+}
+
+function compactDateLabel(value: string | null, locale: string): string {
+  if (!value) return "";
+  return formatDate(value, locale, { day: "2-digit", month: "2-digit" }).replace(/\//g, ".");
+}
+
+function cardDeadlineLabel(value: string | null, locale: string, t: Translator): string {
+  if (!value) return t("noDeadline");
+  return compactDateLabel(value, locale);
 }
 
 function assignmentDateValue(assignment: HomeworkAssignment): string {
@@ -67,12 +82,16 @@ function monthKey(value: string): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 }
 
-function monthLabel(value: string): string {
-  return new Intl.DateTimeFormat("en-US", { month: "long" }).format(new Date(value));
+function monthLabel(value: string, locale: string): string {
+  return new Intl.DateTimeFormat(locale, { month: "long" }).format(new Date(value));
 }
 
-function assignmentKind(assignment: HomeworkAssignment): "Task" | "Test" {
-  return assignment.test_detail ? "Test" : "Task";
+function assignmentTypeValue(assignment: HomeworkAssignment): "task" | "test" {
+  return assignment.test_detail ? "test" : "task";
+}
+
+function assignmentKindLabel(assignment: HomeworkAssignment, t: Translator): string {
+  return assignment.test_detail ? t("taskKindTest") : t("taskKindTask");
 }
 
 function scoreBadgeClassName(score: number) {
@@ -100,10 +119,10 @@ function assignmentStatus(
   return "to_do";
 }
 
-function submissionStatusLabel(submission: HomeworkSubmission): string {
-  if (submission.status === "reviewed") return "Reviewed";
-  if (submission.status === "retrieved") return "In review";
-  return "Submitted";
+function submissionStatusLabel(submission: HomeworkSubmission, t: Translator): string {
+  if (submission.status === "reviewed") return t("submissionStatusReviewed");
+  if (submission.status === "retrieved") return t("submissionStatusInReview");
+  return t("submissionStatusSubmitted");
 }
 
 function drawerTitle(assignment: HomeworkAssignment): string {
@@ -226,8 +245,10 @@ function HomeworkCard({
   expanded: boolean;
   onToggle: () => void;
 }) {
-  const kind = assignmentKind(assignment);
-  const courseName = assignment.course_title || "Course";
+  const t = useTranslations("StudentHomeworkPage");
+  const locale = useLocale();
+  const kind = assignmentKindLabel(assignment, t);
+  const courseName = assignment.course_title || t("courseFallback");
   const iconSrc = assignment.course_image ?? "/icons/book-gradient.svg";
   const reviewedScore =
     submission?.status === "reviewed" && submission.score != null ? submission.score : null;
@@ -272,7 +293,7 @@ function HomeworkCard({
           </span>
         ) : (
           <span className="mb-[3.5px] whitespace-nowrap text-[16px] leading-none font-normal tracking-normal not-italic text-[#003AFF]">
-            {cardDeadlineLabel(assignment.due_at)}
+            {cardDeadlineLabel(assignment.due_at, locale, t)}
           </span>
         )}
       </span>
@@ -305,6 +326,8 @@ function HomeworkSidebar({
   onAddFiles: (files: FileList | null) => void;
   onRemoveFile: (index: number) => void;
 }) {
+  const t = useTranslations("StudentHomeworkPage");
+  const locale = useLocale();
   const open = Boolean(assignment);
 
   useEffect(() => {
@@ -330,7 +353,7 @@ function HomeworkSidebar({
         <div className="flex h-full flex-col overflow-y-auto px-[36px] py-8 font-(family-name:--font-base) text-[#121212]">
           <button
             type="button"
-            aria-label="Close homework details"
+            aria-label={t("closeHomeworkDetails")}
             onClick={onClose}
             className="mb-9 flex h-8 w-8 items-center justify-center rounded-full text-black transition hover:bg-[#F4F4F4]"
           >
@@ -338,7 +361,7 @@ function HomeworkSidebar({
           </button>
 
           <div className="flex items-center gap-5 text-[14px] leading-[18px] text-[#5E5E5E]">
-            <span>{compactDateLabel(assignment.due_at || assignment.published_at)}</span>
+            <span>{compactDateLabel(assignment.due_at || assignment.published_at, locale)}</span>
             <span className="truncate">{assignment.course_title}</span>
           </div>
 
@@ -353,17 +376,17 @@ function HomeworkSidebar({
 
           <div className="mt-6 max-w-[330px] text-[13px] leading-[16px]">
             {assignment.lesson_title ? (
-              <p className="font-semibold">Lesson: {assignment.lesson_title}</p>
+              <p className="font-semibold">{t("lessonLabel", { title: assignment.lesson_title })}</p>
             ) : null}
             {assignment.description ? (
               <p className="mt-1 whitespace-pre-wrap">{assignment.description}</p>
             ) : (
-              <p className="mt-1 text-[#5E5E5E]">No description provided.</p>
+              <p className="mt-1 text-[#5E5E5E]">{t("noDescriptionProvided")}</p>
             )}
           </div>
 
           <div className="mt-8">
-            <h3 className="text-[13px] leading-4 font-semibold">Main materials</h3>
+            <h3 className="text-[13px] leading-4 font-semibold">{t("mainMaterialsHeading")}</h3>
             <div className="mt-5 flex flex-col gap-5">
               {assignment.test_detail ? (
                 <button
@@ -384,7 +407,7 @@ function HomeworkSidebar({
                     <span className="block truncate text-[13px] leading-4 font-medium">
                       {assignment.test_detail.title}
                     </span>
-                    <span className="mt-0.5 block text-[10px] leading-3 text-[#5E5E5E]">Test</span>
+                    <span className="mt-0.5 block text-[10px] leading-3 text-[#5E5E5E]">{t("taskKindTest")}</span>
                   </span>
                 </button>
               ) : null}
@@ -412,7 +435,7 @@ function HomeworkSidebar({
                             {attachment.original_name}
                           </span>
                           <span className="mt-0.5 block text-[10px] leading-3 text-[#5E5E5E]">
-                            Material
+                            {t("materialLabel")}
                           </span>
                         </span>
                       </a>
@@ -420,7 +443,7 @@ function HomeworkSidebar({
                   )
                 : null}
               {!assignment.test_detail && assignment.attachments.length === 0 ? (
-                <p className="text-[12px] text-[#5E5E5E]">No materials attached.</p>
+                <p className="text-[12px] text-[#5E5E5E]">{t("noMaterialsAttached")}</p>
               ) : null}
             </div>
           </div>
@@ -429,11 +452,13 @@ function HomeworkSidebar({
 
           {submission ? (
             <div className="mt-5 rounded-lg bg-[#F4F7FF] p-4 text-sm">
-              <p className="font-medium text-[#24376F]">{submissionStatusLabel(submission)}</p>
+              <p className="font-medium text-[#24376F]">{submissionStatusLabel(submission, t)}</p>
               {submission.test_attempt ? (
                 <p className="mt-2 text-[#24376F]">
-                  Test attempt sent: {submission.test_attempt.score}% · attempt{" "}
-                  {submission.test_attempt.attempt_number}
+                  {t("testAttemptSent", {
+                    score: submission.test_attempt.score,
+                    number: submission.test_attempt.attempt_number,
+                  })}
                 </p>
               ) : null}
               {submission.content ? (
@@ -458,8 +483,8 @@ function HomeworkSidebar({
               ) : null}
               {submission.status === "reviewed" ? (
                 <div className="mt-3 space-y-1 text-[#24376F]">
-                  <p>Score: {submission.score ?? "-"}</p>
-                  {submission.feedback ? <p>Comment: {submission.feedback}</p> : null}
+                  <p>{t("scoreLabel", { score: submission.score ?? "-" })}</p>
+                  {submission.feedback ? <p>{t("commentLabel", { feedback: submission.feedback })}</p> : null}
                 </div>
               ) : null}
             </div>
@@ -469,7 +494,7 @@ function HomeworkSidebar({
                 rows={8}
                 value={answer}
                 onChange={(event) => onAnswerChange(event.target.value)}
-                placeholder="Text"
+                placeholder={t("textPlaceholder")}
                 className="h-[192px] w-full resize-none rounded-[4px] border border-[#CFCFCF] px-4 py-4 text-[16px] leading-5 outline-none transition placeholder:text-[#7E7E7E] focus:ring-2 focus:ring-[#9DB1FA]"
               />
 
@@ -487,7 +512,7 @@ function HomeworkSidebar({
                         onClick={() => onRemoveFile(index)}
                         className="shrink-0 text-[#A44] hover:underline disabled:text-[#AAA]"
                       >
-                        Remove
+                        {t("remove")}
                       </button>
                     </div>
                   ))}
@@ -500,7 +525,7 @@ function HomeworkSidebar({
                   disabled={saving}
                   className="inline-flex h-[38px] min-w-[144px] items-center justify-center rounded-full bg-black px-8 font-(family-name:--font-accent) text-[13px] leading-none font-semibold uppercase text-white transition hover:bg-[#252525] disabled:bg-[#BFBFBF]"
                 >
-                  {saving ? "Submitting" : "Submit"}
+                  {saving ? t("submitting") : t("submit")}
                 </button>
                 <label className="absolute right-0 inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-black transition hover:bg-[#F4F4F4] has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-60">
                   <Paperclip size={30} strokeWidth={1.8} aria-hidden="true" />
@@ -531,6 +556,7 @@ function HomeworkQuizModal({
   assignment: HomeworkAssignment | null;
   onClose: () => void;
 }) {
+  const t = useTranslations("StudentHomeworkPage");
   const test = assignment?.test_detail ?? null;
   const ordered = useMemo(() => byOrder(test?.questions ?? []), [test]);
   const [answers, setAnswers] = useState<Record<number, AnswerState>>({});
@@ -604,7 +630,7 @@ function HomeworkQuizModal({
     } catch (requestError) {
       const apiError = requestError as Partial<ApiError>;
       setError(
-        apiError.message || apiError.detail || "Could not submit your answers. Please try again.",
+        apiError.message || apiError.detail || t("couldNotSubmitAnswers"),
       );
     } finally {
       setSubmitting(false);
@@ -614,7 +640,7 @@ function HomeworkQuizModal({
   const closeButton = (
     <button
       type="button"
-      aria-label="Close test"
+      aria-label={t("closeTest")}
       onClick={onClose}
       className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-(--color-text-primary) transition hover:bg-(--color-bg-surface)"
     >
@@ -642,7 +668,7 @@ function HomeworkQuizModal({
         >
           {loading ? (
             <p role="status" className="py-8 text-center text-(--color-text-secondary)">
-              Loading your test...
+              {t("loadingYourTest")}
             </p>
           ) : (
             <div className="mx-auto flex max-w-[1280px] flex-col gap-5">
@@ -683,7 +709,7 @@ function HomeworkQuizModal({
               ) : (
                 <div className="flex justify-center pt-1">
                   <QuizActionButton onClick={handleSubmitTest} disabled={submitting}>
-                    {submitting ? "Submitting..." : "To the results"}
+                    {submitting ? t("submittingEllipsis") : t("toTheResults")}
                   </QuizActionButton>
                 </div>
               )}
@@ -704,6 +730,7 @@ function HomeworkQuizResults({
   onRetake: () => void;
   onClose: () => void;
 }) {
+  const t = useTranslations("StudentHomeworkPage");
   const answered = result.questions.filter(
     (question) =>
       (question.selected_indices?.length ?? 0) > 0 ||
@@ -715,11 +742,9 @@ function HomeworkQuizResults({
   return (
     <div className="flex flex-col gap-6 pt-2">
       <div className="flex flex-wrap justify-center gap-x-16 gap-y-2 font-(family-name:--font-base) text-xl leading-[25px] text-(--color-black)">
-        <span>
-          Answered: {answered} / {result.total_count}
-        </span>
-        <span>Correct answers: {result.correct_count}</span>
-        <span>Incorrect answers: {incorrect}</span>
+        <span>{t("answeredLabel", { answered, total: result.total_count })}</span>
+        <span>{t("correctAnswersLabel", { count: result.correct_count })}</span>
+        <span>{t("incorrectAnswersLabel", { count: incorrect })}</span>
       </div>
 
       <p
@@ -728,19 +753,19 @@ function HomeworkQuizResults({
         }`}
       >
         {result.passed
-          ? "You passed!"
-          : `You did not reach the passing score (${result.passing_score}%).`}
+          ? t("youPassed")
+          : t("didNotReachPassingScore", { score: result.passing_score })}
       </p>
 
       <div className="flex flex-wrap items-center justify-end gap-5">
         <span className="font-(family-name:--font-base) text-xl leading-[25px] text-(--color-black)">
-          Assessment:
+          {t("assessmentLabel")}
         </span>
         <span className="flex h-[60px] w-[60px] items-center justify-center rounded-lg bg-(--color-brand-lavender) font-(family-name:--font-accent) text-2xl font-medium leading-[30px] text-(--color-blue-dark)">
           {result.score}
         </span>
-        {result.can_retake ? <GradientButton onClick={onRetake}>Retake</GradientButton> : null}
-        <QuizActionButton onClick={onClose}>Back to homework</QuizActionButton>
+        {result.can_retake ? <GradientButton onClick={onRetake}>{t("retake")}</GradientButton> : null}
+        <QuizActionButton onClick={onClose}>{t("backToHomework")}</QuizActionButton>
       </div>
     </div>
   );
@@ -768,6 +793,9 @@ function QuizActionButton({
 }
 
 export default function StudentHomeworkPage() {
+  const t = useTranslations("StudentHomeworkPage");
+  const tSidebar = useTranslations("AppSidebar");
+  const locale = useLocale();
   const [assignments, setAssignments] = useState<HomeworkAssignment[]>([]);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [attachmentFiles, setAttachmentFiles] = useState<Record<number, File[]>>({});
@@ -796,7 +824,7 @@ export default function StudentHomeworkPage() {
   const filteredAssignments = useMemo(
     () =>
       assignments.filter((assignment) => {
-        const kind = assignmentKind(assignment).toLowerCase();
+        const kind = assignmentTypeValue(assignment);
         const submission = submissions[assignment.id];
         const status = assignmentStatus(assignment, submission);
 
@@ -826,12 +854,12 @@ export default function StudentHomeworkPage() {
       if (group) {
         group.items.push(assignment);
       } else {
-        groups.set(key, { key, label: monthLabel(dateValue), items: [assignment] });
+        groups.set(key, { key, label: monthLabel(dateValue, locale), items: [assignment] });
       }
     });
 
     return Array.from(groups.values());
-  }, [filteredAssignments]);
+  }, [filteredAssignments, locale]);
 
   const selectedAssignment =
     assignments.find((assignment) => assignment.id === selectedAssignmentId) ?? null;
@@ -842,7 +870,7 @@ export default function StudentHomeworkPage() {
     const requestedStatus = query.get("status");
 
     if (requestedCourse) setSubjectFilter(requestedCourse);
-    if (STATUS_OPTIONS.some((option) => option.value === requestedStatus)) {
+    if (STATUS_FILTER_VALUES.includes(requestedStatus as StatusFilter)) {
       setStatusFilter(requestedStatus as StatusFilter);
     }
 
@@ -858,10 +886,10 @@ export default function StudentHomeworkPage() {
         );
       })
       .catch((requestError: Partial<ApiError>) =>
-        setError(requestError.detail || requestError.message || "Could not load homework."),
+        setError(requestError.detail || requestError.message || t("couldNotLoadHomework")),
       )
       .finally(() => setLoading(false));
-  }, []);
+  }, [t]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>, assignmentId: number) {
     event.preventDefault();
@@ -892,7 +920,7 @@ export default function StudentHomeworkPage() {
       setAttachmentFiles((current) => ({ ...current, [assignmentId]: [] }));
     } catch (requestError) {
       const apiError = requestError as Partial<ApiError>;
-      setError(apiError.detail || apiError.message || "Could not submit homework.");
+      setError(apiError.detail || apiError.message || t("couldNotSubmitHomework"));
     } finally {
       setSavingId(null);
     }
@@ -903,7 +931,7 @@ export default function StudentHomeworkPage() {
     const selectedFiles = Array.from(files);
     const tooLarge = selectedFiles.find((file) => file.size > 25 * 1024 * 1024);
     if (tooLarge) {
-      setError(`"${tooLarge.name}" exceeds the 25 MB file limit.`);
+      setError(t("fileSizeLimit", { name: tooLarge.name }));
       return;
     }
     setAttachmentFiles((current) => ({
@@ -921,34 +949,34 @@ export default function StudentHomeworkPage() {
       />
       <section className="relative z-10 w-full max-w-[1710px] font-(family-name:--font-base)">
         <div className="flex flex-wrap items-center gap-3">
-          <h1 className="mr-2 text-[28px] leading-none font-normal text-[#121212]">Homework</h1>
+          <h1 className="mr-2 text-[28px] leading-none font-normal text-[#121212]">{tSidebar("homework")}</h1>
           <FilterSelect
-            label="Task type"
+            label={t("taskTypeFilterLabel")}
             value={taskTypeFilter}
-            options={TASK_TYPE_OPTIONS}
+            options={taskTypeOptions(t)}
             onChange={setTaskTypeFilter}
           />
           <FilterSelect
-            label="Subject"
+            label={t("subjectFilterLabel")}
             value={subjectFilter}
             options={[
-              { value: "all", label: "Subject" },
+              { value: "all", label: t("subjectFilterLabel") },
               ...subjectOptions.map(([slug, title]) => ({ value: slug, label: title })),
             ]}
             onChange={(value) => setSubjectFilter(value)}
           />
           <FilterSelect
-            label="Status"
+            label={t("statusFilterLabel")}
             value={statusFilter}
-            options={STATUS_OPTIONS}
+            options={statusOptions(t)}
             onChange={setStatusFilter}
           />
           <span className="inline-flex h-10 items-center rounded-full border border-[#ECECEC] bg-white px-5 text-[20px] leading-none font-normal text-[#121212] shadow-[0_0_4px_rgba(0,0,0,0.06)]">
-            Total Assignments: {filteredAssignments.length}
+            {t("totalAssignments", { count: filteredAssignments.length })}
           </span>
         </div>
 
-        {loading ? <p className="mt-8 text-sm text-[#6A6A6A]">Loading homework...</p> : null}
+        {loading ? <p className="mt-8 text-sm text-[#6A6A6A]">{t("loadingHomework")}</p> : null}
         {error ? (
           <p role="alert" className="mt-6 text-sm text-[#B42318]">
             {error}
@@ -957,12 +985,12 @@ export default function StudentHomeworkPage() {
         {!loading && !error && assignments.length === 0 ? (
           <div className="mt-8 rounded-xl border border-dashed border-[#D9D4CB] bg-white px-6 py-14 text-center">
             <ClipboardList className="mx-auto text-[#9DAEF3]" size={34} aria-hidden="true" />
-            <h2 className="mt-3 font-semibold text-[#121212]">No homework assigned yet</h2>
+            <h2 className="mt-3 font-semibold text-[#121212]">{t("noHomeworkAssignedYetHeading")}</h2>
           </div>
         ) : null}
         {!loading && !error && assignments.length > 0 && filteredAssignments.length === 0 ? (
           <div className="mt-8 max-w-[722px] rounded-lg border border-dashed border-[#D9D4CB] bg-white px-6 py-10 text-center text-sm text-[#6A6A6A]">
-            No homework matches these filters.
+            {t("noHomeworkMatchesFilters")}
           </div>
         ) : null}
 

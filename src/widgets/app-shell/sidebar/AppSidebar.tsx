@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   SidebarNavItem,
   type SidebarItem,
@@ -14,6 +15,7 @@ type AppSidebarProps = {
 export function AppSidebar({
   items,
 }: AppSidebarProps) {
+  const t = useTranslations("AppSidebar");
   const [isExpanded, setIsExpanded] =
     useState(false);
 
@@ -28,11 +30,11 @@ export function AppSidebar({
     >
       <nav
         className="flex w-full flex-col gap-[clamp(16px,1.2vw,28px)] p-0"
-        aria-label="Application navigation"
+        aria-label={t("navigationAriaLabel")}
       >
         <button
           type="button"
-          aria-label="Menu"
+          aria-label={t("menuAriaLabel")}
           aria-expanded={isExpanded}
           onClick={() =>
             setIsExpanded((expanded) => !expanded)

@@ -1,8 +1,10 @@
 "use client";
 
 import Image from "next/image";
+import { useLocale } from "next-intl";
 import { SectionContainer } from "@/shared/ui/SectionContainer";
 import { sanitizeCourseHtml } from "@/shared/lib/sanitizeCourseHtml";
+import { formatDate } from "@/shared/lib/time";
 import { ArticleActionModals, ArticleCardMenu, useArticleActions } from "@/features/blog";
 import { ModeratorNoteBanner } from "@/features/courses";
 import type { ArticleDetail, BlogCategory } from "@/entities/blog";
@@ -49,6 +51,7 @@ function DecorImage({ src, className }: { src: string; className: string }) {
 
 /** Full blog article view — cover, author, body, and (for owner/staff) the management menu. */
 export function ArticleDetailView({ article, categories, currentUserId, currentUserRole }: Props) {
+  const locale = useLocale();
   const actions = useArticleActions();
   const isOwner = currentUserId != null && currentUserId === article.author.id;
   const isStaff = !!currentUserRole && STAFF_ROLES.includes(currentUserRole);
@@ -142,7 +145,7 @@ export function ArticleDetailView({ article, categories, currentUserId, currentU
             </p>
             {article.published_at && (
               <p style={{ fontFamily: "var(--font-base)", fontSize: 13, color: "var(--color-text-secondary)", margin: 0 }}>
-                {new Date(article.published_at).toLocaleDateString()}
+                {formatDate(article.published_at, locale)}
               </p>
             )}
           </div>

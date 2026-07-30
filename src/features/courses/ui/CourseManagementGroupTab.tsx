@@ -286,11 +286,12 @@ function CohortScheduleRow({ entry, onDelete, onEdit }: {
   onEdit: (e: CohortSchedule) => void;
 }) {
   const t = useTranslations("CourseManagementGroupTab");
+  const tDays = useTranslations("Days");
   const [deleting, setDeleting] = useState(false);
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", borderRadius: 10, background: "var(--color-bg)", border: "1px solid var(--color-border-light)" }}>
       <span style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(12px, 0.83vw, 14px)", color: "var(--color-text-primary)" }}>
-        {entry.day_of_week_display} &middot; {fmtTime(entry.start_time)} &ndash; {fmtTime(entry.end_time)}
+        {tDays(DAY_KEYS[entry.day_of_week])} &middot; {fmtTime(entry.start_time)} &ndash; {fmtTime(entry.end_time)}
       </span>
       <div style={{ display: "flex", gap: 2 }}>
         <button type="button" onClick={() => onEdit(entry)} title={t("edit")}

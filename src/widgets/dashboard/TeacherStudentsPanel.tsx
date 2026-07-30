@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { getTeacherCourses, getCourseEnrolledStudents, getCohorts } from "@/entities/course";
 import type { CourseListItem, CourseCohort, EnrolledStudent } from "@/entities/course";
 import { StudentAvatar } from "@/shared/ui/StudentAvatar";
@@ -16,6 +17,8 @@ const ALL = "";
  * (once a course is picked) by cohort/group.
  */
 export function TeacherStudentsPanel() {
+  const t = useTranslations("TeacherStudentsPanel");
+  const tCommon = useTranslations("Common");
   const [courses, setCourses] = useState<CourseListItem[]>([]);
   const [byCourse, setByCourse] = useState<Record<string, EnrolledStudent[]>>({});
   const [cohorts, setCohorts] = useState<CourseCohort[]>([]);
@@ -76,12 +79,12 @@ export function TeacherStudentsPanel() {
   }, [courseSlug, byCourse, allStudents, groupMemberIds]);
 
   const courseOptions: Option[] = [
-    { value: ALL, label: "All courses" },
+    { value: ALL, label: tCommon("allCourses") },
     ...courses.map((c) => ({ value: c.slug, label: c.title })),
   ];
   const cohortOptions: Option[] = [
-    { value: ALL, label: "All groups" },
-    ...cohorts.map((c, i) => ({ value: String(c.id), label: c.name ?? `Group ${i + 1}` })),
+    { value: ALL, label: t("allGroups") },
+    ...cohorts.map((c, i) => ({ value: String(c.id), label: c.name ?? t("groupFallback", { number: i + 1 }) })),
   ];
 
   return (
@@ -89,7 +92,7 @@ export function TeacherStudentsPanel() {
       <Card className="min-h-[140px] border border-[#fcc4c3] p-6">
         <div className="flex h-full items-center justify-between gap-4">
           <div>
-            <p className="text-base text-black">Total Students</p>
+            <p className="text-base text-black">{t("totalStudents")}</p>
             <p className="mt-4 text-2xl font-bold text-black">{loaded ? total : "—"}</p>
           </div>
           <Image src="/icons/people.svg" alt="" width={40} height={40} className="h-10 w-10" />
@@ -98,7 +101,7 @@ export function TeacherStudentsPanel() {
 
       <Card className="flex h-[clamp(357px,26.04vw,500px)] flex-col overflow-hidden p-4">
         <div className="mb-3 flex shrink-0 items-center justify-between gap-4">
-          <h2 className="text-base font-bold text-black">Student progress</h2>
+          <h2 className="text-base font-bold text-black">{t("studentProgress")}</h2>
           <div className="flex items-center gap-3">
             <Dropdown value={courseSlug} options={courseOptions} onChange={setCourseSlug} />
             <Dropdown
@@ -122,7 +125,7 @@ export function TeacherStudentsPanel() {
           ))}
           {loaded && visibleStudents.length === 0 && (
             <div className="flex min-h-[64px] items-center justify-center text-xs text-[#5e5e5e]">
-              No students yet.
+              {t("noStudentsYet")}
             </div>
           )}
         </div>

@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { useEffect, useMemo, type ClipboardEvent, type KeyboardEvent, type RefObject } from "react";
+import { useTranslations } from "next-intl";
 import { LockKeyhole, Paperclip, Send, X } from "lucide-react";
 import type { ChatMessage, ChatRoom } from "@/entities/chat";
 import { formatFileSize, messageAuthorLabel, messagePreview } from "../lib/chatFormatters";
@@ -79,11 +80,14 @@ export function MessageComposer({
   compressImages,
   onCompressImagesChange,
 }: Props) {
+  const t = useTranslations("MessageComposer");
+  const tCommon = useTranslations("ChatCommon");
+
   if (chat.is_read_only) {
     return (
       <div className="mt-4 flex min-h-14 shrink-0 items-center justify-center gap-3 rounded-[18px] border border-white/70 bg-white/45 px-5 text-center text-sm font-medium text-[#4B5563]">
         <LockKeyhole className="h-5 w-5 shrink-0 text-[#0B257C]" />
-        This is an official message from the School Administration. Replies are disabled.
+        {t("readOnlyNotice")}
       </div>
     );
   }
@@ -91,21 +95,23 @@ export function MessageComposer({
   return (
     <div className="mt-2 shrink-0 lg:mt-4">
       <div className="mb-2 hidden min-h-5 text-xs text-[#4B5563] lg:block">
-        {typingLabel ? `${typingLabel} typing...` : ""}
-        {peerBlocked ? "User is blocked. Unblock them from the menu to write." : ""}
+        {typingLabel ? t("typingIndicator", { names: typingLabel }) : ""}
+        {peerBlocked ? t("peerBlockedNotice") : ""}
       </div>
 
       {replyingTo ? (
         <div className="mb-3 flex items-start justify-between gap-3 rounded-lg border border-[#A7BAFA] bg-white/70 px-4 py-2">
           <div className="min-w-0">
             <p className="truncate text-xs font-semibold text-[#003AFF]">
-              Reply to {messageAuthorLabel(replyingTo, meId)}
+              {t("replyTo", { name: messageAuthorLabel(replyingTo, meId, tCommon) })}
             </p>
-            <p className="mt-1 truncate text-sm text-[#121212]">{messagePreview(replyingTo)}</p>
+            <p className="mt-1 truncate text-sm text-[#121212]">
+              {messagePreview(replyingTo, tCommon)}
+            </p>
           </div>
           <button
             type="button"
-            aria-label="Cancel reply"
+            aria-label={t("cancelReplyAriaLabel")}
             onClick={onCancelReply}
             className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full hover:bg-white"
           >
@@ -132,7 +138,7 @@ export function MessageComposer({
                 onChange={(event) => onCompressImagesChange(!event.target.checked)}
                 className="h-4 w-4 accent-[#003AFF]"
               />
-              Don&apos;t compress photos
+              {t("dontCompressPhotos")}
             </label>
           ) : null}
         </div>
@@ -153,7 +159,7 @@ export function MessageComposer({
                   void onSend();
                 }
               }}
-              placeholder="Message"
+              placeholder={t("messagePlaceholder")}
               className="max-h-32 min-h-9 flex-1 resize-none bg-transparent px-3 py-2 text-xs leading-4 outline-none placeholder:text-[#121212] disabled:cursor-not-allowed disabled:opacity-60 lg:min-h-[52px] lg:px-6 lg:py-4 lg:text-sm lg:leading-normal"
             />
             <input
@@ -168,7 +174,7 @@ export function MessageComposer({
             />
             <button
               type="button"
-              aria-label="Attach files"
+              aria-label={t("attachFilesAriaLabel")}
               disabled={peerBlocked}
               onClick={() => fileInputRef.current?.click()}
               className="mr-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-black transition hover:bg-white/35 disabled:cursor-not-allowed disabled:opacity-45 lg:mr-3 lg:h-12 lg:w-12"
@@ -179,7 +185,7 @@ export function MessageComposer({
         </div>
         <button
           type="button"
-          aria-label="Send message"
+          aria-label={t("sendMessageAriaLabel")}
           disabled={peerBlocked || (!draft.trim() && attachedFiles.length === 0)}
           onClick={() => void onSend()}
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[8px] [background-image:var(--gradient-brand)] text-black transition hover:brightness-105 disabled:cursor-not-allowed disabled:grayscale lg:h-14 lg:w-14"

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Calendar, ChevronDown, Flag, Search } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import { PageShell } from "@/shared/ui/PageShell";
 import { PillSelect } from "@/shared/ui/PillSelect";
 import { DatePicker } from "@/shared/ui/DatePicker";
@@ -25,13 +26,6 @@ const FILTER_ICON_SIZE = {
   color: "var(--color-blue)",
 };
 
-const STATUS_OPTIONS = [
-  { value: ALL_STATUSES, label: "All" },
-  { value: "paid", label: "Paid" },
-  { value: "unpaid", label: "Unpaid" },
-  { value: "overdue", label: "Overdue" },
-];
-
 function formatShort(iso: string): string {
   const [y, m, d] = iso.split("-");
   return `${d}.${m}.${y.slice(2)}`;
@@ -49,6 +43,7 @@ function DateRangeFilter({
   onChangeFrom: (value: string) => void;
   onChangeTo: (value: string) => void;
 }) {
+  const t = useTranslations("TeacherPaymentsPage");
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -61,7 +56,7 @@ function DateRangeFilter({
     return () => document.removeEventListener("mousedown", onOutside);
   }, [open]);
 
-  const label = from || to ? `${from ? formatShort(from) : "…"} – ${to ? formatShort(to) : "…"}` : "Date range";
+  const label = from || to ? `${from ? formatShort(from) : "…"} – ${to ? formatShort(to) : "…"}` : t("dateRangeLabel");
 
   return (
     <div ref={ref} className="relative">
@@ -101,8 +96,8 @@ function DateRangeFilter({
           style={{ top: "calc(100% + 6px)", gap: 12, borderRadius: 16, padding: 16, boxShadow: "var(--shadow-sort-dropdown)" }}
         >
           <div className="flex" style={{ gap: 16 }}>
-            <DatePicker value={from} onChange={onChangeFrom} label="From" max={to || undefined} size="sm" />
-            <DatePicker value={to} onChange={onChangeTo} label="To" min={from || undefined} size="sm" />
+            <DatePicker value={from} onChange={onChangeFrom} label={t("fromLabel")} max={to || undefined} size="sm" />
+            <DatePicker value={to} onChange={onChangeTo} label={t("toLabel")} min={from || undefined} size="sm" />
           </div>
           {(from || to) && (
             <button
@@ -114,7 +109,7 @@ function DateRangeFilter({
               className="self-start text-(--color-blue) hover:underline"
               style={{ fontFamily: "var(--font-base)", fontSize: "clamp(12px, 0.83vw, 14px)" }}
             >
-              Clear
+              {t("clear")}
             </button>
           )}
         </div>
@@ -124,13 +119,14 @@ function DateRangeFilter({
 }
 
 function StatusBadge({ status }: { status: TeacherOrderStatus }) {
+  const t = useTranslations("TeacherPaymentsPage");
   const style =
     status === "paid"
       ? { background: "var(--color-brand-lavender-soft)", color: "var(--color-blue)" }
       : status === "unpaid"
         ? { background: "var(--color-brand-yellow)", color: "var(--color-yellow-dark)" }
         : { background: "var(--color-error-surface)", color: "var(--color-rejected)" };
-  const label = status === "paid" ? "Paid" : status === "unpaid" ? "Unpaid" : "Overdue";
+  const label = status === "paid" ? t("statusPaid") : status === "unpaid" ? t("statusUnpaid") : t("statusOverdue");
   return (
     <span
       style={{
@@ -150,6 +146,7 @@ function StatusBadge({ status }: { status: TeacherOrderStatus }) {
 }
 
 function ReceiptButton({ orderId }: { orderId: number }) {
+  const t = useTranslations("TeacherPaymentsPage");
   const [loading, setLoading] = useState(false);
 
   async function handleDownload() {
@@ -186,12 +183,22 @@ function ReceiptButton({ orderId }: { orderId: number }) {
         fontWeight: 500,
       }}
     >
-      Receipt
+      {t("receiptButton")}
     </button>
   );
 }
 
 export default function TeacherPaymentsPage() {
+  const t = useTranslations("TeacherPaymentsPage");
+  const tCommon = useTranslations("Common");
+  const tStudentsPanel = useTranslations("TeacherStudentsPanel");
+  const locale = useLocale();
+  const STATUS_OPTIONS = [
+    { value: ALL_STATUSES, label: tCommon("all") },
+    { value: "paid", label: t("statusPaid") },
+    { value: "unpaid", label: t("statusUnpaid") },
+    { value: "overdue", label: t("statusOverdue") },
+  ];
   const [courses, setCourses] = useState<TeacherOrdersCourseOption[]>([]);
   const [cohorts, setCohorts] = useState<TeacherOrdersCohortOption[]>([]);
   const [rows, setRows] = useState<TeacherOrderRow[]>([]);
@@ -232,18 +239,18 @@ export default function TeacherPaymentsPage() {
   }
 
   const courseOptions = [
-    { value: ALL_COURSES, label: "All courses" },
+    { value: ALL_COURSES, label: tCommon("allCourses") },
     ...courses.map((c) => ({ value: c.slug, label: c.title })),
   ];
   const groupOptions = [
-    { value: ALL_GROUPS, label: "All groups" },
+    { value: ALL_GROUPS, label: tStudentsPanel("allGroups") },
     ...cohorts.map((c) => ({ value: String(c.id), label: c.name })),
   ];
 
   const columns: DataTableColumn<TeacherOrderRow>[] = [
     {
       key: "student",
-      label: "Student",
+      label: t("columnStudent"),
       flex: 3,
       render: (row) => (
         <div className="flex items-center" style={{ gap: "clamp(8px, 0.83vw, 12px)" }}>
@@ -254,7 +261,7 @@ export default function TeacherPaymentsPage() {
     },
     {
       key: "group",
-      label: "Group",
+      label: t("columnGroup"),
       flex: 1,
       cellAlign: "center",
       headerAlign: "center",
@@ -262,7 +269,7 @@ export default function TeacherPaymentsPage() {
     },
     {
       key: "plan",
-      label: "Payment Plan",
+      label: t("columnPaymentPlan"),
       flex: 1.5,
       cellAlign: "center",
       headerAlign: "center",
@@ -270,7 +277,7 @@ export default function TeacherPaymentsPage() {
     },
     {
       key: "status",
-      label: "Status",
+      label: t("columnStatus"),
       flex: 1,
       cellAlign: "center",
       headerAlign: "center",
@@ -278,7 +285,7 @@ export default function TeacherPaymentsPage() {
     },
     {
       key: "amount",
-      label: "Amount",
+      label: t("columnAmount"),
       flex: 1,
       cellAlign: "center",
       headerAlign: "center",
@@ -286,23 +293,23 @@ export default function TeacherPaymentsPage() {
     },
     {
       key: "date",
-      label: "Date",
+      label: t("columnDate"),
       flex: 1,
       cellAlign: "center",
       headerAlign: "center",
-      render: (row) => <span>{new Date(row.date).toLocaleDateString("en-GB")}</span>,
+      render: (row) => <span>{new Date(row.date).toLocaleDateString(locale)}</span>,
     },
     {
       key: "due_date",
-      label: "Due date",
+      label: t("columnDueDate"),
       flex: 1,
       cellAlign: "center",
       headerAlign: "center",
-      render: (row) => <span>{row.due_date ? new Date(row.due_date).toLocaleDateString("en-GB") : "—"}</span>,
+      render: (row) => <span>{row.due_date ? new Date(row.due_date).toLocaleDateString(locale) : "—"}</span>,
     },
     {
       key: "receipt",
-      label: "Receipt",
+      label: t("columnReceipt"),
       flex: 1,
       cellAlign: "center",
       headerAlign: "center",
@@ -310,7 +317,7 @@ export default function TeacherPaymentsPage() {
     },
   ];
 
-  const emptyMessage = loading ? "Loading payments…" : "No payments found.";
+  const emptyMessage = loading ? t("loadingPayments") : t("noPaymentsFound");
 
   return (
     <PageShell className="bg-my-courses" fixedHeight>
@@ -328,7 +335,7 @@ export default function TeacherPaymentsPage() {
               whiteSpace: "nowrap",
             }}
           >
-            Payments overview
+            {t("heading")}
           </h1>
 
           <PillSelect value={selectedCourse} options={courseOptions} onChange={handleCourseChange} />
@@ -371,7 +378,7 @@ export default function TeacherPaymentsPage() {
           />
           <input
             type="search"
-            placeholder="Search"
+            placeholder={tCommon("search")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="min-w-0 flex-1 bg-transparent outline-none"

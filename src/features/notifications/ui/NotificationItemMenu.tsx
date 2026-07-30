@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Check, MoreVertical, RotateCcw, Trash2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 const MENU_WIDTH = 184;
 const MENU_HEIGHT = 96;
@@ -16,6 +17,8 @@ export function NotificationItemMenu({
   onToggleRead: () => void;
   onDelete: () => void;
 }) {
+  const t = useTranslations("NotificationItemMenu");
+  const tCommon = useTranslations("Common");
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
@@ -72,7 +75,7 @@ export function NotificationItemMenu({
       <button
         ref={btnRef}
         type="button"
-        aria-label="Notification actions"
+        aria-label={t("actionsAriaLabel")}
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={toggle}
@@ -91,7 +94,7 @@ export function NotificationItemMenu({
           <div
             ref={menuRef}
             role="menu"
-            aria-label="Notification actions"
+            aria-label={t("actionsAriaLabel")}
             data-notif-menu
             style={{ position: "fixed", top: pos.top, left: pos.left, width: MENU_WIDTH }}
             className="z-[70] flex flex-col gap-0.5 rounded-2xl bg-(--color-bg) p-1.5 shadow-(--shadow-card)"
@@ -107,7 +110,7 @@ export function NotificationItemMenu({
               ) : (
                 <Check className="h-4 w-4 shrink-0" aria-hidden />
               )}
-              {isRead ? "Mark as unread" : "Mark as read"}
+              {isRead ? t("markAsUnread") : t("markAsRead")}
             </button>
             <button
               type="button"
@@ -116,7 +119,7 @@ export function NotificationItemMenu({
               className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm font-medium text-(--color-danger) transition-colors hover:bg-(--color-danger)/10"
             >
               <Trash2 className="h-4 w-4 shrink-0" aria-hidden />
-              Delete
+              {tCommon("delete")}
             </button>
           </div>,
           document.body,

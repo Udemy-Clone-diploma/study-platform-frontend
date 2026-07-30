@@ -2,12 +2,11 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { getWeekdayNames } from "@/shared/lib/time";
 
 // ── Utils ──────────────────────────────────────────────────────────────────────
 
 const YEARS_PER_PAGE = 12;
-/** 2023-01-01 was a Sunday — used as the reference week for locale weekday abbreviations. */
-const REFERENCE_SUNDAY = new Date(2023, 0, 1);
 
 function pad(n: number) { return String(n).padStart(2, "0"); }
 
@@ -181,11 +180,7 @@ export function DatePicker({
   const monthFmt = useMemo(() => new Intl.DateTimeFormat(locale, { month: "long" }), [locale]);
   const monthShortFmt = useMemo(() => new Intl.DateTimeFormat(locale, { month: "short" }), [locale]);
   const yearFmt = useMemo(() => new Intl.DateTimeFormat(locale, { year: "numeric" }), [locale]);
-  const weekDays = useMemo(() => Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(REFERENCE_SUNDAY);
-    d.setDate(REFERENCE_SUNDAY.getDate() + i);
-    return new Intl.DateTimeFormat(locale, { weekday: "short" }).format(d);
-  }), [locale]);
+  const weekDays = useMemo(() => getWeekdayNames(locale, "short"), [locale]);
 
   const selected   = parseISO(value);
   const minDate    = min ? parseISO(min) : null;

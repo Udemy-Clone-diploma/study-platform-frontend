@@ -9,12 +9,13 @@ export const ATTACHMENT_ACTION_HEIGHT = 204;
 export const MESSAGE_SCROLLBAR_MIN_THUMB_HEIGHT = 36;
 export const MESSAGE_SCROLLBAR_HIDE_DELAY = 650;
 
-export const REPORT_REASONS: Array<{ value: MessageReportReason; label: string }> = [
-  { value: "spam", label: "Spam or advertising" },
-  { value: "harassment", label: "Harassment or bullying" },
-  { value: "hate", label: "Hate speech" },
-  { value: "violence", label: "Violence or threats" },
-  { value: "sexual", label: "Sexual content" },
-  { value: "fraud", label: "Fraud or scam" },
-  { value: "other", label: "Other" },
+/** Report reasons; labels come from the `ReportUser.reasons` i18n namespace (shared with user reports). */
+export const REASON_VALUES: MessageReportReason[] = [
+  "spam",
+  "harassment",
+  "hate",
+  "violence",
+  "sexual",
+  "fraud",
+  "other",
 ];

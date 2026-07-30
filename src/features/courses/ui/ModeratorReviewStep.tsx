@@ -1,33 +1,47 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { SectionCard } from "@/shared/ui/SectionCard";
+import { formatDate } from "@/shared/lib/time";
 import { CourseStatsGrid } from "./CourseStatsGrid";
 import { ModeratorModuleCard } from "./ModeratorModuleCard";
 import { ModerationNavButtons } from "./ModerationNavButtons";
 import type { StepProps, ModeratorAction } from "../model/moderatorReview";
 import { bodyFont, monoFont } from "../model/moderatorReview";
 
-const OVERALL_ACTIONS: { key: NonNullable<ModeratorAction>; label: string; icon: ReactNode; color: string }[] = [
-  { key: "approved",       label: "Approved",          color: "var(--color-success)",
-    // eslint-disable-next-line @next/next/no-img-element
-    icon: <img src="/icons/yes.svg"    alt="" width={16} height={16} style={{ width: 16, height: 16 }} /> },
-  { key: "needs_revision", label: "Requires Revision", color: "var(--color-warning)",
-    // eslint-disable-next-line @next/next/no-img-element
-    icon: <img src="/icons/refine.svg" alt="" width={14} height={14} style={{ width: 14, height: 14 }} /> },
-  { key: "rejected",       label: "Rejected",          color: "var(--color-rejected)",
-    // eslint-disable-next-line @next/next/no-img-element
-    icon: <img src="/icons/no.svg"     alt="" width={16} height={16} style={{ width: 16, height: 16 }} /> },
-];
+type Translator = (key: string, values?: Record<string, string | number>) => string;
+
+function getOverallActions(
+  t: Translator,
+): { key: NonNullable<ModeratorAction>; label: string; icon: ReactNode; color: string }[] {
+  return [
+    { key: "approved",       label: t("statusApproved"),      color: "var(--color-success)",
+      // eslint-disable-next-line @next/next/no-img-element
+      icon: <img src="/icons/yes.svg"    alt="" width={16} height={16} style={{ width: 16, height: 16 }} /> },
+    { key: "needs_revision", label: t("statusNeedsRevision"), color: "var(--color-warning)",
+      // eslint-disable-next-line @next/next/no-img-element
+      icon: <img src="/icons/refine.svg" alt="" width={14} height={14} style={{ width: 14, height: 14 }} /> },
+    { key: "rejected",       label: t("statusRejected"),      color: "var(--color-rejected)",
+      // eslint-disable-next-line @next/next/no-img-element
+      icon: <img src="/icons/no.svg"     alt="" width={16} height={16} style={{ width: 16, height: 16 }} /> },
+  ];
+}
 
 /** Step 3: full course overview, structure, and final moderator action. */
 export function ModeratorReviewStep(props: StepProps) {
   const { course, moduleList, action, finalComment, submitting, error, step, hasAnyFlagged, allApproved, onActionChange, onFinalCommentChange, onNext, onBack, onSubmit, router } = props;
 
-  const title        = course?.title ?? "Untitled Course";
+  const t = useTranslations("ModeratorCourseReviewPage");
+  const tReview = useTranslations("CourseReviewPage");
+  const tBasics = useTranslations("CourseBasicsForm");
+  const locale = useLocale();
+  const OVERALL_ACTIONS = getOverallActions(tBasics);
+
+  const title        = course?.title ?? tReview("untitledCourse");
   const categoryName = course?.category?.name ?? "";
-  const levelLabel   = course?.level ? course.level.charAt(0).toUpperCase() + course.level.slice(1) : "";
-  const submittedAt  = course?.created_at ? new Date(course.created_at).toLocaleDateString("en-GB") : "—";
+  const levelLabel   = course?.level ? tBasics(`level.${course.level}`) : "";
+  const submittedAt  = course?.created_at ? formatDate(course.created_at, locale) : "—";
 
   const totalModules = moduleList.length;
   const totalLessons = moduleList.reduce((a, m) => a + m.lessons.length, 0);
@@ -35,24 +49,24 @@ export function ModeratorReviewStep(props: StepProps) {
   const totalMin     = course?.total_duration_minutes ?? 0;
 
   const STATS = [
-    { icon: "/icons/book-gradient.svg",       count: totalModules, label: "Modules"  },
-    { icon: "/icons/play-gradient.svg",       count: totalLessons, label: "Lessons"  },
-    { icon: "/icons/copy-check-gradient.svg", count: totalTests,   label: "Tests"    },
-    { icon: "/icons/clock-gradient.svg",      count: totalMin,     label: "Minutes"  },
+    { icon: "/icons/book-gradient.svg",       count: totalModules, label: tReview("statModules")  },
+    { icon: "/icons/play-gradient.svg",       count: totalLessons, label: tReview("statLessons")  },
+    { icon: "/icons/copy-check-gradient.svg", count: totalTests,   label: tReview("statTests")    },
+    { icon: "/icons/clock-gradient.svg",      count: totalMin,     label: tReview("statMinutes")  },
   ];
 
   return (
     <div className="rounded-2xl bg-white" style={{ padding: "clamp(24px, 2.08vw, 40px) clamp(24px, 2.6vw, 50px)", boxShadow: "var(--shadow-dashboard-card)", display: "flex", flexDirection: "column", gap: "clamp(16px, 1.25vw, 24px)" }}>
       <div>
-        <h2 style={{ fontFamily: bodyFont, fontWeight: 700, fontSize: "clamp(20px, 1.875vw, 36px)", marginBottom: "clamp(4px, 0.42vw, 8px)" }}>Review &amp; Publish</h2>
+        <h2 style={{ fontFamily: bodyFont, fontWeight: 700, fontSize: "clamp(20px, 1.875vw, 36px)", marginBottom: "clamp(4px, 0.42vw, 8px)" }}>{tReview("reviewAndPublish")}</h2>
         <p style={{ fontFamily: bodyFont, fontWeight: 500, fontSize: "clamp(13px, 1.04vw, 20px)", letterSpacing: "-0.011em", color: "var(--color-text-secondary)" }}>
-          Review course content and take a moderation action
+          {t("reviewStepSubtitle")}
         </p>
       </div>
 
       {/* Overview */}
       <SectionCard>
-        <p style={{ fontFamily: bodyFont, fontWeight: 400, fontSize: "clamp(13px, 1.04vw, 20px)", letterSpacing: "-0.011em", marginBottom: 12 }}>Course Overview</p>
+        <p style={{ fontFamily: bodyFont, fontWeight: 400, fontSize: "clamp(13px, 1.04vw, 20px)", letterSpacing: "-0.011em", marginBottom: 12 }}>{tReview("courseOverview")}</p>
         <div className="flex items-start justify-between" style={{ gap: 16 }}>
           <div className="flex items-center" style={{ gap: 12, minWidth: 0 }}>
             <div style={{ width: "clamp(60px, 5.21vw, 100px)", height: "clamp(40px, 3.33vw, 64px)", background: "var(--color-text-primary)", borderRadius: 8, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -70,8 +84,8 @@ export function ModeratorReviewStep(props: StepProps) {
               {levelLabel   && <span style={{ border: "1px solid var(--color-draft)", borderRadius: 20, padding: "2px 12px", fontFamily: monoFont, fontWeight: 500, fontSize: "clamp(11px, 0.78vw, 15px)", background: "var(--color-bg)" }}>{levelLabel}</span>}
             </div>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2 }}>
-              <span style={{ fontFamily: monoFont, fontWeight: 500, fontSize: "clamp(11px, 0.73vw, 14px)", background: "var(--color-brand-yellow)", padding: "1px 8px", borderRadius: 6 }}>Under Review</span>
-              <span style={{ fontFamily: bodyFont, fontSize: "clamp(10px, 0.63vw, 12px)", color: "var(--color-text-secondary)" }}>Submitted: {submittedAt}</span>
+              <span style={{ fontFamily: monoFont, fontWeight: 500, fontSize: "clamp(11px, 0.73vw, 14px)", background: "var(--color-brand-yellow)", padding: "1px 8px", borderRadius: 6 }}>{t("underReviewBadge")}</span>
+              <span style={{ fontFamily: bodyFont, fontSize: "clamp(10px, 0.63vw, 12px)", color: "var(--color-text-secondary)" }}>{t("submittedLabel", { date: submittedAt })}</span>
             </div>
           </div>
         </div>
@@ -82,7 +96,7 @@ export function ModeratorReviewStep(props: StepProps) {
 
       {/* Structure */}
       <SectionCard>
-        <p style={{ fontFamily: bodyFont, fontWeight: 400, fontSize: "clamp(14px, 1.04vw, 20px)", letterSpacing: "-0.011em", marginBottom: 20 }}>Course Structure</p>
+        <p style={{ fontFamily: bodyFont, fontWeight: 400, fontSize: "clamp(14px, 1.04vw, 20px)", letterSpacing: "-0.011em", marginBottom: 20 }}>{tReview("courseStructure")}</p>
         <div style={{ display: "flex", flexDirection: "column", gap: "clamp(10px, 0.83vw, 16px)" }}>
           {moduleList.map((mod, i) => (
             <ModeratorModuleCard key={mod.id} module={mod} index={i} itemStatuses={{}} onItemToggle={() => {}} readOnly />
@@ -94,24 +108,24 @@ export function ModeratorReviewStep(props: StepProps) {
         <div style={{ display: "flex", gap: 20, width: "100%", maxWidth: 880, alignItems: "flex-start" }}>
 
           <div style={{ flex: 1, border: "1px solid var(--color-pink-dark)", borderRadius: 20, padding: "28px 34px", display: "flex", flexDirection: "column", gap: 12 }}>
-            <span style={{ fontFamily: bodyFont, fontWeight: 700, fontSize: 16, lineHeight: "20px" }}>Moderator comment</span>
+            <span style={{ fontFamily: bodyFont, fontWeight: 700, fontSize: 16, lineHeight: "20px" }}>{tReview("moderatorComment")}</span>
             <textarea value={finalComment} onChange={(e) => onFinalCommentChange(e.target.value)}
-              placeholder="Leave a comment for the teacher…"
+              placeholder={t("commentPlaceholder")}
               style={{ minHeight: 260, resize: "none", border: "none", outline: "none", fontFamily: bodyFont, fontWeight: 400, fontSize: 16, lineHeight: "20px", color: finalComment ? "var(--color-text-primary)" : "var(--color-draft)" }} />
           </div>
 
           <div style={{ width: 274, flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "flex-start", padding: "28px 34px", gap: 12, border: "1px solid var(--color-pink-dark)", borderRadius: 20 }}>
-            <span style={{ fontFamily: bodyFont, fontWeight: 700, fontSize: 16, lineHeight: "20px", width: "100%", textAlign: "center" }}>Moderator action</span>
-            <span style={{ fontFamily: bodyFont, fontWeight: 500, fontSize: 15, lineHeight: "19px", color: "var(--color-text-secondary)", width: "100%", textAlign: "center" }}>Select a status:</span>
+            <span style={{ fontFamily: bodyFont, fontWeight: 700, fontSize: 16, lineHeight: "20px", width: "100%", textAlign: "center" }}>{t("moderatorActionLabel")}</span>
+            <span style={{ fontFamily: bodyFont, fontWeight: 500, fontSize: 15, lineHeight: "19px", color: "var(--color-text-secondary)", width: "100%", textAlign: "center" }}>{t("selectStatusLabel")}</span>
             {OVERALL_ACTIONS.map(({ key, label, icon, color }) => {
               const isActive = action === key;
               const isBlocked =
                 (hasAnyFlagged && key === "approved") ||
                 (allApproved && (key === "needs_revision" || key === "rejected"));
               const title = hasAnyFlagged && key === "approved"
-                ? "Some items are flagged — cannot approve"
+                ? t("cannotApproveFlagged")
                 : allApproved && (key === "needs_revision" || key === "rejected")
-                  ? "All items are approved — cannot send for revision or reject"
+                  ? t("cannotChangeAllApproved")
                   : undefined;
               return (
                 <button key={key} type="button"
@@ -125,12 +139,12 @@ export function ModeratorReviewStep(props: StepProps) {
             })}
             {hasAnyFlagged && (
               <p style={{ fontFamily: bodyFont, fontSize: 12, color: "var(--color-brand-yellow)", margin: 0, width: "100%", textAlign: "center" }}>
-                Flagged items — approve disabled
+                {t("flaggedApproveDisabled")}
               </p>
             )}
             {allApproved && (
               <p style={{ fontFamily: bodyFont, fontSize: 12, color: "var(--color-success)", margin: 0, width: "100%", textAlign: "center" }}>
-                All approved — only publish available
+                {t("allApprovedOnlyPublish")}
               </p>
             )}
           </div>

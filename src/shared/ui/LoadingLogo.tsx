@@ -1,10 +1,12 @@
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 export function LoadingLogo() {
+  const t = useTranslations("Common");
   return (
     <div
       role="status"
-      aria-label="Loading"
+      aria-label={t("loading")}
       className="relative h-[72px] w-[220px] animate-[logo-pulse_1.6s_ease-in-out_infinite]"
     >
       <Image

@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import type { TeacherApplication } from "@/entities/teacher-application";
 import { DataTable, type DataTableColumn } from "@/shared/ui/DataTable";
 import { formatUserDate } from "@/features/users";
@@ -22,10 +23,12 @@ export function TeacherApplicationsTable({
   currentSort,
   onSortChange,
 }: Props) {
+  const t = useTranslations("TeacherApplicationsAdmin");
+  const locale = useLocale();
   const columns: DataTableColumn<TeacherApplication>[] = [
     {
       key: "applicant",
-      label: "Applicant",
+      label: t("columnApplicant"),
       flex: 2.2,
       render: (row) => (
         <button
@@ -40,7 +43,7 @@ export function TeacherApplicationsTable({
     },
     {
       key: "email",
-      label: "Email",
+      label: t("email"),
       flex: 2.2,
       headerAlign: "center",
       cellAlign: "center",
@@ -50,7 +53,7 @@ export function TeacherApplicationsTable({
     },
     {
       key: "directions",
-      label: "Directions",
+      label: t("directions"),
       flex: 2,
       headerAlign: "center",
       cellAlign: "center",
@@ -62,16 +65,16 @@ export function TeacherApplicationsTable({
     },
     {
       key: "submitted_at",
-      label: "Submitted",
+      label: t("submitted"),
       flex: 1.2,
       headerAlign: "center",
       cellAlign: "center",
       sortKey: "submitted_at",
-      render: (row) => <span>{formatUserDate(row.submitted_at)}</span>,
+      render: (row) => <span>{formatUserDate(row.submitted_at, locale)}</span>,
     },
     {
       key: "status",
-      label: "Status",
+      label: t("columnStatus"),
       flex: 1.2,
       headerAlign: "center",
       cellAlign: "center",

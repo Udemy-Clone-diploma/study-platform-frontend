@@ -2,6 +2,7 @@
 
 import { type CSSProperties, useEffect, useMemo, useState } from "react";
 import { ClipboardList } from "lucide-react";
+import { useTranslations } from "next-intl";
 import {
   getCourseBySlug,
   getCourseEnrolledStudents,
@@ -43,21 +44,18 @@ const LESSON_COLUMN_MIN_GAP = 32;
 const STUDENT_COLUMNS_WIDTH = STUDENT_NUMBER_COLUMN_WIDTH + STUDENT_NAME_COLUMN_WIDTH;
 
 type GradebookMode = "group" | "individual";
-const GRADEBOOK_FORMAT_OPTIONS: { value: GradebookMode; label: string }[] = [
-  { value: "group", label: "Group" },
-  { value: "individual", label: "Individual" },
-];
+type Translator = (key: string, values?: Record<string, string | number>) => string;
 
-function lessonColumnLabel(index: number): string {
-  return `${index + 1}. Les.`;
+function lessonColumnLabel(index: number, t: Translator): string {
+  return t("lessonColumnShort", { number: index + 1 });
 }
 
-function moduleLabel(module: CourseModule, index: number): string {
-  return `${index + 1}. ${module.title}`;
+function moduleLabel(module: CourseModule, index: number, t: Translator): string {
+  return t("moduleLabel", { number: index + 1, title: module.title });
 }
 
-function cohortLabel(cohort: CourseCohort, index: number): string {
-  return cohort.name?.trim() || `Group ${index + 1}`;
+function cohortLabel(cohort: CourseCohort, index: number, t: Translator): string {
+  return cohort.name?.trim() || t("groupFallback", { number: index + 1 });
 }
 
 function studentsFromCohort(cohort: CourseCohort | null): GradebookStudent[] {
@@ -129,6 +127,7 @@ function buildGradeMap(assignments: HomeworkAssignment[], moduleId: number | nul
 }
 
 function GradeCell({ grade, inactive = false }: { grade?: ReviewedGrade; inactive?: boolean }) {
+  const t = useTranslations("TeacherGradebookPage");
   if (!grade || inactive) {
     return (
       <span
@@ -144,8 +143,8 @@ function GradeCell({ grade, inactive = false }: { grade?: ReviewedGrade; inactiv
     <span
       className="flex h-7 w-[62px] items-center justify-center rounded-md bg-[linear-gradient(90deg,var(--color-brand-lavender)_0%,var(--color-brand-pink)_55%,var(--color-brand-cream)_100%)] font-(family-name:--font-base) text-[20px] leading-none font-normal text-[#121212]"
       title={`${grade.homeworkTitle}: ${grade.score}${grade.maxScore != null ? `/${grade.maxScore}` : ""}`}
-      aria-label={`Reviewed homework ${grade.homeworkTitle}, score ${grade.score}${
-        grade.maxScore != null ? ` of ${grade.maxScore}` : ""
+      aria-label={`${t("reviewedHomeworkAriaLabel", { title: grade.homeworkTitle, score: grade.score })}${
+        grade.maxScore != null ? t("ofMax", { max: grade.maxScore }) : ""
       }`}
     >
       {grade.score}
@@ -154,6 +153,17 @@ function GradeCell({ grade, inactive = false }: { grade?: ReviewedGrade; inactiv
 }
 
 export default function TeacherGradebookPage() {
+  const t = useTranslations("TeacherGradebookPage");
+  const tStudentsPanel = useTranslations("TeacherStudentsPanel");
+  const tSchedule = useTranslations("ScheduleRail");
+  const tAttendance = useTranslations("TeacherAttendancePage");
+  const GRADEBOOK_FORMAT_OPTIONS = useMemo<{ value: GradebookMode; label: string }[]>(
+    () => [
+      { value: "group", label: tSchedule("groupSession") },
+      { value: "individual", label: tSchedule("individualSession") },
+    ],
+    [tSchedule],
+  );
   const [courses, setCourses] = useState<CourseListItem[]>([]);
   const [selectedCourseSlug, setSelectedCourseSlug] = useState("");
   const [courseDetail, setCourseDetail] = useState<CourseDetail | null>(null);
@@ -178,7 +188,7 @@ export default function TeacherGradebookPage() {
       })
       .catch((requestError: Partial<ApiError>) => {
         if (!cancelled) {
-          setError(requestError.detail || requestError.message || "Could not load your courses.");
+          setError(requestError.detail || requestError.message || t("couldNotLoadCourses"));
         }
       })
       .finally(() => {
@@ -188,7 +198,7 @@ export default function TeacherGradebookPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     if (!selectedCourseSlug) {
@@ -228,7 +238,7 @@ export default function TeacherGradebookPage() {
       } catch (requestError) {
         if (!cancelled) {
           const apiError = requestError as Partial<ApiError>;
-          setError(apiError.detail || apiError.message || "Could not load gradebook data.");
+          setError(apiError.detail || apiError.message || t("couldNotLoadGradebook"));
         }
       } finally {
         if (!cancelled) setLoadingGradebook(false);
@@ -238,7 +248,7 @@ export default function TeacherGradebookPage() {
     return () => {
       cancelled = true;
     };
-  }, [selectedCourseSlug]);
+  }, [selectedCourseSlug, t]);
 
   const courseOptions = useMemo(
     () => courses.map((course) => ({ value: course.slug, label: course.title })),
@@ -250,9 +260,9 @@ export default function TeacherGradebookPage() {
     () =>
       cohorts.map((cohort, index) => ({
         value: String(cohort.id),
-        label: cohortLabel(cohort, index),
+        label: cohortLabel(cohort, index, tStudentsPanel),
       })),
-    [cohorts],
+    [cohorts, tStudentsPanel],
   );
 
   const hasGroupFormat = useMemo(
@@ -269,7 +279,7 @@ export default function TeacherGradebookPage() {
       GRADEBOOK_FORMAT_OPTIONS.filter((option) =>
         option.value === "group" ? hasGroupFormat : hasIndividualFormat,
       ),
-    [hasGroupFormat, hasIndividualFormat],
+    [hasGroupFormat, hasIndividualFormat, GRADEBOOK_FORMAT_OPTIONS],
   );
 
   const selectedCohort = cohorts.find((cohort) => String(cohort.id) === selectedCohortId) ?? null;
@@ -340,21 +350,21 @@ export default function TeacherGradebookPage() {
             className="mr-6 font-semibold"
             style={{ fontSize: "clamp(18px, 1.67vw, 24px)", lineHeight: 1 }}
           >
-            Homework
+            {t("heading")}
           </h1>
           <PillSelect
             value={selectedCourseSlug}
             options={courseOptions}
-            ariaLabel="Course"
-            placeholder={loadingCourses ? "Loading courses" : "Select course"}
+            ariaLabel={t("courseAriaLabel")}
+            placeholder={loadingCourses ? t("loadingCoursesPlaceholder") : t("selectCoursePlaceholder")}
             disabled={loadingCourses || courseOptions.length === 0}
             onChange={setSelectedCourseSlug}
           />
           <PillSelect
             value={mode}
             options={modeOptions}
-            ariaLabel="Type"
-            placeholder="Type"
+            ariaLabel={t("typeAriaLabel")}
+            placeholder={t("typePlaceholder")}
             disabled={loadingGradebook || !courseDetail || modeOptions.length === 0}
             onChange={(value: string) => setMode(value as GradebookMode)}
           />
@@ -362,8 +372,8 @@ export default function TeacherGradebookPage() {
             <PillSelect
               value={selectedCohortId}
               options={cohortOptions}
-              ariaLabel="Group"
-              placeholder="Group"
+              ariaLabel={t("groupAriaLabel")}
+              placeholder={t("groupPlaceholder")}
               disabled={loadingGradebook || !courseDetail}
               onChange={setSelectedCohortId}
             />
@@ -379,14 +389,14 @@ export default function TeacherGradebookPage() {
         {!loadingCourses && courses.length === 0 ? (
           <div className="mt-10 max-w-[720px] rounded-xl border border-dashed border-[#D9D4CB] bg-white px-6 py-14 text-center">
             <ClipboardList className="mx-auto text-[#9DAEF3]" size={34} aria-hidden="true" />
-            <h2 className="mt-3 font-semibold">No courses yet</h2>
+            <h2 className="mt-3 font-semibold">{t("noCoursesYet")}</h2>
           </div>
         ) : null}
 
         <div className="mt-7 grid min-h-0 w-full flex-1 grid-cols-[331px_minmax(0,1fr)] gap-[20px]">
           <aside className="h-full overflow-hidden rounded-[16px] bg-white shadow-(--shadow-dashboard-card)">
             <div className="flex h-10 items-center justify-center rounded-t-[16px] bg-[linear-gradient(90deg,var(--color-brand-lavender)_0%,var(--color-brand-pink)_55%,var(--color-brand-cream)_100%)] text-[20px] leading-none font-normal tracking-normal">
-              Modules
+              {t("modulesHeading")}
             </div>
             <div className="h-[calc(100%-40px)] overflow-y-auto py-2">
               {courseDetail?.modules.map((module, index) => {
@@ -400,23 +410,23 @@ export default function TeacherGradebookPage() {
                       active ? "bg-[#ECECEC]" : "bg-white hover:bg-[#F7F7F7]"
                     }`}
                   >
-                    <span className="line-clamp-2">{moduleLabel(module, index)}</span>
+                    <span className="line-clamp-2">{moduleLabel(module, index, t)}</span>
                   </button>
                 );
               })}
               {!loadingGradebook && courseDetail && courseDetail.modules.length === 0 ? (
-                <p className="px-4 py-5 text-sm text-[#5E5E5E]">No modules in this course.</p>
+                <p className="px-4 py-5 text-sm text-[#5E5E5E]">{t("noModulesInCourse")}</p>
               ) : null}
               {loadingGradebook ? (
-                <p className="px-4 py-5 text-sm text-[#5E5E5E]">Loading modules...</p>
+                <p className="px-4 py-5 text-sm text-[#5E5E5E]">{t("loadingModules")}</p>
               ) : null}
             </div>
           </aside>
 
           <section className="flex h-full min-w-0 flex-col gap-[10px] overflow-hidden rounded-[16px] bg-white shadow-(--shadow-dashboard-card)">
             <div className="grid h-10 shrink-0 grid-cols-[274px_minmax(0,1fr)] items-center rounded-t-[16px] bg-[linear-gradient(90deg,var(--color-brand-lavender)_0%,var(--color-brand-pink)_55%,var(--color-brand-cream)_100%)] text-center text-[20px] leading-none font-normal tracking-normal">
-              <span>Students</span>
-              <span>Lessons</span>
+              <span>{t("studentsHeading")}</span>
+              <span>{t("lessonsHeading")}</span>
             </div>
 
             <div className="min-h-0 flex-1 overflow-auto px-5 pb-6">
@@ -426,7 +436,7 @@ export default function TeacherGradebookPage() {
                   style={gradebookGridStyle}
                 >
                   <div className="px-1">№</div>
-                  <div className="px-1">Name</div>
+                  <div className="px-1">{t("columnName")}</div>
                   {lessonColumns.length > 0 ? (
                     <div className="grid items-center px-2" style={lessonTrackStyle}>
                       {lessonColumns.map((lesson, index) => (
@@ -436,12 +446,12 @@ export default function TeacherGradebookPage() {
                             issuedLessonIds.has(lesson.id) ? "text-[#121212]" : "text-[#BFBFBF]"
                           }`}
                         >
-                          {lessonColumnLabel(index)}
+                          {lessonColumnLabel(index, t)}
                         </span>
                       ))}
                     </div>
                   ) : (
-                    <div className="px-2 text-[#BFBFBF]">No lessons</div>
+                    <div className="px-2 text-[#BFBFBF]">{t("noLessons")}</div>
                   )}
                 </div>
 
@@ -472,7 +482,7 @@ export default function TeacherGradebookPage() {
                       </div>
                     ) : (
                       <div className="px-2 text-sm text-[#5E5E5E]">
-                        Select a module with lessons.
+                        {t("selectModuleWithLessons")}
                       </div>
                     )}
                   </div>
@@ -481,12 +491,12 @@ export default function TeacherGradebookPage() {
 
               {!loadingGradebook && visibleStudents.length === 0 ? (
                 <div className="flex h-[360px] items-center justify-center text-sm text-[#5E5E5E]">
-                  No students in this group.
+                  {tAttendance("noStudentsInGroup")}
                 </div>
               ) : null}
               {loadingGradebook ? (
                 <div className="flex h-[360px] items-center justify-center text-sm text-[#5E5E5E]">
-                  Loading gradebook...
+                  {t("loadingGradebook")}
                 </div>
               ) : null}
             </div>

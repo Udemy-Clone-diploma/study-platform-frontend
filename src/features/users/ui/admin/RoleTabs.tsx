@@ -1,14 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { UserRole } from "@/entities/user";
-
-const TABS: { label: string; value: UserRole | null }[] = [
-  { label: "All Users", value: null },
-  { label: "Students", value: "student" },
-  { label: "Teachers", value: "teacher" },
-  { label: "Moderators", value: "moderator" },
-  { label: "Administrators", value: "administrator" },
-];
 
 type Props = {
   active: UserRole | null;
@@ -16,10 +9,18 @@ type Props = {
 };
 
 export function RoleTabs({ active, onChange }: Props) {
+  const t = useTranslations("RoleTabs");
+  const TABS: { label: string; value: UserRole | null }[] = [
+    { label: t("allUsers"), value: null },
+    { label: t("students"), value: "student" },
+    { label: t("teachers"), value: "teacher" },
+    { label: t("moderators"), value: "moderator" },
+    { label: t("administrators"), value: "administrator" },
+  ];
   return (
     <div
       role="tablist"
-      aria-label="Filter users by role"
+      aria-label={t("filterByRoleAriaLabel")}
       className="flex flex-wrap items-center"
       style={{ gap: "clamp(16px, 2.22vw, 32px)" }}
     >

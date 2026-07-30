@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { formatMoney } from "@/entities/payment";
 import type { RevenueCategoryRow } from "@/entities/payment";
 import type { PricingPlan } from "@/entities/course";
@@ -23,10 +24,10 @@ const SERIES = [
 
 type Slice = { label: string; amount: number; share: number };
 
-function toSlices(rows: RevenueCategoryRow[]): Slice[] {
+function toSlices(rows: RevenueCategoryRow[], uncategorizedLabel: string, otherLabel: string): Slice[] {
   const sorted = rows
     .map((row) => ({
-      label: row.category ?? "Uncategorized",
+      label: row.category ?? uncategorizedLabel,
       amount: Number(row.gross_revenue) || 0,
     }))
     .filter((row) => row.amount > 0)
@@ -41,7 +42,7 @@ function toSlices(rows: RevenueCategoryRow[]): Slice[] {
       : [
           ...sorted.slice(0, MAX_SLICES - 1),
           {
-            label: "Other",
+            label: otherLabel,
             amount: sorted.slice(MAX_SLICES - 1).reduce((sum, row) => sum + row.amount, 0),
           },
         ];
@@ -57,9 +58,15 @@ type Props = {
 };
 
 export function RevenueCategoryCard({ rows, currency, error, loading }: Props) {
+  const t = useTranslations("RevenueCategoryCard");
+  const locale = useLocale();
   const [hover, setHover] = useState<number | null>(null);
 
-  const slices = toSlices((rows ?? []).filter((row) => row.currency === currency));
+  const slices = toSlices(
+    (rows ?? []).filter((row) => row.currency === currency),
+    t("uncategorized"),
+    t("other"),
+  );
 
   const gap = slices.length > 1 ? GAP : 0;
   const arcs = slices.map((slice, index) => ({
@@ -71,13 +78,13 @@ export function RevenueCategoryCard({ rows, currency, error, loading }: Props) {
   }));
 
   return (
-    <ChartCard title="Revenue by category">
+    <ChartCard title={t("title")}>
       {error ? (
-        <ChartMessage tone="error">Category breakdown unavailable: {error}</ChartMessage>
+        <ChartMessage tone="error">{t("errorPrefix", { error })}</ChartMessage>
       ) : loading ? (
-        <ChartMessage>Loading category breakdown…</ChartMessage>
+        <ChartMessage>{t("loading")}</ChartMessage>
       ) : slices.length === 0 ? (
-        <ChartMessage>No revenue to break down in this range.</ChartMessage>
+        <ChartMessage>{t("empty")}</ChartMessage>
       ) : (
         <div className="flex flex-wrap items-center" style={{ gap: "clamp(16px, 1.67vw, 28px)" }}>
           <svg
@@ -86,9 +93,12 @@ export function RevenueCategoryCard({ rows, currency, error, loading }: Props) {
             viewBox={`0 0 ${SIZE} ${SIZE}`}
             className="shrink-0"
             role="img"
-            aria-label={`Revenue by category in ${currency}: ${slices
-              .map((s) => `${s.label} ${Math.round(s.share * 100)}%`)
-              .join(", ")}`}
+            aria-label={t("ariaLabel", {
+              currency: currency ?? "",
+              breakdown: slices
+                .map((s) => `${s.label} ${Math.round(s.share * 100)}%`)
+                .join(", "),
+            })}
           >
             <g transform={`rotate(-90 ${SIZE / 2} ${SIZE / 2})`}>
               {arcs.map(({ slice, index, length, offset }) => (
@@ -147,7 +157,7 @@ export function RevenueCategoryCard({ rows, currency, error, loading }: Props) {
                   {slice.label}
                 </span>
                 <span className="shrink-0 text-(--color-text-secondary)">
-                  {formatMoney(String(slice.amount), currency)}
+                  {formatMoney(String(slice.amount), currency, locale)}
                 </span>
                 <span
                   className="shrink-0 text-right font-semibold text-(--color-text-primary)"

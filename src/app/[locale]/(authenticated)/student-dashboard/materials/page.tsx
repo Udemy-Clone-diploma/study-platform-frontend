@@ -2,12 +2,14 @@
 
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { Search } from "lucide-react";
 import { getMaterials } from "@/entities/materials";
 import type { MaterialDocument, MaterialLessonCard } from "@/entities/materials";
 import { getEnrolledCourses } from "@/entities/course";
 import type { CourseListItem } from "@/entities/course";
 import type { ApiError } from "@/shared/api/base";
+import { formatDate } from "@/shared/lib/time";
 import { PageShell } from "@/shared/ui/PageShell";
 import { PillSelect } from "@/shared/ui/PillSelect";
 import { SidePanel } from "@/shared/ui/SidePanel";
@@ -20,20 +22,22 @@ function monthKey(value: string): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 }
 
-function monthLabel(value: string): string {
-  return new Intl.DateTimeFormat("en-US", { month: "long" }).format(new Date(value));
+function monthLabel(value: string, locale: string): string {
+  return new Intl.DateTimeFormat(locale, { month: "long" }).format(new Date(value));
 }
 
-function formatShortDate(value: string): string {
+function formatShortDate(value: string, locale: string): string {
   const date = new Date(value);
   if (!Number.isFinite(date.getTime())) return "";
-  return new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "2-digit" })
-    .format(date)
-    .replace(/\//g, ".");
+  return formatDate(date, locale, { day: "2-digit", month: "2-digit" }).replace(/\//g, ".");
 }
 
 /** Student's library of lesson-attached materials, grouped by month, with a detail drawer + preview modal. */
 export default function MaterialsPage() {
+  const t = useTranslations("StudentMaterialsPage");
+  const tCommon = useTranslations("Common");
+  const tSidebar = useTranslations("AppSidebar");
+  const locale = useLocale();
   const [cards, setCards] = useState<MaterialLessonCard[]>([]);
   const [courses, setCourses] = useState<CourseListItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,9 +53,9 @@ export default function MaterialsPage() {
         setCards(materials);
         setCourses(enrolled.results);
       })
-      .catch((err: Partial<ApiError>) => setError(err.message ?? "Failed to load materials."))
+      .catch((err: Partial<ApiError>) => setError(err.message ?? t("errorLoad")))
       .finally(() => setLoading(false));
-  }, []);
+  }, [t]);
 
   const courseOptions = useMemo(() => {
     // All active/completed enrollments, not just the ones with materials
@@ -61,12 +65,12 @@ export default function MaterialsPage() {
     courses.forEach((course) => byCourse.set(course.slug, course.title));
     cards.forEach((card) => byCourse.set(card.course_slug, card.course_title));
     return [
-      { value: ALL_COURSES, label: "All courses" },
+      { value: ALL_COURSES, label: tCommon("allCourses") },
       ...Array.from(byCourse.entries())
         .sort((a, b) => a[1].localeCompare(b[1]))
         .map(([value, label]) => ({ value, label })),
     ];
-  }, [courses, cards]);
+  }, [courses, cards, tCommon]);
 
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -90,10 +94,10 @@ export default function MaterialsPage() {
       const key = monthKey(card.lesson_date);
       const group = groups.get(key);
       if (group) group.items.push(card);
-      else groups.set(key, { key, label: monthLabel(card.lesson_date), items: [card] });
+      else groups.set(key, { key, label: monthLabel(card.lesson_date, locale), items: [card] });
     });
     return Array.from(groups.values());
-  }, [filtered]);
+  }, [filtered, locale]);
 
   return (
     <PageShell className="bg-wishlist" style={{ display: "flex", flexDirection: "column" }}>
@@ -120,7 +124,7 @@ export default function MaterialsPage() {
           />
           <input
             type="search"
-            placeholder="Search"
+            placeholder={tCommon("search")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="min-w-0 flex-1 bg-transparent outline-none"
@@ -134,11 +138,11 @@ export default function MaterialsPage() {
       </div>
 
       {loading ? (
-        <p className="text-center text-lg text-(--color-text-secondary)">Loading...</p>
+        <p className="text-center text-lg text-(--color-text-secondary)">{tCommon("loading")}</p>
       ) : error ? (
         <p className="text-center text-lg text-red-500">{error}</p>
       ) : grouped.length === 0 ? (
-        <p className="text-center text-lg text-(--color-text-secondary)">No materials found.</p>
+        <p className="text-center text-lg text-(--color-text-secondary)">{t("noMaterialsFound")}</p>
       ) : (
         <div className="flex flex-col" style={{ gap: "clamp(28px, 2.5vw, 44px)" }}>
           {grouped.map((group) => (
@@ -162,18 +166,18 @@ export default function MaterialsPage() {
       <SidePanel
         open={selected != null}
         onClose={() => setSelected(null)}
-        title={selected?.module_title ?? "Materials"}
+        title={selected?.module_title ?? tSidebar("materials")}
       >
         {selected && (
           <div className="flex h-full flex-col gap-6 font-(family-name:--font-base) text-(--color-text-primary)">
             <div className="flex items-center gap-5 text-[14px] leading-[18px] text-(--color-text-secondary)">
-              <span>{formatShortDate(selected.lesson_date)}</span>
+              <span>{formatShortDate(selected.lesson_date, locale)}</span>
               <span className="truncate">{selected.course_title}</span>
             </div>
 
             <div>
               <p className="font-(family-name:--font-accent) text-[28px] leading-[35px] font-normal">
-                Module {selected.module_order}
+                {t("moduleLabel", { order: selected.module_order })}
               </p>
               <p className="mt-1 font-(family-name:--font-accent) text-[16px] leading-5">
                 {selected.lesson_title}
@@ -183,9 +187,9 @@ export default function MaterialsPage() {
             <div className="h-px bg-(--color-brand-lavender)" />
 
             <div>
-              <p className="mb-5 text-[13px] leading-4 font-semibold">Materials</p>
+              <p className="mb-5 text-[13px] leading-4 font-semibold">{tSidebar("materials")}</p>
               {selected.materials.length === 0 ? (
-                <p className="text-[12px] text-(--color-text-secondary)">No materials attached.</p>
+                <p className="text-[12px] text-(--color-text-secondary)">{t("noMaterialsAttached")}</p>
               ) : (
                 <div className="flex flex-col gap-5">
                   {selected.materials.map((material) => (
@@ -202,7 +206,7 @@ export default function MaterialsPage() {
                         <span className="block truncate text-[13px] leading-4 font-medium">
                           {material.title}
                         </span>
-                        <span className="mt-0.5 block text-[10px] leading-3 text-(--color-text-secondary)">Material</span>
+                        <span className="mt-0.5 block text-[10px] leading-3 text-(--color-text-secondary)">{t("materialLabel")}</span>
                       </span>
                     </button>
                   ))}
@@ -226,6 +230,8 @@ export default function MaterialsPage() {
 }
 
 function MaterialCard({ card, onClick }: { card: MaterialLessonCard; onClick: () => void }) {
+  const t = useTranslations("StudentMaterialsPage");
+  const locale = useLocale();
   return (
     <button
       type="button"
@@ -257,7 +263,7 @@ function MaterialCard({ card, onClick }: { card: MaterialLessonCard; onClick: ()
           className="line-clamp-3 font-(family-name:--font-base) text-(--color-text-primary)"
           style={{ fontSize: "clamp(11px, 0.83vw, 16px)" }}
         >
-          Lesson: {card.lesson_title}
+          {t("lessonLabel", { title: card.lesson_title })}
         </span>
       </div>
 
@@ -279,7 +285,7 @@ function MaterialCard({ card, onClick }: { card: MaterialLessonCard; onClick: ()
           className="font-(family-name:--font-accent) text-(--color-text-primary)"
           style={{ fontSize: "clamp(18px, 1.67vw, 32px)" }}
         >
-          Module {card.module_order}
+          {t("moduleLabel", { order: card.module_order })}
         </span>
         <span
           className="font-(family-name:--font-accent) text-(--color-text-primary)"
@@ -291,7 +297,7 @@ function MaterialCard({ card, onClick }: { card: MaterialLessonCard; onClick: ()
           className="font-(family-name:--font-base) font-medium text-(--color-blue)"
           style={{ fontSize: "clamp(11px, 0.83vw, 16px)" }}
         >
-          {formatShortDate(card.lesson_date)}
+          {formatShortDate(card.lesson_date, locale)}
         </span>
       </div>
     </button>

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Plus } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { PageShell } from "@/shared/ui/PageShell";
 import { GradientButton } from "@/shared/ui/GradientButton";
 import { Pagination } from "@/shared/ui/Pagination";
@@ -10,33 +11,43 @@ import { getArticles, getBlogCategories } from "@/entities/blog";
 import type { ArticleListItem, ArticleStatus, BlogCategory } from "@/entities/blog";
 import { ArticleActionModals, ArticleCard, useArticleActions } from "@/features/blog";
 
-const TABS = ["All", "Draft", "Under Review", "Rejected", "Published", "Archived"] as const;
-type Tab = (typeof TABS)[number];
+const TAB_KEYS = ["all", "draft", "review", "rejected", "published", "archived"] as const;
+type Tab = (typeof TAB_KEYS)[number];
 
 const TAB_STATUS: Partial<Record<Tab, ArticleStatus>> = {
-  Draft: "draft",
-  "Under Review": "review",
-  Rejected: "rejected",
-  Published: "published",
-  Archived: "archived",
-};
-
-const EMPTY_LABEL: Record<Tab, string> = {
-  All: "You haven't written any articles yet.",
-  Draft: "No drafts.",
-  "Under Review": "Nothing is currently under review.",
-  Rejected: "No rejected articles.",
-  Published: "No published articles yet.",
-  Archived: "No archived articles.",
+  draft: "draft",
+  review: "review",
+  rejected: "rejected",
+  published: "published",
+  archived: "archived",
 };
 
 const PAGE_SIZE = 12;
 
 export default function TeacherBlogPage() {
+  const t = useTranslations("TeacherBlogPage");
+  const tCommon = useTranslations("Common");
+  const tStatus = useTranslations("ArticleStatus");
+  const TAB_LABELS: Record<Tab, string> = {
+    all: tCommon("all"),
+    draft: tStatus("draft"),
+    review: tStatus("review"),
+    rejected: tStatus("rejected"),
+    published: tStatus("published"),
+    archived: tStatus("archived"),
+  };
+  const EMPTY_LABEL: Record<Tab, string> = {
+    all: t("emptyAll"),
+    draft: t("emptyDraft"),
+    review: t("emptyReview"),
+    rejected: t("emptyRejected"),
+    published: t("emptyPublished"),
+    archived: t("emptyArchived"),
+  };
   const [articles, setArticles] = useState<ArticleListItem[]>([]);
   const [categories, setCategories] = useState<BlogCategory[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<Tab>("All");
+  const [activeTab, setActiveTab] = useState<Tab>("all");
   const [page, setPage] = useState(1);
 
   const refresh = useCallback(() => {
@@ -73,8 +84,8 @@ export default function TeacherBlogPage() {
           className="flex flex-wrap items-center justify-between"
           style={{ marginBottom: "clamp(16px, 2.22vw, 32px)", gap: "clamp(12px, 1.11vw, 16px)" }}
         >
-          <nav aria-label="Article filter" className="flex flex-wrap items-center" style={{ gap: "clamp(16px, 1.67vw, 40px)" }}>
-            {TABS.map((tab) => (
+          <nav aria-label={t("articleFilterAriaLabel")} className="flex flex-wrap items-center" style={{ gap: "clamp(16px, 1.67vw, 40px)" }}>
+            {TAB_KEYS.map((tab) => (
               <button
                 key={tab}
                 onClick={() => {
@@ -90,18 +101,18 @@ export default function TeacherBlogPage() {
                 ].join(" ")}
                 style={{ fontSize: "clamp(14px, 1.39vw, 24px)" }}
               >
-                {tab}
+                {TAB_LABELS[tab]}
               </button>
             ))}
           </nav>
 
           <GradientButton href="/blog/create" style={{ gap: 8 }}>
-            <Plus size={16} /> Add Article
+            <Plus size={16} /> {t("addArticle")}
           </GradientButton>
         </div>
 
         {loading ? (
-          <p className="mt-16 text-center text-lg text-(--color-text-secondary)">Loading...</p>
+          <p className="mt-16 text-center text-lg text-(--color-text-secondary)">{tCommon("loading")}</p>
         ) : filtered.length === 0 ? (
           <p className="mt-16 text-center text-lg text-(--color-text-secondary)">{EMPTY_LABEL[activeTab]}</p>
         ) : (

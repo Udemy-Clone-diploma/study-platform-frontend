@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   MoreVertical,
   Pencil,
@@ -48,39 +49,43 @@ type Props = {
 };
 
 /** Which actions are available for an article, given the viewer's relationship to it.
- * Shared by ArticleCardMenu's dropdown (article page) and ArticleDetailPanel's button row (dashboard). */
-export function buildArticleMenu({ status, isOwner, isStaff, authorIsStaff, isAssignedToMe }: Omit<Props, "onAction">): MenuItem[] {
+ * Shared by ArticleCardMenu's dropdown (article page) and ArticleDetailPanel's button row (dashboard).
+ * Pass `useTranslations("ArticleCardMenu")` as `t`. */
+export function buildArticleMenu(
+  { status, isOwner, isStaff, authorIsStaff, isAssignedToMe }: Omit<Props, "onAction">,
+  t: (key: string) => string,
+): MenuItem[] {
   const items: MenuItem[] = [];
 
   if (isOwner) {
     if (status === "draft") {
-      items.push({ label: "Edit", action: "edit", Icon: Pencil });
+      items.push({ label: t("edit"), action: "edit", Icon: Pencil });
       items.push(
         authorIsStaff
-          ? { label: "Publish", action: "publish", Icon: Send }
-          : { label: "Send for Review", action: "submit", Icon: Send },
+          ? { label: t("publish"), action: "publish", Icon: Send }
+          : { label: t("sendForReview"), action: "submit", Icon: Send },
       );
-      items.push({ label: "Delete", action: "delete", Icon: Trash2, danger: true });
+      items.push({ label: t("delete"), action: "delete", Icon: Trash2, danger: true });
     } else if (status === "review") {
-      items.push({ label: "Withdraw to Draft", action: "withdraw", Icon: RotateCcw });
+      items.push({ label: t("withdrawToDraft"), action: "withdraw", Icon: RotateCcw });
     } else if (status === "rejected") {
-      items.push({ label: "Edit", action: "edit", Icon: Pencil });
-      items.push({ label: "Resend for Review", action: "submit", Icon: Send });
-      items.push({ label: "Delete", action: "delete", Icon: Trash2, danger: true });
+      items.push({ label: t("edit"), action: "edit", Icon: Pencil });
+      items.push({ label: t("resendForReview"), action: "submit", Icon: Send });
+      items.push({ label: t("delete"), action: "delete", Icon: Trash2, danger: true });
     } else if (status === "published") {
-      items.push({ label: "Unpublish (Edit)", action: "withdraw", Icon: RotateCcw });
-      items.push({ label: "Archive", action: "archive", Icon: Archive });
+      items.push({ label: t("unpublishEdit"), action: "withdraw", Icon: RotateCcw });
+      items.push({ label: t("archive"), action: "archive", Icon: Archive });
     } else if (status === "archived") {
-      items.push({ label: "Restore to Draft", action: "restore", Icon: ArchiveRestore });
+      items.push({ label: t("restoreToDraft"), action: "restore", Icon: ArchiveRestore });
     }
   }
 
   if (isStaff && status === "review") {
     if (isAssignedToMe) {
-      items.push({ label: "Approve", action: "approve", Icon: Check });
-      items.push({ label: "Reject", action: "reject", Icon: X, danger: true });
+      items.push({ label: t("approve"), action: "approve", Icon: Check });
+      items.push({ label: t("reject"), action: "reject", Icon: X, danger: true });
     } else if (!isOwner) {
-      items.push({ label: "Assign to Me", action: "assign", Icon: UserCheck });
+      items.push({ label: t("assignToMe"), action: "assign", Icon: UserCheck });
     }
   }
 
@@ -88,7 +93,7 @@ export function buildArticleMenu({ status, isOwner, isStaff, authorIsStaff, isAs
   // article, staff can only archive it -- delete stays the owner's own call (see the isOwner
   // branches above), except for their own content.
   if (isStaff && !isOwner && status !== "review" && status !== "archived") {
-    items.push({ label: "Archive", action: "archive", Icon: Archive });
+    items.push({ label: t("archive"), action: "archive", Icon: Archive });
   }
 
   return items;
@@ -96,6 +101,7 @@ export function buildArticleMenu({ status, isOwner, isStaff, authorIsStaff, isAs
 
 /** Self-contained ⋮ trigger + dropdown for an article card, actions depend on status/role. */
 export function ArticleCardMenu({ status, isOwner, isStaff, authorIsStaff, isAssignedToMe, onAction }: Props) {
+  const t = useTranslations("ArticleCardMenu");
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -111,7 +117,7 @@ export function ArticleCardMenu({ status, isOwner, isStaff, authorIsStaff, isAss
     return () => document.removeEventListener("mousedown", handler);
   }, [open]);
 
-  const items = buildArticleMenu({ status, isOwner, isStaff, authorIsStaff, isAssignedToMe });
+  const items = buildArticleMenu({ status, isOwner, isStaff, authorIsStaff, isAssignedToMe }, t);
   if (items.length === 0) return null;
 
   function handleClick(action: ArticleMenuAction) {
@@ -123,7 +129,7 @@ export function ArticleCardMenu({ status, isOwner, isStaff, authorIsStaff, isAss
     <div style={{ position: "relative" }}>
       <button
         ref={triggerRef}
-        aria-label="Article options"
+        aria-label={t("articleOptionsAriaLabel")}
         aria-expanded={open}
         onClick={(e) => {
           e.preventDefault();

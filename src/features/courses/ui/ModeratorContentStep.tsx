@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { ModeratorModuleCard } from "./ModeratorModuleCard";
 import { NoteActionBlock } from "./NoteActionBlock";
 import { ModerationNavButtons } from "./ModerationNavButtons";
@@ -13,6 +14,9 @@ export function ModeratorContentStep(props: StepProps) {
           onNext, onBack, onSubmit, router, courseSlug } = props;
   void onActionChange;
 
+  const t = useTranslations("ModeratorCourseReviewPage");
+  const tStepper = useTranslations("CourseCreationStepper");
+
   const allItemKeys = moduleList.flatMap((m) => m.lessons.map((l) => `lesson-${l.id}`));
   const canContinue =
     (allItemKeys.length === 0 || allItemKeys.every((k) => (itemStatuses[k] ?? null) !== null)) &&
@@ -21,21 +25,21 @@ export function ModeratorContentStep(props: StepProps) {
   return (
     <div className="rounded-2xl bg-white" style={{ padding: "clamp(24px, 2.08vw, 40px) clamp(24px, 2.6vw, 50px)", boxShadow: "var(--shadow-dashboard-card)", display: "flex", flexDirection: "column", gap: "clamp(16px, 1.25vw, 24px)" }}>
       <div>
-        <h2 style={{ fontFamily: bodyFont, fontWeight: 700, fontSize: "clamp(20px, 1.875vw, 36px)", marginBottom: "clamp(4px, 0.42vw, 8px)" }}>Course Content</h2>
+        <h2 style={{ fontFamily: bodyFont, fontWeight: 700, fontSize: "clamp(20px, 1.875vw, 36px)", marginBottom: "clamp(4px, 0.42vw, 8px)" }}>{tStepper("stepContentName")}</h2>
         <p style={{ fontFamily: bodyFont, fontWeight: 500, fontSize: "clamp(13px, 1.04vw, 20px)", letterSpacing: "-0.011em", color: "var(--color-text-secondary)" }}>
-          Modules, lessons &amp; tests — click the circle to mark each item
+          {t("contentSubtitle")}
         </p>
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: "clamp(10px, 0.83vw, 16px)" }}>
         {moduleList.length === 0
-          ? <p style={{ fontFamily: bodyFont, color: "var(--color-text-secondary)", fontSize: 15 }}>No modules found.</p>
+          ? <p style={{ fontFamily: bodyFont, color: "var(--color-text-secondary)", fontSize: 15 }}>{t("noModulesFound")}</p>
           : moduleList.map((mod, i) => (
               <ModeratorModuleCard key={mod.id} module={mod} index={i} itemStatuses={itemStatuses} onItemToggle={onItemStatusToggle} lockedKeys={lockedKeys} courseSlug={courseSlug} />
             ))}
       </div>
 
-      <NoteActionBlock note={contentNote} onNoteChange={onContentNoteChange} itemAction={contentAction} onItemActionChange={onContentActionChange} onSave={() => {}} title="Content action" />
+      <NoteActionBlock note={contentNote} onNoteChange={onContentNoteChange} itemAction={contentAction} onItemActionChange={onContentActionChange} onSave={() => {}} title={t("contentActionTitle")} />
 
       <ModerationNavButtons step={step} action={action} hasAnyFlagged={hasAnyFlagged} canContinue={canContinue} submitting={submitting} error={error} onNext={onNext} onBack={onBack} onSubmit={onSubmit} router={router} />
     </div>

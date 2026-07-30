@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { ArrowUpRight, Save } from "lucide-react";
@@ -20,12 +21,6 @@ import {
 } from "@/features/courses";
 import type { ApiError } from "@/shared/api/base";
 import { usePageLoadingOverlay } from "@/shared/lib/pageLoadingSignal";
-
-const STEPS = [
-  { name: "Basics",           sub: "Course information"       },
-  { name: "Course Content",   sub: "Modules, lessons & tests"  },
-  { name: "Review & Publish", sub: "Launch course"             },
-];
 
 const ALL_BASICS_KEYS = new Set(["field-title", "field-short-description", "field-full-description", "field-icon", "field-category", "field-level"]);
 
@@ -106,6 +101,16 @@ function computeLockedContentKeys(course: CourseDetail | null, draft: CourseDeta
 export default function ModeratorReviewPage() {
   const { slug }  = useParams<{ slug: string }>();
   const router    = useRouter();
+  const t         = useTranslations("ModeratorCourseReviewPage");
+  const tStepper  = useTranslations("CourseCreationStepper");
+  const tReview   = useTranslations("CourseReviewPage");
+  const tBasics   = useTranslations("CourseBasicsForm");
+
+  const STEPS = [
+    { name: tStepper("stepBasicsName"),  sub: tStepper("stepBasicsSub")  },
+    { name: tStepper("stepContentName"), sub: tStepper("stepContentSub") },
+    { name: t("reviewPublishStepName"),  sub: t("reviewPublishStepSub")  },
+  ];
 
   const [course, setCourse]                       = useState<CourseDetail | null>(null);
   const [loading, setLoading]                     = useState(true);
@@ -198,7 +203,7 @@ export default function ModeratorReviewPage() {
       : Array.isArray(course?.modules) ? course.modules : [],
     [pendingEdit, draftCourse, course],
   );
-  const title      = course?.title ?? "Untitled Course";
+  const title      = course?.title ?? tReview("untitledCourse");
 
   // Auto-set section actions when item statuses change.
   // The moderator can still manually override by clicking the action buttons.
@@ -343,7 +348,7 @@ export default function ModeratorReviewPage() {
         : "review";
       router.push(`/moderator-dashboard/courses?tab=${returnTab}`);
     } catch (err: unknown) {
-      setError((err as Partial<ApiError>).message ?? "Action failed. Please try again.");
+      setError((err as Partial<ApiError>).message ?? t("actionFailedError"));
       setSubmitting(false);
     }
   }
@@ -400,13 +405,13 @@ export default function ModeratorReviewPage() {
         <div className="flex items-center" style={{ gap: "clamp(10px, 1.25vw, 24px)" }}>
           <AccentButton type="button" size="md" disabled={saving || submitting} style={{ gap: "clamp(8px, 0.69vw, 10px)" }} onClick={handleSaveDraft}>
             <Save size={20} />
-            {saving ? "Saving..." : saved ? "Saved ✓" : "Save Draft"}
+            {saving ? tBasics("saving") : saved ? t("savedLabel") : t("saveDraftLabel")}
           </AccentButton>
           <GradientButton type="button"
             disabled={step !== 2 || !action || submitting}
             onClick={step === 2 && action && !submitting ? handleSubmit : undefined}
             style={{ gap: "clamp(8px, 0.83vw, 12px)" }}>
-            Continue to Review &amp; Publish
+            {tReview("continueToReviewAndPublish")}
             <ArrowUpRight size={20} aria-hidden="true" />
           </GradientButton>
         </div>

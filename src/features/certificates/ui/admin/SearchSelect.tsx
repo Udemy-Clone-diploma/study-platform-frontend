@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Loader2, X } from "lucide-react";
 
 export type SearchSelectOption = {
@@ -28,6 +29,7 @@ export function SearchSelect({
   loadOptions,
   error,
 }: Props) {
+  const t = useTranslations("SearchSelect");
   const [query, setQuery] = useState("");
   const [options, setOptions] = useState<SearchSelectOption[]>([]);
   const [open, setOpen] = useState(false);
@@ -103,7 +105,7 @@ export function SearchSelect({
           <button
             type="button"
             onClick={clear}
-            aria-label={`Clear selected ${label.toLowerCase()}`}
+            aria-label={t("clearSelectedAriaLabel", { label: label.toLowerCase() })}
             className="flex shrink-0 cursor-pointer items-center justify-center rounded-full p-0.5 text-(--color-text-secondary) transition hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-(--color-blue)"
             style={{ background: "none", border: "none" }}
           >
@@ -160,14 +162,14 @@ export function SearchSelect({
                   className="px-3 py-2 text-sm text-(--color-text-secondary)"
                   style={{ fontFamily: "var(--font-base)" }}
                 >
-                  Could not load options.
+                  {t("loadErrorMessage")}
                 </li>
               ) : options.length === 0 && !loading ? (
                 <li
                   className="px-3 py-2 text-sm text-(--color-text-secondary)"
                   style={{ fontFamily: "var(--font-base)" }}
                 >
-                  No matches.
+                  {t("noMatches")}
                 </li>
               ) : (
                 options.map((option) => (

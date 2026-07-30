@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { RefreshCw, Search } from "lucide-react";
 import { AddButton } from "@/shared/ui/AddButton";
 
@@ -13,6 +14,7 @@ type Props = {
 };
 
 export function CategoriesToolbar({ search, onSearchChange, onRefresh, refreshing, onAdd }: Props) {
+  const t = useTranslations("CategoriesToolbar");
   const [query, setQuery] = useState(search);
   const [prevSearch, setPrevSearch] = useState(search);
 
@@ -49,7 +51,7 @@ export function CategoriesToolbar({ search, onSearchChange, onRefresh, refreshin
           />
           <input
             type="search"
-            placeholder="Search"
+            placeholder={t("searchPlaceholder")}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="min-w-0 flex-1 bg-transparent outline-none"
@@ -58,15 +60,15 @@ export function CategoriesToolbar({ search, onSearchChange, onRefresh, refreshin
               fontSize: "clamp(14px, 1.11vw, 18px)",
               color: "var(--color-text-primary)",
             }}
-            aria-label="Search categories"
+            aria-label={t("searchAriaLabel")}
           />
         </label>
 
         <button
           type="button"
           onClick={onRefresh}
-          title="Refresh category list"
-          aria-label="Refresh category list"
+          title={t("refreshTitle")}
+          aria-label={t("refreshTitle")}
           className="flex cursor-pointer items-center justify-center rounded-full bg-white text-(--color-text-primary) transition hover:opacity-80"
           style={{
             width: "clamp(34px, 2.78vw, 40px)",
@@ -82,7 +84,7 @@ export function CategoriesToolbar({ search, onSearchChange, onRefresh, refreshin
         </button>
       </div>
 
-      <AddButton onClick={onAdd}>Add category</AddButton>
+      <AddButton onClick={onAdd}>{t("addCategory")}</AddButton>
     </div>
   );
 }

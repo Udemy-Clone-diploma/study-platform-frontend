@@ -2,17 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Check, RefreshCw, Search, SlidersHorizontal } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { AddButton } from "@/shared/ui/AddButton";
 
 export type StatusFilter = "active" | "inactive" | "blocked" | "deleted" | null;
-
-const STATUS_OPTIONS: { label: string; value: StatusFilter }[] = [
-  { label: "All statuses", value: null },
-  { label: "Active", value: "active" },
-  { label: "Inactive", value: "inactive" },
-  { label: "Blocked", value: "blocked" },
-  { label: "Deleted", value: "deleted" },
-];
 
 type Props = {
   search: string;
@@ -33,6 +26,15 @@ export function UsersToolbar({
   refreshing,
   onAddUser,
 }: Props) {
+  const t = useTranslations("UsersToolbar");
+  const tCommon = useTranslations("Common");
+  const STATUS_OPTIONS: { label: string; value: StatusFilter }[] = [
+    { label: t("allStatuses"), value: null },
+    { label: t("active"), value: "active" },
+    { label: t("inactive"), value: "inactive" },
+    { label: t("blocked"), value: "blocked" },
+    { label: t("deleted"), value: "deleted" },
+  ];
   const [query, setQuery] = useState(search);
   const [prevSearch, setPrevSearch] = useState(search);
   const [filterOpen, setFilterOpen] = useState(false);
@@ -86,7 +88,7 @@ export function UsersToolbar({
           />
           <input
             type="search"
-            placeholder="Search"
+            placeholder={tCommon("search")}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="min-w-0 flex-1 bg-transparent outline-none"
@@ -95,7 +97,7 @@ export function UsersToolbar({
               fontSize: "clamp(14px, 1.11vw, 18px)",
               color: "var(--color-text-primary)",
             }}
-            aria-label="Search users"
+            aria-label={t("searchAriaLabel")}
           />
         </label>
 
@@ -118,7 +120,7 @@ export function UsersToolbar({
               aria-hidden="true"
               style={{ width: "clamp(14px, 1.11vw, 18px)", height: "clamp(14px, 1.11vw, 18px)" }}
             />
-            {activeStatusLabel ?? "All Filter"}
+            {activeStatusLabel ?? t("allFilter")}
           </button>
 
           {filterOpen && (
@@ -132,7 +134,7 @@ export function UsersToolbar({
               }}
             >
               <FilterGroup
-                heading="Status"
+                heading={t("statusHeading")}
                 options={STATUS_OPTIONS}
                 selected={status}
                 onSelect={(value) => {
@@ -147,8 +149,8 @@ export function UsersToolbar({
         <button
           type="button"
           onClick={onRefresh}
-          title="Refresh user list"
-          aria-label="Refresh user list"
+          title={t("refreshUserList")}
+          aria-label={t("refreshUserList")}
           className="flex cursor-pointer items-center justify-center rounded-full bg-white text-(--color-text-primary) transition hover:opacity-80"
           style={{
             width: "clamp(34px, 2.78vw, 40px)",
@@ -164,7 +166,7 @@ export function UsersToolbar({
         </button>
       </div>
 
-      <AddButton onClick={onAddUser}>Add user</AddButton>
+      <AddButton onClick={onAddUser}>{t("addUser")}</AddButton>
     </div>
   );
 }

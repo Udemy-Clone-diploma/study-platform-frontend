@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from "react";
 import { Award, RotateCcw, Search } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { PageShell } from "@/shared/ui/PageShell";
 import { PillSelect } from "@/shared/ui/PillSelect";
@@ -37,16 +38,11 @@ function formatEntryDate(iso: string): string {
   ].join(".");
 }
 
-function cohortLabel(cohort: CourseCohort, index: number): string {
-  return cohort.name ?? `Group ${index + 1}`;
-}
+type Translator = (key: string, values?: Record<string, string | number>) => string;
 
-const FORMAT_LABELS: Record<string, string> = {
-  self_paced:  "Self-paced",
-  scheduled:   "Scheduled",
-  individual:  "Individual",
-  group:       "Group",
-};
+function cohortLabel(cohort: CourseCohort, index: number, t: Translator): string {
+  return cohort.name ?? t("groupFallback", { number: index + 1 });
+}
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
@@ -55,13 +51,28 @@ const ALL_FORMATS = "__all__";
 const ALL_GROUPS  = "__all__";
 const ALL_STATUSES = "__all__";
 
-const STATUS_OPTIONS = [
-  { value: ALL_STATUSES, label: "All" },
-  { value: "active",     label: "Studying" },
-  { value: "completed",  label: "Completed" },
-];
-
 export default function TeacherStudentsPage() {
+  const t = useTranslations("TeacherStudentsPage");
+  const tCommon = useTranslations("Common");
+  const tSidebar = useTranslations("AppSidebar");
+  const tSchedule = useTranslations("ScheduleRail");
+  const tStudentsPanel = useTranslations("TeacherStudentsPanel");
+  const tApplications = useTranslations("TeacherApplicationsAdmin");
+  const tAttendance = useTranslations("TeacherAttendancePage");
+
+  const FORMAT_LABELS: Record<string, string> = {
+    self_paced: t("formatSelfPaced"),
+    scheduled: t("formatScheduled"),
+    individual: tSchedule("individualSession"),
+    group: tSchedule("groupSession"),
+  };
+
+  const STATUS_OPTIONS = [
+    { value: ALL_STATUSES, label: tCommon("all") },
+    { value: "active", label: t("studying") },
+    { value: "completed", label: t("completed") },
+  ];
+
   const [courses, setCourses]               = useState<CourseListItem[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<string>(ALL_COURSES);
   const [formats, setFormats]               = useState<CourseDeliveryFormat[]>([]);
@@ -142,11 +153,11 @@ export default function TeacherStudentsPage() {
   const enrollmentToGroup = useMemo<Map<number, string>>(() => {
     const map = new Map<number, string>();
     cohorts.forEach((c, idx) => {
-      const label = cohortLabel(c, idx);
+      const label = cohortLabel(c, idx, tStudentsPanel);
       (c.members ?? []).forEach((m) => map.set(m.enrollment_id, label));
     });
     return map;
-  }, [cohorts]);
+  }, [cohorts, tStudentsPanel]);
 
   // Cohort member ids for the selected group (only active in group format)
   const groupMemberIds = useMemo<Set<number> | null>(() => {
@@ -159,12 +170,12 @@ export default function TeacherStudentsPage() {
   // ── Options ──────────────────────────────────────────────────────────────────
 
   const courseOptions = [
-    { value: ALL_COURSES, label: "All courses" },
+    { value: ALL_COURSES, label: tCommon("allCourses") },
     ...courses.map((c) => ({ value: c.slug, label: c.title })),
   ];
 
   const formatOptions = [
-    { value: ALL_FORMATS, label: "All formats" },
+    { value: ALL_FORMATS, label: t("allFormats") },
     ...formats.map((f) => ({
       value: String(f.id),
       label: FORMAT_LABELS[f.format_type] ?? f.format_type,
@@ -172,8 +183,8 @@ export default function TeacherStudentsPage() {
   ];
 
   const groupOptions = [
-    { value: ALL_GROUPS, label: "All groups" },
-    ...cohorts.map((c, idx) => ({ value: String(c.id), label: cohortLabel(c, idx) })),
+    { value: ALL_GROUPS, label: tStudentsPanel("allGroups") },
+    ...cohorts.map((c, idx) => ({ value: String(c.id), label: cohortLabel(c, idx, tStudentsPanel) })),
   ];
 
   // ── Handlers ─────────────────────────────────────────────────────────────────
@@ -210,7 +221,7 @@ export default function TeacherStudentsPage() {
       }
       setPendingAction(null);
     } catch (err) {
-      setCompleteError((err as ApiError).message ?? "Something went wrong.");
+      setCompleteError((err as ApiError).message ?? tApplications("somethingWrong"));
     } finally {
       setCompleting(false);
     }
@@ -233,7 +244,7 @@ export default function TeacherStudentsPage() {
   const columns: DataTableColumn<EnrolledStudent>[] = [
     {
       key: "student",
-      label: "Student",
+      label: tAttendance("columnStudent"),
       flex: 3,
       render: (row) => (
         <div className="flex items-center" style={{ gap: "clamp(8px, 0.83vw, 12px)" }}>
@@ -246,7 +257,7 @@ export default function TeacherStudentsPage() {
     },
     {
       key: "group",
-      label: "Group",
+      label: t("columnGroup"),
       flex: 1.5,
       cellAlign: "center",
       headerAlign: "center",
@@ -259,7 +270,7 @@ export default function TeacherStudentsPage() {
     },
     {
       key: "status",
-      label: "Status",
+      label: t("columnStatus"),
       flex: 1.4,
       cellAlign: "center",
       headerAlign: "center",
@@ -278,7 +289,7 @@ export default function TeacherStudentsPage() {
           <button
             type="button"
             onClick={() => { setCompleteError(null); setPendingAction({ enrollmentId: row.enrollment_id, kind }); }}
-            title={row.is_completed ? "Return to course" : "Mark as completed"}
+            title={row.is_completed ? t("returnToCourseTitle") : t("markAsCompletedTitle")}
             style={{
               background: "none", border: "none", cursor: "pointer",
               padding: 4, display: "inline-flex", alignItems: "center",
@@ -292,7 +303,7 @@ export default function TeacherStudentsPage() {
     },
     {
       key: "performance",
-      label: "Performance",
+      label: t("columnPerformance"),
       flex: 1.5,
       cellAlign: "center",
       headerAlign: "center",
@@ -302,7 +313,7 @@ export default function TeacherStudentsPage() {
     },
     {
       key: "entry_date",
-      label: "Entry Date",
+      label: t("columnEntryDate"),
       flex: 1.5,
       cellAlign: "center",
       headerAlign: "center",
@@ -310,7 +321,7 @@ export default function TeacherStudentsPage() {
     },
     {
       key: "email",
-      label: "Gmail",
+      label: t("columnEmail"),
       flex: 2,
       cellAlign: "center",
       headerAlign: "center",
@@ -323,10 +334,10 @@ export default function TeacherStudentsPage() {
   ];
 
   const emptyMessage = loadingStudents
-    ? "Loading students…"
+    ? t("loadingStudents")
     : selectedCourse === ALL_COURSES
-      ? "No students enrolled yet."
-      : "No students enrolled in this course.";
+      ? t("noStudentsEnrolledYet")
+      : t("noStudentsInThisCourse");
 
   // ── Render ───────────────────────────────────────────────────────────────────
 
@@ -348,7 +359,7 @@ export default function TeacherStudentsPage() {
                 whiteSpace: "nowrap",
               }}
             >
-              Students
+              {tSidebar("students")}
             </h1>
 
             {/* Course */}
@@ -411,7 +422,7 @@ export default function TeacherStudentsPage() {
             />
             <input
               type="search"
-              placeholder="Search"
+              placeholder={tCommon("search")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="min-w-0 flex-1 bg-transparent outline-none"
@@ -447,17 +458,21 @@ export default function TeacherStudentsPage() {
 
       {pendingAction && (
         <CourseConfirmModal
-          title={pendingAction.kind === "complete" ? "Mark as completed" : "Return to course"}
+          title={pendingAction.kind === "complete" ? t("markAsCompletedTitle") : t("returnToCourseTitle")}
           description={
             pendingAction.kind === "complete"
-              ? `Mark ${
-                  students.find((s) => s.enrollment_id === pendingAction.enrollmentId)?.student_name ?? "this student"
-                } as completed?`
-              : `Return ${
-                  students.find((s) => s.enrollment_id === pendingAction.enrollmentId)?.student_name ?? "this student"
-                } to active studying? This removes their completion (and certificate, if any).`
+              ? t("markAsCompletedDescription", {
+                  name:
+                    students.find((s) => s.enrollment_id === pendingAction.enrollmentId)?.student_name ??
+                    t("thisStudentFallback"),
+                })
+              : t("returnToCourseDescription", {
+                  name:
+                    students.find((s) => s.enrollment_id === pendingAction.enrollmentId)?.student_name ??
+                    t("thisStudentFallback"),
+                })
           }
-          confirmLabel={pendingAction.kind === "complete" ? "Complete" : "Return"}
+          confirmLabel={pendingAction.kind === "complete" ? t("complete") : t("return")}
           loading={completing}
           onConfirm={handleConfirmAction}
           onCancel={() => setPendingAction(null)}

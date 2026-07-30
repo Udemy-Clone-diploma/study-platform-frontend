@@ -1,8 +1,10 @@
 import Image from "next/image";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Eye } from "lucide-react";
 import type { ArticleModerationSnapshot } from "@/entities/blog";
-import { ARTICLE_STATUS_COLORS, ARTICLE_STATUS_LABELS } from "../model/articleStatus";
+import { formatDate } from "@/shared/lib/time";
+import { ARTICLE_STATUS_COLORS, getArticleStatusLabels } from "../model/articleStatus";
 
 const metaSt: React.CSSProperties = {
   fontFamily: "var(--font-accent)",
@@ -19,8 +21,11 @@ type Props = { snapshot: ArticleModerationSnapshot };
  * "Current status" badge shows what the live article looks like *now* only as extra context
  * (e.g. a rejected snapshot whose article was since edited and republished). */
 export function ArticleModerationSnapshotRow({ snapshot }: Props) {
-  const dateLabel = new Date(snapshot.created_at).toLocaleDateString();
-  const currentStatusLabel = ARTICLE_STATUS_LABELS[snapshot.article_status];
+  const locale = useLocale();
+  const t = useTranslations("ArticleModerationSnapshot");
+  const tStatus = useTranslations("ArticleStatus");
+  const dateLabel = formatDate(snapshot.created_at, locale);
+  const currentStatusLabel = getArticleStatusLabels(tStatus)[snapshot.article_status];
   const currentStatusColor = ARTICLE_STATUS_COLORS[snapshot.article_status];
 
   return (
@@ -42,7 +47,7 @@ export function ArticleModerationSnapshotRow({ snapshot }: Props) {
             <span style={metaSt}>{dateLabel}</span>
             {currentStatusLabel && (
               <span
-                title="Current status of the live article"
+                title={t("currentStatusTitle")}
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
@@ -57,15 +62,15 @@ export function ArticleModerationSnapshotRow({ snapshot }: Props) {
                   background: "white",
                 }}
               >
-                Now: {currentStatusLabel}
+                {t("nowStatus", { status: currentStatusLabel })}
               </span>
             )}
           </div>
 
           <Link
             href={`/blog/${snapshot.article_slug}`}
-            aria-label="View current article"
-            title="View current article"
+            aria-label={t("viewCurrentArticleLabel")}
+            title={t("viewCurrentArticleLabel")}
             className="flex shrink-0 items-center justify-center rounded-full transition hover:bg-(--color-brand-lavender-soft)"
             style={{ width: 32, height: 32, background: "var(--color-bg)" }}
           >
@@ -129,12 +134,13 @@ export function ArticleModerationSnapshotRow({ snapshot }: Props) {
               color: "var(--color-text-primary)",
             }}
           >
-            By {snapshot.author_name}
+            {t("byAuthor", { name: snapshot.author_name })}
           </span>
           {snapshot.moderator_name && (
             <span style={{ fontFamily: "var(--font-base)", fontSize: 12, color: "var(--color-text-secondary)" }}>
-              {snapshot.decision === "rejected" ? "Rejected by " : "Approved by "}
-              {snapshot.moderator_name}
+              {snapshot.decision === "rejected"
+                ? t("rejectedBy", { name: snapshot.moderator_name })
+                : t("approvedBy", { name: snapshot.moderator_name })}
             </span>
           )}
         </div>

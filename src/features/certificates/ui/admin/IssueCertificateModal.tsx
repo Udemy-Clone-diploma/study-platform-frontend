@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { useTranslations } from "next-intl";
 import { ModalShell } from "@/shared/ui/ModalShell";
 import { ModalFooter } from "@/shared/ui/ModalFooter";
 import { issueCertificate } from "@/entities/certificate";
@@ -20,6 +21,7 @@ type Props = {
 };
 
 export function IssueCertificateModal({ onClose, onIssued }: Props) {
+  const t = useTranslations("IssueCertificateModal");
   const [student, setStudent] = useState<SearchSelectOption | null>(null);
   const [course, setCourse] = useState<SearchSelectOption | null>(null);
   const [reason, setReason] = useState("");
@@ -50,16 +52,16 @@ export function IssueCertificateModal({ onClose, onIssued }: Props) {
       label: item.title,
       hint: item.with_certificate
         ? item.teacher_name
-        : `${item.teacher_name} · course does not offer a certificate`,
+        : `${item.teacher_name} · ${t("courseNoCertificateHint")}`,
     }));
-  }, []);
+  }, [t]);
 
   function validate(): Record<string, string> {
     const errors: Record<string, string> = {};
-    if (!student) errors.student = "Select a student";
-    if (!course) errors.course = "Select a course";
+    if (!student) errors.student = t("studentValidationError");
+    if (!course) errors.course = t("courseValidationError");
     if (reason.trim().length < MIN_REASON_LENGTH)
-      errors.reason = `Enter a reason of at least ${MIN_REASON_LENGTH} characters`;
+      errors.reason = t("reasonValidationError", { min: MIN_REASON_LENGTH });
     return errors;
   }
 
@@ -81,7 +83,7 @@ export function IssueCertificateModal({ onClose, onIssued }: Props) {
     } catch (err) {
       const apiError = err as ApiError;
       setFieldErrors(mapApiFieldErrors(apiError.fields));
-      setFormError(apiError.message ?? "Failed to issue the certificate.");
+      setFormError(apiError.message ?? t("errorGeneric"));
       setLoading(false);
     }
   }
@@ -90,7 +92,7 @@ export function IssueCertificateModal({ onClose, onIssued }: Props) {
     <ModalShell
       onClose={onClose}
       closeOnOverlayClick={false}
-      title="Issue certificate"
+      title={t("title")}
       width="clamp(360px, 38vw, 560px)"
       padding="clamp(20px, 2.08vw, 32px) clamp(24px, 2.5vw, 40px)"
       shadow="var(--shadow-modal)"
@@ -104,15 +106,14 @@ export function IssueCertificateModal({ onClose, onIssued }: Props) {
             margin: "0 0 clamp(16px, 1.39vw, 20px)",
           }}
         >
-          Grants a certificate manually, bypassing the course passing score. The reason is stored on
-          the record and stays visible to other administrators.
+          {t("description")}
         </p>
 
         <div className="flex flex-col gap-4">
           <SearchSelect
             id="issue-student"
-            label="Student"
-            placeholder="Search by name or email"
+            label={t("studentLabel")}
+            placeholder={t("studentPlaceholder")}
             value={student}
             onChange={setStudent}
             loadOptions={loadStudents}
@@ -120,8 +121,8 @@ export function IssueCertificateModal({ onClose, onIssued }: Props) {
           />
           <SearchSelect
             id="issue-course"
-            label="Course"
-            placeholder="Search by course title"
+            label={t("courseLabel")}
+            placeholder={t("coursePlaceholder")}
             value={course}
             onChange={setCourse}
             loadOptions={loadCourses}
@@ -129,14 +130,14 @@ export function IssueCertificateModal({ onClose, onIssued }: Props) {
           />
           <div className="flex flex-col gap-1">
             <label htmlFor="issue-reason" className="font-mono text-sm font-medium text-gray-400">
-              Reason
+              {t("reasonLabel")}
             </label>
             <textarea
               id="issue-reason"
               rows={3}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="Why is this certificate being issued manually?"
+              placeholder={t("reasonPlaceholder")}
               aria-invalid={fieldErrors.reason ? true : undefined}
               className={`w-full resize-y rounded-lg border px-3 py-2 outline-none transition ${
                 fieldErrors.reason
@@ -152,7 +153,7 @@ export function IssueCertificateModal({ onClose, onIssued }: Props) {
 
         <ModalFooter
           onCancel={onClose}
-          submitLabel="Issue"
+          submitLabel={t("submitLabel")}
           loading={loading}
           disabled={loading}
           error={formError}

@@ -1,12 +1,21 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { ChevronDown } from "lucide-react";
 import { getGrowth } from "@/entities/homework";
-import type { GrowthPeriod } from "@/entities/homework";
+import type { GrowthPeriod, GrowthPoint } from "@/entities/homework";
 import { getEnrollmentGrowth } from "@/entities/course";
+import { formatDate } from "@/shared/lib/time";
 import { Card } from "./DashboardOverview";
+
+/** Locale-aware x-axis label for a growth point, replacing the backend's English "Week N" / "Jan" text. */
+function pointLabel(point: GrowthPoint, locale: string): string {
+  if (point.period === "yearly") {
+    return formatDate(point.date, locale, { month: "short" });
+  }
+  return formatDate(point.date, locale, { day: "numeric", month: "short" });
+}
 
 const CHART_X0 = 36;
 const CHART_X1 = 628;
@@ -19,7 +28,7 @@ type Metric = "score" | "enrollments";
 type NormalizedGrowth = {
   summaryLabel: string;
   summaryValue: number;
-  points: { label: string; value: number }[];
+  points: GrowthPoint[];
   courses: { slug: string; title: string }[];
   scaleMin: number;
   scaleMax: number;
@@ -135,6 +144,7 @@ export function GrowthCard({
   defaultToFirstCourse?: boolean;
 }) {
   const t = useTranslations("GrowthCard");
+  const locale = useLocale();
   const [period, setPeriod] = useState<GrowthPeriod>(initialPeriod);
   const [courseSlug, setCourseSlug] = useState<string>("");
   const [data, setData] = useState<NormalizedGrowth | null>(null);
@@ -264,14 +274,14 @@ export function GrowthCard({
             ))}
             {points.map((p, index) => (
               <text
-                key={`${p.label}-${index}`}
+                key={`${p.date}-${index}`}
                 x={xFor(index, points.length)}
                 y="128"
                 textAnchor={index === 0 ? "start" : index === points.length - 1 ? "end" : "middle"}
                 fill="#5e5e5e"
                 fontSize={labelFontSize}
               >
-                {p.label}
+                {pointLabel(p, locale)}
               </text>
             ))}
           </svg>

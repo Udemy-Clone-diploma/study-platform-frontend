@@ -2,16 +2,16 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Ban, ExternalLink, LockOpen, Trash2 } from "lucide-react";
 import type { CourseListItem } from "@/entities/course";
 import { DataTable, type DataTableColumn } from "@/shared/ui/DataTable";
-import { padTwo } from "@/shared/lib/time";
+import { formatDate } from "@/shared/lib/time";
 import { CourseStatusBadge } from "./CourseStatusBadge";
 
-export function formatCourseDate(iso: string): string {
-  const d = new Date(iso);
-  return `${padTwo(d.getDate())}.${padTwo(d.getMonth() + 1)}.${d.getFullYear()}`;
+export function formatCourseDate(iso: string, locale: string): string {
+  return formatDate(iso, locale);
 }
 
 type Props = {
@@ -35,10 +35,12 @@ export function CoursesTable({
   currentSort,
   onSortChange,
 }: Props) {
+  const t = useTranslations("CoursesTable");
+  const locale = useLocale();
   const columns: DataTableColumn<CourseListItem>[] = [
     {
       key: "course",
-      label: "Course",
+      label: t("columnCourse"),
       flex: 2.6,
       sortKey: "title",
       render: (row) => (
@@ -57,7 +59,7 @@ export function CoursesTable({
     },
     {
       key: "instructor",
-      label: "Instructor",
+      label: t("columnInstructor"),
       flex: 1.4,
       headerAlign: "center",
       cellAlign: "center",
@@ -69,7 +71,7 @@ export function CoursesTable({
     },
     {
       key: "category",
-      label: "Category",
+      label: t("columnCategory"),
       flex: 1.1,
       headerAlign: "center",
       cellAlign: "center",
@@ -78,17 +80,17 @@ export function CoursesTable({
           <Link
             href={`/catalog?category=${row.category.slug}`}
             className="underline decoration-from-font hover:text-(--color-blue)"
-            title={`View ${row.category.name} courses in the catalog`}
+            title={t("viewCategoryCoursesTitle", { category: row.category.name })}
           >
             {row.category.name}
           </Link>
         ) : (
-          <span className="text-(--color-text-secondary)">No category</span>
+          <span className="text-(--color-text-secondary)">{t("noCategory")}</span>
         ),
     },
     {
       key: "status",
-      label: "Status",
+      label: t("columnStatus"),
       flex: 1.2,
       headerAlign: "center",
       cellAlign: "center",
@@ -96,7 +98,7 @@ export function CoursesTable({
     },
     {
       key: "students",
-      label: "Students",
+      label: t("columnStudents"),
       flex: 0.8,
       headerAlign: "center",
       cellAlign: "center",
@@ -105,16 +107,16 @@ export function CoursesTable({
     },
     {
       key: "created",
-      label: "Created",
+      label: t("columnCreated"),
       flex: 1,
       headerAlign: "center",
       cellAlign: "center",
       sortKey: "created_at",
-      render: (row) => <span>{formatCourseDate(row.created_at)}</span>,
+      render: (row) => <span>{formatCourseDate(row.created_at, locale)}</span>,
     },
     {
       key: "actions",
-      label: "Actions",
+      label: t("columnActions"),
       flex: 1.1,
       headerAlign: "center",
       cellAlign: "center",
@@ -126,22 +128,22 @@ export function CoursesTable({
           <Link
             href={`/courses/${row.slug}`}
             target="_blank"
-            title="Open course page"
-            aria-label="Open course page"
+            title={t("openCoursePage")}
+            aria-label={t("openCoursePage")}
             className="inline-flex cursor-pointer items-center justify-center rounded-full p-1.5 text-(--color-text-primary) transition hover:bg-(--color-brand-lavender-soft)"
           >
             <ExternalLink size={16} />
           </Link>
           {(row.status === "published" || row.status === "hidden") && (
             <ActionButton
-              title={row.status === "hidden" ? "Unhide course" : "Hide course"}
+              title={row.status === "hidden" ? t("unhideCourseTitle") : t("hideCourseTitle")}
               onClick={() => onToggleHidden(row)}
               danger={row.status !== "hidden"}
             >
               {row.status === "hidden" ? <LockOpen size={16} /> : <Ban size={16} />}
             </ActionButton>
           )}
-          <ActionButton title="Delete course" onClick={() => onDelete(row)} danger>
+          <ActionButton title={t("deleteCourseTitle")} onClick={() => onDelete(row)} danger>
             <Trash2 size={16} />
           </ActionButton>
         </div>

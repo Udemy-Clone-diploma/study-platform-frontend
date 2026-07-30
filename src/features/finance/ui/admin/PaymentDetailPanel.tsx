@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { X } from "lucide-react";
 import { formatMoney } from "@/entities/payment";
@@ -14,9 +15,15 @@ type Props = {
 };
 
 export function PaymentDetailPanel({ payment, onClose }: Props) {
+  const t = useTranslations("PaymentDetailPanel");
+  const tPaymentsTable = useTranslations("PaymentsTable");
+  const tCommon = useTranslations("Common");
+  const locale = useLocale();
+  const naLabel = tCommon("notAvailable");
+
   return (
     <aside
-      aria-label="Transaction details"
+      aria-label={t("ariaLabel")}
       className="flex shrink-0 flex-col rounded-[20px] border border-white bg-(--color-white-20) shadow-(--shadow-usp-glass) backdrop-blur-md"
       style={{
         width: "clamp(300px, 24vw, 360px)",
@@ -33,12 +40,12 @@ export function PaymentDetailPanel({ payment, onClose }: Props) {
             margin: 0,
           }}
         >
-          Transaction #{payment.id}
+          {t("title", { id: payment.id })}
         </h2>
         <button
           type="button"
           onClick={onClose}
-          aria-label="Close details"
+          aria-label={t("closeAriaLabel")}
           className="flex shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-1 text-(--color-text-secondary) transition hover:bg-(--color-brand-lavender-soft)"
         >
           <X size={18} />
@@ -50,7 +57,7 @@ export function PaymentDetailPanel({ payment, onClose }: Props) {
           className="font-bold text-(--color-text-primary)"
           style={{ fontFamily: "var(--font-base)", fontSize: "clamp(20px, 1.67vw, 24px)" }}
         >
-          {formatMoney(payment.amount, payment.currency)}
+          {formatMoney(payment.amount, payment.currency, locale)}
         </span>
         <PaymentStatusBadge status={payment.status} />
       </div>
@@ -58,29 +65,33 @@ export function PaymentDetailPanel({ payment, onClose }: Props) {
       <dl className="flex flex-col" style={{ gap: 10, margin: 0 }}>
         {refundedSoFar(payment) > 0 && (
           <>
-            <DetailRow label="Refunded">
-              {formatMoney(payment.refunded_amount, payment.currency)}
+            <DetailRow label={t("fieldRefunded")}>
+              {formatMoney(payment.refunded_amount, payment.currency, locale)}
             </DetailRow>
-            <DetailRow label="Remaining">
-              {formatMoney(String(remainingAmount(payment)), payment.currency)}
+            <DetailRow label={t("fieldRemaining")}>
+              {formatMoney(String(remainingAmount(payment)), payment.currency, locale)}
             </DetailRow>
           </>
         )}
-        <DetailRow label="Payer">{payerName(payment)}</DetailRow>
-        {payment.user?.email && <DetailRow label="Email">{payment.user.email}</DetailRow>}
-        <DetailRow label="Method">
-          {payment.payment_method === "stripe" ? "Stripe" : "Manual"}
+        <DetailRow label={t("fieldPayer")}>{payerName(payment, tPaymentsTable)}</DetailRow>
+        {payment.user?.email && <DetailRow label={t("fieldEmail")}>{payment.user.email}</DetailRow>}
+        <DetailRow label={t("fieldMethod")}>
+          {payment.payment_method === "stripe" ? t("methodStripe") : t("methodManual")}
         </DetailRow>
-        <DetailRow label="Order">
-          {payment.order_id !== null ? `#${payment.order_id}` : "n/a"}
+        <DetailRow label={t("fieldOrder")}>
+          {payment.order_id !== null ? `#${payment.order_id}` : naLabel}
         </DetailRow>
         {payment.installment_number !== null && (
-          <DetailRow label="Installment">{payment.installment_number}</DetailRow>
+          <DetailRow label={t("fieldInstallment")}>{payment.installment_number}</DetailRow>
         )}
-        <DetailRow label="Created">{formatPaymentDate(payment.created_at)}</DetailRow>
-        <DetailRow label="Processed">{formatPaymentDate(payment.processed_at)}</DetailRow>
+        <DetailRow label={t("fieldCreated")}>
+          {formatPaymentDate(payment.created_at, locale, naLabel)}
+        </DetailRow>
+        <DetailRow label={t("fieldProcessed")}>
+          {formatPaymentDate(payment.processed_at, locale, naLabel)}
+        </DetailRow>
         {payment.stripe_payment_intent_id && (
-          <DetailRow label="Intent">{payment.stripe_payment_intent_id}</DetailRow>
+          <DetailRow label={t("fieldIntent")}>{payment.stripe_payment_intent_id}</DetailRow>
         )}
       </dl>
 
@@ -93,14 +104,14 @@ export function PaymentDetailPanel({ payment, onClose }: Props) {
             letterSpacing: "0.06em",
           }}
         >
-          Items
+          {t("itemsHeading")}
         </span>
         {payment.items.length === 0 ? (
           <span
             className="text-(--color-text-secondary)"
             style={{ fontFamily: "var(--font-base)", fontSize: "clamp(13px, 0.97vw, 15px)" }}
           >
-            No course on this payment
+            {t("noCourseOnPayment")}
           </span>
         ) : (
           payment.items.map((item) => (
@@ -127,7 +138,7 @@ export function PaymentDetailPanel({ payment, onClose }: Props) {
                 )}
               </span>
               <span className="shrink-0 text-(--color-text-secondary)">
-                {formatMoney(item.unit_amount, item.currency)}
+                {formatMoney(item.unit_amount, item.currency, locale)}
               </span>
             </div>
           ))

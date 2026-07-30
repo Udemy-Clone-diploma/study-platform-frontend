@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { getAssignedHomework } from "@/entities/homework";
 import type { HomeworkAssignment } from "@/entities/homework";
 import { getEnrolledCourses, getStudentCompletions } from "@/entities/course";
@@ -9,13 +10,15 @@ import type { CourseCompletion, CourseListItem } from "@/entities/course";
 import { Dropdown, GrowthCard } from "@/widgets/dashboard/GrowthCard";
 import { PageShell } from "@/shared/ui/PageShell";
 
+type Translator = (key: string, values?: Record<string, string | number>) => string;
+
 const ALL_COURSES = "__all__";
 
-function courseOptionsFrom(items: HomeworkAssignment[]) {
+function courseOptionsFrom(items: HomeworkAssignment[], tCommon: Translator) {
   const map = new Map<string, string>();
   items.forEach((a) => map.set(a.course_slug, a.course_title));
   return [
-    { value: ALL_COURSES, label: "All courses" },
+    { value: ALL_COURSES, label: tCommon("allCourses") },
     ...Array.from(map.entries())
       .sort((a, b) => a[1].localeCompare(b[1]))
       .map(([value, label]) => ({ value, label })),
@@ -34,6 +37,9 @@ function countsFor(items: HomeworkAssignment[], courseFilter: string) {
  * lists for active vs. completed courses.
  */
 export default function StudentStatisticsPage() {
+  const t = useTranslations("StudentStatisticsPage");
+  const tCommon = useTranslations("Common");
+  const tSidebar = useTranslations("AppSidebar");
   const [assignments, setAssignments] = useState<HomeworkAssignment[]>([]);
   const [activeCourses, setActiveCourses] = useState<CourseListItem[]>([]);
   const [completions, setCompletions] = useState<CourseCompletion[]>([]);
@@ -59,8 +65,8 @@ export default function StudentStatisticsPage() {
   const homeworkOnly = useMemo(() => assignments.filter((a) => !a.test_detail), [assignments]);
   const testsOnly = useMemo(() => assignments.filter((a) => !!a.test_detail), [assignments]);
 
-  const hwOptions = useMemo(() => courseOptionsFrom(homeworkOnly), [homeworkOnly]);
-  const testOptions = useMemo(() => courseOptionsFrom(testsOnly), [testsOnly]);
+  const hwOptions = useMemo(() => courseOptionsFrom(homeworkOnly, tCommon), [homeworkOnly, tCommon]);
+  const testOptions = useMemo(() => courseOptionsFrom(testsOnly, tCommon), [testsOnly, tCommon]);
 
   const hwCounts = countsFor(homeworkOnly, hwCourseFilter);
   const testCounts = countsFor(testsOnly, testCourseFilter);
@@ -72,12 +78,12 @@ export default function StudentStatisticsPage() {
     activeCourses.forEach((c) => map.set(c.slug, c.title));
     completions.forEach((c) => { if (c.slug) map.set(c.slug, c.title); });
     return [
-      { value: ALL_COURSES, label: "All courses" },
+      { value: ALL_COURSES, label: tCommon("allCourses") },
       ...Array.from(map.entries())
         .sort((a, b) => a[1].localeCompare(b[1]))
         .map(([value, label]) => ({ value, label })),
     ];
-  }, [activeCourses, completions]);
+  }, [activeCourses, completions, tCommon]);
 
   const overallProgress = useMemo(() => {
     if (progressCourseFilter === ALL_COURSES) {
@@ -97,10 +103,10 @@ export default function StudentStatisticsPage() {
   return (
     <PageShell className="bg-wishlist">
       <div style={{ maxWidth: "1648px", margin: "0 auto" }}>
-        <h1 className="mb-6 text-[28px] leading-none font-normal text-(--color-text-primary)">Statistics</h1>
+        <h1 className="mb-6 text-[28px] leading-none font-normal text-(--color-text-primary)">{tSidebar("statistics")}</h1>
 
         {loading ? (
-          <p className="text-center text-lg text-(--color-text-secondary)">Loading...</p>
+          <p className="text-center text-lg text-(--color-text-secondary)">{tCommon("loading")}</p>
         ) : (
           <div style={{ position: "relative" }}>
             {/* Decorative crystals -- anchored to this content block (not the
@@ -130,7 +136,7 @@ export default function StudentStatisticsPage() {
             <div className="flex flex-col" style={{ gap: "clamp(12px, 1.11vw, 20px)" }}>
               <div className="grid grid-cols-2" style={{ gap: "clamp(12px, 1.11vw, 20px)" }}>
                 <StatCard
-                  title="Homeworks done"
+                  title={t("homeworksDone")}
                   value={hwCounts.done}
                   total={hwCounts.total}
                   courseFilter={hwCourseFilter}
@@ -138,16 +144,16 @@ export default function StudentStatisticsPage() {
                   onCourseChange={setHwCourseFilter}
                 />
                 <StatCard
-                  title="Tests done"
+                  title={t("testsDone")}
                   value={testCounts.done}
                   total={testCounts.total}
                   courseFilter={testCourseFilter}
                   courseOptions={testOptions}
                   onCourseChange={setTestCourseFilter}
                 />
-                <StatCard title="Certificates earned" value={certificatesCount} total={completions.length} />
+                <StatCard title={t("certificatesEarned")} value={certificatesCount} total={completions.length} />
                 <StatCard
-                  title="Overall progress"
+                  title={t("overallProgress")}
                   value={`${overallProgress}%`}
                   courseFilter={progressCourseFilter}
                   courseOptions={progressOptions}
@@ -160,7 +166,7 @@ export default function StudentStatisticsPage() {
 
             {/* Right: Active / Completed course lists, stacked */}
             <div className="flex flex-col" style={{ gap: "clamp(12px, 1.11vw, 20px)" }}>
-              <CourseListPanel title="Active courses" count={activeCourses.length} emptyText="No active courses.">
+              <CourseListPanel title={t("activeCourses")} count={activeCourses.length} emptyText={t("noActiveCourses")}>
                 {activeCourses.map((course) => {
                   const percent = course.progress_percent ?? 0;
                   const hoursDone = Math.round(((percent / 100) * course.duration_hours) * 10) / 10;
@@ -178,10 +184,10 @@ export default function StudentStatisticsPage() {
               </CourseListPanel>
 
               <CourseListPanel
-                title="Completed courses"
+                title={t("completedCourses")}
                 count={completions.length}
-                subtitle={completions.length > 0 ? `${certificatesCount} with certificate` : undefined}
-                emptyText="No completed courses yet."
+                subtitle={completions.length > 0 ? t("withCertificateSuffix", { count: certificatesCount }) : undefined}
+                emptyText={t("noCompletedCoursesYet")}
               >
                 {completions.map((completion) => (
                   <CourseRow
@@ -293,6 +299,7 @@ function CourseRow({ title, imageSrc, progressPercent, hoursDone, hoursTotal }: 
   hoursDone: number;
   hoursTotal: number;
 }) {
+  const t = useTranslations("StudentStatisticsPage");
   return (
     <div
       className="flex items-center rounded-xl bg-white"
@@ -314,7 +321,7 @@ function CourseRow({ title, imageSrc, progressPercent, hoursDone, hoursTotal }: 
         </div>
       </div>
       <span className="shrink-0 whitespace-nowrap font-(family-name:--font-base) text-(--color-text-secondary)" style={{ fontSize: "clamp(11px, 0.73vw, 13px)" }}>
-        {hoursDone}h / {hoursTotal}h
+        {t("hoursProgressLabel", { done: hoursDone, total: hoursTotal })}
       </span>
     </div>
   );

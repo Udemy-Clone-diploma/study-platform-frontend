@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import {
   getCalendarEvents,
   getIncomingInvitations,
@@ -9,11 +10,9 @@ import {
 } from "@/entities/course";
 import type { CalendarDeadline, CalendarEvent } from "@/entities/course/model/calendar";
 import type { IncomingInvitation, InvitationConflict } from "@/entities/course/api/calendarApi";
+import { getWeekdayNames } from "@/shared/lib/time";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
-
-const WEEK_DAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
-const MONTH_FMT = new Intl.DateTimeFormat("en", { month: "long", year: "numeric" });
 
 function pad(n: number) { return String(n).padStart(2, "0"); }
 function toISO(d: Date)  { return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; }
@@ -207,15 +206,16 @@ function TabBtn({ active, onClick, children, badge }: {
 // ── Event card ────────────────────────────────────────────────────────────────
 
 function EventCard({ event, badge }: { event: CalendarEvent; badge?: string }) {
+  const t = useTranslations("ScheduleRail");
   const label =
     event.type === "personal"
-      ? (event.title ?? "Personal event")
-      : (event.course_title ?? "Session");
+      ? (event.title ?? t("personalEvent"))
+      : (event.course_title ?? t("session"));
 
   const meta =
     event.type === "personal"
       ? `${event.start_time} – ${event.end_time}`
-      : `${event.type === "group_session" ? "Group" : "Individual"}  |  ${event.start_time} – ${event.end_time}`;
+      : `${event.type === "group_session" ? t("groupSession") : t("individualSession")}  |  ${event.start_time} – ${event.end_time}`;
 
   const isCancelled   = event.event_status === "cancelled";
   const isRescheduled = event.event_status === "rescheduled";
@@ -234,7 +234,7 @@ function EventCard({ event, badge }: { event: CalendarEvent; badge?: string }) {
         )}
         {isReplacement && event.rescheduled_from_date && (
           <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-green-600">
-            ← Moved from {fmtShort(event.rescheduled_from_date)}
+            {t("movedFrom", { date: fmtShort(event.rescheduled_from_date) })}
           </p>
         )}
       </div>
@@ -245,7 +245,7 @@ function EventCard({ event, badge }: { event: CalendarEvent; badge?: string }) {
       )}
       {isCancelled && (
         <span className="shrink-0 whitespace-nowrap text-[10px] font-bold uppercase tracking-wide text-red-500">
-          Cancelled
+          {t("cancelled")}
         </span>
       )}
       {isRescheduled && event.rescheduled_to_date && (
@@ -260,6 +260,7 @@ function EventCard({ event, badge }: { event: CalendarEvent; badge?: string }) {
 // ── Deadline card ─────────────────────────────────────────────────────────────
 
 function DeadlineCard({ deadline, badge }: { deadline: CalendarDeadline; badge?: string }) {
+  const t = useTranslations("ScheduleRail");
   return (
     <div
       className="flex items-start gap-2 rounded-md bg-white/70 px-3 py-3 shadow-sm"
@@ -270,7 +271,7 @@ function DeadlineCard({ deadline, badge }: { deadline: CalendarDeadline; badge?:
         <p className="mt-1 text-xs text-black/70">{deadline.course_title}</p>
       </div>
       <span className="shrink-0 whitespace-nowrap text-[10px] font-bold uppercase tracking-wide text-[#003aff]">
-        {badge ?? "Deadline"}
+        {badge ?? t("deadline")}
       </span>
     </div>
   );
@@ -278,12 +279,13 @@ function DeadlineCard({ deadline, badge }: { deadline: CalendarDeadline; badge?:
 
 // ── Invitation card ───────────────────────────────────────────────────────────
 
-function conflictLabel(c: InvitationConflict): string {
-  const prefix = c.type === "session" ? "Session" : c.type === "shared_event" ? "Shared event" : "Personal event";
+function conflictLabel(c: InvitationConflict, t: (key: string) => string): string {
+  const prefix = c.type === "session" ? t("session") : c.type === "shared_event" ? t("sharedEvent") : t("personalEvent");
   return `${prefix}: ${c.title} · ${c.start_time}–${c.end_time}`;
 }
 
 function InvitationCard({ inv, onRespond }: { inv: IncomingInvitation; onRespond: () => void }) {
+  const t = useTranslations("ScheduleRail");
   const [busy, setBusy] = useState(false);
 
   const hasConflicts = inv.conflicts.length > 0;
@@ -300,7 +302,7 @@ function InvitationCard({ inv, onRespond }: { inv: IncomingInvitation; onRespond
       <p className="mt-0.5 text-xs text-black/70">
         {fmtShort(inv.event.date)} · {inv.event.start_time} – {inv.event.end_time}
       </p>
-      <p className="mt-0.5 text-[11px] text-black/50">by {inv.event.organizer}</p>
+      <p className="mt-0.5 text-[11px] text-black/50">{t("invitedBy", { organizer: inv.event.organizer })}</p>
       {inv.event.meeting_link && (
         <a
           href={inv.event.meeting_link}
@@ -314,9 +316,9 @@ function InvitationCard({ inv, onRespond }: { inv: IncomingInvitation; onRespond
 
       {hasConflicts && (
         <div className="mt-2 rounded bg-red-50 px-2 py-1.5 text-[10px] text-red-600">
-          <p className="mb-0.5 font-semibold uppercase tracking-wide">Schedule conflict</p>
+          <p className="mb-0.5 font-semibold uppercase tracking-wide">{t("scheduleConflict")}</p>
           {inv.conflicts.map((c, i) => (
-            <p key={i} className="truncate">{conflictLabel(c)}</p>
+            <p key={i} className="truncate">{conflictLabel(c, t)}</p>
           ))}
         </div>
       )}
@@ -329,7 +331,7 @@ function InvitationCard({ inv, onRespond }: { inv: IncomingInvitation; onRespond
           className="rounded-full px-3 py-1 text-[11px] font-medium text-black disabled:cursor-not-allowed disabled:opacity-40"
           style={{ background: hasConflicts ? "rgba(0,0,0,0.08)" : GRADIENT }}
         >
-          Accept
+          {t("accept")}
         </button>
         <button
           type="button"
@@ -337,7 +339,7 @@ function InvitationCard({ inv, onRespond }: { inv: IncomingInvitation; onRespond
           onClick={() => respond("decline")}
           className="rounded-full border border-black/25 px-3 py-1 text-[11px] font-medium text-black/60 transition-colors hover:border-black/40 disabled:opacity-50"
         >
-          Decline
+          {t("decline")}
         </button>
       </div>
     </div>
@@ -350,6 +352,11 @@ type Tab = "day" | "upcoming" | "invitations";
 
 /** Right-rail calendar + events panel shared by teacher and student dashboards. */
 export function ScheduleRail() {
+  const t = useTranslations("ScheduleRail");
+  const tCommon = useTranslations("Common");
+  const locale = useLocale();
+  const weekDays = useMemo(() => getWeekdayNames(locale, "short"), [locale]);
+  const monthFmt = useMemo(() => new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" }), [locale]);
   const todayDate  = useMemo(() => new Date(), []);
   const todayISO   = useMemo(() => toISO(todayDate), [todayDate]);
 
@@ -443,7 +450,7 @@ export function ScheduleRail() {
   const selectedEvents = allSelectedEvs.filter(e => !hiddenProcessedIds.has(e.id));
   const selectedDeadlines = deadlineMap[selectedISO] ?? [];
   const isSelectedToday = selectedISO === todayISO;
-  const dayLabel = isSelectedToday ? "Today" : fmtShort(selectedISO);
+  const dayLabel = isSelectedToday ? t("today") : fmtShort(selectedISO);
 
   const upcomingEvents = useMemo(() => {
     return Object.entries(eventMap)
@@ -482,18 +489,18 @@ export function ScheduleRail() {
         <div className="mb-4 flex items-center justify-between">
           <button
             type="button"
-            aria-label="Previous month"
+            aria-label={t("previousMonth")}
             onClick={() => setViewMonth(m => new Date(m.getFullYear(), m.getMonth() - 1, 1))}
             className="flex h-7 w-7 items-center justify-center rounded-full text-black transition-colors hover:bg-black/5"
           >
             <ChevLeft />
           </button>
           <h2 className="font-semibold text-black" style={{ fontSize: MONTH_TITLE_SIZE }}>
-            {MONTH_FMT.format(viewMonth)}
+            {monthFmt.format(viewMonth)}
           </h2>
           <button
             type="button"
-            aria-label="Next month"
+            aria-label={t("nextMonth")}
             onClick={() => setViewMonth(m => new Date(m.getFullYear(), m.getMonth() + 1, 1))}
             className="flex h-7 w-7 items-center justify-center rounded-full text-black transition-colors hover:bg-black/5"
           >
@@ -503,8 +510,8 @@ export function ScheduleRail() {
 
         {/* Day grid */}
         <div className="grid grid-cols-7 gap-y-3 text-center">
-          {WEEK_DAYS.map(d => (
-            <span key={d} className="font-medium text-[#5e5e5e]" style={{ fontSize: CALENDAR_TEXT_SIZE }}>{d}</span>
+          {weekDays.map((d, i) => (
+            <span key={i} className="font-medium text-[#5e5e5e]" style={{ fontSize: CALENDAR_TEXT_SIZE }}>{d}</span>
           ))}
           {days.map((day, i) => {
             const iso        = toISO(day);
@@ -529,7 +536,7 @@ export function ScheduleRail() {
         </div>
 
         {loading && (
-          <p className="mt-2 text-center text-[10px] text-black/30">Loading…</p>
+          <p className="mt-2 text-center text-[10px] text-black/30">{tCommon("loading")}</p>
         )}
       </div>
 
@@ -539,14 +546,14 @@ export function ScheduleRail() {
           {dayLabel}
         </TabBtn>
         <TabBtn active={tab === "upcoming"} onClick={() => setTab("upcoming")}>
-          Upcoming
+          {t("upcoming")}
         </TabBtn>
         <TabBtn
           active={tab === "invitations"}
           onClick={() => setTab("invitations")}
           badge={invitations.length > 0 ? invitations.length : undefined}
         >
-          Invitations
+          {t("invitations")}
         </TabBtn>
       </div>
 
@@ -562,7 +569,7 @@ export function ScheduleRail() {
                 {selectedDeadlines.map(dl => <DeadlineCard key={`dl-${dl.assignment_id}`} deadline={dl} />)}
               </>
             : <p className="py-2 text-center text-[11px] text-black/50">
-                {isSelectedToday ? "No events today" : "No events on this date"}
+                {isSelectedToday ? t("noEventsToday") : t("noEventsOnDate")}
               </p>
         )}
 
@@ -576,7 +583,7 @@ export function ScheduleRail() {
                   <DeadlineCard key={`dl-${dl.assignment_id}`} deadline={dl} badge={fmtShort(dl.date)} />
                 ))}
               </>
-            : <p className="py-2 text-center text-[11px] text-black/50">No upcoming events</p>
+            : <p className="py-2 text-center text-[11px] text-black/50">{t("noUpcomingEvents")}</p>
         )}
 
         {tab === "invitations" && (
@@ -584,7 +591,7 @@ export function ScheduleRail() {
             ? invitations.map(inv => (
                 <InvitationCard key={inv.id} inv={inv} onRespond={loadInvitations} />
               ))
-            : <p className="py-2 text-center text-[11px] text-black/50">No pending invitations</p>
+            : <p className="py-2 text-center text-[11px] text-black/50">{t("noPendingInvitations")}</p>
         )}
       </div>
     </aside>

@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import { getAllNotes, type NoteListItem } from "@/entities/note";
 import { GradientButton } from "@/shared/ui/GradientButton";
 
@@ -16,34 +17,35 @@ type SelectOption = {
   label: string;
 };
 
-const SORT_OPTIONS: SelectOption[] = [
-  { value: "newest", label: "Newest" },
-  { value: "oldest", label: "Oldest" },
-];
-
 // One consistent note icon/gradient regardless of course level -- a personal
 // notes list shouldn't visually vary by course difficulty.
 const NOTE_ICON = "/icons/curses.svg";
 const NOTE_ACCENT = "from-[#fff3dc] to-[#ffe7ef]";
 
-function firstNoteLine(text: string): string {
+function firstNoteLine(text: string, untitledLabel: string): string {
   return text
     .split(/\r?\n/)
     .map((line) => line.trim())
-    .find(Boolean) ?? "Untitled note";
+    .find(Boolean) ?? untitledLabel;
 }
 
-function formatNoteDate(value: string): string {
+function formatNoteDate(value: string, locale: string): string {
   if (!value) return "";
   const date = new Date(value);
   if (!Number.isFinite(date.getTime())) return "";
-  return new Intl.DateTimeFormat("en-GB", {
+  return new Intl.DateTimeFormat(locale, {
     day: "2-digit",
     month: "2-digit",
   }).format(date).replace(/\//g, ".");
 }
 
 export function StudentNotesPanel() {
+  const t = useTranslations("StudentNotesPanel");
+  const tCommon = useTranslations("Common");
+  const SORT_OPTIONS: SelectOption[] = [
+    { value: "newest", label: t("newest") },
+    { value: "oldest", label: t("oldest") },
+  ];
   const [notes, setNotes] = useState<NoteListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [sort, setSort] = useState<SortValue>("newest");
@@ -61,12 +63,12 @@ export function StudentNotesPanel() {
     notes.forEach((note) => courses.set(note.course_slug, note.course_title));
 
     return [
-      { value: "all", label: "All courses" },
+      { value: "all", label: tCommon("allCourses") },
       ...Array.from(courses.entries())
         .sort((a, b) => a[1].localeCompare(b[1]))
         .map(([value, label]) => ({ value, label })),
     ];
-  }, [notes]);
+  }, [notes, tCommon]);
 
   const activeCourseFilter = courseOptions.some((option) => option.value === courseFilter)
     ? courseFilter
@@ -84,16 +86,16 @@ export function StudentNotesPanel() {
   return (
     <div className="flex h-[460px] flex-col overflow-hidden rounded-lg bg-white p-4 shadow-[0_0_16px_rgba(0,0,0,0.14)]">
       <div className="mb-3 flex items-center justify-between gap-2">
-        <h2 className="shrink-0 text-base font-bold text-black">My Notes</h2>
+        <h2 className="min-w-0 truncate text-base font-bold text-black">{t("myNotes")}</h2>
         <div className="flex min-w-0 items-center justify-end gap-2">
           <NotesDropdown
-            ariaLabel="Filter notes by course"
+            ariaLabel={t("filterByCourseAriaLabel")}
             value={activeCourseFilter}
             options={courseOptions}
             onChange={setCourseFilter}
           />
           <NotesDropdown
-            ariaLabel="Sort notes"
+            ariaLabel={t("sortAriaLabel")}
             value={sort}
             options={SORT_OPTIONS}
             onChange={(value) => setSort(value as SortValue)}
@@ -102,7 +104,7 @@ export function StudentNotesPanel() {
             href="/student-dashboard/notes"
             style={{ padding: "4px 14px", fontSize: 11, gap: 4 }}
           >
-            All
+            {tCommon("all")}
             <Image
               src="/icons/arrow-goto.png"
               alt=""
@@ -116,12 +118,12 @@ export function StudentNotesPanel() {
 
       <div className="min-h-0 flex-1 overflow-y-auto pr-1">
         {loading ? (
-          <p className="pt-8 text-center text-sm text-[#5e5e5e]">Loading notes...</p>
+          <p className="pt-8 text-center text-sm text-[#5e5e5e]">{t("loading")}</p>
         ) : visibleNotes.length > 0 ? (
           visibleNotes.map((note) => <NoteCard key={note.id} note={note} />)
         ) : (
           <p className="pt-8 text-center text-sm text-[#5e5e5e]">
-            No notes found.
+            {t("noNotesFound")}
           </p>
         )}
       </div>
@@ -204,10 +206,12 @@ function NotesDropdown({
 }
 
 function NoteCard({ note }: { note: NoteListItem }) {
+  const t = useTranslations("StudentNotesPanel");
+  const locale = useLocale();
   const lessonLabel = note.lesson_order
-    ? `Lesson ${note.lesson_order}`
-    : note.lesson_title || "Lesson";
-  const date = formatNoteDate(note.updated_at);
+    ? t("lessonNumber", { number: note.lesson_order })
+    : note.lesson_title || t("lesson");
+  const date = formatNoteDate(note.updated_at, locale);
 
   return (
     <Link
@@ -228,10 +232,10 @@ function NoteCard({ note }: { note: NoteListItem }) {
       <div className="min-w-0 flex-1">
         <p className="truncate text-[11px] text-[#5e5e5e]">
           {note.course_title} <span className="px-1">|</span> {lessonLabel}
-          {note.is_course_completed && <span className="px-1 text-[#5e5e5e]">· Completed</span>}
+          {note.is_course_completed && <span className="px-1 text-[#5e5e5e]">· {t("completed")}</span>}
         </p>
         <p className="line-clamp-2 text-sm font-medium leading-tight text-black">
-          {firstNoteLine(note.content)}
+          {firstNoteLine(note.content, t("untitledNote"))}
         </p>
       </div>
       {date ? <span className="whitespace-nowrap text-xs text-[#003aff]">{date}</span> : null}

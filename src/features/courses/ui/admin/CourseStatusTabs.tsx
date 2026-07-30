@@ -1,6 +1,9 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { CourseStatus } from "@/entities/course";
+
+type Translator = (key: string, values?: Record<string, string | number>) => string;
 
 export type CourseStatusTab =
   | "published"
@@ -20,15 +23,20 @@ export const STATUS_TAB_VALUES: Record<Exclude<CourseStatusTab, null>, CourseSta
   archived: ["archived"],
 };
 
-const TABS: { label: string; value: CourseStatusTab }[] = [
-  { label: "All Courses", value: null },
-  { label: "Published", value: "published" },
-  { label: "Under Moderation", value: "moderation" },
-  { label: "Drafts", value: "draft" },
-  { label: "Hidden", value: "hidden" },
-  { label: "Rejected", value: "rejected" },
-  { label: "Archived", value: "archived" },
-];
+function getTabs(
+  t: Translator,
+  tCommon: Translator,
+): { label: string; value: CourseStatusTab }[] {
+  return [
+    { label: tCommon("allCourses"), value: null },
+    { label: t("published"), value: "published" },
+    { label: t("underModeration"), value: "moderation" },
+    { label: t("drafts"), value: "draft" },
+    { label: t("hidden"), value: "hidden" },
+    { label: t("rejected"), value: "rejected" },
+    { label: t("archived"), value: "archived" },
+  ];
+}
 
 type Props = {
   active: CourseStatusTab;
@@ -36,10 +44,14 @@ type Props = {
 };
 
 export function CourseStatusTabs({ active, onChange }: Props) {
+  const t = useTranslations("CourseStatusTabs");
+  const tCommon = useTranslations("Common");
+  const TABS = getTabs(t, tCommon);
+
   return (
     <div
       role="tablist"
-      aria-label="Filter courses by status"
+      aria-label={t("ariaLabel")}
       className="flex flex-wrap items-center"
       style={{ gap: "clamp(16px, 2.22vw, 32px)" }}
     >

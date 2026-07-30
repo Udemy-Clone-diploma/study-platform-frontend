@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { ChevronDown, Play, Eye } from "lucide-react";
 import type { CourseModule, CourseLesson } from "@/entities/course";
 import { LessonFormModal } from "./LessonFormModal";
@@ -16,6 +17,7 @@ function ModeratorLessonRow({ lesson, index, status, onToggle, onView, locked = 
   onView: () => void;
   locked?: boolean;
 }) {
+  const t = useTranslations("ModeratorModuleCard");
   return (
     <div
       className="flex items-center justify-between"
@@ -30,7 +32,7 @@ function ModeratorLessonRow({ lesson, index, status, onToggle, onView, locked = 
         </span>
       </div>
       <div className="flex items-center" style={{ gap: 8, flexShrink: 0, opacity: locked ? 0.6 : 1 }}>
-        <button type="button" onClick={onView} title="View lesson"
+        <button type="button" onClick={onView} title={t("viewLessonTitle")}
           style={{ background: "transparent", border: "none", cursor: "pointer", display: "flex", alignItems: "center", padding: 4, borderRadius: 8, color: "var(--color-text-secondary)" }}
           className="transition hover:text-(--color-text-primary)">
           <Eye size={18} />
@@ -51,6 +53,8 @@ export function ModeratorModuleCard({ module, index, itemStatuses, onItemToggle,
   readOnly?: boolean;
   courseSlug?: string;
 }) {
+  const t = useTranslations("ModeratorModuleCard");
+  const tModule = useTranslations("ModuleCard");
   const [open, setOpen] = useState(true);
   const [viewLesson, setViewLesson] = useState<CourseLesson | null>(null);
   const lessonCount = module.lessons.length;
@@ -59,17 +63,17 @@ export function ModeratorModuleCard({ module, index, itemStatuses, onItemToggle,
     <div style={{ background: "var(--color-bg)", border: "1px solid var(--color-border-light)", borderRadius: 16, padding: "clamp(14px, 1.04vw, 20px) clamp(16px, 1.25vw, 24px)" }}>
       <div className="flex items-center justify-between" style={{ gap: 8 }}>
         <div className="flex min-w-0 items-center" style={{ gap: 8 }}>
-          <span style={{ ...metaSt, color: "var(--color-text-secondary)", flexShrink: 0 }}>Module {index + 1}</span>
+          <span style={{ ...metaSt, color: "var(--color-text-secondary)", flexShrink: 0 }}>{tModule("moduleNumber", { order: index + 1 })}</span>
           <span style={{ ...metaSt, color: "var(--color-text-primary)", overflow: "hidden", textOverflow: "ellipsis" }}>{module.title}</span>
           <span className="flex shrink-0 items-center" style={{ gap: 4 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/icons/book.svg" alt="" width={16} height={16} style={{ width: 16, height: 16, flexShrink: 0 }} />
-            <span style={{ ...metaSt, color: "var(--color-text-secondary)" }}>{lessonCount} lessons</span>
+            <span style={{ ...metaSt, color: "var(--color-text-secondary)" }}>{tModule("lessonsCount", { count: lessonCount })}</span>
           </span>
         </div>
         <button type="button" onClick={() => setOpen((v) => !v)}
           className="flex shrink-0 items-center justify-center rounded-full transition hover:bg-gray-100"
-          style={{ width: 40, height: 40 }} aria-label={open ? "Collapse" : "Expand"}>
+          style={{ width: 40, height: 40 }} aria-label={open ? t("collapseAriaLabel") : t("expandAriaLabel")}>
           <ChevronDown size={20} style={{ color: "var(--color-text-primary)", transform: open ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
         </button>
       </div>
@@ -79,10 +83,10 @@ export function ModeratorModuleCard({ module, index, itemStatuses, onItemToggle,
         <div style={{ marginTop: "clamp(16px, 1.25vw, 24px)", display: "flex", flexDirection: "column", gap: 20 }}>
           <div className="flex items-center" style={{ gap: 8 }}>
             <Play size={20} style={{ color: "var(--color-text-primary)", flexShrink: 0 }} />
-            <span style={sectionTitleSt}>Lessons</span>
+            <span style={sectionTitleSt}>{tModule("lessons")}</span>
           </div>
           {lessonCount === 0 ? (
-            <p style={{ fontFamily: bodyFont, color: "var(--color-text-secondary)", fontSize: 15 }}>No lessons.</p>
+            <p style={{ fontFamily: bodyFont, color: "var(--color-text-secondary)", fontSize: 15 }}>{t("noLessons")}</p>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "clamp(8px, 0.52vw, 10px)" }}>
               {module.lessons.map((lesson, i) => {

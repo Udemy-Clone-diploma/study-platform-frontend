@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Ban, CircleAlert, LockOpen, ShieldAlert, TriangleAlert } from "lucide-react";
 import type { AdminUserReportAction, ModeratorUserReportAction } from "@/entities/user";
 import { ModalShell } from "@/shared/ui/ModalShell";
@@ -16,40 +17,19 @@ type Props = {
   onClose: () => void;
 };
 
-const ACTION_COPY: Record<
-  ReportAction,
-  { title: string; description: (targetName: string) => string; confirmLabel: string }
-> = {
-  warning: {
-    title: "Issue warning",
-    description: (targetName) =>
-      `Explain why ${targetName} is receiving a formal platform warning.`,
-    confirmLabel: "Issue warning",
-  },
-  block: {
-    title: "Block site access",
-    description: (targetName) => `Explain why ${targetName} should lose access to the platform.`,
-    confirmLabel: "Block access",
-  },
-  unblock: {
-    title: "Restore site access",
-    description: (targetName) =>
-      `Explain why the block decision for ${targetName} is being reversed.`,
-    confirmLabel: "Restore access",
-  },
-  escalate: {
-    title: "Escalate to administrator",
-    description: () =>
-      "Summarize the evidence and explain what requires an administrator's decision.",
-    confirmLabel: "Escalate",
-  },
-  dismiss: {
-    title: "Close without action",
-    description: () =>
-      "Explain why this report does not justify a warning, access block, or escalation.",
-    confirmLabel: "Close report",
-  },
-};
+type ActionCopy = { title: string; description: string; confirmLabel: string };
+
+function getActionCopy(
+  action: ReportAction,
+  targetName: string,
+  t: ReturnType<typeof useTranslations>,
+): ActionCopy {
+  return {
+    title: t(`titles.${action}`),
+    description: t(`descriptions.${action}`, { targetName }),
+    confirmLabel: t(`confirmLabels.${action}`),
+  };
+}
 
 function ActionIcon({ action }: { action: ReportAction }) {
   const className = "h-5 w-5 text-(--color-text-primary)";
@@ -69,15 +49,17 @@ export function UserReportActionModal({
   onSubmit,
   onClose,
 }: Props) {
+  const t = useTranslations("UserReportActionModal");
+  const tCommon = useTranslations("Common");
   const [note, setNote] = useState("");
   const [validationError, setValidationError] = useState<string | null>(null);
-  const copy = ACTION_COPY[action];
+  const copy = getActionCopy(action, targetName, t);
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const trimmedNote = note.trim();
     if (trimmedNote.length < 10) {
-      setValidationError("Add at least 10 characters so the decision can be audited.");
+      setValidationError(t("noteTooShort"));
       return;
     }
     setValidationError(null);
@@ -95,11 +77,11 @@ export function UserReportActionModal({
     >
       <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
         <p id="report-action-description" className="text-sm text-(--color-text-secondary)">
-          {copy.description(targetName)}
+          {copy.description}
         </p>
 
         <label className="flex flex-col gap-2 text-sm font-semibold text-(--color-text-primary)">
-          Decision note
+          {t("decisionNote")}
           <textarea
             autoFocus
             required
@@ -114,7 +96,7 @@ export function UserReportActionModal({
               if (validationError) setValidationError(null);
             }}
             className="min-h-32 resize-y rounded-xl border border-(--color-border-light) bg-(--color-bg-surface) p-3 text-base font-normal text-(--color-text-primary) outline-none transition focus:border-(--color-blue) focus:ring-2 focus:ring-(--color-blue) disabled:cursor-not-allowed disabled:opacity-60"
-            placeholder="Record the evidence and reasoning behind this decision."
+            placeholder={t("notePlaceholder")}
           />
         </label>
 
@@ -134,14 +116,14 @@ export function UserReportActionModal({
             onClick={onClose}
             className="rounded-full border border-(--color-border-light) bg-(--color-bg) px-5 py-2.5 font-semibold text-(--color-text-primary) transition hover:border-(--color-text-secondary) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-blue) disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Cancel
+            {tCommon("cancel")}
           </button>
           <button
             type="submit"
             disabled={loading}
             className="rounded-full bg-(--color-text-primary) px-5 py-2.5 font-semibold text-(--color-bg) transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-blue) disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {loading ? "Saving…" : copy.confirmLabel}
+            {loading ? tCommon("saving") : copy.confirmLabel}
           </button>
         </div>
       </form>

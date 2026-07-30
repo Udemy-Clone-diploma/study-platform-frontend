@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { PageShell } from "@/shared/ui/PageShell";
 import { Pagination } from "@/shared/ui/Pagination";
@@ -16,6 +17,7 @@ import { CategoryFormModal } from "./CategoryFormModal";
 const PAGE_SIZE = 10;
 
 export function CategoriesAdminView() {
+  const t = useTranslations("CategoriesAdminView");
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -74,13 +76,13 @@ export function CategoriesAdminView() {
         }
         setCategories([]);
         setCount(0);
-        setListError(apiError.message ?? "Failed to load categories.");
+        setListError(apiError.message ?? t("loadError"));
         setLoadedKey(queryKey);
       });
     return () => {
       cancelled = true;
     };
-  }, [page, search, ordering, queryKey, updateParams]);
+  }, [page, search, ordering, queryKey, updateParams, t]);
 
   const refresh = useCallback(() => setRefreshKey((key) => key + 1), []);
 
@@ -100,7 +102,7 @@ export function CategoriesAdminView() {
         prev.map((c) => (c.id === updated.id ? { ...c, featured_order: updated.featured_order } : c)),
       );
     } catch (err) {
-      setFeaturedError((err as ApiError).message ?? "Failed to update the featured order.");
+      setFeaturedError((err as ApiError).message ?? t("featuredUpdateError"));
     } finally {
       setFeaturedSavingId(null);
     }
@@ -115,21 +117,19 @@ export function CategoriesAdminView() {
       setDeleteTarget(null);
       refresh();
     } catch (err) {
-      setDeleteError((err as ApiError).message ?? "Something went wrong.");
+      setDeleteError((err as ApiError).message ?? t("genericError"));
     } finally {
       setDeleteLoading(false);
     }
   }
 
   const totalPages = Math.max(1, Math.ceil(count / PAGE_SIZE));
-  const emptyMessage = loading ? "Loading categories…" : "No categories found.";
+  const emptyMessage = loading ? t("loadingCategories") : t("noCategoriesFound");
 
   const deleteDescription = deleteTarget
     ? deleteTarget.courses_count
-      ? `Delete ${deleteTarget.name}? It is still assigned to ${deleteTarget.courses_count} ${
-          deleteTarget.courses_count === 1 ? "course" : "courses"
-        }, so deletion may be rejected until they are moved to another category.`
-      : `Delete ${deleteTarget.name}? This cannot be undone.`
+      ? t("deleteConfirmWithCourses", { name: deleteTarget.name, count: deleteTarget.courses_count })
+      : t("deleteConfirmSimple", { name: deleteTarget.name })
     : "";
 
   return (
@@ -143,7 +143,7 @@ export function CategoriesAdminView() {
             margin: "0 0 clamp(16px, 1.67vw, 24px)",
           }}
         >
-          Categories
+          {t("title")}
         </h1>
 
         <div style={{ marginBottom: "clamp(16px, 1.67vw, 24px)" }}>
@@ -224,9 +224,9 @@ export function CategoriesAdminView() {
 
       {deleteTarget && (
         <ConfirmActionModal
-          title="Delete category"
+          title={t("deleteCategoryTitle")}
           description={deleteDescription}
-          confirmLabel="Delete"
+          confirmLabel={t("deleteConfirmLabel")}
           loading={deleteLoading}
           error={deleteError}
           onConfirm={handleConfirmDelete}

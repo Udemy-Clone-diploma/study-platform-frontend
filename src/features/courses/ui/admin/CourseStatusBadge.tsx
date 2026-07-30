@@ -1,19 +1,29 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { CourseStatus } from "@/entities/course";
 
-const STATUS_CONFIG: Record<CourseStatus, { label: string; accent: string; filled?: boolean }> = {
-  draft: { label: "Draft", accent: "var(--color-text-secondary)" },
-  review: { label: "Moderation", accent: "var(--color-warning)" },
-  needs_revision: { label: "Needs revision", accent: "var(--color-warning)" },
-  rejected: { label: "Rejected", accent: "var(--color-rejected)" },
-  published: { label: "Published", accent: "var(--color-success)" },
-  hidden: { label: "Hidden", accent: "var(--color-rejected)", filled: true },
-  archived: { label: "Archived", accent: "var(--color-text-secondary)" },
-};
+type Translator = (key: string, values?: Record<string, string | number>) => string;
+
+function statusConfig(
+  status: CourseStatus,
+  t: Translator,
+): { label: string; accent: string; filled?: boolean } {
+  const config: Record<CourseStatus, { accent: string; filled?: boolean }> = {
+    draft: { accent: "var(--color-text-secondary)" },
+    review: { accent: "var(--color-warning)" },
+    needs_revision: { accent: "var(--color-warning)" },
+    rejected: { accent: "var(--color-rejected)" },
+    published: { accent: "var(--color-success)" },
+    hidden: { accent: "var(--color-rejected)", filled: true },
+    archived: { accent: "var(--color-text-secondary)" },
+  };
+  return { label: t(status), ...(config[status] ?? config.draft) };
+}
 
 export function CourseStatusBadge({ status }: { status: CourseStatus }) {
-  const config = STATUS_CONFIG[status] ?? STATUS_CONFIG.draft;
+  const t = useTranslations("CourseStatusBadge");
+  const config = statusConfig(status, t);
 
   return (
     <span

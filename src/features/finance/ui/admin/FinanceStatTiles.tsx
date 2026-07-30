@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import { TrendingDown, TrendingUp } from "lucide-react";
 import { formatMoney, MONEY_UNAVAILABLE } from "@/entities/payment";
 import type {
@@ -18,13 +19,6 @@ type Props = {
   loading: boolean;
 };
 
-const TILES: { key: TileKey; label: string; hint: string; upIsGood: boolean | null }[] = [
-  { key: "gross_revenue", label: "Total revenue", hint: "Charged, before refunds", upIsGood: true },
-  { key: "refunded_amount", label: "Refunded", hint: "Returned to students", upIsGood: false },
-  { key: "net_revenue", label: "Net revenue", hint: "Gross minus refunds", upIsGood: true },
-  { key: "pending_amount", label: "Pending", hint: "Not settled yet", upIsGood: null },
-];
-
 function percentChange(current: string, previous: string): number | null {
   const now = Number(current);
   const before = Number(previous);
@@ -33,11 +27,38 @@ function percentChange(current: string, previous: string): number | null {
 }
 
 export function FinanceStatTiles({ summary, currency, error, loading }: Props) {
+  const t = useTranslations("FinanceStatTiles");
+  const locale = useLocale();
+
+  const TILES: { key: TileKey; label: string; hint: string; upIsGood: boolean | null }[] = [
+    { key: "gross_revenue", label: t("totalRevenue"), hint: t("totalRevenueHint"), upIsGood: true },
+    { key: "refunded_amount", label: t("refunded"), hint: t("refundedHint"), upIsGood: false },
+    { key: "net_revenue", label: t("netRevenue"), hint: t("netRevenueHint"), upIsGood: true },
+    { key: "pending_amount", label: t("pending"), hint: t("pendingHint"), upIsGood: null },
+  ];
+
   const totals: PaymentCurrencyTotals | null =
     summary?.by_currency.find((row) => row.currency === currency) ?? null;
   const previousTotals: PaymentCurrencyTotals | null =
     summary?.previous?.by_currency.find((row) => row.currency === currency) ?? null;
   const counts = summary?.counts;
+
+  const summaryText = counts
+    ? [
+        `${t("summaryTotal", { count: counts.total })}: ${[
+          t("summarySucceeded", { count: counts.succeeded }),
+          t("summaryPending", { count: counts.pending + counts.processing }),
+          t("summaryFailed", { count: counts.failed }),
+          t("summaryRefunded", { count: counts.refunded }),
+        ].join(", ")}`,
+        counts.partially_refunded > 0
+          ? `, ${t("summaryPartiallyRefunded", { count: counts.partially_refunded })}`
+          : "",
+        summary?.previous
+          ? ` · ${t("summaryComparedWith", { from: summary.previous.date_from, to: summary.previous.date_to })}`
+          : "",
+      ].join("")
+    : "";
 
   return (
     <div className="flex flex-col" style={{ gap: "clamp(8px, 0.83vw, 12px)" }}>
@@ -75,7 +96,7 @@ export function FinanceStatTiles({ summary, currency, error, loading }: Props) {
                   padding: "4px 10px",
                 }}
               >
-                {totals ? formatMoney(totals[tile.key], currency) : MONEY_UNAVAILABLE}
+                {totals ? formatMoney(totals[tile.key], currency, locale) : MONEY_UNAVAILABLE}
               </span>
 
               {change === null ? (
@@ -86,7 +107,7 @@ export function FinanceStatTiles({ summary, currency, error, loading }: Props) {
                   {tile.hint}
                 </span>
               ) : (
-                <ChangeCaption change={change} upIsGood={tile.upIsGood} />
+                <ChangeCaption change={change} upIsGood={tile.upIsGood} locale={locale} suffix={t("vsPreviousPeriod")} />
               )}
             </div>
           );
@@ -102,25 +123,30 @@ export function FinanceStatTiles({ summary, currency, error, loading }: Props) {
         }}
       >
         {error ? (
-          <span className="text-(--color-danger)">Totals unavailable: {error}</span>
+          <span className="text-(--color-danger)">{t("errorPrefix", { error })}</span>
         ) : loading ? (
-          "Loading totals…"
+          t("loadingTotals")
         ) : !counts ? (
-          "No transactions match these filters."
+          t("noTransactionsMatch")
         ) : (
-          <>
-            {`${counts.total} transactions across all currencies: ${counts.succeeded} succeeded, ${counts.pending + counts.processing} pending, ${counts.failed} failed, ${counts.refunded} fully refunded`}
-            {counts.partially_refunded > 0 && `, ${counts.partially_refunded} partially refunded`}
-            {summary?.previous &&
-              ` · compared with ${summary.previous.date_from} to ${summary.previous.date_to}`}
-          </>
+          summaryText
         )}
       </p>
     </div>
   );
 }
 
-function ChangeCaption({ change, upIsGood }: { change: number; upIsGood: boolean | null }) {
+function ChangeCaption({
+  change,
+  upIsGood,
+  locale,
+  suffix,
+}: {
+  change: number;
+  upIsGood: boolean | null;
+  locale: string;
+  suffix: string;
+}) {
   const up = change >= 0;
   const Icon = up ? TrendingUp : TrendingDown;
   const color =
@@ -129,6 +155,12 @@ function ChangeCaption({ change, upIsGood }: { change: number; upIsGood: boolean
       : up === upIsGood
         ? "var(--color-success)"
         : "var(--color-rejected)";
+
+  const formattedChange = new Intl.NumberFormat(locale, {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+    signDisplay: "exceptZero",
+  }).format(change);
 
   return (
     <span
@@ -141,8 +173,7 @@ function ChangeCaption({ change, upIsGood }: { change: number; upIsGood: boolean
       }}
     >
       <Icon aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />
-      {up ? "+" : ""}
-      {change.toFixed(1)}% vs previous period
+      {formattedChange}% {suffix}
     </span>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useAutoRefresh } from "@/shared/lib/useAutoRefresh";
 import { PageShell } from "@/shared/ui/PageShell";
 import {
@@ -23,21 +24,25 @@ import {
   type ModeratorCourseTab,
 } from "@/features/courses/ui/ModeratorCoursesTable";
 
-const TABS = [
-  { key: "unassigned", label: "Unassigned" },
-  { key: "review", label: "Under review" },
-  { key: "needs_revision", label: "Requires revision" },
-  { key: "approved", label: "Approved" },
-  { key: "rejected", label: "Rejected" },
-] as const;
+const TAB_KEYS = ["unassigned", "review", "needs_revision", "approved", "rejected"] as const;
 
-type TabKey = (typeof TABS)[number]["key"];
+type TabKey = (typeof TAB_KEYS)[number];
+
+const TAB_LABEL_KEYS: Record<TabKey, string> = {
+  unassigned: "tabUnassigned",
+  review: "tabUnderReview",
+  needs_revision: "tabRequiresRevision",
+  approved: "tabApproved",
+  rejected: "tabRejected",
+};
 
 export default function ModeratorCoursesPage() {
+  const t = useTranslations("ModeratorCoursesPage");
+  const tTeacherCourses = useTranslations("TeacherCoursesPage");
   const [activeTab, setActiveTab] = useState<TabKey>(() => {
     if (typeof window === "undefined") return "unassigned";
     const tab = new URLSearchParams(window.location.search).get("tab");
-    return (TABS.some((item) => item.key === tab) ? tab : "unassigned") as TabKey;
+    return ((TAB_KEYS as readonly string[]).includes(tab ?? "") ? tab : "unassigned") as TabKey;
   });
   const [unassigned, setUnassigned] = useState<CourseListItem[]>([]);
   const [myCourses, setMyCourses] = useState<CourseListItem[]>([]);
@@ -72,7 +77,7 @@ export default function ModeratorCoursesPage() {
 
     loadCourses()
       .catch((requestError: Partial<ApiError>) => {
-        if (!cancelled) setError(requestError.message ?? "Failed to load courses.");
+        if (!cancelled) setError(requestError.message ?? tTeacherCourses("errorLoad"));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -81,7 +86,7 @@ export default function ModeratorCoursesPage() {
     return () => {
       cancelled = true;
     };
-  }, [loadCourses]);
+  }, [loadCourses, tTeacherCourses]);
 
   const refresh = useCallback(() => {
     void loadCourses().catch(() => {});
@@ -126,7 +131,7 @@ export default function ModeratorCoursesPage() {
       setPendingSlug(null);
     } catch (requestError: unknown) {
       setAssignError(
-        (requestError as Partial<ApiError>).message ?? "Failed to assign. Please try again.",
+        (requestError as Partial<ApiError>).message ?? t("assignFailedError"),
       );
     } finally {
       setAssigning(false);
@@ -146,15 +151,15 @@ export default function ModeratorCoursesPage() {
             margin: "0 0 clamp(16px, 1.67vw, 24px)",
           }}
         >
-          Courses
+          {t("pageTitle")}
         </h1>
 
         <nav
-          aria-label="Moderation filter"
+          aria-label={t("filterAriaLabel")}
           className="flex flex-wrap items-center"
           style={{ gap: "clamp(12px, 2.6vw, 50px)", marginBottom: "clamp(16px, 1.67vw, 24px)" }}
         >
-          {TABS.map(({ key, label }) => (
+          {TAB_KEYS.map((key) => (
             <button
               key={key}
               type="button"
@@ -170,34 +175,34 @@ export default function ModeratorCoursesPage() {
               }`}
               style={{ fontSize: "clamp(14px, 1.25vw, 24px)" }}
             >
-              {label}
+              {t(TAB_LABEL_KEYS[key])}
             </button>
           ))}
         </nav>
 
         {loading ? (
-          <p className="mt-16 text-center text-lg text-(--color-text-secondary)">Loading…</p>
+          <p className="mt-16 text-center text-lg text-(--color-text-secondary)">{tTeacherCourses("loading")}</p>
         ) : error ? (
           <p className="mt-16 text-center text-lg text-red-500">{error}</p>
         ) : activeTab === "approved" ? (
           <ModeratorHistoryTable
             records={approvedRecords}
             status="approved"
-            emptyMessage="No approved courses."
+            emptyMessage={t("noApprovedCourses")}
             onView={(record) => setViewApproved(record as ApprovedCourseRecord)}
           />
         ) : activeTab === "rejected" ? (
           <ModeratorHistoryTable
             records={rejected}
             status="rejected"
-            emptyMessage="No rejected courses."
+            emptyMessage={tTeacherCourses("noRejectedCourses")}
             onView={(record) => setViewRejected(record as RejectedCourseRecord)}
           />
         ) : (
           <ModeratorCoursesTable
             courses={visibleCourses}
             tab={activeTab as ModeratorCourseTab}
-            emptyMessage="No courses found."
+            emptyMessage={tTeacherCourses("noCoursesFound")}
             onAssign={(course) => {
               setAssignError("");
               setPendingSlug(course.slug);
@@ -216,12 +221,9 @@ export default function ModeratorCoursesPage() {
 
       {pendingSlug ? (
         <CourseConfirmModal
-          title="Assign as moderator"
-          description={
-            assignError ||
-            "Assign yourself as moderator for this course? It will appear in your assigned list."
-          }
-          confirmLabel="Assign to me"
+          title={t("assignModalTitle")}
+          description={assignError || t("assignModalDescription")}
+          confirmLabel={t("assignConfirmLabel")}
           loading={assigning}
           onConfirm={handleAssignConfirm}
           onCancel={() => {

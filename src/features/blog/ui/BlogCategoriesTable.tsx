@@ -1,6 +1,7 @@
 "use client";
 
 import { Pencil, Trash2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import type { BlogCategory } from "@/entities/blog";
 import { DataTable, type DataTableColumn } from "@/shared/ui/DataTable";
 
@@ -13,10 +14,11 @@ type Props = {
 
 /** Blog categories table — same DataTable card look as the course catalog's CategoriesTable. */
 export function BlogCategoriesTable({ categories, emptyMessage, onEdit, onDelete }: Props) {
+  const t = useTranslations("BlogCategoriesTable");
   const columns: DataTableColumn<BlogCategory>[] = [
     {
       key: "name",
-      label: "Category",
+      label: t("columnCategory"),
       flex: 1.8,
       render: (row) => (
         <div className="flex min-w-0 items-center" style={{ gap: "clamp(8px, 0.83vw, 12px)" }}>
@@ -29,7 +31,7 @@ export function BlogCategoriesTable({ categories, emptyMessage, onEdit, onDelete
     },
     {
       key: "slug",
-      label: "Slug",
+      label: t("columnSlug"),
       flex: 1.2,
       render: (row) => (
         <span className="block overflow-hidden text-ellipsis whitespace-nowrap text-(--color-text-secondary)">
@@ -39,7 +41,7 @@ export function BlogCategoriesTable({ categories, emptyMessage, onEdit, onDelete
     },
     {
       key: "headline",
-      label: "Headline",
+      label: t("columnHeadline"),
       flex: 1.8,
       render: (row) => (
         <span className="block overflow-hidden text-ellipsis whitespace-nowrap">
@@ -49,7 +51,7 @@ export function BlogCategoriesTable({ categories, emptyMessage, onEdit, onDelete
     },
     {
       key: "description",
-      label: "Description",
+      label: t("columnDescription"),
       flex: 2,
       render: (row) => (
         <span className="block overflow-hidden text-ellipsis whitespace-nowrap">
@@ -59,7 +61,7 @@ export function BlogCategoriesTable({ categories, emptyMessage, onEdit, onDelete
     },
     {
       key: "articles",
-      label: "Articles",
+      label: t("columnArticles"),
       flex: 0.8,
       headerAlign: "center",
       cellAlign: "center",
@@ -67,16 +69,16 @@ export function BlogCategoriesTable({ categories, emptyMessage, onEdit, onDelete
     },
     {
       key: "actions",
-      label: "Actions",
+      label: t("columnActions"),
       flex: 1,
       headerAlign: "center",
       cellAlign: "center",
       render: (row) => (
         <div className="flex items-center justify-center" style={{ gap: "clamp(4px, 0.56vw, 8px)" }}>
-          <ActionButton title="Edit category" onClick={() => onEdit(row)}>
+          <ActionButton title={t("editCategoryTitle")} onClick={() => onEdit(row)}>
             <Pencil size={16} />
           </ActionButton>
-          <ActionButton title="Delete category" onClick={() => onDelete(row)} danger>
+          <ActionButton title={t("deleteCategoryTitle")} onClick={() => onDelete(row)} danger>
             <Trash2 size={16} />
           </ActionButton>
         </div>

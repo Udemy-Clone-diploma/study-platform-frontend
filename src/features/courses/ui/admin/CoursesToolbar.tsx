@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Check, RefreshCw, Search, SlidersHorizontal } from "lucide-react";
 import type { Category } from "@/entities/course";
 
@@ -23,6 +24,9 @@ export function CoursesToolbar({
   onRefresh,
   refreshing,
 }: Props) {
+  const t = useTranslations("CoursesToolbar");
+  const tTable = useTranslations("CoursesTable");
+  const tCommon = useTranslations("Common");
   const [query, setQuery] = useState(search);
   const [prevSearch, setPrevSearch] = useState(search);
   const [filterOpen, setFilterOpen] = useState(false);
@@ -51,7 +55,7 @@ export function CoursesToolbar({
   }, [filterOpen]);
 
   const categoryOptions: { label: string; value: string | null }[] = [
-    { label: "All categories", value: null },
+    { label: t("allCategories"), value: null },
     ...categories.map((c) => ({ label: c.name, value: c.slug })),
   ];
   const activeCategoryLabel = categoryOptions.find(
@@ -76,7 +80,7 @@ export function CoursesToolbar({
         />
         <input
           type="search"
-          placeholder="Search"
+          placeholder={tCommon("search")}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="min-w-0 flex-1 bg-transparent outline-none"
@@ -85,7 +89,7 @@ export function CoursesToolbar({
             fontSize: "clamp(14px, 1.11vw, 18px)",
             color: "var(--color-text-primary)",
           }}
-          aria-label="Search courses"
+          aria-label={t("searchAriaLabel")}
         />
       </label>
 
@@ -108,7 +112,7 @@ export function CoursesToolbar({
             aria-hidden="true"
             style={{ width: "clamp(14px, 1.11vw, 18px)", height: "clamp(14px, 1.11vw, 18px)" }}
           />
-          {activeCategoryLabel ?? "All Filter"}
+          {activeCategoryLabel ?? t("allFilter")}
         </button>
 
         {filterOpen && (
@@ -122,7 +126,7 @@ export function CoursesToolbar({
             }}
           >
             <FilterGroup
-              heading="Category"
+              heading={tTable("columnCategory")}
               options={categoryOptions}
               selected={category}
               onSelect={(value) => {
@@ -137,8 +141,8 @@ export function CoursesToolbar({
       <button
         type="button"
         onClick={onRefresh}
-        title="Refresh course list"
-        aria-label="Refresh course list"
+        title={t("refreshCourseList")}
+        aria-label={t("refreshCourseList")}
         className="flex cursor-pointer items-center justify-center rounded-full bg-white text-(--color-text-primary) transition hover:opacity-80"
         style={{
           width: "clamp(34px, 2.78vw, 40px)",

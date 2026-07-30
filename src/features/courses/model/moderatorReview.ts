@@ -17,17 +17,27 @@ export const BASICS_FIELD_KEYS = [
   "field-level",
 ];
 
-export const SUBMIT_LABEL: Record<NonNullable<ModeratorAction>, string> = {
-  approved:       "Approve & Publish",
-  needs_revision: "Send for revision",
-  rejected:       "Reject course",
-};
+type Translator = (key: string, values?: Record<string, string | number>) => string;
 
-export const CONTENT_ACTIONS: { key: NonNullable<ItemStatus>; label: string; color: string }[] = [
-  { key: "approved",       label: "Approved",          color: "var(--color-success)" },
-  { key: "rejected",       label: "Rejected",          color: "var(--color-rejected)" },
-  { key: "needs_revision", label: "Requires Revision", color: "var(--color-warning)" },
-];
+/** Build the SUBMIT_LABEL map from a `ModerationNavButtons` translator. */
+export function getSubmitLabels(t: Translator): Record<NonNullable<ModeratorAction>, string> {
+  return {
+    approved:       t("submitApproved"),
+    needs_revision: t("submitNeedsRevision"),
+    rejected:       t("submitRejected"),
+  };
+}
+
+/** Build the CONTENT_ACTIONS list from a `CourseBasicsForm` translator (shares its status labels). */
+export function getContentActions(
+  t: Translator,
+): { key: NonNullable<ItemStatus>; label: string; color: string }[] {
+  return [
+    { key: "approved",       label: t("statusApproved"),      color: "var(--color-success)" },
+    { key: "rejected",       label: t("statusRejected"),       color: "var(--color-rejected)" },
+    { key: "needs_revision", label: t("statusNeedsRevision"), color: "var(--color-warning)" },
+  ];
+}
 
 export type StepProps = {
   course: CourseDetail | null;

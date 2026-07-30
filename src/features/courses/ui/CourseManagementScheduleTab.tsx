@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import {
   ChevronDown,
   Pencil,
@@ -24,7 +24,7 @@ import type {
   TeacherUnavailabilityPayload,
 } from "@/entities/course/model/schedule";
 import { DAY_KEYS } from "@/entities/course/model/schedule";
-import { padTwo, timeToMinutes, minutesToTime, fmtTime } from "@/shared/lib/time";
+import { padTwo, timeToMinutes, minutesToTime, fmtTime, formatDate } from "@/shared/lib/time";
 import type { EnrolledStudent } from "@/entities/course/model/cohortGroup";
 import {
   assignScheduleSlot,
@@ -1586,21 +1586,30 @@ function UnavailabilityRow({
   onDelete: (id: number) => Promise<void>;
 }) {
   const t = useTranslations("CourseManagementScheduleTab");
+  const tDays = useTranslations("Days");
+  const locale = useLocale();
   const [deleting, setDeleting] = useState(false);
+
+  const dayLabel = tDays(DAY_KEYS[block.day_of_week]);
+  const recurrenceLabel =
+    block.recurrence_type === "one_time"
+      ? t("recurrenceOneTime")
+      : block.recurrence_type === "date_range"
+      ? t("recurrenceDateRange")
+      : t("recurrenceWeekly");
 
   const isAllDay = block.start_time.startsWith("00:00") && block.end_time >= "23:59";
   const timeStr = isAllDay ? t("allDay") : `${fmtTime(block.start_time)} – ${fmtTime(block.end_time)}`;
   function fmtDate(iso: string | null) {
     if (!iso) return "";
-    const [y, m, d] = iso.split("-");
-    return `${d}.${m}.${y}`;
+    return formatDate(iso, locale);
   }
   const dateStr =
     block.recurrence_type === "date_range"
       ? `${fmtDate(block.date)} – ${fmtDate(block.date_to)}`
       : block.recurrence_type === "one_time"
-      ? fmtDate(block.date) || block.day_of_week_display
-      : block.day_of_week_display;
+      ? fmtDate(block.date) || dayLabel
+      : dayLabel;
 
   return (
     <div style={{
@@ -1623,7 +1632,7 @@ function UnavailabilityRow({
           fontSize: "clamp(9px, 0.6vw, 11px)", color: "var(--color-text-secondary)",
           textTransform: "uppercase", letterSpacing: "0.04em",
         }}>
-          {block.recurrence_type_display}
+          {recurrenceLabel}
           {block.reason ? ` — ${block.reason}` : ""}
         </span>
       </div>

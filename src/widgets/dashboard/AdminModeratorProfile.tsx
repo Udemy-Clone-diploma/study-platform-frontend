@@ -3,6 +3,7 @@
 import { Link } from "@/i18n/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { AlertCircle, ArrowLeft, Loader2 } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import { getAdminModeratorDashboard, type ModeratorDashboardData } from "@/entities/user";
 import type { ApiError } from "@/shared/api/base";
 import { PageShell } from "@/shared/ui/PageShell";
@@ -22,6 +23,9 @@ function moderatorName(data: ModeratorDashboardData): string {
 }
 
 export function AdminModeratorProfile({ moderatorId }: { moderatorId: number }) {
+  const t = useTranslations("AdminModeratorProfile");
+  const tRoles = useTranslations("PublicProfile.roles");
+  const locale = useLocale();
   const [result, setResult] = useState<{
     moderatorId: number;
     data: ModeratorDashboardData | null;
@@ -47,15 +51,15 @@ export function AdminModeratorProfile({ moderatorId }: { moderatorId: number }) 
           data: null,
           error:
             apiError.status === 404
-              ? "This moderator profile does not exist."
-              : apiError.message || "The moderator profile could not be loaded.",
+              ? t("notFoundError")
+              : apiError.message || t("loadError"),
         });
       });
 
     return () => {
       active = false;
     };
-  }, [moderatorId]);
+  }, [moderatorId, t]);
 
   const socials = useMemo<UserIdentitySocial[]>(() => {
     if (!data) return [];
@@ -74,12 +78,12 @@ export function AdminModeratorProfile({ moderatorId }: { moderatorId: number }) 
           className="mb-5 inline-flex items-center gap-2 text-sm text-(--color-blue-dark) transition hover:text-(--color-blue)"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to moderators
+          {t("backToModerators")}
         </Link>
 
         {loading ? (
           <div className="flex min-h-72 items-center justify-center text-(--color-blue)">
-            <Loader2 className="h-7 w-7 animate-spin" aria-label="Loading moderator profile" />
+            <Loader2 className="h-7 w-7 animate-spin" aria-label={t("loadingProfileAriaLabel")} />
           </div>
         ) : null}
 
@@ -97,11 +101,11 @@ export function AdminModeratorProfile({ moderatorId }: { moderatorId: number }) 
           <>
             <header className="mb-6">
               <h1 className="text-3xl font-semibold text-(--color-text-primary)">
-                Moderator profile
+                {t("moderatorProfile")}
               </h1>
               <p className="mt-1 text-sm text-(--color-text-secondary)">
-                {data.moderator.email} · Joined{" "}
-                {new Date(data.moderator.date_joined).toLocaleDateString()}
+                {data.moderator.email} ·{" "}
+                {t("joined", { date: new Date(data.moderator.date_joined).toLocaleDateString(locale) })}
               </p>
             </header>
 
@@ -114,13 +118,13 @@ export function AdminModeratorProfile({ moderatorId }: { moderatorId: number }) 
                   topLeftAction={
                     <span className="rounded-full bg-(--color-brand-cream) px-3 py-1 text-xs text-(--color-yellow-dark)">
                       {data.moderator.status === "active" && !data.moderator.is_blocked
-                        ? "Active"
-                        : "Inactive"}
+                        ? t("active")
+                        : t("inactive")}
                     </span>
                   }
                   topRightAction={
                     <span className="rounded-full bg-(--color-brand-lavender-soft) px-3 py-1 text-xs capitalize text-(--color-blue-dark)">
-                      {data.moderator.profile.level || "Moderator"}
+                      {data.moderator.profile.level || tRoles("moderator")}
                     </span>
                   }
                 />
@@ -128,7 +132,7 @@ export function AdminModeratorProfile({ moderatorId }: { moderatorId: number }) 
 
               <div className="min-w-0">
                 <p className="mb-3 text-sm text-(--color-text-secondary)">
-                  Performance for {data.period.start} – {data.period.end}
+                  {t("performanceFor", { start: data.period.start, end: data.period.end })}
                 </p>
                 <ModeratorMetricGrid metrics={data.metrics} />
               </div>

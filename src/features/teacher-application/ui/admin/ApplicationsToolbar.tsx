@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { RefreshCw, Search } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 type Props = {
   search: string;
@@ -12,6 +13,8 @@ type Props = {
 
 /** Search + refresh row for the teacher applications table, styled to match UsersToolbar on the admin Users page. */
 export function ApplicationsToolbar({ search, onSearchChange, onRefresh, refreshing }: Props) {
+  const t = useTranslations("TeacherApplicationsAdmin");
+  const tCommon = useTranslations("Common");
   const [query, setQuery] = useState(search);
   const [prevSearch, setPrevSearch] = useState(search);
 
@@ -44,7 +47,7 @@ export function ApplicationsToolbar({ search, onSearchChange, onRefresh, refresh
         />
         <input
           type="search"
-          placeholder="Search"
+          placeholder={tCommon("search")}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="min-w-0 flex-1 bg-transparent outline-none"
@@ -53,15 +56,15 @@ export function ApplicationsToolbar({ search, onSearchChange, onRefresh, refresh
             fontSize: "clamp(14px, 1.11vw, 18px)",
             color: "var(--color-text-primary)",
           }}
-          aria-label="Search applications"
+          aria-label={t("searchAriaLabel")}
         />
       </label>
 
       <button
         type="button"
         onClick={onRefresh}
-        title="Refresh applications"
-        aria-label="Refresh applications"
+        title={t("refreshAriaLabel")}
+        aria-label={t("refreshAriaLabel")}
         className="flex cursor-pointer items-center justify-center rounded-full bg-white text-(--color-text-primary) transition hover:opacity-80"
         style={{
           width: "clamp(34px, 2.78vw, 40px)",

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { ModalShell } from "@/shared/ui/ModalShell";
 import { AccentButton } from "@/shared/ui/AccentButton";
 import { WhiteButton } from "@/shared/ui/WhiteButton";
@@ -25,6 +26,8 @@ export function BlogCategoryDeleteModal({
   onConfirm,
   onCancel,
 }: Props) {
+  const t = useTranslations("BlogCategoryDeleteModal");
+  const tCommon = useTranslations("Common");
   const hasArticles = !!category.articles_count;
   const [resolution, setResolution] = useState<"archive" | "move">("archive");
   const [targetSlug, setTargetSlug] = useState(otherCategories[0]?.slug ?? "");
@@ -39,12 +42,11 @@ export function BlogCategoryDeleteModal({
   }
 
   const count = category.articles_count ?? 0;
-  const noun = count === 1 ? "article" : "articles";
 
   return (
     <ModalShell
       onClose={onCancel}
-      title="Delete Category"
+      title={t("title")}
       width="clamp(320px, 30vw, 480px)"
       padding="clamp(20px, 2.08vw, 30px) clamp(20px, 2.08vw, 32px)"
       shadow="var(--shadow-modal)"
@@ -55,7 +57,7 @@ export function BlogCategoryDeleteModal({
             className="font-(family-name:--font-base) font-normal text-(--color-text-secondary)"
             style={{ fontSize: "clamp(13px, 0.97vw, 16px)", lineHeight: 1.5, margin: "0 0 16px" }}
           >
-            {`"${category.name}" still has ${count} ${noun}. Choose what to do with them before deleting it.`}
+            {t("stillHasArticles", { name: category.name, count })}
           </p>
 
           <div className="flex flex-col" style={{ gap: 10, marginBottom: 20 }}>
@@ -73,7 +75,7 @@ export function BlogCategoryDeleteModal({
                 onChange={() => setResolution("archive")}
                 className="accent-(--color-blue)"
               />
-              <span className="text-(--color-text-primary)">{`Archive all ${count} ${noun}`}</span>
+              <span className="text-(--color-text-primary)">{t("archiveAll", { count })}</span>
             </label>
 
             <label
@@ -91,7 +93,7 @@ export function BlogCategoryDeleteModal({
                 onChange={() => setResolution("move")}
                 className="accent-(--color-blue)"
               />
-              <span className="text-(--color-text-primary)">Move them to another category</span>
+              <span className="text-(--color-text-primary)">{t("moveToAnother")}</span>
             </label>
 
             {resolution === "move" && (
@@ -114,7 +116,7 @@ export function BlogCategoryDeleteModal({
           className="font-(family-name:--font-base) font-normal text-(--color-text-secondary)"
           style={{ fontSize: "clamp(13px, 0.97vw, 16px)", lineHeight: 1.5, margin: "0 0 clamp(20px, 1.67vw, 28px)" }}
         >
-          {`Delete "${category.name}"? This cannot be undone.`}
+          {t("deleteConfirm", { name: category.name })}
         </p>
       )}
 
@@ -134,7 +136,7 @@ export function BlogCategoryDeleteModal({
           disabled={loading}
           style={{ minWidth: "clamp(110px, 9vw, 140px)", height: "clamp(36px, 2.71vw, 44px)", fontSize: "clamp(12px, 0.97vw, 15px)" }}
         >
-          Cancel
+          {tCommon("cancel")}
         </WhiteButton>
         <AccentButton
           size="md"
@@ -142,7 +144,7 @@ export function BlogCategoryDeleteModal({
           disabled={loading || (hasArticles && resolution === "move" && !targetSlug)}
           style={{ minWidth: "clamp(110px, 9vw, 140px)", height: "clamp(36px, 2.71vw, 44px)", fontSize: "clamp(12px, 0.97vw, 15px)" }}
         >
-          {loading ? "Please wait…" : "Delete"}
+          {loading ? tCommon("pleaseWait") : tCommon("delete")}
         </AccentButton>
       </div>
     </ModalShell>

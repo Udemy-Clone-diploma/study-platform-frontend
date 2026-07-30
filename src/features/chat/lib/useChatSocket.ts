@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import type { ChatSocketEvent } from "@/entities/chat";
 
 type SocketStatus = "connecting" | "open" | "closed";
@@ -31,6 +32,7 @@ function resolveWsUrl(): string {
 }
 
 export function useChatSocket({ enabled, onEvent, onOpen }: UseChatSocketOptions) {
+  const t = useTranslations("ChatWorkspace");
   const [status, setStatus] = useState<SocketStatus>("closed");
   const socketRef = useRef<WebSocket | null>(null);
   const reconnectTimer = useRef<number | null>(null);
@@ -105,7 +107,7 @@ export function useChatSocket({ enabled, onEvent, onOpen }: UseChatSocketOptions
         if (event.type === "pong") return;
         onEventRef.current(event as ChatSocketEvent);
       } catch {
-        onEventRef.current({ type: "error", code: "invalid_event", detail: "Invalid event." });
+        onEventRef.current({ type: "error", code: "invalid_event", detail: t("invalidEvent") });
       }
     };
 
@@ -122,7 +124,7 @@ export function useChatSocket({ enabled, onEvent, onOpen }: UseChatSocketOptions
       if (socketRef.current !== socket) return;
       socket.close();
     };
-  }, [clearHeartbeat, clearReconnect, enabled, scheduleReconnect]);
+  }, [clearHeartbeat, clearReconnect, enabled, scheduleReconnect, t]);
 
   useEffect(() => {
     connectRef.current = connect;

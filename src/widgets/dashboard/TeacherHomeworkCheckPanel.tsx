@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { getTeacherCourses } from "@/entities/course";
 import { getHomeworkAssignments, type HomeworkAssignment, type HomeworkSubmission } from "@/entities/homework";
 import { TodoPanel, type DashboardListItem } from "./DashboardOverview";
@@ -19,8 +20,8 @@ const FALLBACK_ICONS = [
   "/icons/diary.svg",
 ] as const;
 
-function assignmentKind(assignment: HomeworkAssignment): string {
-  return assignment.test_detail ? "Test" : "Task";
+function assignmentKind(assignment: HomeworkAssignment, t: (key: string) => string): string {
+  return assignment.test_detail ? t("test") : t("task");
 }
 
 function assignmentVisual(assignment: HomeworkAssignment) {
@@ -44,6 +45,7 @@ function submissionTimestamp(submission: HomeworkSubmission): number {
  * review ("Check") and already-graded ones ("Verified") -- instead of the previous mock rows.
  */
 export function TeacherHomeworkCheckPanel() {
+  const t = useTranslations("TeacherHomeworkCheckPanel");
   const [assignments, setAssignments] = useState<HomeworkAssignment[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [tab, setTab] = useState<"primary" | "secondary">("primary");
@@ -86,7 +88,7 @@ export function TeacherHomeworkCheckPanel() {
       const item: DashboardListItem = {
         id: submission.id,
         course: assignment.course_title,
-        meta: assignmentKind(assignment),
+        meta: assignmentKind(assignment, t),
         title: assignment.title,
         icon,
         accent,
@@ -109,17 +111,17 @@ export function TeacherHomeworkCheckPanel() {
     });
 
     return { toCheck, verified };
-  }, [assignments]);
+  }, [assignments, t]);
 
   return (
     <TodoPanel
-      title="Check"
-      secondaryLabel="Verified"
+      title={t("check")}
+      secondaryLabel={t("verified")}
       activeTab={tab}
       onTabChange={setTab}
       items={tab === "primary" ? toCheck : verified}
       loading={!loaded}
-      emptyLabel={tab === "primary" ? "No submissions waiting for review." : "Nothing verified yet."}
+      emptyLabel={tab === "primary" ? t("noSubmissionsToReview") : t("nothingVerifiedYet")}
       teacher
     />
   );

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { FileText } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { ModalShell } from "@/shared/ui/ModalShell";
 import { ModalFooter } from "@/shared/ui/ModalFooter";
 import { ModeratorNoteBanner } from "@/features/courses";
@@ -29,6 +30,7 @@ export function ArticleFormModal({
   onClose,
   onSave,
 }: Props) {
+  const t = useTranslations("ArticleFormModal");
   const [values, setValues] = useState<ArticleFormValues>(initialValues);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,7 +43,7 @@ export function ArticleFormModal({
     try {
       await onSave(values);
     } catch {
-      setError("Something went wrong. Please try again.");
+      setError(t("error"));
     } finally {
       setLoading(false);
     }
@@ -50,7 +52,7 @@ export function ArticleFormModal({
   return (
     <ModalShell
       onClose={onClose}
-      title="Edit Article"
+      title={t("title")}
       icon={<FileText size={24} style={{ color: "var(--color-text-primary)", flexShrink: 0 }} />}
       width="clamp(480px, 60.42vw, 870px)"
       padding="clamp(20px, 2.78vw, 40px) clamp(24px, 3.47vw, 50px)"

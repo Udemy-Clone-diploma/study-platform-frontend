@@ -4,12 +4,13 @@ import type { CourseListItem } from "../model/types";
 export function formatPrice(
   course: Pick<CourseListItem, "price" | "currency">,
   freeLabel = "Free",
+  locale = "en-US",
 ): string {
   if (course.price == null || Number(course.price) === 0) {
     return freeLabel;
   }
 
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat(locale, {
     style: "currency",
     currency: course.currency ?? "USD",
     maximumFractionDigits: 0,

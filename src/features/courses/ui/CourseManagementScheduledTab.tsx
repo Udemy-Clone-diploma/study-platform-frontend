@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { updateLesson } from "@/entities/course";
 import type { CourseLesson, CourseModule } from "@/entities/course";
 
@@ -19,6 +20,7 @@ function LessonUnlockRow({
   isFirst: boolean;
   onUpdated: (l: CourseLesson) => void;
 }) {
+  const t = useTranslations("CourseManagementScheduledTab");
   const [saving, setSaving] = useState(false);
   const [days, setDays] = useState(
     lesson.unlock_after_days != null ? String(lesson.unlock_after_days) : "",
@@ -72,7 +74,7 @@ function LessonUnlockRow({
           onChange={e => setDays(e.target.value)}
           onBlur={handleDaysBlur}
           disabled={saving}
-          title="Days from course start to unlock this lesson"
+          title={t("daysFromStartTooltip")}
           style={{
             fontFamily: "var(--font-base)", fontSize: "clamp(12px, 0.83vw, 14px)",
             color: "var(--color-text-primary)", textAlign: "center",
@@ -87,7 +89,7 @@ function LessonUnlockRow({
             color: "var(--color-text-muted)", flexShrink: 0,
           }}
         >
-          days
+          {t("days")}
         </span>
       </div>
 
@@ -97,7 +99,7 @@ function LessonUnlockRow({
           type="button"
           disabled={saving}
           onClick={() => patch({ requires_previous: !reqPrev })}
-          title={reqPrev ? "Remove sequential requirement" : "Require previous lesson to be completed first"}
+          title={reqPrev ? t("removeSequentialRequirement") : t("requirePreviousLessonTooltip")}
           style={{
             flexShrink: 0,
             fontFamily: "var(--font-base)", fontWeight: 600,
@@ -110,7 +112,7 @@ function LessonUnlockRow({
             transition: "all 0.15s",
           }}
         >
-          Requires previous
+          {t("requiresPrevious")}
         </button>
       ) : (
         <div style={{ flexShrink: 0, width: 130 }} />
@@ -131,6 +133,7 @@ export function CourseManagementScheduledTab({
   slug: string;
   onLessonUpdated: (moduleId: number, lesson: CourseLesson) => void;
 }) {
+  const t = useTranslations("CourseManagementScheduledTab");
   const hasLessons = modules.some(m => m.lessons.length > 0);
 
   return (
@@ -154,7 +157,7 @@ export function CourseManagementScheduledTab({
             fontSize: "clamp(14px, 0.94vw, 17px)", color: "var(--color-text-primary)", margin: 0,
           }}
         >
-          Lesson unlock schedule
+          {t("lessonUnlockSchedule")}
         </p>
         <div style={{ display: "flex", gap: 24 }}>
           <span
@@ -164,7 +167,7 @@ export function CourseManagementScheduledTab({
               textTransform: "uppercase", letterSpacing: "0.06em",
             }}
           >
-            Days from start
+            {t("daysFromStart")}
           </span>
           <span
             style={{
@@ -173,7 +176,7 @@ export function CourseManagementScheduledTab({
               textTransform: "uppercase", letterSpacing: "0.06em",
             }}
           >
-            Sequential
+            {t("sequential")}
           </span>
         </div>
       </div>
@@ -185,7 +188,7 @@ export function CourseManagementScheduledTab({
             color: "var(--color-text-muted)", margin: 0,
           }}
         >
-          No lessons in this course yet.
+          {t("noLessonsYet")}
         </p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>

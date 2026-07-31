@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   AlertCircle,
@@ -34,13 +35,7 @@ import type { ApiError } from "@/shared/api/base";
 import { ModalShell } from "@/shared/ui/ModalShell";
 import { PageShell } from "@/shared/ui/PageShell";
 import { ReportReviewModal } from "@/features/users/ui/moderation/UserReportsWorkspace";
-
-const ROLE_LABELS: Record<UserRole, string> = {
-  student: "Student",
-  teacher: "Teacher",
-  moderator: "Moderator",
-  administrator: "Administrator",
-};
+import { getRoleLabels } from "@/features/users/model/labels";
 
 function formatDate(value: string | null | undefined) {
   if (!value) return "Not specified";
@@ -125,12 +120,13 @@ function ExpandableBio({ value }: { value: unknown }) {
 }
 
 function PersonalInformation({ user }: { user: AdminProfileUser }) {
+  const roleLabels = getRoleLabels(useTranslations("PublicProfile.roles"));
   const profileValues = user.profile
     ? Object.entries(user.profile).filter(([key]) => key.toLowerCase() !== "id")
     : [];
   const values: Array<[string, unknown, string]> = [
     ["Email", user.email, "email"],
-    ["Role", ROLE_LABELS[user.role], "role"],
+    ["Role", roleLabels[user.role], "role"],
     ["Language", user.language, "language"],
     ["Status", user.status, "status"],
     ["Joined", formatDate(user.date_joined), "joined"],
@@ -568,6 +564,7 @@ function UserReportsHistory({ reports }: { reports: ProcessedUserReport[] }) {
 }
 
 function PlatformStatsSection({ stats }: { stats: PlatformStats }) {
+  const roleLabels = getRoleLabels(useTranslations("PublicProfile.roles"));
   return (
     <Card>
       <SectionTitle icon={<BarChart3 className="h-5 w-5" />} title="Platform statistics" />
@@ -603,7 +600,7 @@ function PlatformStatsSection({ stats }: { stats: PlatformStats }) {
             {stats.users.by_role.map((row) => (
               <div key={row.role} className="flex justify-between text-sm">
                 <span className="text-(--color-text-secondary)">
-                  {ROLE_LABELS[row.role as UserRole] || formatKey(row.role)}
+                  {roleLabels[row.role as UserRole] || formatKey(row.role)}
                 </span>
                 <span className="font-bold">{row.count}</span>
               </div>
@@ -635,6 +632,7 @@ function AdminProfileView({
   backHref: string;
   backLabel: string;
 }) {
+  const roleLabels = getRoleLabels(useTranslations("PublicProfile.roles"));
   const user = data.user;
   const fullName = `${user.first_name} ${user.last_name}`.trim() || user.email;
   const roleDetails = data.details[user.role];
@@ -656,7 +654,7 @@ function AdminProfileView({
         <header>
           <h1 className="text-3xl font-semibold text-(--color-text-primary)">{fullName}</h1>
           <p className="mt-1 text-sm text-(--color-text-secondary)">
-            {ROLE_LABELS[user.role]} profile
+            {roleLabels[user.role]} profile
           </p>
         </header>
 
@@ -684,7 +682,7 @@ function AdminProfileView({
               </div>
               <h2 className="mt-4 text-xl font-bold text-(--color-text-primary)">{fullName}</h2>
               <span className="mt-2 rounded-full bg-(--color-brand-cream) px-3 py-1 text-sm font-semibold text-(--color-yellow-dark)">
-                {ROLE_LABELS[user.role]}
+                {roleLabels[user.role]}
               </span>
             </Card>
             <PersonalInformation user={user} />

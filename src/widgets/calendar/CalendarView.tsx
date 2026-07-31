@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   Link2,
   Plus,
@@ -210,6 +211,10 @@ function NewEventPanel({
   isUnavailable?: boolean;
   unavailability?: TeacherUnavailability[];
 }) {
+  const t = useTranslations("CalendarView");
+  const tCommon = useTranslations("Common");
+  const tSchedule = useTranslations("ScheduleRail");
+  const tScheduleTab = useTranslations("CourseManagementScheduleTab");
   const [mode, setMode] = useState<NewEventMode>("personal");
   const [title, setTitle] = useState("");
   const [startTime, setStartTime] = useState(`${padTwo(hour)}:00`);
@@ -324,7 +329,7 @@ function NewEventPanel({
     setPersonalConflicts(null);
     if (mode === "personal" || mode === "personal_invite") {
       if (!title.trim()) {
-        setError("Event name is required");
+        setError(t("eventNameRequired"));
         return;
       }
       setIsSubmitting(true);
@@ -352,20 +357,20 @@ function NewEventPanel({
         }
         onSubmitSuccess?.();
       } catch {
-        setError("Failed to save. Please try again.");
+        setError(t("saveFailedRetry"));
         setIsSubmitting(false);
       }
     } else {
       if (!courseId) {
-        setError("Please select a course");
+        setError(t("selectCourseRequired"));
         return;
       }
       if (audience === "group" && !cohortId) {
-        setError("Please select a cohort");
+        setError(t("selectCohortRequired"));
         return;
       }
       if (audience === "individual" && !selectedStudent) {
-        setError("Please select a student");
+        setError(t("selectStudentRequired"));
         return;
       }
       const jsDow = new Date(localDate).getDay();
@@ -388,9 +393,7 @@ function NewEventPanel({
         return false;
       });
       if (blockedByUnavailability) {
-        setError(
-          "You have a personal unavailability block at this time. Remove it first before scheduling a session.",
-        );
+        setError(t("unavailabilityBlocksSession"));
         return;
       }
       setIsSubmitting(true);
@@ -427,7 +430,7 @@ function NewEventPanel({
         });
         onSubmitSuccess?.();
       } catch {
-        setError("Failed to save. Please try again.");
+        setError(t("saveFailedRetry"));
         setIsSubmitting(false);
       }
     }
@@ -436,10 +439,10 @@ function NewEventPanel({
   const isPersonal = mode === "personal" || mode === "personal_invite";
   const submitLabel =
     mode === "personal_invite"
-      ? "Create & invite"
+      ? t("createAndInvite")
       : mode === "extra_session"
-        ? "Create session"
-        : "Add event";
+        ? t("createSession")
+        : t("addEvent");
 
   const SMALL = "clamp(10px, 0.7vw, 12px)";
   const TEXT = "clamp(11px, 0.75vw, 13px)";
@@ -485,14 +488,14 @@ function NewEventPanel({
       {/* ── Event type tabs ── */}
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
         <button type="button" style={tabStyle("personal")} onClick={() => setMode("personal")}>
-          Personal
+          {t("tabPersonal")}
         </button>
         <button
           type="button"
           style={tabStyle("personal_invite")}
           onClick={() => setMode("personal_invite")}
         >
-          With invite
+          {t("tabWithInvite")}
         </button>
         {role === "teacher" && !isUnavailable && (
           <button
@@ -500,14 +503,14 @@ function NewEventPanel({
             style={tabStyle("extra_session")}
             onClick={() => setMode("extra_session")}
           >
-            Extra session
+            {t("tabExtraSession")}
           </button>
         )}
       </div>
 
       {/* ── Date ── */}
       <DatePicker
-        label="Date"
+        label={tScheduleTab("date")}
         value={localDate}
         onChange={(v) => {
           setLocalDate(v);
@@ -518,7 +521,7 @@ function NewEventPanel({
 
       {/* ── Time range ── */}
       <div style={{ display: "flex", gap: 12 }}>
-        <Field label="Start">
+        <Field label={tScheduleTab("start")}>
           <TimePicker
             value={startTime}
             onChange={(v) => {
@@ -527,7 +530,7 @@ function NewEventPanel({
             }}
           />
         </Field>
-        <Field label="End">
+        <Field label={tScheduleTab("end")}>
           <TimePicker
             value={endTime}
             onChange={(v) => {
@@ -540,10 +543,10 @@ function NewEventPanel({
 
       {/* ── Personal / invite fields ── */}
       {isPersonal && (
-        <Field label="Event name">
+        <Field label={t("eventName")}>
           <input
             style={DRAWER_INPUT}
-            placeholder="Title"
+            placeholder={t("titlePlaceholder")}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             autoFocus
@@ -553,10 +556,10 @@ function NewEventPanel({
 
       {/* Meeting link only for "with invite" personal events */}
       {mode === "personal_invite" && (
-        <Field label="Meeting link (optional)">
+        <Field label={t("meetingLinkOptional")}>
           <input
             style={DRAWER_INPUT}
-            placeholder="https://..."
+            placeholder={t("urlPlaceholder")}
             type="url"
             value={meetingLink}
             onChange={(e) => setMeetingLink(e.target.value)}
@@ -567,11 +570,11 @@ function NewEventPanel({
       {/* ── Invite section ── */}
       {mode === "personal_invite" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <span style={DRAWER_LABEL}>Invite people</span>
+          <span style={DRAWER_LABEL}>{t("invitePeople")}</span>
           <div style={{ position: "relative" }}>
             <input
               style={DRAWER_INPUT}
-              placeholder="Search by email…"
+              placeholder={t("searchByEmailPlaceholder")}
               value={emailQuery}
               onChange={(e) => {
                 setEmailQuery(e.target.value);
@@ -643,7 +646,7 @@ function NewEventPanel({
                   margin: "6px 0 0",
                 }}
               >
-                No user found. Check the email address.
+                {t("noUserFound")}
               </p>
             )}
           </div>
@@ -714,7 +717,7 @@ function NewEventPanel({
       {/* ── Extra session fields ── */}
       {mode === "extra_session" && (
         <>
-          <Field label="Course">
+          <Field label={t("course")}>
             {courses === null ? (
               <p
                 style={{
@@ -724,12 +727,12 @@ function NewEventPanel({
                   margin: 0,
                 }}
               >
-                Loading courses…
+                {t("loadingCourses")}
               </p>
             ) : (
               <SelectField
                 options={[
-                  { value: "", label: "— Select course —" },
+                  { value: "", label: t("selectCourseOption") },
                   ...courses.map((c) => ({ value: String(c.id), label: c.title })),
                 ]}
                 value={courseId}
@@ -740,14 +743,14 @@ function NewEventPanel({
                   setCohortId("");
                   setLessonId("");
                 }}
-                placeholder="Select course"
+                placeholder={t("selectCoursePlaceholder")}
               />
             )}
           </Field>
 
           {/* Audience tabs */}
           <div>
-            <span style={DRAWER_LABEL}>Audience</span>
+            <span style={DRAWER_LABEL}>{t("audience")}</span>
             <div style={{ display: "flex", gap: 6 }}>
               <button
                 type="button"
@@ -759,7 +762,7 @@ function NewEventPanel({
                   setStudentQuery("");
                 }}
               >
-                Group
+                {tSchedule("groupSession")}
               </button>
               <button
                 type="button"
@@ -771,14 +774,14 @@ function NewEventPanel({
                   setStudentQuery("");
                 }}
               >
-                Individual
+                {tSchedule("individualSession")}
               </button>
             </div>
           </div>
 
           {/* Group: cohort picker */}
           {audience === "group" && courseSlug && (
-            <Field label="Cohort">
+            <Field label={t("cohort")}>
               {cohorts === null ? (
                 <p
                   style={{
@@ -788,7 +791,7 @@ function NewEventPanel({
                     margin: 0,
                   }}
                 >
-                  Loading cohorts…
+                  {t("loadingCohorts")}
                 </p>
               ) : cohorts.length === 0 ? (
                 <p
@@ -799,20 +802,20 @@ function NewEventPanel({
                     margin: 0,
                   }}
                 >
-                  No cohorts for this course
+                  {t("noCohortsForCourse")}
                 </p>
               ) : (
                 <SelectField
                   options={[
-                    { value: "", label: "— Select cohort —" },
+                    { value: "", label: t("selectCohortOption") },
                     ...cohorts.map((c) => ({
                       value: String(c.id),
-                      label: c.name ?? `Cohort #${c.id}`,
+                      label: c.name ?? t("cohortFallback", { id: c.id }),
                     })),
                   ]}
                   value={cohortId}
                   onChange={setCohortId}
-                  placeholder="Select cohort"
+                  placeholder={t("selectCohortPlaceholder")}
                 />
               )}
             </Field>
@@ -821,7 +824,7 @@ function NewEventPanel({
           {/* Individual: student search */}
           {audience === "individual" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <span style={DRAWER_LABEL}>Student</span>
+              <span style={DRAWER_LABEL}>{t("student")}</span>
               {selectedStudent ? (
                 <div
                   style={{
@@ -878,7 +881,9 @@ function NewEventPanel({
                   <input
                     style={DRAWER_INPUT}
                     placeholder={
-                      enrolledStudents === null ? "Loading students…" : "Search by name or email…"
+                      enrolledStudents === null
+                        ? t("loadingStudents")
+                        : t("searchByNameOrEmailPlaceholder")
                     }
                     value={studentQuery}
                     onChange={(e) => setStudentQuery(e.target.value)}
@@ -903,7 +908,7 @@ function NewEventPanel({
                               margin: "6px 0 0",
                             }}
                           >
-                            No enrolled students found
+                            {t("noEnrolledStudentsFound")}
                           </p>
                         );
                       return (
@@ -968,7 +973,7 @@ function NewEventPanel({
 
           {/* Lesson picker (optional) */}
           {courseSlug && (
-            <Field label="Lecture (optional)">
+            <Field label={t("lectureOptional")}>
               {extraLessons === null ? (
                 <p
                   style={{
@@ -978,26 +983,26 @@ function NewEventPanel({
                     margin: 0,
                   }}
                 >
-                  Loading lessons…
+                  {t("loadingLessons")}
                 </p>
               ) : (
                 <SelectField
                   options={[
-                    { value: "", label: "— No lecture —" },
+                    { value: "", label: t("noLectureOption") },
                     ...extraLessons.map((l) => ({ value: String(l.id), label: l.title })),
                   ]}
                   value={lessonId}
                   onChange={setLessonId}
-                  placeholder="Select lecture"
+                  placeholder={t("selectLecturePlaceholder")}
                 />
               )}
             </Field>
           )}
 
-          <Field label="Meeting link (optional)">
+          <Field label={t("meetingLinkOptional")}>
             <input
               style={DRAWER_INPUT}
-              placeholder="https://..."
+              placeholder={t("urlPlaceholder")}
               type="url"
               value={meetingLink}
               onChange={(e) => setMeetingLink(e.target.value)}
@@ -1042,7 +1047,7 @@ function NewEventPanel({
                 margin: 0,
               }}
             >
-              Time conflict — cannot create event
+              {t("timeConflictCannotCreateEvent")}
             </p>
             {personalConflicts.sessions.map((s) => (
               <p
@@ -1054,8 +1059,12 @@ function NewEventPanel({
                   margin: 0,
                 }}
               >
-                {s.type === "group" ? "Group" : "Individual"} session: {s.title} · {s.start_time}–
-                {s.end_time}
+                {t("conflictSessionLine", {
+                  type: s.type === "group" ? tSchedule("groupSession") : tSchedule("individualSession"),
+                  title: s.title,
+                  start: s.start_time,
+                  end: s.end_time,
+                })}
               </p>
             ))}
             {personalConflicts.personal_events.map((e) => (
@@ -1068,7 +1077,7 @@ function NewEventPanel({
                   margin: 0,
                 }}
               >
-                Personal event: {e.title} · {e.start_time}–{e.end_time}
+                {t("conflictPersonalEventLine", { title: e.title, start: e.start_time, end: e.end_time })}
               </p>
             ))}
           </div>
@@ -1097,7 +1106,7 @@ function NewEventPanel({
                 margin: 0,
               }}
             >
-              Time conflict — cannot create session
+              {t("timeConflictCannotCreateSession")}
             </p>
             {sessionConflicts.sessions.map((s) => (
               <p
@@ -1109,8 +1118,17 @@ function NewEventPanel({
                   margin: 0,
                 }}
               >
-                {s.type === "group" ? "Group" : s.type === "extra" ? "Extra" : "Individual"}{" "}
-                session: {s.title} · {s.start_time}–{s.end_time}
+                {t("conflictSessionLine", {
+                  type:
+                    s.type === "group"
+                      ? tSchedule("groupSession")
+                      : s.type === "extra"
+                        ? t("extraSessionShort")
+                        : tSchedule("individualSession"),
+                  title: s.title,
+                  start: s.start_time,
+                  end: s.end_time,
+                })}
               </p>
             ))}
             {sessionConflicts.personal_events.map((e) => (
@@ -1123,7 +1141,7 @@ function NewEventPanel({
                   margin: 0,
                 }}
               >
-                Personal event: {e.title} · {e.start_time}–{e.end_time}
+                {t("conflictPersonalEventLine", { title: e.title, start: e.start_time, end: e.end_time })}
               </p>
             ))}
           </div>
@@ -1136,7 +1154,7 @@ function NewEventPanel({
           onClick={handleSubmit}
           disabled={isSubmitting || !!sessionConflicts}
         >
-          {isSubmitting ? "Saving…" : submitLabel}
+          {isSubmitting ? tCommon("saving") : submitLabel}
         </button>
       </div>
     </div>
@@ -1175,6 +1193,10 @@ function EventDetailPanel({
   initialMode?: "view" | "reschedule";
   overlappingCancelled?: CalendarEvent[];
 }) {
+  const t = useTranslations("CalendarView");
+  const tCommon = useTranslations("Common");
+  const tSchedule = useTranslations("ScheduleRail");
+  const tScheduleTab = useTranslations("CourseManagementScheduleTab");
   // Local copy of the event — updated immediately on save so UI reflects changes without reload
   const [ev, setEv] = useState<CalendarEvent>(event);
   const [mode, setMode] = useState<DetailMode>(initialMode);
@@ -1215,7 +1237,7 @@ function EventDetailPanel({
   ]);
 
   const isGroup = ev.type === "group_session";
-  const typeBadge = isGroup ? "Group" : "Individual";
+  const typeBadge = isGroup ? tSchedule("groupSession") : tSchedule("individualSession");
   const isPersonal = ev.type === "personal" || ev.type === "personal_shared";
   const isOwner = !!ev.is_owner;
   const personalPk = isPersonal ? parseInt(ev.id.split("_")[1], 10) : 0;
@@ -1307,7 +1329,7 @@ function EventDetailPanel({
       setInviteQuery("");
       setInviteSugg([]);
     } catch {
-      setInviteErr("Could not invite this user.");
+      setInviteErr(t("couldNotInviteUser"));
     } finally {
       setInviting(false);
     }
@@ -1337,7 +1359,7 @@ function EventDetailPanel({
       onEventUpdated?.();
       onClose?.();
     } catch {
-      setError("Failed to delete event. Please try again.");
+      setError(t("deleteFailedRetry"));
       setDeleting(false);
       setMode("view");
     }
@@ -1347,7 +1369,7 @@ function EventDetailPanel({
 
   async function doReschedule() {
     if (!newDate || !newStart || !newEnd) {
-      setError("All date/time fields are required");
+      setError(t("dateTimeRequired"));
       return;
     }
 
@@ -1407,7 +1429,7 @@ function EventDetailPanel({
         onEventUpdated?.();
       }
     } catch (e: unknown) {
-      setError((e as { message?: string })?.message ?? "Failed to reschedule. Please try again.");
+      setError((e as { message?: string })?.message ?? t("rescheduleFailedRetry"));
     } finally {
       setSaving(false);
     }
@@ -1421,7 +1443,7 @@ function EventDetailPanel({
       onEventUpdated?.();
       onClose?.();
     } catch (e: unknown) {
-      const msg = (e as { message?: string })?.message ?? "Failed to restore session.";
+      const msg = (e as { message?: string })?.message ?? t("restoreFailedRetry");
       setRestoreErr(msg);
     } finally {
       setRestoringId(null);
@@ -1441,7 +1463,7 @@ function EventDetailPanel({
         setMode("view");
       }
     } catch {
-      setError("Failed to cancel. Please try again.");
+      setError(t("cancelFailedRetry"));
     } finally {
       setSaving(false);
     }
@@ -1456,7 +1478,7 @@ function EventDetailPanel({
       setMode("view");
       onEventUpdated?.();
     } catch {
-      setError("Failed to update link. Please try again.");
+      setError(t("updateLinkFailedRetry"));
     } finally {
       setSaving(false);
     }
@@ -1475,7 +1497,7 @@ function EventDetailPanel({
       setMode("view");
       onEventUpdated?.();
     } catch {
-      setError("Failed to save lecture. Please try again.");
+      setError(t("updateLessonFailedRetry"));
     } finally {
       setSaving(false);
     }
@@ -1526,7 +1548,7 @@ function EventDetailPanel({
               }}
             >
               <Plus size={13} />
-              Add new event here
+              {t("addNewEventHere")}
             </button>
           )}
 
@@ -1564,7 +1586,7 @@ function EventDetailPanel({
                   letterSpacing: "0.04em",
                 }}
               >
-                Previously
+                {t("previously")}
               </span>
               <ChevronDown
                 size={12}
@@ -1581,11 +1603,15 @@ function EventDetailPanel({
             {showDetails &&
               [ev, ...overlappingCancelled].map((ce, idx) => {
                 const isExp = expandedIdx === idx;
-                const ceLabel = ce.course_title ?? ce.title ?? "Session";
+                const ceLabel = ce.course_title ?? ce.title ?? tSchedule("session");
                 const ceStatus =
                   ce.event_status === "cancelled"
-                    ? "Cancelled"
-                    : `Rescheduled → ${ce.rescheduled_to_date ? ce.rescheduled_to_date.slice(5).split("-").reverse().join(".") : ""}`;
+                    ? tSchedule("cancelled")
+                    : t("rescheduledArrow", {
+                        date: ce.rescheduled_to_date
+                          ? ce.rescheduled_to_date.slice(5).split("-").reverse().join(".")
+                          : "",
+                      });
                 const ceTodayISO = new Date().toISOString().slice(0, 10);
                 const ceNowTime = new Date().toTimeString().slice(0, 5);
                 const cePast =
@@ -1754,7 +1780,7 @@ function EventDetailPanel({
                               }}
                             >
                               <RotateCcw size={13} />
-                              Reschedule
+                              {tScheduleTab("reschedule")}
                             </button>
                           )}
                           {ceCanRestore && (
@@ -1779,7 +1805,7 @@ function EventDetailPanel({
                               }}
                             >
                               <Undo2 size={13} />
-                              {restoringId === ce.id ? "Restoring…" : "Restore"}
+                              {restoringId === ce.id ? t("restoring") : t("restore")}
                             </button>
                           )}
                         </div>
@@ -1835,7 +1861,7 @@ function EventDetailPanel({
                 letterSpacing: "0.04em",
               }}
             >
-              Rescheduled from {fmtDate(ev.rescheduled_from_date)}
+              {t("rescheduledFrom", { date: fmtDate(ev.rescheduled_from_date) })}
             </span>
           </div>
         )}
@@ -1843,7 +1869,7 @@ function EventDetailPanel({
         {/* ── Time ── */}
         {!isProcessed && (
           <div>
-            <span style={DRAWER_LABEL}>Time</span>
+            <span style={DRAWER_LABEL}>{t("time")}</span>
             <p
               style={{
                 fontFamily: "var(--font-accent)",
@@ -1869,7 +1895,7 @@ function EventDetailPanel({
                   ? { bg: "rgba(255,225,140,0.5)", text: "#7C5000" }
                   : { bg: "rgba(167,186,250,0.5)", text: "var(--color-blue-dark)" };
             const badgeLabel = isPersonal
-              ? `Personal${invites && invites.length > 0 ? " (shared)" : ""}`
+              ? (invites && invites.length > 0 ? t("personalSharedLabel") : t("personalLabel"))
               : typeBadge;
             return (
               <div
@@ -1894,7 +1920,7 @@ function EventDetailPanel({
         {/* ── Title / Date / Creator / Course / Group — hidden for cancelled/rescheduled (shown in Previously card) ── */}
         {!isProcessed && isPersonal && ev.title && (
           <div>
-            <span style={DRAWER_LABEL}>Title</span>
+            <span style={DRAWER_LABEL}>{t("title")}</span>
             <p
               style={{
                 fontFamily: "var(--font-base)",
@@ -1910,7 +1936,7 @@ function EventDetailPanel({
         )}
         {!isProcessed && isPersonal && ev.date && (
           <div>
-            <span style={DRAWER_LABEL}>Date</span>
+            <span style={DRAWER_LABEL}>{tScheduleTab("date")}</span>
             <p
               style={{
                 fontFamily: "var(--font-base)",
@@ -1926,7 +1952,7 @@ function EventDetailPanel({
         )}
         {!isProcessed && ev.type === "personal_shared" && ev.owner_name && (
           <div>
-            <span style={DRAWER_LABEL}>Created by</span>
+            <span style={DRAWER_LABEL}>{t("createdBy")}</span>
             <p
               style={{
                 fontFamily: "var(--font-base)",
@@ -1942,7 +1968,7 @@ function EventDetailPanel({
         )}
         {!isProcessed && ev.course_title && (
           <div>
-            <span style={DRAWER_LABEL}>Course</span>
+            <span style={DRAWER_LABEL}>{t("course")}</span>
             <p
               style={{
                 fontFamily: "var(--font-base)",
@@ -1958,7 +1984,7 @@ function EventDetailPanel({
         )}
         {!isProcessed && detail && (
           <div>
-            <span style={DRAWER_LABEL}>{isGroup ? "Group" : "Student"}</span>
+            <span style={DRAWER_LABEL}>{isGroup ? tSchedule("groupSession") : t("student")}</span>
             <p
               style={{
                 fontFamily: "var(--font-base)",
@@ -1975,7 +2001,7 @@ function EventDetailPanel({
         {/* ── Lecture ── */}
         {mode === "lesson_edit" && canEdit ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <span style={DRAWER_LABEL}>Lecture</span>
+            <span style={DRAWER_LABEL}>{t("lecture")}</span>
             {lessons === null ? (
               <p
                 style={{
@@ -1985,7 +2011,7 @@ function EventDetailPanel({
                   margin: 0,
                 }}
               >
-                Loading…
+                {tCommon("loading")}
               </p>
             ) : lessons.length === 0 ? (
               <p
@@ -1996,17 +2022,17 @@ function EventDetailPanel({
                   margin: 0,
                 }}
               >
-                No lessons found for this course
+                {t("noLessonsForCourse")}
               </p>
             ) : (
               <SelectField
                 options={[
-                  { value: "", label: "— No lecture —" },
+                  { value: "", label: t("noLectureOption") },
                   ...lessons.map((l) => ({ value: String(l.id), label: l.title })),
                 ]}
                 value={lessonId}
                 onChange={setLessonId}
-                placeholder="Select lecture"
+                placeholder={t("selectLecturePlaceholder")}
               />
             )}
             {error && (
@@ -2033,7 +2059,7 @@ function EventDetailPanel({
                 onClick={doUpdateLesson}
                 disabled={saving || lessons === null}
               >
-                {saving ? "Saving…" : "Save"}
+                {saving ? tCommon("saving") : tCommon("save")}
               </button>
               <button
                 type="button"
@@ -2047,7 +2073,7 @@ function EventDetailPanel({
                   setError(null);
                 }}
               >
-                Cancel
+                {tCommon("cancel")}
               </button>
             </div>
           </div>
@@ -2072,7 +2098,7 @@ function EventDetailPanel({
                 </a>
               ) : (
                 <div>
-                  <span style={DRAWER_LABEL}>Lecture</span>
+                  <span style={DRAWER_LABEL}>{t("lecture")}</span>
                   <p
                     style={{
                       fontFamily: "var(--font-base)",
@@ -2093,7 +2119,7 @@ function EventDetailPanel({
                   color: "var(--color-text-secondary)",
                 }}
               >
-                No lecture linked
+                {t("noLectureLinked")}
               </span>
             ) : null}
             {canEdit && (
@@ -2103,7 +2129,7 @@ function EventDetailPanel({
                   setLessonId("");
                   setMode("lesson_edit");
                 }}
-                title="Edit linked lecture"
+                title={t("editLecture")}
                 style={{
                   background: "none",
                   border: "none",
@@ -2122,11 +2148,11 @@ function EventDetailPanel({
         {/* ── Meeting link ── */}
         {mode === "link_edit" && canEdit ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <span style={DRAWER_LABEL}>Meeting link</span>
+            <span style={DRAWER_LABEL}>{t("meetingLink")}</span>
             <input
               type="url"
               style={DRAWER_INPUT}
-              placeholder="https://meet.google.com/..."
+              placeholder={t("meetingLinkExamplePlaceholder")}
               value={linkVal}
               onChange={(e) => setLinkVal(e.target.value)}
               autoFocus
@@ -2143,7 +2169,7 @@ function EventDetailPanel({
                 onClick={doUpdateLink}
                 disabled={saving}
               >
-                {saving ? "Saving…" : "Save"}
+                {saving ? tCommon("saving") : tCommon("save")}
               </button>
               <button
                 type="button"
@@ -2157,7 +2183,7 @@ function EventDetailPanel({
                   setLinkVal(ev.meeting_link ?? "");
                 }}
               >
-                Cancel
+                {tCommon("cancel")}
               </button>
             </div>
           </div>
@@ -2186,7 +2212,7 @@ function EventDetailPanel({
                 }}
               >
                 <ExternalLink size={13} />
-                Join meeting
+                {t("joinMeeting")}
               </a>
             ) : canEdit ? (
               <span
@@ -2196,14 +2222,14 @@ function EventDetailPanel({
                   color: "var(--color-text-secondary)",
                 }}
               >
-                No meeting link
+                {t("noMeetingLink")}
               </span>
             ) : null}
             {canEdit && (
               <button
                 type="button"
                 onClick={() => setMode("link_edit")}
-                title="Edit meeting link"
+                title={t("editMeetingLink")}
                 style={{
                   background: "none",
                   border: "none",
@@ -2222,22 +2248,22 @@ function EventDetailPanel({
         {/* ── Reschedule form ── */}
         {mode === "reschedule" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-            <DatePicker label="Date" value={newDate} onChange={setNewDate} size="md" />
+            <DatePicker label={tScheduleTab("date")} value={newDate} onChange={setNewDate} size="md" />
 
             <div style={{ display: "flex", gap: 12 }}>
-              <Field label="Start">
+              <Field label={tScheduleTab("start")}>
                 <TimePicker value={newStart} onChange={setNewStart} />
               </Field>
-              <Field label="End">
+              <Field label={tScheduleTab("end")}>
                 <TimePicker value={newEnd} onChange={setNewEnd} />
               </Field>
             </div>
 
-            <Field label="Meeting link (optional)">
+            <Field label={t("meetingLinkOptional")}>
               <input
                 type="url"
                 style={DRAWER_INPUT}
-                placeholder="https://..."
+                placeholder={t("urlPlaceholder")}
                 value={linkVal}
                 onChange={(e) => setLinkVal(e.target.value)}
               />
@@ -2268,7 +2294,7 @@ function EventDetailPanel({
                 onClick={doReschedule}
                 disabled={saving}
               >
-                {saving ? "Saving…" : "Confirm reschedule"}
+                {saving ? tCommon("saving") : t("confirmReschedule")}
               </button>
               <button
                 type="button"
@@ -2283,7 +2309,7 @@ function EventDetailPanel({
                   setError(null);
                 }}
               >
-                Cancel
+                {tCommon("cancel")}
               </button>
             </div>
           </div>
@@ -2312,7 +2338,7 @@ function EventDetailPanel({
                   color: "var(--color-danger)",
                 }}
               >
-                Cancel this session?
+                {t("cancelSessionConfirmTitle")}
               </span>
             </div>
             <p
@@ -2324,8 +2350,8 @@ function EventDetailPanel({
               }}
             >
               {isReplacement
-                ? "This replacement will be deleted and the original session will be marked as cancelled."
-                : "The session will be marked as cancelled. Students will see the cancellation notice."}
+                ? t("cancelReplacementExplain")
+                : t("cancelSessionExplain")}
             </p>
             {error && (
               <p
@@ -2351,7 +2377,7 @@ function EventDetailPanel({
                 onClick={doCancel}
                 disabled={saving}
               >
-                {saving ? "Cancelling…" : "Yes, cancel session"}
+                {saving ? t("cancelling") : t("yesCancelSession")}
               </button>
               <button
                 type="button"
@@ -2366,7 +2392,7 @@ function EventDetailPanel({
                   setError(null);
                 }}
               >
-                Back
+                {t("back")}
               </button>
             </div>
           </div>
@@ -2395,7 +2421,7 @@ function EventDetailPanel({
                   color: "var(--color-danger)",
                 }}
               >
-                Delete this event?
+                {t("deleteEventConfirmTitle")}
               </span>
             </div>
             <p
@@ -2406,7 +2432,7 @@ function EventDetailPanel({
                 margin: 0,
               }}
             >
-              This will permanently delete the event and cancel all invitations sent to guests.
+              {t("deleteEventExplain")}
             </p>
             {error && (
               <p
@@ -2432,7 +2458,7 @@ function EventDetailPanel({
                 onClick={doDelete}
                 disabled={deleting}
               >
-                {deleting ? "Deleting…" : "Yes, delete event"}
+                {deleting ? t("deleting") : t("yesDeleteEvent")}
               </button>
               <button
                 type="button"
@@ -2447,7 +2473,7 @@ function EventDetailPanel({
                   setError(null);
                 }}
               >
-                Back
+                {t("back")}
               </button>
             </div>
           </div>
@@ -2456,7 +2482,7 @@ function EventDetailPanel({
         {/* ── Invitations list + add guest (personal events, owner view) ── */}
         {isPersonal && isOwner && invites !== null && (
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            <span style={DRAWER_LABEL}>Guests</span>
+            <span style={DRAWER_LABEL}>{t("guests")}</span>
 
             {/* Add guest input */}
             {mode === "view" && !isPastEvent && (
@@ -2464,7 +2490,7 @@ function EventDetailPanel({
                 <div style={{ display: "flex", gap: 6 }}>
                   <input
                     type="email"
-                    placeholder="Invite by email…"
+                    placeholder={t("inviteByEmailPlaceholder")}
                     value={inviteQuery}
                     onChange={(e) => {
                       setInviteQuery(e.target.value);
@@ -2492,7 +2518,7 @@ function EventDetailPanel({
                       flexShrink: 0,
                     }}
                   >
-                    {inviting ? "…" : "Invite"}
+                    {inviting ? "…" : t("invite")}
                   </button>
                 </div>
                 {inviteSugg.length > 0 && (
@@ -2573,7 +2599,7 @@ function EventDetailPanel({
                   ? "rgba(255,225,140,0.5)"
                   : "rgba(252,196,195,0.5)";
               const statusText = isAccepted ? "#1A6633" : isPending ? "#7C5000" : "#8B2624";
-              const statusLabel = isAccepted ? "Accepted" : isPending ? "Pending" : "Declined";
+              const statusLabel = isAccepted ? t("accepted") : isPending ? t("pending") : t("declined");
               const initials = (inv.name || inv.email).slice(0, 1).toUpperCase();
               const avatarStyle: React.CSSProperties = {
                 width: 28,
@@ -2676,7 +2702,7 @@ function EventDetailPanel({
                         opacity: resending === inv.id ? 0.5 : 1,
                       }}
                     >
-                      {resending === inv.id ? "…" : "Resend"}
+                      {resending === inv.id ? "…" : t("resend")}
                     </button>
                   )}
                 </div>
@@ -2704,7 +2730,7 @@ function EventDetailPanel({
                     ? "rgba(252,196,195,0.5)"
                     : "rgba(255,225,140,0.5)",
                 text: isAcc ? "#1A6633" : isDec ? "#8B2624" : "#7C5000",
-                label: isAcc ? "Accepted" : isDec ? "Declined" : "Pending",
+                label: isAcc ? t("accepted") : isDec ? t("declined") : t("pending"),
               };
             };
             return (
@@ -2715,7 +2741,7 @@ function EventDetailPanel({
                     const pill = statusPill(inv.status);
                     return (
                       <div>
-                        <span style={DRAWER_LABEL}>My invitation</span>
+                        <span style={DRAWER_LABEL}>{t("myInvitation")}</span>
                         <div
                           style={{ marginTop: 4, display: "flex", flexDirection: "column", gap: 0 }}
                         >
@@ -2735,7 +2761,7 @@ function EventDetailPanel({
                                 color: "var(--color-text-secondary)",
                               }}
                             >
-                              Invited
+                              {t("invited")}
                             </span>
                             <span
                               style={{
@@ -2765,7 +2791,7 @@ function EventDetailPanel({
                                   color: "var(--color-text-secondary)",
                                 }}
                               >
-                                Responded
+                                {t("responded")}
                               </span>
                               <span
                                 style={{
@@ -2794,7 +2820,7 @@ function EventDetailPanel({
                                 color: "var(--color-text-secondary)",
                               }}
                             >
-                              Status
+                              {t("status")}
                             </span>
                             <span
                               style={{
@@ -2819,7 +2845,7 @@ function EventDetailPanel({
 
                 {participants.participants.length > 0 && (
                   <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                    <span style={DRAWER_LABEL}>Other participants</span>
+                    <span style={DRAWER_LABEL}>{t("otherParticipants")}</span>
                     {participants.participants.map((p, i) => {
                       const pill = statusPill(p.status);
                       const initials = p.name.slice(0, 1).toUpperCase();
@@ -2922,7 +2948,7 @@ function EventDetailPanel({
               }}
             >
               <RotateCcw size={13} />
-              Reschedule
+              {tScheduleTab("reschedule")}
             </button>
             <button
               type="button"
@@ -2944,7 +2970,7 @@ function EventDetailPanel({
               }}
             >
               <Trash2 size={13} />
-              Delete event
+              {t("deleteEvent")}
             </button>
           </div>
         )}
@@ -2971,7 +2997,7 @@ function EventDetailPanel({
               }}
             >
               <RotateCcw size={13} />
-              Reschedule
+              {tScheduleTab("reschedule")}
             </button>
             <button
               type="button"
@@ -2993,7 +3019,7 @@ function EventDetailPanel({
               }}
             >
               <X size={13} />
-              Cancel session
+              {t("cancelSession")}
             </button>
           </div>
         )}
@@ -3037,7 +3063,7 @@ function EventDetailPanel({
                   letterSpacing: "0.04em",
                 }}
               >
-                Previously
+                {t("previously")}
               </span>
               <ChevronDown
                 size={12}
@@ -3052,11 +3078,15 @@ function EventDetailPanel({
             {showDetails &&
               overlappingCancelled.map((ce, idx) => {
                 const isExp = expandedIdx === idx;
-                const ceLabel = ce.course_title ?? ce.title ?? "Session";
+                const ceLabel = ce.course_title ?? ce.title ?? tSchedule("session");
                 const ceStatus =
                   ce.event_status === "cancelled"
-                    ? "Cancelled"
-                    : `Rescheduled → ${ce.rescheduled_to_date ? ce.rescheduled_to_date.slice(5).split("-").reverse().join(".") : ""}`;
+                    ? tSchedule("cancelled")
+                    : t("rescheduledArrow", {
+                        date: ce.rescheduled_to_date
+                          ? ce.rescheduled_to_date.slice(5).split("-").reverse().join(".")
+                          : "",
+                      });
                 const ceCanReschedule =
                   role === "teacher" &&
                   ce.type !== "personal" &&
@@ -3216,7 +3246,7 @@ function EventDetailPanel({
                             }}
                           >
                             <RotateCcw size={13} />
-                            Reschedule
+                            {tScheduleTab("reschedule")}
                           </button>
                         )}
                       </div>
@@ -3279,6 +3309,7 @@ export type CalendarViewProps = {
 
 /** Full-page calendar for the student/teacher schedule route. */
 export function CalendarView({ role }: CalendarViewProps) {
+  const t = useTranslations("CalendarView");
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [unavailability, setUnavailability] = useState<TeacherUnavailability[]>([]);
   const [deadlines, setDeadlines] = useState<CalendarDeadline[]>([]);
@@ -3366,9 +3397,9 @@ export function CalendarView({ role }: CalendarViewProps) {
   const calendarActions = (
     <>
       {role === "teacher" && (
-        <ActionBtn label="Block time" onClick={toggleBlock} active={drawer?.type === "block"} />
+        <ActionBtn label={t("blockTime")} onClick={toggleBlock} active={drawer?.type === "block"} />
       )}
-      <ActionBtn label="Add event" onClick={toggleAddEvent} active={drawer?.type === "new"} />
+      <ActionBtn label={t("addEvent")} onClick={toggleAddEvent} active={drawer?.type === "new"} />
     </>
   );
 
@@ -3402,13 +3433,13 @@ export function CalendarView({ role }: CalendarViewProps) {
         onClose={() => setDrawer(null)}
         title={
           drawer?.type === "new"
-            ? "New event"
+            ? t("newEventTitle")
             : drawer?.type === "view"
-              ? "Event details"
+              ? t("eventDetailsTitle")
               : drawer?.type === "block"
-                ? "My unavailability"
+                ? t("myUnavailabilityTitle")
                 : drawer?.type === "deadlines"
-                  ? `Deadlines — ${drawer.date}`
+                  ? t("deadlinesTitle", { date: drawer.date })
                   : ""
         }
       >

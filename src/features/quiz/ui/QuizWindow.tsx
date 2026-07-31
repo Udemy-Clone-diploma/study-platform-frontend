@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useTranslations } from "next-intl";
 
 type QuizWindowProps = {
   title: string;
@@ -18,6 +19,7 @@ export function QuizWindow({
   children,
   className = "",
 }: QuizWindowProps) {
+  const t = useTranslations("Quiz");
   return (
     <div className={`mx-auto flex w-full max-w-[1380px] flex-col gap-2 ${className}`}>
       <header className="relative flex min-h-[150px] flex-col justify-center rounded-[16px] bg-white px-6 py-5 shadow-(--shadow-dashboard-card) sm:px-10 lg:px-[50px]">
@@ -35,7 +37,7 @@ export function QuizWindow({
               <span className="flex-1" aria-hidden="true" />
             )}
             <span className="shrink-0 whitespace-nowrap font-(family-name:--font-accent) text-base font-semibold leading-5 text-(--color-text-primary)">
-              Passing Score: {passingScore}
+              {t("passingScore", { value: passingScore })}
             </span>
           </div>
         </div>

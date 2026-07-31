@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { getCategories, getCourseBySlug, updateCourse, uploadCourseIcon, getPendingEdit } from "@/entities/course";
@@ -61,6 +62,7 @@ function buildReadonlyFields(statuses: Record<string, string>): Set<string> {
 const PUBLISHED_STATUSES = new Set(["published", "hidden"]);
 
 export default function EditCourseBasicsPage() {
+  const t = useTranslations("CourseBasicsPage");
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([]);
@@ -184,7 +186,7 @@ export default function EditCourseBasicsPage() {
       if (apiErr.fields && Object.keys(apiErr.fields).length > 0) {
         setFieldErrors(mapApiFieldErrors(apiErr.fields));
       } else {
-        setGeneralError(apiErr.message ?? "Failed to update course.");
+        setGeneralError(apiErr.message ?? t("errorUpdate"));
       }
     } finally {
       setSubmitting(false);
@@ -200,7 +202,7 @@ export default function EditCourseBasicsPage() {
       await doIconUpload();
       router.push("/teacher-dashboard/courses");
     } catch (err) {
-      setGeneralError((err as Partial<ApiError>).message ?? "Failed to save.");
+      setGeneralError((err as Partial<ApiError>).message ?? t("errorSave"));
     } finally {
       setSaving(false);
     }
@@ -214,7 +216,7 @@ export default function EditCourseBasicsPage() {
   return (
     <CourseCreationLayout>
       <CoursePageHeader
-        title={form.title || "Untitled Course"}
+        title={form.title || t("untitledCourse")}
         saving={saving}
         onSaveDraft={isLocked ? () => router.push("/teacher-dashboard/courses") : handleSaveDraft}
       />
@@ -229,7 +231,7 @@ export default function EditCourseBasicsPage() {
           fieldErrors={fieldErrors}
           generalError={generalError}
           submitting={submitting || isLocked}
-          submitLabel={isLocked ? "View Course Content" : "Continue to Course Content"}
+          submitLabel={isLocked ? t("viewCourseContent") : t("continueToCourseContent")}
           onCancel={() => router.push("/teacher-dashboard/courses")}
           fieldStatuses={moderationReview?.basics_field_statuses}
           moderatorComment={moderationReview?.basics_comment || undefined}

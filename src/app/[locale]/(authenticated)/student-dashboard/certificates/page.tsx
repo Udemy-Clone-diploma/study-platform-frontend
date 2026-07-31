@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { CertificateCard, CompletionResultModal } from "@/features/courses";
 import { getStudentCompletions } from "@/entities/course";
 import type { CourseCompletion } from "@/entities/course";
@@ -11,6 +12,7 @@ import { Pagination } from "@/shared/ui/Pagination";
 const PAGE_SIZE = 10;
 
 export default function StudentCertificatesPage() {
+  const t = useTranslations("StudentCertificates");
   const [completions, setCompletions] = useState<CourseCompletion[]>([]);
   const [count, setCount] = useState(0);
   const [page, setPage] = useState(1);
@@ -25,9 +27,9 @@ export default function StudentCertificatesPage() {
         setCompletions(data.results);
         setCount(data.count);
       })
-      .catch((err: Partial<ApiError>) => setError(err.message ?? "Failed to load certificates."))
+      .catch((err: Partial<ApiError>) => setError(err.message ?? t("errorLoad")))
       .finally(() => setLoading(false));
-  }, [page]);
+  }, [page, t]);
 
   const totalPages = Math.max(1, Math.ceil(count / PAGE_SIZE));
 
@@ -42,18 +44,16 @@ export default function StudentCertificatesPage() {
         className="font-normal text-(--color-text-primary)"
         style={{ fontSize: "clamp(20px, 2.22vw, 32px)", marginBottom: "clamp(16px, 1.67vw, 32px)", flexShrink: 0 }}
       >
-        My certificates
+        {t("title")}
       </h1>
 
       <div style={{ flex: 1 }}>
         {loading ? (
-          <p className="text-center text-lg text-(--color-text-secondary)">Loading...</p>
+          <p className="text-center text-lg text-(--color-text-secondary)">{t("loading")}</p>
         ) : error ? (
           <p className="text-center text-lg text-red-500">{error}</p>
         ) : completions.length === 0 ? (
-          <p className="text-center text-lg text-(--color-text-secondary)">
-            No certificates yet — complete a course that offers one to earn your first.
-          </p>
+          <p className="text-center text-lg text-(--color-text-secondary)">{t("noCertificatesYet")}</p>
         ) : (
           <div className="flex flex-wrap" style={{ gap: "clamp(12px, 1.25vw, 24px)" }}>
             {completions.map((completion) => (

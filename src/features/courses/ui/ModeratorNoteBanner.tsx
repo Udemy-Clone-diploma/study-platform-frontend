@@ -1,3 +1,5 @@
+import { useTranslations } from "next-intl";
+
 type Props = {
   title?: string;
   comment?: string;
@@ -6,7 +8,8 @@ type Props = {
 };
 
 /** Pink banner displaying a moderator note/comment, optionally with a status badge. */
-export function ModeratorNoteBanner({ title = "Moderator note", comment, actionLabel, actionColor }: Props) {
+export function ModeratorNoteBanner({ title, comment, actionLabel, actionColor }: Props) {
+  const t = useTranslations("ModeratorNoteBanner");
   if (!comment && !actionLabel) return null;
   return (
     <div
@@ -22,7 +25,7 @@ export function ModeratorNoteBanner({ title = "Moderator note", comment, actionL
     >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <p style={{ fontFamily: "var(--font-base)", fontWeight: 700, fontSize: 13, color: "var(--color-pink-dark)", margin: 0 }}>
-          {title}
+          {title ?? t("moderatorNote")}
         </p>
         {actionLabel && actionColor && (
           <span

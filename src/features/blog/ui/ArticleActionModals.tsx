@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { updateArticle } from "@/entities/blog";
 import type { BlogCategory } from "@/entities/blog";
 import { ConfirmActionModal } from "@/shared/ui/ConfirmActionModal";
@@ -14,6 +15,8 @@ type Props = {
 
 /** Renders whichever article modal (edit / reject / delete) is currently active in the shared action state. */
 export function ArticleActionModals({ categories, state }: Props) {
+  const t = useTranslations("ArticleActionModals");
+  const tCommon = useTranslations("Common");
   const {
     editingArticle,
     setEditingArticle,
@@ -39,7 +42,7 @@ export function ArticleActionModals({ categories, state }: Props) {
             category: editingArticle.category?.id ?? null,
           }}
           existingCoverImageUrl={editingArticle.cover_image}
-          submitLabel="Save Changes"
+          submitLabel={t("saveChangesLabel")}
           moderatorComment={editingArticle.status === "rejected" ? editingArticle.moderator_comment : null}
           onClose={() => setEditingArticle(null)}
           onSave={async (values) => {
@@ -56,9 +59,9 @@ export function ArticleActionModals({ categories, state }: Props) {
 
       {deletingArticle && (
         <ConfirmActionModal
-          title="Delete Article"
-          description={`Delete "${deletingArticle.title}"? This cannot be undone.`}
-          confirmLabel="Delete"
+          title={t("deleteArticleTitle")}
+          description={t("deleteArticleDescription", { title: deletingArticle.title })}
+          confirmLabel={tCommon("delete")}
           loading={deleteLoading}
           error={null}
           onConfirm={confirmDelete}

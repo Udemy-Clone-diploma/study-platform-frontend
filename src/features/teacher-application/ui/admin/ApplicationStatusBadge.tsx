@@ -1,10 +1,7 @@
-import type { TeacherApplicationStatus } from "@/entities/teacher-application";
+"use client";
 
-const LABELS: Record<TeacherApplicationStatus, string> = {
-  pending: "Pending",
-  approved: "Approved",
-  cancelled: "Cancelled",
-};
+import { useTranslations } from "next-intl";
+import type { TeacherApplicationStatus } from "@/entities/teacher-application";
 
 const ACCENTS: Record<TeacherApplicationStatus, string> = {
   pending: "var(--color-warning)",
@@ -14,6 +11,12 @@ const ACCENTS: Record<TeacherApplicationStatus, string> = {
 
 /** Status pill for a teacher application (pending / approved / cancelled). */
 export function ApplicationStatusBadge({ status }: { status: TeacherApplicationStatus }) {
+  const t = useTranslations("TeacherApplicationsAdmin");
+  const labels: Record<TeacherApplicationStatus, string> = {
+    pending: t("statusPending"),
+    approved: t("statusApproved"),
+    cancelled: t("statusCancelled"),
+  };
   return (
     <span
       className="inline-flex shrink-0 items-center justify-center rounded-full font-(family-name:--font-accent) font-medium whitespace-nowrap"
@@ -25,7 +28,7 @@ export function ApplicationStatusBadge({ status }: { status: TeacherApplicationS
         background: "white",
       }}
     >
-      {LABELS[status]}
+      {labels[status]}
     </span>
   );
 }

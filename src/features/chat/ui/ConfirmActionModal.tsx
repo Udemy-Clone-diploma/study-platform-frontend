@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Loader2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 type Props = {
   title: string;
@@ -21,6 +22,7 @@ export function ConfirmActionModal({
   onCancel,
   onConfirm,
 }: Props) {
+  const t = useTranslations("Common");
   return (
     <div
       role="dialog"
@@ -41,7 +43,7 @@ export function ConfirmActionModal({
             onClick={onCancel}
             className="h-10 rounded-lg border border-[#D8DDEA] px-4 text-sm font-semibold text-[#121212] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Cancel
+            {t("cancel")}
           </button>
           <button
             type="button"

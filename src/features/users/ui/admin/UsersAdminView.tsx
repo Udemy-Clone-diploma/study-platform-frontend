@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { PageShell } from "@/shared/ui/PageShell";
 import { Pagination } from "@/shared/ui/Pagination";
@@ -25,6 +26,8 @@ type PendingAction = {
 };
 
 export function UsersAdminView() {
+  const t = useTranslations("UsersAdminView");
+  const tCommon = useTranslations("Common");
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -114,13 +117,13 @@ export function UsersAdminView() {
         }
         setUsers([]);
         setCount(0);
-        setListError(apiError.message ?? "Failed to load users.");
+        setListError(apiError.message ?? t("failedToLoadUsers"));
         setLoadedKey(queryKey);
       });
     return () => {
       cancelled = true;
     };
-  }, [page, role, status, search, ordering, queryKey, updateParams]);
+  }, [page, role, status, search, ordering, queryKey, updateParams, t]);
 
   const refresh = useCallback(() => setRefreshKey((key) => key + 1), []);
 
@@ -154,14 +157,14 @@ export function UsersAdminView() {
       setPendingAction(null);
       refresh();
     } catch (err) {
-      setActionError((err as ApiError).message ?? "Something went wrong.");
+      setActionError((err as ApiError).message ?? t("genericError"));
     } finally {
       setActionLoading(false);
     }
   }
 
   const totalPages = Math.max(1, Math.ceil(count / PAGE_SIZE));
-  const emptyMessage = loading ? "Loading users…" : "No users found.";
+  const emptyMessage = loading ? t("loadingUsers") : t("noUsersFound");
 
   const actionName = pendingAction
     ? `${pendingAction.user.first_name} ${pendingAction.user.last_name}`.trim() ||
@@ -170,24 +173,24 @@ export function UsersAdminView() {
   const actionCopy = pendingAction
     ? {
         delete: {
-          title: "Delete user",
-          description: `Delete ${actionName}? The account will be deactivated and hidden from the platform.`,
-          confirmLabel: "Delete",
+          title: t("deleteUserTitle"),
+          description: t("deleteUserDescription", { name: actionName }),
+          confirmLabel: tCommon("delete"),
         },
         block: {
-          title: "Block user",
-          description: `Block ${actionName}? They will lose access to the platform until unblocked.`,
-          confirmLabel: "Block",
+          title: t("blockUserTitle"),
+          description: t("blockUserDescription", { name: actionName }),
+          confirmLabel: t("blockConfirmLabel"),
         },
         unblock: {
-          title: "Unblock user",
-          description: `Unblock ${actionName}? Their account will become active again.`,
-          confirmLabel: "Unblock",
+          title: t("unblockUserTitle"),
+          description: t("unblockUserDescription", { name: actionName }),
+          confirmLabel: t("unblockConfirmLabel"),
         },
         restore: {
-          title: "Restore user",
-          description: `Restore ${actionName}? The account will reappear in the list with inactive status.`,
-          confirmLabel: "Restore",
+          title: t("restoreUserTitle"),
+          description: t("restoreUserDescription", { name: actionName }),
+          confirmLabel: t("restoreConfirmLabel"),
         },
       }[pendingAction.kind]
     : null;
@@ -203,7 +206,7 @@ export function UsersAdminView() {
             margin: "0 0 clamp(16px, 1.67vw, 24px)",
           }}
         >
-          Users
+          {t("title")}
         </h1>
 
         <div style={{ marginBottom: "clamp(16px, 1.67vw, 24px)" }}>

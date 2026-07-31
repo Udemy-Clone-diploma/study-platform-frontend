@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { X } from "lucide-react";
 import { formatPrice } from "@/entities/course";
@@ -17,9 +18,14 @@ type Props = {
 };
 
 export function CourseDetailPanel({ course, onClose }: Props) {
+  const t = useTranslations("CourseDetailPanel");
+  const tTable = useTranslations("CoursesTable");
+  const tLevel = useTranslations("CourseBasicsForm.level");
+  const locale = useLocale();
+
   return (
     <aside
-      aria-label="Course details"
+      aria-label={t("courseDetailsAriaLabel")}
       className="flex shrink-0 flex-col rounded-[20px] border border-white bg-(--color-white-20) shadow-(--shadow-usp-glass) backdrop-blur-md"
       style={{
         width: "clamp(300px, 24vw, 360px)",
@@ -47,7 +53,7 @@ export function CourseDetailPanel({ course, onClose }: Props) {
         <button
           type="button"
           onClick={onClose}
-          aria-label="Close details"
+          aria-label={t("closeDetailsAriaLabel")}
           className="flex shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-1 text-(--color-text-secondary) transition hover:bg-(--color-brand-lavender-soft)"
         >
           <X size={18} />
@@ -60,20 +66,30 @@ export function CourseDetailPanel({ course, onClose }: Props) {
       </div>
 
       <dl className="flex flex-col" style={{ gap: 10, margin: 0 }}>
-        <DetailRow label="Instructor">{course.teacher_name}</DetailRow>
-        <DetailRow label="Category">{course.category?.name ?? "No category"}</DetailRow>
-        <DetailRow label="Students">{course.students_count}</DetailRow>
-        <DetailRow label="Rating">
-          {course.rating_count > 0
-            ? `${course.rating_avg} (${course.rating_count} ${course.rating_count === 1 ? "review" : "reviews"})`
-            : "No reviews yet"}
+        <DetailRow label={t("instructorLabel")}>{course.teacher_name}</DetailRow>
+        <DetailRow label={tTable("columnCategory")}>
+          {course.category?.name ?? tTable("noCategory")}
         </DetailRow>
-        <DetailRow label="Price">{formatPrice(course)}</DetailRow>
-        <DetailRow label="Level">{capitalize(course.level)}</DetailRow>
-        <DetailRow label="Language">{capitalize(course.language)}</DetailRow>
-        <DetailRow label="Created">{formatCourseDate(course.created_at)}</DetailRow>
+        <DetailRow label={t("studentsLabel")}>{course.students_count}</DetailRow>
+        <DetailRow label={t("ratingLabel")}>
+          {course.rating_count > 0
+            ? `${course.rating_avg} (${t("reviewCount", { count: course.rating_count })})`
+            : t("noReviewsYet")}
+        </DetailRow>
+        <DetailRow label={t("priceLabel")}>{formatPrice(course)}</DetailRow>
+        <DetailRow label={t("levelLabel")}>
+          {course.level in { beginner: 1, intermediate: 1, advanced: 1 }
+            ? tLevel(course.level as "beginner" | "intermediate" | "advanced")
+            : capitalize(course.level)}
+        </DetailRow>
+        <DetailRow label={t("languageLabel")}>{capitalize(course.language)}</DetailRow>
+        <DetailRow label={t("createdLabel")}>
+          {formatCourseDate(course.created_at, locale)}
+        </DetailRow>
         {course.published_at && (
-          <DetailRow label="Published">{formatCourseDate(course.published_at)}</DetailRow>
+          <DetailRow label={t("publishedLabel")}>
+            {formatCourseDate(course.published_at, locale)}
+          </DetailRow>
         )}
       </dl>
     </aside>

@@ -1,4 +1,5 @@
 import type { MouseEvent, PointerEvent, RefObject } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { Check, FileText, Loader2, Send } from "lucide-react";
 import type { ChatAttachment, ChatMessage, ChatRoom } from "@/entities/chat";
 import { resolveMediaUrl } from "@/shared/api/lib/mediaUrl";
@@ -85,6 +86,9 @@ export function MessageList({
   onLongPressEnd,
   onLongPressClick,
 }: Props) {
+  const t = useTranslations("MessageList");
+  const tCommon = useTranslations("ChatCommon");
+  const locale = useLocale();
   return (
     <div className="relative mt-3 min-h-0 flex-1 lg:mt-4">
       <div
@@ -101,7 +105,7 @@ export function MessageList({
               className="inline-flex h-9 items-center rounded-lg border border-[#A7BAFA] bg-white px-4 text-sm text-[#374151] disabled:opacity-60"
             >
               {loadingMore ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              Load older
+              {t("loadOlder")}
             </button>
           </div>
         ) : null}
@@ -109,7 +113,7 @@ export function MessageList({
         {loading ? (
           <div className="flex h-full items-center justify-center text-sm text-[#4B5563]">
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Loading messages
+            {t("loadingMessages")}
           </div>
         ) : messages.length > 0 ? (
           <div className="space-y-2 lg:space-y-4">
@@ -173,20 +177,20 @@ export function MessageList({
                       }
                     >
                       {message.is_deleted ? (
-                        <span className="text-[#4B5563]">Deleted message</span>
+                        <span className="text-[#4B5563]">{tCommon("deletedMessage")}</span>
                       ) : (
                         <>
                           {message.reply_to ? (
                             <div className="mb-2 rounded-md border-l-2 border-[#121212]/35 bg-white/35 px-2 py-1">
                               <p className="truncate text-[11px] font-semibold text-[#121212]/70">
                                 {replyTarget
-                                  ? messageAuthorLabel(replyTarget, meId)
-                                  : "Original message"}
+                                  ? messageAuthorLabel(replyTarget, meId, tCommon)
+                                  : t("originalMessage")}
                               </p>
                               <p className="truncate text-xs text-[#121212]">
                                 {replyTarget
-                                  ? messagePreview(replyTarget)
-                                  : "Message is not loaded"}
+                                  ? messagePreview(replyTarget, tCommon)
+                                  : t("messageNotLoaded")}
                               </p>
                             </div>
                           ) : null}
@@ -204,7 +208,7 @@ export function MessageList({
                                 const isImage =
                                   attachment.file_type.startsWith("image/") &&
                                   Boolean(attachmentUrl);
-                                const name = attachmentName(attachment, index);
+                                const name = attachmentName(attachment, index, tCommon);
                                 return attachmentUrl ? (
                                   <a
                                     key={attachment.id}
@@ -274,23 +278,23 @@ export function MessageList({
                         </>
                       )}
                       <span className="mt-1 flex items-center justify-end gap-1 text-[10px] text-[#121212]/70">
-                        {message.edited_at ? "edited" : null}
+                        {message.edited_at ? t("edited") : null}
                         {message.optimistic ? (
-                          "sending"
+                          t("sending")
                         ) : (
                           <time
                             dateTime={message.created_at}
                             tabIndex={0}
-                            title={messageFullDateTime(message.created_at)}
-                            aria-label={messageFullDateTime(message.created_at)}
+                            title={messageFullDateTime(message.created_at, locale)}
+                            aria-label={messageFullDateTime(message.created_at, locale)}
                             className="group relative inline-flex cursor-help items-center rounded-sm focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-1 focus-visible:outline-[#121212]/50"
                           >
-                            {messageTime(message.created_at)}
+                            {messageTime(message.created_at, locale)}
                             <span
                               aria-hidden="true"
                               className="pointer-events-none absolute bottom-full right-0 z-20 mb-1.5 w-max max-w-[220px] rounded-md bg-[#111827] px-2 py-1 text-[11px] font-medium leading-4 text-white opacity-0 shadow-lg transition group-hover:opacity-100 group-focus-visible:opacity-100"
                             >
-                              {messageFullDateTime(message.created_at)}
+                              {messageFullDateTime(message.created_at, locale)}
                             </span>
                           </time>
                         )}
@@ -306,7 +310,7 @@ export function MessageList({
         ) : (
           <div className="flex h-full flex-col items-center justify-center text-center text-sm text-[#4B5563]">
             <Send className="mb-3 h-8 w-8 text-[#A7BAFA]" />
-            No messages
+            {t("noMessages")}
           </div>
         )}
       </div>

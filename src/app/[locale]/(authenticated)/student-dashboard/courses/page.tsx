@@ -1,14 +1,23 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { StudentCourseCard, CompletedCourseCard, CompletionResultModal } from "@/features/courses";
 import { getEnrolledCourses, getStudentCompletions } from "@/entities/course";
 import type { CourseListItem, CourseLevel, CourseCompletion } from "@/entities/course";
 import type { ApiError } from "@/shared/api/base";
 import { PageShell } from "@/shared/ui/PageShell";
 
-const TABS = ["All", "Current", "Completed"] as const;
-type Tab = (typeof TABS)[number];
+type Translator = (key: string, values?: Record<string, string | number>) => string;
+
+const TAB_VALUES = ["All", "Current", "Completed"] as const;
+type Tab = (typeof TAB_VALUES)[number];
+
+function tabLabel(tab: Tab, t: Translator, tCommon: Translator): string {
+  if (tab === "All") return tCommon("all");
+  if (tab === "Current") return t("tabCurrent");
+  return t("tabCompleted");
+}
 
 const LEVEL_ICON: Record<CourseLevel, string> = {
   beginner: "/icons/curses.svg",
@@ -18,9 +27,9 @@ const LEVEL_ICON: Record<CourseLevel, string> = {
 
 const CURRENT_YEAR = new Date().getFullYear();
 
-function getMonthLabel(iso: string): string {
+function getMonthLabel(iso: string, locale: string): string {
   const date = new Date(iso);
-  const monthName = date.toLocaleString("en-US", { month: "long" });
+  const monthName = date.toLocaleString(locale, { month: "long" });
   return date.getFullYear() === CURRENT_YEAR ? monthName : `${monthName} ${date.getFullYear()}`;
 }
 
@@ -34,13 +43,16 @@ function itemDate(entry: AllItem): number {
     : new Date(entry.item.completed_at).getTime();
 }
 
-function itemMonthLabel(entry: AllItem): string {
+function itemMonthLabel(entry: AllItem, locale: string): string {
   return entry.kind === "active"
-    ? getMonthLabel(entry.item.enrolled_at ?? entry.item.created_at)
-    : getMonthLabel(entry.item.completed_at);
+    ? getMonthLabel(entry.item.enrolled_at ?? entry.item.created_at, locale)
+    : getMonthLabel(entry.item.completed_at, locale);
 }
 
 export default function StudentCoursesPage() {
+  const t = useTranslations("StudentCoursesPage");
+  const tCommon = useTranslations("Common");
+  const locale = useLocale();
   const [courses, setCourses] = useState<CourseListItem[]>([]);
   const [completions, setCompletions] = useState<CourseCompletion[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,9 +66,9 @@ export default function StudentCoursesPage() {
         setCourses(enrolled.results);
         setCompletions(completed.results);
       })
-      .catch((err: Partial<ApiError>) => setError(err.message ?? "Failed to load courses."))
+      .catch((err: Partial<ApiError>) => setError(err.message ?? t("errorLoad")))
       .finally(() => setLoading(false));
-  }, []);
+  }, [t]);
 
   // A completed course keeps its (unrevoked) enrollment, so it would otherwise
   // show up as both an active card and a completed card — keep only the
@@ -85,10 +97,10 @@ export default function StudentCoursesPage() {
           .map((item): AllItem => ({ kind: "completed", item }))
       : allItems;
 
-  const months = [...new Set(displayItems.map(itemMonthLabel))];
+  const months = [...new Set(displayItems.map((entry) => itemMonthLabel(entry, locale)))];
 
   const emptyLabel =
-    activeTab === "Completed" ? "No completed courses yet." : "No courses found.";
+    activeTab === "Completed" ? t("noCompletedCoursesYet") : t("noCoursesFound");
 
   function handleTabChange(tab: Tab) {
     setActiveTab(tab);
@@ -99,11 +111,11 @@ export default function StudentCoursesPage() {
     <PageShell className="bg-my-courses">
       <div style={{ maxWidth: "1648px", margin: "0 auto" }}>
         <nav
-          aria-label="Course filter"
+          aria-label={t("courseFilterAriaLabel")}
           className="flex items-center"
           style={{ marginBottom: "clamp(16px, 2.22vw, 32px)", gap: "clamp(16px, 1.67vw, 40px)" }}
         >
-          {TABS.map((tab) => (
+          {TAB_VALUES.map((tab) => (
             <button
               key={tab}
               onClick={() => handleTabChange(tab)}
@@ -116,13 +128,13 @@ export default function StudentCoursesPage() {
               ].join(" ")}
               style={{ fontSize: "clamp(14px, 1.39vw, 24px)" }}
             >
-              {tab}
+              {tabLabel(tab, t, tCommon)}
             </button>
           ))}
         </nav>
 
         {loading ? (
-          <p className="mt-16 text-center text-lg text-(--color-text-secondary)">Loading...</p>
+          <p className="mt-16 text-center text-lg text-(--color-text-secondary)">{tCommon("loading")}</p>
         ) : error ? (
           <p className="mt-16 text-center text-lg text-red-500">{error}</p>
         ) : months.length === 0 ? (
@@ -141,7 +153,7 @@ export default function StudentCoursesPage() {
                 style={{ gap: "clamp(8px, 1.11vw, 16px)" }}
               >
                 {displayItems
-                  .filter((entry) => itemMonthLabel(entry) === month)
+                  .filter((entry) => itemMonthLabel(entry, locale) === month)
                   .map((entry) =>
                     entry.kind === "active" ? (
                       <StudentCourseCard

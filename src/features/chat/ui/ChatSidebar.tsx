@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { useLocale, useTranslations } from "next-intl";
 import { Loader2, LockKeyhole, MessageSquarePlus, Plus, Users } from "lucide-react";
 import type { ChatRoom, ChatType } from "@/entities/chat";
 import { compactTime } from "../lib/chatFormatters";
@@ -33,6 +34,9 @@ export function ChatSidebar({
   onSelectChat,
   onNewChat,
 }: Props) {
+  const t = useTranslations("ChatSidebar");
+  const tCommon = useTranslations("ChatCommon");
+  const locale = useLocale();
   const filterButtonClass = (filter: ChatType) =>
     `relative z-10 flex h-full flex-1 items-center justify-center rounded-full text-black transition ${
       typeFilter === filter
@@ -56,7 +60,7 @@ export function ChatSidebar({
           value={search}
           onChange={(event) => onSearchChange(event.target.value)}
           className="h-10 w-full rounded-[20px] border border-[#A7BAFA] bg-white pl-11 pr-4 text-xs outline-none placeholder:text-[#121212] focus:border-[#003AFF] focus:ring-2 focus:ring-white/70 lg:h-12 lg:rounded-[18px] lg:pl-12 lg:text-base lg:placeholder:text-[#C6C6CF]"
-          placeholder="Search 10,000+ articles"
+          placeholder={t("searchPlaceholder")}
         />
       </label>
 
@@ -74,7 +78,7 @@ export function ChatSidebar({
           />
           <button
             type="button"
-            aria-label="Direct chats"
+            aria-label={t("directChatsAriaLabel")}
             aria-pressed={typeFilter === "direct"}
             onClick={() => onTypeFilterChange("direct")}
             className={filterButtonClass("direct")}
@@ -83,7 +87,7 @@ export function ChatSidebar({
           </button>
           <button
             type="button"
-            aria-label="Group chats"
+            aria-label={t("groupChatsAriaLabel")}
             aria-pressed={typeFilter === "group"}
             onClick={() => onTypeFilterChange("group")}
             className={filterButtonClass("group")}
@@ -99,7 +103,7 @@ export function ChatSidebar({
         </div>
         <button
           type="button"
-          aria-label="New chat"
+          aria-label={t("newChatAriaLabel")}
           onClick={onNewChat}
           className="absolute bottom-[14px] right-0 flex h-[50px] w-[50px] items-center justify-center rounded-full bg-[#819CF0] text-black shadow-[0_4px_10px_rgba(0,0,0,0.18)] transition hover:brightness-105 lg:static lg:h-9 lg:w-9 lg:rounded-[4px] lg:bg-black lg:text-white lg:shadow-none lg:hover:bg-[#252525]"
         >
@@ -112,12 +116,12 @@ export function ChatSidebar({
           {loading ? (
             <div className="flex h-32 items-center justify-center text-sm text-[#4B5563]">
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Loading chats
+              {t("loadingChats")}
             </div>
           ) : chats.length > 0 ? (
             <div className="space-y-3">
               {chats.map((chat) => {
-                const title = chatTitle(chat, meId);
+                const title = chatTitle(chat, meId, tCommon);
                 const active = chat.id === selectedChatId;
                 return (
                   <button
@@ -141,12 +145,12 @@ export function ChatSidebar({
                         ) : null}
                       </span>
                       <span className="mt-1 block truncate text-[12px] leading-4 text-[#121212] lg:text-sm">
-                        {lastMessagePreview(chat)}
+                        {lastMessagePreview(chat, tCommon)}
                       </span>
                     </span>
                     <span className="hidden min-w-8 flex-col items-end gap-2 lg:flex">
                       <span className="text-[11px] text-[#4B5563]">
-                        {compactTime(chat.updated_at)}
+                        {compactTime(chat.updated_at, locale)}
                       </span>
                       {chat.unread_count > 0 ? (
                         <span className="flex min-w-5 items-center justify-center rounded-full bg-[#003AFF] px-1.5 py-0.5 text-[11px] font-semibold text-white">
@@ -161,7 +165,7 @@ export function ChatSidebar({
           ) : (
             <div className="flex h-full min-h-40 flex-col items-center justify-center px-6 text-center text-sm text-[#4B5563]">
               <MessageSquarePlus className="mb-3 h-8 w-8 text-[#A7BAFA]" />
-              No chats
+              {t("noChats")}
             </div>
           )}
         </div>

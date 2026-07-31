@@ -13,6 +13,7 @@ import {
 import { useSearchParams } from "next/navigation";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { MessageSquarePlus, Plus } from "lucide-react";
+import { useTranslations } from "next-intl";
 import {
   clearChatHistory,
   deleteChat,
@@ -95,6 +96,9 @@ type ChatWorkspaceProps = {
 
 /** Full chat workspace with an optional profile-view override for composed experiences. */
 export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
+  const t = useTranslations("ChatWorkspace");
+  const tCommon = useTranslations("ChatCommon");
+  const tShared = useTranslations("Common");
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -158,7 +162,7 @@ export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
 
   const meChatUser = useMemo(() => (me ? toChatUser(me) : null), [me]);
   const selectedChat = chats.find((chat) => chat.id === selectedChatId) ?? null;
-  const selectedChatTitle = selectedChat ? chatTitle(selectedChat, me?.id ?? null) : "";
+  const selectedChatTitle = selectedChat ? chatTitle(selectedChat, me?.id ?? null, tCommon) : "";
   const selectedChatAvatar = selectedChat ? chatAvatar(selectedChat, me?.id ?? null) : null;
   const selectedPeer = selectedChat ? directPeer(selectedChat, me?.id ?? null) : null;
   const selectedChatMuted = selectedChat ? mutedChatIds.has(selectedChat.id) : false;
@@ -181,10 +185,10 @@ export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
     const query = chatSearch.trim().toLowerCase();
     if (!query) return typeFilteredChats;
     return typeFilteredChats.filter((chat) => {
-      const title = chatTitle(chat, me?.id ?? null).toLowerCase();
-      return title.includes(query) || lastMessagePreview(chat).toLowerCase().includes(query);
+      const title = chatTitle(chat, me?.id ?? null, tCommon).toLowerCase();
+      return title.includes(query) || lastMessagePreview(chat, tCommon).toLowerCase().includes(query);
     });
-  }, [chatSearch, me?.id, typeFilteredChats]);
+  }, [chatSearch, me?.id, typeFilteredChats, tCommon]);
 
   useEffect(() => {
     selectedChatIdRef.current = selectedChatId;
@@ -231,7 +235,7 @@ export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
     } catch (requestError) {
       if (selectedChatIdRef.current !== chatId) return;
       const apiError = requestError as Partial<ApiError>;
-      setError(apiError.detail || apiError.message || "Could not load messages.");
+      setError(apiError.detail || apiError.message || t("couldNotLoadMessages"));
       setMessages([]);
       setHasMoreMessages(false);
     } finally {
@@ -239,7 +243,7 @@ export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
         setLoadingMessages(false);
       }
     }
-  }, []);
+  }, [t]);
 
   const updateMessageScrollbar = useCallback((visible: boolean) => {
     const viewport = messagesViewportRef.current;
@@ -414,7 +418,7 @@ export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
       }
 
       if (event.type === "error") {
-        setError(typeof event.detail === "string" ? event.detail : "Chat event failed.");
+        setError(typeof event.detail === "string" ? event.detail : t("chatEventFailed"));
         setMessages((current) => {
           let optimisticIndex = -1;
           for (let index = current.length - 1; index >= 0; index -= 1) {
@@ -430,7 +434,7 @@ export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
         });
       }
     },
-    [loadChats],
+    [loadChats, t],
   );
 
   const { status: socketStatus, send } = useChatSocket({
@@ -464,13 +468,13 @@ export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
         if (!cancelled) setMe(user);
       })
       .catch(() => {
-        if (!cancelled) setError("Could not load your profile.");
+        if (!cancelled) setError(t("couldNotLoadProfile"));
       })
       .finally(() => {
         if (!cancelled) {
           loadChats()
             .catch((requestError: Partial<ApiError>) =>
-              setError(requestError.detail || requestError.message || "Could not load chats."),
+              setError(requestError.detail || requestError.message || t("couldNotLoadChats")),
             )
             .finally(() => setLoadingChats(false));
         }
@@ -478,7 +482,7 @@ export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
     return () => {
       cancelled = true;
     };
-  }, [loadChats]);
+  }, [loadChats, t]);
 
   useEffect(() => {
     setChatMenuOpen(false);
@@ -580,7 +584,7 @@ export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
     } catch (requestError) {
       const apiError = requestError as Partial<ApiError>;
 
-      setError(apiError.detail || apiError.message || "Could not load older messages.");
+      setError(apiError.detail || apiError.message || t("couldNotLoadOlderMessages"));
     } finally {
       setLoadingMore(false);
     }
@@ -672,7 +676,7 @@ export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
       previewUrls.forEach((url) => URL.revokeObjectURL(url));
     } catch (requestError) {
       const apiError = requestError as Partial<ApiError>;
-      setError(apiError.detail || apiError.message || "Could not send message.");
+      setError(apiError.detail || apiError.message || t("couldNotSendMessage"));
       setMessages((current) =>
         current.map((message) =>
           message.id === optimistic.id
@@ -737,7 +741,7 @@ export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
     } catch (requestError) {
       setChatMuted(chatId, !nextMuted);
       const apiError = requestError as Partial<ApiError>;
-      setError(apiError.detail || apiError.message || "Could not update notifications.");
+      setError(apiError.detail || apiError.message || t("couldNotUpdateNotifications"));
     }
   }
 
@@ -795,7 +799,7 @@ export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
       .catch((requestError: Partial<ApiError>) => {
         setChatAttachments([]);
         setAttachmentsError(
-          requestError.detail || requestError.message || "Could not load attachments.",
+          requestError.detail || requestError.message || t("couldNotLoadAttachments"),
         );
       })
       .finally(() => setLoadingAttachments(false));
@@ -844,7 +848,7 @@ export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
     } catch (requestError) {
       setUserBlocked(selectedPeer.id, !isBlocked);
       const apiError = requestError as Partial<ApiError>;
-      setError(apiError.detail || apiError.message || "Could not update user block.");
+      setError(apiError.detail || apiError.message || t("couldNotUpdateUserBlock"));
       throw requestError;
     }
   }
@@ -859,7 +863,7 @@ export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
       setChats((current) => upsertChat(current, updated));
     } catch (requestError) {
       const apiError = requestError as Partial<ApiError>;
-      setError(apiError.detail || apiError.message || "Could not clear history.");
+      setError(apiError.detail || apiError.message || t("couldNotClearHistory"));
       throw requestError;
     }
   }
@@ -878,7 +882,7 @@ export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
       setGroupInfoOpen(false);
     } catch (requestError) {
       const apiError = requestError as Partial<ApiError>;
-      setError(apiError.detail || apiError.message || "Could not delete chat.");
+      setError(apiError.detail || apiError.message || t("couldNotDeleteChat"));
       throw requestError;
     } finally {
       setDeletingChat(false);
@@ -896,7 +900,7 @@ export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
       setEditText("");
     } catch (requestError) {
       const apiError = requestError as Partial<ApiError>;
-      setError(apiError.detail || apiError.message || "Could not update message.");
+      setError(apiError.detail || apiError.message || t("couldNotUpdateMessage"));
     }
   }
 
@@ -912,7 +916,7 @@ export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
       );
     } catch (requestError) {
       const apiError = requestError as Partial<ApiError>;
-      setError(apiError.detail || apiError.message || "Could not delete message.");
+      setError(apiError.detail || apiError.message || t("couldNotDeleteMessage"));
     }
   }
 
@@ -995,10 +999,10 @@ export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
     const url = resolveMediaUrl(attachment.url);
     if (!url) return;
     try {
-      await downloadFile(url, attachmentName(attachment, 0));
+      await downloadFile(url, attachmentName(attachment, 0, tCommon));
       setAttachmentAction(null);
     } catch {
-      setError("Could not download attachment.");
+      setError(t("couldNotDownloadAttachment"));
     }
   }
 
@@ -1030,7 +1034,7 @@ export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
         }
       } catch (requestError) {
         const apiError = requestError as Partial<ApiError>;
-        setError(apiError.detail || apiError.message || "Could not find the message.");
+        setError(apiError.detail || apiError.message || t("couldNotFindMessage"));
         return;
       }
     }
@@ -1048,7 +1052,7 @@ export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
     setForwardingChatId(chat.id);
     setError("");
     try {
-      const forwarded = await sendMessage(chat.id, forwardedMessageText(forwardingMessage));
+      const forwarded = await sendMessage(chat.id, forwardedMessageText(forwardingMessage, tCommon));
       setChats((current) =>
         sortChats(
           current.map((item) =>
@@ -1073,7 +1077,7 @@ export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
       setForwardingMessage(null);
     } catch (requestError) {
       const apiError = requestError as Partial<ApiError>;
-      setError(apiError.detail || apiError.message || "Could not forward message.");
+      setError(apiError.detail || apiError.message || t("couldNotForwardMessage"));
     } finally {
       setForwardingChatId(null);
     }
@@ -1082,45 +1086,42 @@ export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
   const typingLabel = Object.values(typingUsers).join(", ");
   const selectedPeerOnline = selectedPeer ? onlineUserIds.has(selectedPeer.id) : false;
   const selectedChatStatus = selectedChat?.is_read_only
-    ? "Official read-only chat"
+    ? t("officialReadOnlyChat")
     : selectedPeerBlocked
-      ? "Blocked"
+      ? t("statusBlocked")
       : socketStatus !== "open"
-        ? "Reconnecting"
+        ? t("statusReconnecting")
         : selectedChat?.type === "direct" && selectedPeerOnline
-          ? "Online"
+          ? t("statusOnline")
           : "";
-  const selectedPeerName = selectedPeer ? userDisplayName(selectedPeer) : "this user";
+  const selectedPeerName = selectedPeer ? userDisplayName(selectedPeer) : t("thisUser");
   const confirmation =
     confirmationAction === "clear-history"
       ? {
-          title: "Clear history?",
-          description:
-            "Messages will disappear only for you. Other chat participants will keep their history.",
-          confirmLabel: "Clear",
+          title: t("clearHistoryTitle"),
+          description: t("clearHistoryDescription"),
+          confirmLabel: t("clear"),
           danger: true,
         }
       : confirmationAction === "delete-chat"
         ? {
-            title: "Delete chat?",
-            description:
-              "This will delete the entire chat for all participants. This action cannot be undone.",
-            confirmLabel: "Delete",
+            title: t("deleteChatTitle"),
+            description: t("deleteChatDescription"),
+            confirmLabel: tShared("delete"),
             danger: true,
           }
         : confirmationAction === "block-user"
           ? {
-              title: `Block ${selectedPeerName}?`,
-              description:
-                "You will not be able to send messages in this direct chat until the user is unblocked.",
-              confirmLabel: "Block",
+              title: t("blockUserTitle", { name: selectedPeerName }),
+              description: t("blockUserDescription"),
+              confirmLabel: t("block"),
               danger: true,
             }
           : confirmationAction === "unblock-user"
             ? {
-                title: `Unblock ${selectedPeerName}?`,
-                description: "Messaging in this direct chat will be available again.",
-                confirmLabel: "Unblock",
+                title: t("unblockUserTitle", { name: selectedPeerName }),
+                description: t("unblockUserDescription"),
+                confirmLabel: t("unblock"),
                 danger: false,
               }
             : null;
@@ -1278,14 +1279,14 @@ export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
         ) : (
           <div className="flex h-full flex-col items-center justify-center rounded-[18px] border border-white/70 bg-[#D6E0FF]/45 text-center text-sm text-[#4B5563] shadow-[inset_0_2px_4px_rgba(255,255,255,0.65)]">
             <MessageSquarePlus className="mb-3 h-9 w-9 text-[#A7BAFA]" />
-            Select or create a chat
+            {t("selectOrCreateChat")}
             <button
               type="button"
               onClick={() => setComposeOpen(true)}
               className="mt-4 inline-flex h-10 items-center gap-2 rounded-lg bg-black px-4 text-sm font-semibold text-white"
             >
               <Plus className="h-4 w-4" />
-              New chat
+              {t("newChat")}
             </button>
           </div>
         )}

@@ -1,4 +1,7 @@
+"use client";
+
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import type { ComponentProps, CSSProperties, ReactNode } from "react";
 import {
@@ -136,7 +139,7 @@ export function TodoPanel({
   onTabChange,
   items,
   loading = false,
-  emptyLabel = "Nothing here yet.",
+  emptyLabel,
   teacher = false,
 }: {
   title: string;
@@ -148,6 +151,8 @@ export function TodoPanel({
   emptyLabel?: string;
   teacher?: boolean;
 }) {
+  const t = useTranslations("DashboardOverview");
+
   return (
     <Card className="flex h-[230px] flex-col overflow-hidden p-3">
       <div className="mb-2 flex shrink-0 items-center gap-3">
@@ -175,9 +180,11 @@ export function TodoPanel({
         </button>
       </div>
       {loading ? (
-        <p className="pt-6 text-center text-xs text-[#5e5e5e]">Loading...</p>
+        <p className="pt-6 text-center text-xs text-[#5e5e5e]">{t("loading")}</p>
       ) : items.length === 0 ? (
-        <p className="pt-6 text-center text-xs text-[#5e5e5e]">{emptyLabel}</p>
+        <p className="pt-6 text-center text-xs text-[#5e5e5e]">
+          {emptyLabel ?? t("nothingHereYet")}
+        </p>
       ) : (
         <ScrollableList>
           {items.map((item) => (
@@ -198,6 +205,7 @@ function ListRow({
   compact?: boolean;
   teacher?: boolean;
 }) {
+  const t = useTranslations("DashboardOverview");
   const className = [
     "mb-2 flex items-center gap-3 rounded-md border border-black/5 bg-white px-3 shadow-[0_1px_8px_rgba(0,0,0,0.12)]",
     compact ? "min-h-[58px]" : "min-h-[56px]",
@@ -220,7 +228,7 @@ function ListRow({
       ) : null}
       {item.author ? (
         <span className="whitespace-nowrap text-xs text-black">
-          From: <span className="text-[#003aff]">{item.author}</span>
+          {t("from")} <span className="text-[#003aff]">{item.author}</span>
         </span>
       ) : null}
       {item.date && !teacher ? (

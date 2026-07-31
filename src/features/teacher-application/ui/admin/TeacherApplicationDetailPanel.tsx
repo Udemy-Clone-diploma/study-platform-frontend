@@ -1,6 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import type { TeacherApplication } from "@/entities/teacher-application";
 import { formatUserDate } from "@/features/users";
 import { ApplicationStatusBadge } from "./ApplicationStatusBadge";
@@ -25,12 +26,15 @@ export function TeacherApplicationDetailPanel({
   onApprove,
   onCancelApplication,
 }: Props) {
+  const t = useTranslations("TeacherApplicationsAdmin");
+  const tCommon = useTranslations("Common");
+  const locale = useLocale();
   const socials = SOCIAL_LABELS.filter(([key]) => Boolean(application[key]));
   const name = `${application.first_name} ${application.last_name}`.trim() || application.email;
 
   return (
     <aside
-      aria-label="Application details"
+      aria-label={t("applicationDetailsAriaLabel")}
       className="flex shrink-0 flex-col rounded-[20px] border border-white bg-(--color-white-20) shadow-(--shadow-usp-glass) backdrop-blur-md"
       style={{
         width: "clamp(320px, 26vw, 400px)",
@@ -48,7 +52,7 @@ export function TeacherApplicationDetailPanel({
         <button
           type="button"
           onClick={onClose}
-          aria-label="Close details"
+          aria-label={t("closeDetailsAriaLabel")}
           className="flex shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-1 text-(--color-text-secondary) transition hover:bg-(--color-brand-lavender-soft)"
         >
           <X size={18} />
@@ -57,25 +61,25 @@ export function TeacherApplicationDetailPanel({
 
       <ApplicationStatusBadge status={application.status} />
 
-      <PanelSection title="Contact data">
-        <DetailRow label="Email">{application.email}</DetailRow>
-        <DetailRow label="Phone">{application.phone_number || "—"}</DetailRow>
-        <DetailRow label="Date of birth">
-          {application.date_of_birth ? formatUserDate(application.date_of_birth) : "—"}
+      <PanelSection title={t("contactData")}>
+        <DetailRow label={t("email")}>{application.email}</DetailRow>
+        <DetailRow label={t("phone")}>{application.phone_number || "—"}</DetailRow>
+        <DetailRow label={t("dateOfBirth")}>
+          {application.date_of_birth ? formatUserDate(application.date_of_birth, locale) : "—"}
         </DetailRow>
       </PanelSection>
 
-      <PanelSection title="Teacher information">
-        <DetailRow label="Field of study">{application.specialization || "—"}</DetailRow>
-        <DetailRow label="Years exp.">
+      <PanelSection title={t("teacherInformation")}>
+        <DetailRow label={t("fieldOfStudy")}>{application.specialization || "—"}</DetailRow>
+        <DetailRow label={t("yearsExp")}>
           {application.years_experience != null ? String(application.years_experience) : "—"}
         </DetailRow>
-        <DetailRow label="Directions">
+        <DetailRow label={t("directions")}>
           {application.directions.map((d) => d.name).join(", ") || "—"}
         </DetailRow>
-        <DetailTextRow label="Experience">{application.experience || "—"}</DetailTextRow>
-        <DetailTextRow label="Bio">{application.bio || "—"}</DetailTextRow>
-        <DetailTextRow label="Motivation">{application.motivation || "—"}</DetailTextRow>
+        <DetailTextRow label={t("experience")}>{application.experience || "—"}</DetailTextRow>
+        <DetailTextRow label={t("bio")}>{application.bio || "—"}</DetailTextRow>
+        <DetailTextRow label={t("motivation")}>{application.motivation || "—"}</DetailTextRow>
         {socials.map(([key, label]) => (
           <DetailRow key={key} label={label}>
             <a
@@ -90,16 +94,18 @@ export function TeacherApplicationDetailPanel({
         ))}
       </PanelSection>
 
-      <PanelSection title="Submission">
-        <DetailRow label="Submitted">{formatUserDate(application.submitted_at)}</DetailRow>
+      <PanelSection title={t("submission")}>
+        <DetailRow label={t("submitted")}>{formatUserDate(application.submitted_at, locale)}</DetailRow>
         {application.decided_at && (
-          <DetailRow label="Decided">{formatUserDate(application.decided_at)}</DetailRow>
+          <DetailRow label={t("decided")}>
+            {formatUserDate(application.decided_at, locale)}
+          </DetailRow>
         )}
         {application.moderator_name && (
-          <DetailRow label="Moderator">{application.moderator_name}</DetailRow>
+          <DetailRow label={t("moderator")}>{application.moderator_name}</DetailRow>
         )}
         {application.moderator_comment && (
-          <DetailTextRow label="Moderator comment">{application.moderator_comment}</DetailTextRow>
+          <DetailTextRow label={t("moderatorComment")}>{application.moderator_comment}</DetailTextRow>
         )}
       </PanelSection>
 
@@ -111,7 +117,7 @@ export function TeacherApplicationDetailPanel({
             className="cursor-pointer rounded-full border px-4 py-2 text-sm font-medium transition hover:opacity-80"
             style={{ borderColor: "var(--color-rejected)", color: "var(--color-rejected)" }}
           >
-            Cancel
+            {tCommon("cancel")}
           </button>
           <button
             type="button"
@@ -119,7 +125,7 @@ export function TeacherApplicationDetailPanel({
             className="cursor-pointer rounded-full px-4 py-2 text-sm font-medium text-white transition hover:opacity-80"
             style={{ background: "var(--color-success)" }}
           >
-            Approve
+            {t("approve")}
           </button>
         </div>
       )}

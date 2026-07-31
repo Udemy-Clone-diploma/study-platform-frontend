@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { ModalShell } from "@/shared/ui/ModalShell";
 import { ModalFooter } from "@/shared/ui/ModalFooter";
 import { LocaleTabs } from "@/shared/ui/LocaleTabs";
@@ -44,6 +45,8 @@ type Props = {
 
 /** Administrator-only modal for adding or editing a blog category block. */
 export function BlogCategoryFormModal({ category, onClose, onSave }: Props) {
+  const t = useTranslations("BlogCategoryFormModal");
+  const tCommon = useTranslations("Common");
   const [name, setName] = useState<LocaleFields>({ ...EMPTY_LOCALE_FIELDS, en: category?.name ?? "" });
   const [headline, setHeadline] = useState<LocaleFields>({
     ...EMPTY_LOCALE_FIELDS,
@@ -90,7 +93,7 @@ export function BlogCategoryFormModal({ category, onClose, onSave }: Props) {
         setOrder(detail.order);
       })
       .catch(() => {
-        if (!cancelled) setDetailError("Failed to load all translations for this category.");
+        if (!cancelled) setDetailError(t("loadError"));
       })
       .finally(() => {
         if (!cancelled) setDetailLoading(false);
@@ -125,7 +128,7 @@ export function BlogCategoryFormModal({ category, onClose, onSave }: Props) {
         order,
       });
     } catch (err) {
-      setError((err as ApiError).message ?? "Failed to save the category.");
+      setError((err as ApiError).message ?? t("saveError"));
       setLoading(false);
     }
   }
@@ -143,7 +146,7 @@ export function BlogCategoryFormModal({ category, onClose, onSave }: Props) {
   return (
     <ModalShell
       onClose={onClose}
-      title={category ? "Edit Category" : "Add Category"}
+      title={category ? t("editTitle") : t("addTitle")}
       width="clamp(320px, 34vw, 520px)"
       padding="clamp(20px, 2.08vw, 30px) clamp(20px, 2.08vw, 32px)"
       shadow="var(--shadow-modal)"
@@ -153,13 +156,13 @@ export function BlogCategoryFormModal({ category, onClose, onSave }: Props) {
           <LocaleTabs active={activeLocale} onChange={(l) => setActiveLocale(l as Locale)} filled={filled} />
           {activeLocale !== "en" && (
             <p style={{ fontSize: 12, color: "var(--color-text-secondary)", margin: 0 }}>
-              Leave blank to show the English text for this locale.
+              {t("localeHint")}
             </p>
           )}
 
           <div>
             <label htmlFor="category-name" style={labelSt}>
-              Name{activeLocale === "en" ? "*" : ""}
+              {t("nameLabel")}{activeLocale === "en" ? "*" : ""}
             </label>
             <input
               id="category-name"
@@ -174,7 +177,7 @@ export function BlogCategoryFormModal({ category, onClose, onSave }: Props) {
           </div>
           <div>
             <label htmlFor="category-headline" style={labelSt}>
-              Headline{activeLocale === "en" ? "*" : ""}
+              {t("headlineLabel")}{activeLocale === "en" ? "*" : ""}
             </label>
             <input
               id="category-headline"
@@ -189,7 +192,7 @@ export function BlogCategoryFormModal({ category, onClose, onSave }: Props) {
           </div>
           <div>
             <label htmlFor="category-description" style={labelSt}>
-              Description
+              {t("descriptionLabel")}
             </label>
             <textarea
               id="category-description"
@@ -206,7 +209,7 @@ export function BlogCategoryFormModal({ category, onClose, onSave }: Props) {
           {activeLocale === "en" && (
             <div>
               <label htmlFor="category-order" style={labelSt}>
-                Display order
+                {t("orderLabel")}
               </label>
               <input
                 id="category-order"
@@ -225,7 +228,7 @@ export function BlogCategoryFormModal({ category, onClose, onSave }: Props) {
 
         <ModalFooter
           onCancel={onClose}
-          submitLabel={category ? "Save" : "Create"}
+          submitLabel={category ? tCommon("save") : t("createLabel")}
           loading={loading}
           disabled={submitDisabled}
           error={error}

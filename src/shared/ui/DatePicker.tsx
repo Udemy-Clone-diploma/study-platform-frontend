@@ -1,13 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import { getWeekdayNames } from "@/shared/lib/time";
 
 // ── Utils ──────────────────────────────────────────────────────────────────────
 
-const MONTH_FMT = new Intl.DateTimeFormat("en", { month: "long" });
-const MONTH_SHORT_FMT = new Intl.DateTimeFormat("en", { month: "short" });
-const YEAR_FMT = new Intl.DateTimeFormat("en", { year: "numeric" });
-const WEEK_DAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 const YEARS_PER_PAGE = 12;
 
 function pad(n: number) { return String(n).padStart(2, "0"); }
@@ -177,6 +175,13 @@ export function DatePicker({
   disabled = false,
   onViewChange,
 }: DatePickerProps) {
+  const locale = useLocale();
+  const t = useTranslations("DatePicker");
+  const monthFmt = useMemo(() => new Intl.DateTimeFormat(locale, { month: "long" }), [locale]);
+  const monthShortFmt = useMemo(() => new Intl.DateTimeFormat(locale, { month: "short" }), [locale]);
+  const yearFmt = useMemo(() => new Intl.DateTimeFormat(locale, { year: "numeric" }), [locale]);
+  const weekDays = useMemo(() => getWeekdayNames(locale, "short"), [locale]);
+
   const selected   = parseISO(value);
   const minDate    = min ? parseISO(min) : null;
   const maxDate    = max ? parseISO(max) : null;
@@ -378,7 +383,7 @@ export function DatePicker({
             type="button"
             disabled={disabled}
             onClick={() => (open ? closeCalendar() : setOpen(true))}
-            aria-label="Open date picker"
+            aria-label={t("openDatePicker")}
             style={{ ...iconButtonStyle, marginBottom: 2, opacity: disabled ? 0.5 : 1, cursor: disabled ? "not-allowed" : "pointer" }}
           >
             <CalIcon size={size === "sm" ? 13 : 15} />
@@ -429,7 +434,7 @@ export function DatePicker({
             <button
               type="button"
               onClick={() => handleNavigate(-1)}
-              aria-label={view === "days" ? "Previous month" : view === "months" ? "Previous year" : "Previous years"}
+              aria-label={view === "days" ? t("previousMonth") : view === "months" ? t("previousYear") : t("previousYears")}
               style={iconButtonStyle}
             >
               <ChevLeft />
@@ -438,10 +443,10 @@ export function DatePicker({
             {view === "days" ? (
               <span style={{ display: "flex", alignItems: "center", gap: 4, fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(13px, 0.9vw, 16px)", color: "#111" }}>
                 <button type="button" onClick={() => setView("months")} style={{ background: "none", border: "none", cursor: "pointer", borderRadius: 6, padding: "2px 4px", font: "inherit", color: "inherit" }}>
-                  {MONTH_FMT.format(viewMonth)}
+                  {monthFmt.format(viewMonth)}
                 </button>
                 <button type="button" onClick={() => setView("years")} style={{ background: "none", border: "none", cursor: "pointer", borderRadius: 6, padding: "2px 4px", font: "inherit", color: "inherit" }}>
-                  {YEAR_FMT.format(viewMonth)}
+                  {yearFmt.format(viewMonth)}
                 </button>
               </span>
             ) : view === "months" ? (
@@ -450,7 +455,7 @@ export function DatePicker({
                 onClick={() => setView("years")}
                 style={{ background: "none", border: "none", cursor: "pointer", borderRadius: 6, padding: "2px 4px", fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(13px, 0.9vw, 16px)", color: "#111" }}
               >
-                {YEAR_FMT.format(viewMonth)}
+                {yearFmt.format(viewMonth)}
               </button>
             ) : (
               <span style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(13px, 0.9vw, 16px)", color: "#111" }}>
@@ -461,7 +466,7 @@ export function DatePicker({
             <button
               type="button"
               onClick={() => handleNavigate(1)}
-              aria-label={view === "days" ? "Next month" : view === "months" ? "Next year" : "Next years"}
+              aria-label={view === "days" ? t("nextMonth") : view === "months" ? t("nextYear") : t("nextYears")}
               style={iconButtonStyle}
             >
               <ChevRight />
@@ -470,8 +475,8 @@ export function DatePicker({
 
           {view === "days" ? (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "6px 0", textAlign: "center" }}>
-              {WEEK_DAYS.map(w => (
-                <span key={w} style={{ fontFamily: "var(--font-base)", fontSize: "0.75rem", fontWeight: 500, color: "#666" }}>
+              {weekDays.map((w, i) => (
+                <span key={i} style={{ fontFamily: "var(--font-base)", fontSize: "0.75rem", fontWeight: 500, color: "#666" }}>
                   {w}
                 </span>
               ))}
@@ -538,7 +543,7 @@ export function DatePicker({
                       boxShadow: isSel ? "0 8px 20px rgba(167,186,250,0.5)" : "none",
                     }}
                   >
-                    {MONTH_SHORT_FMT.format(new Date(viewMonth.getFullYear(), monthIndex, 1))}
+                    {monthShortFmt.format(new Date(viewMonth.getFullYear(), monthIndex, 1))}
                   </button>
                 );
               })}

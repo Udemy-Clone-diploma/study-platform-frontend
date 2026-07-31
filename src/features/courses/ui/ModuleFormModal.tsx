@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { AccentButton } from "@/shared/ui/AccentButton";
 import { GradientButton } from "@/shared/ui/GradientButton";
 import { ModalShell } from "@/shared/ui/ModalShell";
@@ -14,6 +15,7 @@ type Props = {
 
 /** Modal dialog for creating or renaming a course module. */
 export function ModuleFormModal({ mode, initialTitle = "", onClose, onSave }: Props) {
+  const t = useTranslations("ModuleFormModal");
   const [title, setTitle] = useState(initialTitle);
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -36,7 +38,7 @@ export function ModuleFormModal({ mode, initialTitle = "", onClose, onSave }: Pr
   return (
     <ModalShell
       onClose={onClose}
-      title={mode === "add" ? "Add Module" : "Edit Module"}
+      title={mode === "add" ? t("addModule") : t("editModule")}
       width="clamp(320px, 25vw, 420px)"
       padding="clamp(20px, 1.56vw, 30px) clamp(24px, 1.82vw, 35px)"
       shadow="var(--shadow-modal)"
@@ -47,7 +49,7 @@ export function ModuleFormModal({ mode, initialTitle = "", onClose, onSave }: Pr
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Text"
+          placeholder={t("textPlaceholder")}
           style={{
             display: "block",
             width: "100%",
@@ -77,7 +79,7 @@ export function ModuleFormModal({ mode, initialTitle = "", onClose, onSave }: Pr
               color: "var(--color-text-secondary)",
             }}
           >
-            Cancel
+            {t("cancel")}
           </GradientButton>
           <AccentButton
             type="submit"
@@ -85,7 +87,7 @@ export function ModuleFormModal({ mode, initialTitle = "", onClose, onSave }: Pr
             disabled={!title.trim() || loading}
             style={{ fontSize: "clamp(12px, 0.78vw, 15px)", height: "clamp(34px, 2.08vw, 40px)" }}
           >
-            {loading ? "Saving…" : "Save"}
+            {loading ? t("saving") : t("save")}
           </AccentButton>
         </div>
       </form>

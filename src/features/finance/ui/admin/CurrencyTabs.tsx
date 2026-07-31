@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { PricingPlan } from "@/entities/course";
 
 type Currency = PricingPlan["currency"];
@@ -11,6 +12,7 @@ type Props = {
 };
 
 export function CurrencyTabs({ currencies, active, onChange }: Props) {
+  const t = useTranslations("CurrencyTabs");
   if (currencies.length < 2) return null;
 
   return (
@@ -18,7 +20,7 @@ export function CurrencyTabs({ currencies, active, onChange }: Props) {
       className="flex rounded-full bg-white"
       style={{ padding: 3, gap: 2 }}
       role="group"
-      aria-label="Currency"
+      aria-label={t("ariaLabel")}
     >
       {currencies.map((currency) => (
         <button

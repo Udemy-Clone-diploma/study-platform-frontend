@@ -4,13 +4,17 @@ import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import { X } from "lucide-react";
 import { getAllNotes } from "@/entities/note";
 import type { NoteListItem } from "@/entities/note";
 import type { ApiError } from "@/shared/api/base";
+import { formatDate } from "@/shared/lib/time";
 import { PageShell } from "@/shared/ui/PageShell";
 import { PillSelect } from "@/shared/ui/PillSelect";
 import { Pagination } from "@/shared/ui/Pagination";
+
+type Translator = (key: string, values?: Record<string, string | number>) => string;
 
 const PAGE_SIZE = 12;
 const ALL_COURSES = "__all__";
@@ -22,16 +26,17 @@ type SortValue = "newest" | "oldest";
 const NOTE_ICON = "/icons/curses.svg";
 const NOTE_ACCENT = "from-[#fff3dc] to-[#ffe7ef]";
 
-function firstLine(text: string): string {
-  return text.split(/\r?\n/).map((line) => line.trim()).find(Boolean) ?? "Untitled note";
+function firstLine(text: string, t: Translator): string {
+  return text.split(/\r?\n/).map((line) => line.trim()).find(Boolean) ?? t("untitledNote");
 }
 
-function formatNoteDate(value: string): string {
+function formatNoteDate(value: string, locale: string): string {
   const date = new Date(value);
   if (!Number.isFinite(date.getTime())) return "";
-  return new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" })
-    .format(date)
-    .replace(/\//g, ".");
+  return formatDate(date, locale, { day: "2-digit", month: "2-digit", year: "numeric" }).replace(
+    /\//g,
+    ".",
+  );
 }
 
 /** Full list of the student's lesson notes across every course, with a detail drawer. */
@@ -44,6 +49,8 @@ export default function StudentNotesPage() {
 }
 
 function StudentNotesPageContent() {
+  const t = useTranslations("StudentNotesPage");
+  const tCommon = useTranslations("Common");
   const searchParams = useSearchParams();
   const [notes, setNotes] = useState<NoteListItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -57,9 +64,9 @@ function StudentNotesPageContent() {
   useEffect(() => {
     getAllNotes(1, 100)
       .then((res) => setNotes(res.results))
-      .catch((err: Partial<ApiError>) => setError(err.message ?? "Failed to load notes."))
+      .catch((err: Partial<ApiError>) => setError(err.message ?? t("errorLoad")))
       .finally(() => setLoading(false));
-  }, []);
+  }, [t]);
 
   // Deep link from the dashboard panel (?note=<id>): once notes finish loading, open that
   // note's drawer. Adjusted during render (not an effect) per React's "storing information
@@ -75,16 +82,16 @@ function StudentNotesPageContent() {
     const byCourse = new Map<string, string>();
     notes.forEach((note) => byCourse.set(note.course_slug, note.course_title));
     return [
-      { value: ALL_COURSES, label: "All courses" },
+      { value: ALL_COURSES, label: tCommon("allCourses") },
       ...Array.from(byCourse.entries())
         .sort((a, b) => a[1].localeCompare(b[1]))
         .map(([value, label]) => ({ value, label })),
     ];
-  }, [notes]);
+  }, [notes, tCommon]);
 
   const sortOptions = [
-    { value: "newest", label: "Newest" },
-    { value: "oldest", label: "Oldest" },
+    { value: "newest", label: t("sortNewest") },
+    { value: "oldest", label: t("sortOldest") },
   ];
 
   const filtered = useMemo(() => {
@@ -121,7 +128,7 @@ function StudentNotesPageContent() {
           className="font-normal text-(--color-text-primary)"
           style={{ fontSize: "clamp(20px, 2.22vw, 32px)" }}
         >
-          My Notes
+          {t("title")}
         </h1>
         <div className="flex items-center gap-3">
           <PillSelect value={courseFilter} options={courseOptions} onChange={handleCourseChange} />
@@ -131,11 +138,11 @@ function StudentNotesPageContent() {
 
       <div style={{ flex: 1 }}>
         {loading ? (
-          <p className="text-center text-lg text-(--color-text-secondary)">Loading...</p>
+          <p className="text-center text-lg text-(--color-text-secondary)">{tCommon("loading")}</p>
         ) : error ? (
           <p className="text-center text-lg text-red-500">{error}</p>
         ) : pageItems.length === 0 ? (
-          <p className="text-center text-lg text-(--color-text-secondary)">No notes found.</p>
+          <p className="text-center text-lg text-(--color-text-secondary)">{t("noNotesFound")}</p>
         ) : (
           <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}>
             {pageItems.map((note) => (
@@ -157,7 +164,9 @@ function StudentNotesPageContent() {
 }
 
 function NoteGridCard({ note, onClick }: { note: NoteListItem; onClick: () => void }) {
-  const date = formatNoteDate(note.updated_at);
+  const t = useTranslations("StudentNotesPage");
+  const locale = useLocale();
+  const date = formatNoteDate(note.updated_at, locale);
 
   return (
     <button
@@ -178,11 +187,12 @@ function NoteGridCard({ note, onClick }: { note: NoteListItem; onClick: () => vo
       </div>
       <div className="min-w-0 flex-1">
         <p className="truncate text-[11px] text-[#5e5e5e]">
-          {note.course_title} <span className="px-1">|</span> Lesson {note.lesson_order ?? "—"}
-          {note.is_course_completed && <span className="pl-1">· Completed</span>}
+          {note.course_title} <span className="px-1">|</span>{" "}
+          {t("lessonNumberLabel", { number: note.lesson_order ?? "—" })}
+          {note.is_course_completed && <span className="pl-1">{t("completedSuffix")}</span>}
         </p>
         <p className="line-clamp-2 text-sm font-medium leading-tight text-black">
-          {firstLine(note.content)}
+          {firstLine(note.content, t)}
         </p>
         {date && <p className="mt-1 text-xs text-[#003aff]">{date}</p>}
       </div>
@@ -192,6 +202,8 @@ function NoteGridCard({ note, onClick }: { note: NoteListItem; onClick: () => vo
 
 /** Detail drawer for a single note — same fixed right-side idiom as the homework drawer (student-dashboard/homework). */
 function NoteDrawer({ note, onClose }: { note: NoteListItem | null; onClose: () => void }) {
+  const t = useTranslations("StudentNotesPage");
+  const locale = useLocale();
   const open = Boolean(note);
 
   useEffect(() => {
@@ -217,7 +229,7 @@ function NoteDrawer({ note, onClose }: { note: NoteListItem | null; onClose: () 
         <div className="flex h-full flex-col overflow-y-auto px-[36px] py-8 font-(family-name:--font-base) text-[#121212]">
           <button
             type="button"
-            aria-label="Close note details"
+            aria-label={t("closeNoteDetails")}
             onClick={onClose}
             className="mb-9 flex h-8 w-8 items-center justify-center rounded-full text-black transition hover:bg-[#F4F4F4]"
           >
@@ -225,7 +237,7 @@ function NoteDrawer({ note, onClose }: { note: NoteListItem | null; onClose: () 
           </button>
 
           <div className="flex items-center gap-5 text-[14px] leading-[18px] text-[#5E5E5E]">
-            <span>{formatNoteDate(note.updated_at)}</span>
+            <span>{formatNoteDate(note.updated_at, locale)}</span>
             <span className="truncate">{note.course_title}</span>
           </div>
 
@@ -234,7 +246,7 @@ function NoteDrawer({ note, onClose }: { note: NoteListItem | null; onClose: () 
               {note.module_title}
             </h2>
             <p className="mt-1 font-(family-name:--font-accent) text-[16px] leading-5 tracking-normal">
-              Lesson {note.lesson_order ?? "—"}: {note.lesson_title}
+              {t("lessonWithTitleLabel", { number: note.lesson_order ?? "—", title: note.lesson_title })}
             </p>
           </div>
 
@@ -250,10 +262,10 @@ function NoteDrawer({ note, onClose }: { note: NoteListItem | null; onClose: () 
                 href={`/learn/${note.course_slug}/${note.lesson_id}`}
                 className="inline-flex h-[38px] min-w-[144px] items-center justify-center rounded-full bg-black px-8 font-(family-name:--font-accent) text-[13px] leading-none font-semibold uppercase text-white transition hover:bg-[#252525]"
               >
-                Open lesson
+                {t("openLesson")}
               </Link>
             ) : (
-              <p className="text-[13px] text-[#5E5E5E]">Course completed</p>
+              <p className="text-[13px] text-[#5E5E5E]">{t("courseCompleted")}</p>
             )}
           </div>
         </div>

@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { usePathname } from "@/i18n/navigation";
 import { MoreHorizontal } from "lucide-react";
+import { useTranslations } from "next-intl";
 import type { UserRole } from "@/entities/user";
 import type { SidebarItem } from "@/features/app-shell";
 import { SidebarIcon } from "@/shared/ui/icons/SidebarIcons";
@@ -47,13 +48,14 @@ function NavSlot({ href, active, label, children }: { href: string; active: bool
 }
 
 export function BottomNav({ role, items }: Props) {
+  const t = useTranslations("AppSidebar");
   const pathname = usePathname();
   const { primary } = getBottomNavSplit(role, items);
   const othersActive = pathname.startsWith(OTHERS_HREF);
 
   return (
     <nav
-      aria-label="Primary"
+      aria-label={t("primaryNavAriaLabel")}
       className="fixed inset-x-0 bottom-0 z-40 flex items-start justify-between lg:hidden"
       style={{
         background: "var(--color-brand-lavender)",
@@ -75,7 +77,7 @@ export function BottomNav({ role, items }: Props) {
         </NavSlot>
       ))}
 
-      <NavSlot href={OTHERS_HREF} active={othersActive} label="Others">
+      <NavSlot href={OTHERS_HREF} active={othersActive} label={t("others")}>
         <MoreHorizontal className="h-10 w-10" aria-hidden />
       </NavSlot>
     </nav>

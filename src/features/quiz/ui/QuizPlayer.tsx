@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { GradientButton } from "@/shared/ui/GradientButton";
 import type { CourseTest, TestAnswerInput, TestAttemptResult } from "@/entities/course";
 import {
@@ -35,6 +36,7 @@ function toAnswerInput(questionId: number, questionType: string, a: AnswerState)
 }
 
 export function QuizPlayer({ slug, test, isMock = false, onPassed, nextLessonHref }: Props) {
+  const t = useTranslations("Quiz");
   const ordered = byOrder(test.questions);
   const [answers, setAnswers] = useState<Record<number, AnswerState>>(() =>
     Object.fromEntries(ordered.map((q) => [q.id, emptyAnswer()])),
@@ -85,9 +87,7 @@ export function QuizPlayer({ slug, test, isMock = false, onPassed, nextLessonHre
       if (res.passed) onPassed?.();
       if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
-      setError(
-        (err as Partial<ApiError>).message ?? "Could not submit your answers. Please try again.",
-      );
+      setError((err as Partial<ApiError>).message ?? t("submitError"));
     } finally {
       setSubmitting(false);
     }
@@ -97,7 +97,7 @@ export function QuizPlayer({ slug, test, isMock = false, onPassed, nextLessonHre
     <QuizWindow title={test.title} description={test.description} passingScore={test.passing_score}>
       {loading ? (
         <p role="status" className="py-8 text-center text-(--color-text-secondary)">
-          Loading your test...
+          {t("loadingTest")}
         </p>
       ) : (
         <div className="mx-auto flex max-w-[1280px] flex-col gap-5">
@@ -131,7 +131,7 @@ export function QuizPlayer({ slug, test, isMock = false, onPassed, nextLessonHre
           ) : (
             <div className="flex flex-wrap items-center justify-center gap-5 pt-1">
               <QuizButton onClick={handleSubmit} disabled={submitting} size="lg">
-                {submitting ? "Submitting..." : "To the results"}
+                {submitting ? t("submitting") : t("toResults")}
               </QuizButton>
             </div>
           )}
@@ -150,6 +150,7 @@ function ResultsFooter({
   onRetake: () => void;
   nextLessonHref?: string;
 }) {
+  const t = useTranslations("Quiz");
   const answered = result.questions.filter(
     (q) =>
       (q.selected_indices?.length ?? 0) > 0 ||
@@ -163,11 +164,9 @@ function ResultsFooter({
   return (
     <div className="flex flex-col gap-6 pt-2">
       <div className="flex flex-wrap justify-center gap-x-16 gap-y-2 font-(family-name:--font-base) text-xl leading-[25px] text-(--color-black)">
-        <span>
-          Answered: {answered} / {result.total_count}
-        </span>
-        <span>Correct answers: {result.correct_count}</span>
-        <span>Incorrect answers: {incorrect}</span>
+        <span>{t("answeredCount", { answered, total: result.total_count })}</span>
+        <span>{t("correctAnswers", { count: result.correct_count })}</span>
+        <span>{t("incorrectAnswers", { count: incorrect })}</span>
       </div>
 
       <p
@@ -175,27 +174,25 @@ function ResultsFooter({
           result.passed ? "text-(--color-quiz-correct)" : "text-(--color-pink-dark)"
         }`}
       >
-        {result.passed
-          ? "You passed!"
-          : `You did not reach the passing score (${result.passing_score}%).`}
+        {result.passed ? t("passed") : t("didNotPass", { passing: result.passing_score })}
       </p>
 
       <div className="flex flex-wrap items-center justify-end gap-5">
         <span className="font-(family-name:--font-base) text-xl leading-[25px] text-(--color-black)">
-          Assessment:
+          {t("assessment")}
         </span>
         <span className="flex h-[60px] w-[60px] items-center justify-center rounded-lg bg-(--color-brand-lavender) font-(family-name:--font-accent) text-2xl font-medium leading-[30px] text-(--color-blue-dark)">
           {result.score}
         </span>
         {remaining != null && (
           <span className="font-(family-name:--font-base) text-base leading-[25px] text-(--color-text-secondary)">
-            {remaining === 0
-              ? "No attempts left"
-              : `${remaining} attempt${remaining === 1 ? "" : "s"} left`}
+            {remaining === 0 ? t("noAttemptsLeft") : t("attemptsLeft", { count: remaining })}
           </span>
         )}
-        {result.can_retake && <GradientButton onClick={onRetake}>Retake</GradientButton>}
-        {nextLessonHref && <GradientButton href={nextLessonHref}>Next lesson</GradientButton>}
+        {result.can_retake && <GradientButton onClick={onRetake}>{t("retake")}</GradientButton>}
+        {nextLessonHref && (
+          <GradientButton href={nextLessonHref}>{t("nextLesson")}</GradientButton>
+        )}
       </div>
     </div>
   );

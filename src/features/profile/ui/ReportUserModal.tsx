@@ -1,22 +1,23 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useTranslations } from "next-intl";
 import { CheckCircle2, Flag, Loader2 } from "lucide-react";
 import { reportUser, type UserReportReason } from "@/entities/user";
 import type { ApiError } from "@/shared/api/base";
 import { ModalShell } from "@/shared/ui/ModalShell";
 import { WhiteButton } from "@/shared/ui/WhiteButton";
 
-const REPORT_REASONS: Array<{ value: UserReportReason; label: string }> = [
-  { value: "spam", label: "Spam or advertising" },
-  { value: "harassment", label: "Harassment or bullying" },
-  { value: "hate", label: "Hate speech" },
-  { value: "violence", label: "Violence or threats" },
-  { value: "sexual", label: "Sexual content" },
-  { value: "fraud", label: "Fraud or scam" },
-  { value: "impersonation", label: "Impersonation or fake identity" },
-  { value: "inappropriate_profile", label: "Inappropriate profile content" },
-  { value: "other", label: "Other" },
+const REPORT_REASON_VALUES: UserReportReason[] = [
+  "spam",
+  "harassment",
+  "hate",
+  "violence",
+  "sexual",
+  "fraud",
+  "impersonation",
+  "inappropriate_profile",
+  "other",
 ];
 
 type Props = {
@@ -28,11 +29,17 @@ type Props = {
 
 /** Modal for submitting a categorized report about a public user profile. */
 export function ReportUserModal({ userId, userName, onClose, onReported }: Props) {
+  const t = useTranslations("ReportUser");
   const [reason, setReason] = useState<UserReportReason | "">("");
   const [details, setDetails] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
+
+  const reportReasons = REPORT_REASON_VALUES.map((value) => ({
+    value,
+    label: t(`reasons.${value}`),
+  }));
 
   function requestClose() {
     if (!submitting) onClose();
@@ -41,7 +48,7 @@ export function ReportUserModal({ userId, userName, onClose, onReported }: Props
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!reason) {
-      setError("Select a reason for the report.");
+      setError(t("selectReasonError"));
       return;
     }
 
@@ -58,7 +65,7 @@ export function ReportUserModal({ userId, userName, onClose, onReported }: Props
         onReported();
         return;
       }
-      setError(apiError.detail || apiError.message || "Could not send the report.");
+      setError(apiError.detail || apiError.message || t("genericError"));
     } finally {
       setSubmitting(false);
     }
@@ -67,7 +74,7 @@ export function ReportUserModal({ userId, userName, onClose, onReported }: Props
   return (
     <ModalShell
       onClose={requestClose}
-      title="Report user"
+      title={t("reportUser")}
       icon={<Flag aria-hidden="true" className="h-5 w-5 text-(--color-pink-dark)" />}
       width="clamp(320px, 92vw, 520px)"
       padding="clamp(20px, 3vw, 32px)"
@@ -79,10 +86,10 @@ export function ReportUserModal({ userId, userName, onClose, onReported }: Props
         <div className="flex flex-col items-center text-center">
           <CheckCircle2 aria-hidden="true" className="h-12 w-12 text-(--color-blue-dark)" />
           <p role="status" className="mt-4 font-semibold text-(--color-text-primary)">
-            Report sent
+            {t("reportSent")}
           </p>
           <p className="mt-2 text-sm leading-6 text-(--color-text-secondary)">
-            Your report about {userName} is with the platform team for review.
+            {t("reportSentBody", { userName })}
           </p>
           <button
             type="button"
@@ -90,20 +97,20 @@ export function ReportUserModal({ userId, userName, onClose, onReported }: Props
             autoFocus
             className="mt-6 h-11 w-full rounded-full bg-(--color-text-primary) px-6 font-(family-name:--font-accent) text-sm font-semibold uppercase text-(--color-bg) transition hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-blue)"
           >
-            Done
+            {t("done")}
           </button>
         </div>
       ) : (
         <form onSubmit={handleSubmit}>
           <p className="text-sm leading-6 text-(--color-text-secondary)">
-            Why are you reporting {userName}? Your report will be sent to the platform team.
+            {t("whyReporting", { userName })}
           </p>
 
           <fieldset className="mt-5 space-y-2">
             <legend className="mb-3 font-semibold text-(--color-text-primary)">
-              Reason for reporting
+              {t("reasonForReporting")}
             </legend>
-            {REPORT_REASONS.map((item, index) => {
+            {reportReasons.map((item, index) => {
               const selected = reason === item.value;
               return (
                 <label
@@ -134,8 +141,8 @@ export function ReportUserModal({ userId, userName, onClose, onReported }: Props
           </fieldset>
 
           <label className="mt-5 block text-sm font-semibold text-(--color-text-primary)">
-            Additional details{" "}
-            <span className="font-normal text-(--color-text-secondary)">(optional)</span>
+            {t("additionalDetails")}{" "}
+            <span className="font-normal text-(--color-text-secondary)">{t("optional")}</span>
             <textarea
               value={details}
               maxLength={500}
@@ -143,7 +150,7 @@ export function ReportUserModal({ userId, userName, onClose, onReported }: Props
               disabled={submitting}
               onChange={(event) => setDetails(event.target.value)}
               className="mt-2 w-full resize-none rounded-lg border border-(--color-border-light) bg-(--color-bg) px-3 py-2 font-normal text-(--color-text-primary) outline-none transition placeholder:text-(--color-text-muted) focus:border-(--color-blue) focus-visible:ring-2 focus-visible:ring-(--color-brand-lavender-soft)"
-              placeholder="Add context that can help the platform team"
+              placeholder={t("additionalDetailsPlaceholder")}
             />
           </label>
           <p className="mt-1 text-right text-xs text-(--color-text-secondary)">
@@ -158,7 +165,7 @@ export function ReportUserModal({ userId, userName, onClose, onReported }: Props
 
           <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
             <WhiteButton icon={null} onClick={requestClose} disabled={submitting}>
-              Cancel
+              {t("cancel")}
             </WhiteButton>
             <button
               type="submit"
@@ -166,9 +173,9 @@ export function ReportUserModal({ userId, userName, onClose, onReported }: Props
               className="inline-flex h-11 min-w-36 items-center justify-center rounded-full bg-(--color-pink-dark) px-6 font-(family-name:--font-accent) text-sm font-semibold uppercase text-(--color-bg) transition hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-blue) disabled:cursor-not-allowed disabled:opacity-60"
             >
               {submitting ? (
-                <Loader2 aria-label="Sending report" className="h-5 w-5 animate-spin" />
+                <Loader2 aria-label={t("sendingReport")} className="h-5 w-5 animate-spin" />
               ) : (
-                "Send report"
+                t("sendReport")
               )}
             </button>
           </div>

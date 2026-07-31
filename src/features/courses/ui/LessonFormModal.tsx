@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Clock, Play, Upload, FileText, X, ClipboardList, ChevronUp, ChevronDown, Plus, Eye, EyeOff, CheckCircle2, XCircle, MinusCircle } from "lucide-react";
 import { ModalShell } from "@/shared/ui/ModalShell";
 import { ModalFooter } from "@/shared/ui/ModalFooter";
@@ -80,10 +81,10 @@ type TestPanelConfig =
   | { mode: "create"; onSave: (values: TestFormValues) => Promise<void> }
   | { mode: "edit"; initialValues: Partial<Omit<TestFormValues, "questions">> & { questions?: TestQuestion[] }; onSave: (values: TestFormValues) => Promise<void> };
 
-const TYPE_META: Record<LessonItemType, { label: string; icon: React.ReactNode }> = {
-  text: { label: "Text", icon: <FileText size={15} /> },
-  video: { label: "Video", icon: <Play size={15} /> },
-  test: { label: "Test", icon: <ClipboardList size={15} /> },
+const TYPE_ICON: Record<LessonItemType, React.ReactNode> = {
+  text: <FileText size={15} />,
+  video: <Play size={15} />,
+  test: <ClipboardList size={15} />,
 };
 
 /** Plain-text rendition of a text block's body_html, for the one-line list preview. */
@@ -102,6 +103,7 @@ function ItemEditForm({
   onSaveVideo: (data: { video?: File | null; video_url?: string; duration_minutes?: number | null }) => Promise<void>;
   onCancel: () => void;
 }) {
+  const t = useTranslations("LessonFormModal");
   const [saving, setSaving] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -131,10 +133,10 @@ function ItemEditForm({
     <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 8 }}>
       {item.item_type === "text" && (
         <>
-          <RichTextEditor value={bodyHtml} onChange={setBodyHtml} placeholder="Write text content here..." />
+          <RichTextEditor value={bodyHtml} onChange={setBodyHtml} placeholder={t("writeTextPlaceholder")} />
           <div className="flex items-center" style={{ gap: 6 }}>
             <Clock size={14} style={{ color: "var(--color-text-secondary)", flexShrink: 0 }} />
-            <input type="number" min="1" value={duration} onChange={(e) => setDuration(e.target.value)} placeholder="Duration (min)" style={{ ...inputSt, fontSize: 14, padding: "8px 12px", maxWidth: 160 }} />
+            <input type="number" min="1" value={duration} onChange={(e) => setDuration(e.target.value)} placeholder={t("durationMinPlaceholder")} style={{ ...inputSt, fontSize: 14, padding: "8px 12px", maxWidth: 160 }} />
           </div>
         </>
       )}
@@ -147,13 +149,13 @@ function ItemEditForm({
             style={{ gap: 8, padding: "8px 14px", background: "var(--color-input-bg)", border: "none", borderRadius: 10, fontFamily: "var(--font-base)", fontSize: 14, cursor: "pointer", alignSelf: "flex-start" }}
           >
             <Upload size={15} />
-            {videoFile ? videoFile.name : "Choose video file"}
+            {videoFile ? videoFile.name : t("chooseVideoFile")}
           </button>
           <input ref={fileRef} type="file" accept="video/*" style={{ display: "none" }} onChange={(e) => setVideoFile(e.target.files?.[0] ?? null)} />
-          <input value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} placeholder="Or paste video URL…" style={{ ...inputSt, fontSize: 14, padding: "10px 14px" }} />
+          <input value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} placeholder={t("pasteVideoUrlPlaceholder")} style={{ ...inputSt, fontSize: 14, padding: "10px 14px" }} />
           <div className="flex items-center" style={{ gap: 6 }}>
             <Clock size={14} style={{ color: "var(--color-text-secondary)", flexShrink: 0 }} />
-            <input type="number" min="1" value={duration} onChange={(e) => setDuration(e.target.value)} placeholder="Duration (min)" style={{ ...inputSt, fontSize: 14, padding: "8px 12px", maxWidth: 160 }} />
+            <input type="number" min="1" value={duration} onChange={(e) => setDuration(e.target.value)} placeholder={t("durationMinPlaceholder")} style={{ ...inputSt, fontSize: 14, padding: "8px 12px", maxWidth: 160 }} />
           </div>
         </div>
       )}
@@ -165,10 +167,10 @@ function ItemEditForm({
           className="inline-flex items-center justify-center transition hover:opacity-80 disabled:opacity-50"
           style={{ padding: "7px 18px", background: "var(--color-text-primary)", border: "none", borderRadius: 20, fontFamily: "var(--font-accent)", fontWeight: 600, fontSize: 13, color: "var(--color-bg)", cursor: saving ? "default" : "pointer" }}
         >
-          {saving ? "Saving…" : "Save"}
+          {saving ? t("saving") : t("save")}
         </button>
         <button type="button" onClick={onCancel} className="transition hover:opacity-70" style={{ padding: "7px 14px", background: "none", border: "none", fontFamily: "var(--font-base)", fontSize: 13, color: "var(--color-text-secondary)", cursor: "pointer" }}>
-          Cancel
+          {t("cancel")}
         </button>
       </div>
     </div>
@@ -206,6 +208,7 @@ function ContentBlocksEditor({
   onItemsChange?: (items: LessonItem[]) => void;
   onOpenTestPanel: (config: TestPanelConfig) => void;
 }) {
+  const t = useTranslations("LessonFormModal");
   const [items, setItems] = useState<LessonItem[]>(initialItems);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [expandedId, setExpandedId] = useState<number | null>(null);
@@ -337,23 +340,23 @@ function ContentBlocksEditor({
 
   return (
     <div>
-      <label style={labelSt}>Content Blocks</label>
+      <label style={labelSt}>{t("contentBlocks")}</label>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {items.length === 0 && (
           <div style={{ padding: "20px 16px", border: "2px dashed var(--color-border-light)", borderRadius: 12, textAlign: "center", fontFamily: "var(--font-base)", fontSize: 14, color: "var(--color-text-secondary)" }}>
-            {readOnly ? "No content blocks." : "Add text, video or test blocks below."}
+            {readOnly ? t("noContentBlocks") : t("addBlocksHint")}
           </div>
         )}
 
         {items.map((item, index) => {
-          const meta = TYPE_META[item.item_type];
+          const typeLabel = t(`type.${item.item_type}`);
           const preview =
             item.item_type === "text"
-              ? (textPreview(item.body_html ?? "").slice(0, 90) || "(empty)")
+              ? (textPreview(item.body_html ?? "").slice(0, 90) || t("emptyPreview"))
               : item.item_type === "video"
-                ? (item.original_video_name ?? item.video_url ?? "Video")
-                : (item.test?.title ?? "Test");
+                ? (item.original_video_name ?? item.video_url ?? t("type.video"))
+                : (item.test?.title ?? t("type.test"));
 
           return (
             <div
@@ -363,17 +366,17 @@ function ContentBlocksEditor({
               <div className="flex items-center justify-between" style={{ gap: 8 }}>
                 <div className="flex min-w-0 items-center" style={{ gap: 8 }}>
                   <div className="flex shrink-0 items-center justify-center" style={{ width: 26, height: 26, borderRadius: 8, background: "var(--color-input-bg)", color: "var(--color-text-secondary)" }}>
-                    {meta.icon}
+                    {TYPE_ICON[item.item_type]}
                   </div>
                   <span style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: 12, color: "var(--color-text-secondary)", flexShrink: 0 }}>
-                    {index + 1}. {meta.label.toUpperCase()}
+                    {index + 1}. {typeLabel.toUpperCase()}
                   </span>
                   <span style={{ fontFamily: "var(--font-base)", fontSize: 14, color: "var(--color-text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {preview}
                   </span>
                   {item.duration_minutes != null && (
                     <span style={{ fontFamily: "var(--font-base)", fontSize: 12, color: "var(--color-text-secondary)", flexShrink: 0, marginLeft: "auto" }}>
-                      {item.duration_minutes} min
+                      {t("durationMinutes", { count: item.duration_minutes })}
                     </span>
                   )}
                 </div>
@@ -383,7 +386,7 @@ function ContentBlocksEditor({
                     <button
                       type="button"
                       onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}
-                      aria-label={expandedId === item.id ? "Collapse" : "Preview content"}
+                      aria-label={expandedId === item.id ? t("collapse") : t("previewContent")}
                       className="flex items-center justify-center rounded-full transition hover:bg-gray-100"
                       style={{ width: 28, height: 28, border: "none", background: "none", cursor: "pointer", color: "var(--color-text-secondary)" }}
                     >
@@ -391,12 +394,12 @@ function ContentBlocksEditor({
                     </button>
                   ) : (
                     <>
-                      <button type="button" onClick={() => moveUp(index)} disabled={index === 0} aria-label="Move up"
+                      <button type="button" onClick={() => moveUp(index)} disabled={index === 0} aria-label={t("moveUp")}
                         className="flex items-center justify-center rounded-full transition hover:bg-gray-100 disabled:opacity-30"
                         style={{ width: 28, height: 28, border: "none", background: "none", cursor: index === 0 ? "default" : "pointer" }}>
                         <ChevronUp size={14} />
                       </button>
-                      <button type="button" onClick={() => moveUp(index + 1)} disabled={index === items.length - 1} aria-label="Move down"
+                      <button type="button" onClick={() => moveUp(index + 1)} disabled={index === items.length - 1} aria-label={t("moveDown")}
                         className="flex items-center justify-center rounded-full transition hover:bg-gray-100 disabled:opacity-30"
                         style={{ width: 28, height: 28, border: "none", background: "none", cursor: index === items.length - 1 ? "default" : "pointer" }}>
                         <ChevronDown size={14} />
@@ -404,21 +407,21 @@ function ContentBlocksEditor({
                       {item.item_type === "test" ? (
                         <button
                           type="button"
-                          aria-label="Edit test"
+                          aria-label={t("editTest")}
                           className="flex items-center justify-center rounded-full transition hover:bg-gray-100"
                           style={{ width: 28, height: 28, border: "none", background: "none", cursor: "pointer" }}
                           onClick={() => {
-                            const t = item.test!;
+                            const testData = item.test!;
                             onOpenTestPanel({
                               mode: "edit",
                               initialValues: {
-                                title: t.title,
-                                description: t.description ?? "",
-                                passing_score: String(t.passing_score ?? 70),
+                                title: testData.title,
+                                description: testData.description ?? "",
+                                passing_score: String(testData.passing_score ?? 70),
                                 duration_minutes: item.duration_minutes != null ? String(item.duration_minutes) : "",
-                                allow_retakes: t.allow_retakes ?? false,
-                                max_attempts: t.max_attempts != null ? String(t.max_attempts) : "",
-                                questions: (t.questions ?? []).map((q) => ({
+                                allow_retakes: testData.allow_retakes ?? false,
+                                max_attempts: testData.max_attempts != null ? String(testData.max_attempts) : "",
+                                questions: (testData.questions ?? []).map((q) => ({
                                   _key: String(q.id),
                                   id: q.id,
                                   type: q.question_type,
@@ -439,14 +442,14 @@ function ContentBlocksEditor({
                           <img src="/icons/edit.svg" alt="" width={14} height={14} />
                         </button>
                       ) : (
-                        <button type="button" onClick={() => setEditingId(editingId === item.id ? null : item.id)} aria-label="Edit block"
+                        <button type="button" onClick={() => setEditingId(editingId === item.id ? null : item.id)} aria-label={t("editBlock")}
                           className="flex items-center justify-center rounded-full transition hover:bg-gray-100"
                           style={{ width: 28, height: 28, border: "none", background: "none", cursor: "pointer" }}>
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src="/icons/edit.svg" alt="" width={14} height={14} />
                         </button>
                       )}
-                      <button type="button" onClick={() => handleDelete(item.id)} aria-label="Delete block"
+                      <button type="button" onClick={() => handleDelete(item.id)} aria-label={t("deleteBlock")}
                         className="flex items-center justify-center rounded-full transition hover:bg-red-50"
                         style={{ width: 28, height: 28, border: "none", background: "none", cursor: "pointer" }}>
                         <X size={14} style={{ color: "var(--color-text-secondary)" }} />
@@ -466,7 +469,7 @@ function ContentBlocksEditor({
                       />
                     ) : (
                       <p style={{ fontFamily: "var(--font-base)", fontSize: 14, color: "var(--color-text-secondary)", margin: 0 }}>
-                        (no content)
+                        {t("noContent")}
                       </p>
                     )
                   )}
@@ -480,13 +483,13 @@ function ContentBlocksEditor({
                           style={{ width: "100%", maxHeight: 280, borderRadius: 8, background: "var(--color-black)" }}
                         />
                       ) : (
-                        <p style={{ fontFamily: "var(--font-base)", fontSize: 13, color: "var(--color-text-secondary)" }}>No video uploaded.</p>
+                        <p style={{ fontFamily: "var(--font-base)", fontSize: 13, color: "var(--color-text-secondary)" }}>{t("noVideoUploaded")}</p>
                       )}
                       {item.duration_minutes != null && (
                         <div className="flex items-center" style={{ gap: 5 }}>
                           <Clock size={13} style={{ color: "var(--color-text-secondary)" }} />
                           <span style={{ fontFamily: "var(--font-base)", fontSize: 13, color: "var(--color-text-secondary)" }}>
-                            Duration: {item.duration_minutes} min
+                            {t("durationLabel", { count: item.duration_minutes })}
                           </span>
                         </div>
                       )}
@@ -503,7 +506,7 @@ function ContentBlocksEditor({
                       <div className="flex items-center" style={{ gap: 6 }}>
                         <ClipboardList size={13} style={{ color: "var(--color-text-secondary)" }} />
                         <span style={{ fontFamily: "var(--font-base)", fontSize: 13, color: "var(--color-text-secondary)" }}>
-                          Pass: {item.test.passing_score ?? 70}% · {item.test.questions?.length ?? 0} questions
+                          {t("passAndQuestions", { passing: item.test.passing_score ?? 70, count: item.test.questions?.length ?? 0 })}
                         </span>
                       </div>
                       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -532,16 +535,16 @@ function ContentBlocksEditor({
                             )}
                             {q.question_type === "true_false" && (
                               <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                                {(["True", "False"] as const).map((label) => {
-                                  const correct = (label === "True") === q.correct_bool;
+                                {([true, false] as const).map((boolValue) => {
+                                  const correct = boolValue === q.correct_bool;
                                   return (
-                                    <div key={label} className="flex items-center" style={{ gap: 6 }}>
+                                    <div key={String(boolValue)} className="flex items-center" style={{ gap: 6 }}>
                                       {correct
                                         ? <CheckCircle2 size={13} style={{ color: "var(--color-success)", flexShrink: 0 }} />
                                         : <XCircle size={13} style={{ color: "var(--color-text-secondary)", flexShrink: 0, opacity: 0.4 }} />
                                       }
                                       <span style={{ fontFamily: "var(--font-base)", fontSize: 13, color: correct ? "var(--color-success)" : "var(--color-text-primary)", fontWeight: correct ? 600 : 400 }}>
-                                        {label}
+                                        {boolValue ? t("true") : t("false")}
                                       </span>
                                     </div>
                                   );
@@ -550,7 +553,7 @@ function ContentBlocksEditor({
                             )}
                             {q.question_type === "short_answer" && q.sample_answer && (
                               <p style={{ fontFamily: "var(--font-base)", fontSize: 13, color: "var(--color-text-secondary)", margin: 0 }}>
-                                Sample answer: {q.sample_answer}
+                                {t("sampleAnswer", { value: q.sample_answer })}
                               </p>
                             )}
                           </div>
@@ -577,10 +580,10 @@ function ContentBlocksEditor({
       {!readOnly && (
         <div className="flex flex-wrap items-center" style={{ marginTop: 10, gap: 6 }}>
           <button type="button" onClick={addText} className="transition hover:opacity-80" style={addBtnSt}>
-            <Plus size={13} /> <FileText size={13} /> Text
+            <Plus size={13} /> <FileText size={13} /> {t("type.text")}
           </button>
           <button type="button" onClick={addVideo} className="transition hover:opacity-80" style={addBtnSt}>
-            <Plus size={13} /> <Play size={13} /> Video
+            <Plus size={13} /> <Play size={13} /> {t("type.video")}
           </button>
           <button
             type="button"
@@ -588,7 +591,7 @@ function ContentBlocksEditor({
             style={addBtnSt}
             onClick={() => onOpenTestPanel({ mode: "create", onSave: handleTestCreate })}
           >
-            <Plus size={13} /> <ClipboardList size={13} /> Test
+            <Plus size={13} /> <ClipboardList size={13} /> {t("type.test")}
           </button>
         </div>
       )}
@@ -612,6 +615,7 @@ type Props = {
 
 /** Modal dialog for creating, editing, or viewing a course lesson, including its content blocks. */
 export function LessonFormModal({ mode, initialValues = {}, onClose, onSave, courseSlug, moduleId, lessonId, onItemsChange, hideDocuments }: Props) {
+  const t = useTranslations("LessonFormModal");
   const readOnly = mode === "view";
   const showItems = (mode === "edit" || mode === "view") && !!courseSlug && !!moduleId && !!lessonId;
 
@@ -637,8 +641,8 @@ export function LessonFormModal({ mode, initialValues = {}, onClose, onSave, cou
   }
 
   const modalTitle = testPanel
-    ? (testPanel.mode === "create" ? "Add Test" : "Edit Test")
-    : (mode === "add" ? "Add Lesson" : mode === "view" ? values.title || "Lesson" : "Edit Lesson");
+    ? (testPanel.mode === "create" ? t("addTest") : t("editTest"))
+    : (mode === "add" ? t("addLesson") : mode === "view" ? values.title || t("lesson") : t("editLesson"));
 
   const modalIcon = testPanel
     ? <ClipboardList size={24} style={{ color: "var(--color-text-primary)", flexShrink: 0 }} />
@@ -669,7 +673,7 @@ export function LessonFormModal({ mode, initialValues = {}, onClose, onSave, cou
 
           {!readOnly && (
             <div>
-              <label htmlFor="lesson-title" style={labelSt}>Lesson Title*</label>
+              <label htmlFor="lesson-title" style={labelSt}>{t("lessonTitle")}</label>
               <input
                 ref={titleRef}
                 id="lesson-title"
@@ -677,7 +681,7 @@ export function LessonFormModal({ mode, initialValues = {}, onClose, onSave, cou
                 type="text"
                 value={values.title}
                 onChange={handleChange}
-                placeholder="Text"
+                placeholder={t("textPlaceholder")}
                 required
                 style={inputSt}
               />
@@ -701,11 +705,10 @@ export function LessonFormModal({ mode, initialValues = {}, onClose, onSave, cou
           )}
 
           <div>
-            <label style={labelSt}>Documents</label>
+            <label style={labelSt}>{t("documents")}</label>
             {hideDocuments ? (
               <p style={{ ...hintSt, marginTop: 0 }}>
-                This lesson is already published. To add, replace, or remove additional materials, use{" "}
-                <strong>Course Management → Content</strong> — those changes apply immediately, without moderation.
+                {t.rich("hideDocumentsHint", { strong: (chunks) => <strong>{chunks}</strong> })}
               </p>
             ) : (
             <div
@@ -734,7 +737,7 @@ export function LessonFormModal({ mode, initialValues = {}, onClose, onSave, cou
                       <button type="button" onClick={() => setValues((p) => ({ ...p, deleted_document_ids: [...p.deleted_document_ids, doc.id] }))}
                         className="flex shrink-0 items-center justify-center rounded-full transition hover:bg-red-50"
                         style={{ width: 28, height: 28, border: "none", background: "transparent", cursor: "pointer" }}
-                        aria-label="Remove document">
+                        aria-label={t("removeDocument")}>
                         <X size={16} style={{ color: "var(--color-text-secondary)" }} />
                       </button>
                     )}
@@ -749,7 +752,7 @@ export function LessonFormModal({ mode, initialValues = {}, onClose, onSave, cou
                   <button type="button" onClick={() => setValues((p) => ({ ...p, new_documents: p.new_documents.filter((_, j) => j !== i) }))}
                     className="flex shrink-0 items-center justify-center rounded-full transition hover:bg-red-50"
                     style={{ width: 28, height: 28, border: "none", background: "transparent", cursor: "pointer" }}
-                    aria-label="Remove file">
+                    aria-label={t("removeFile")}>
                     <X size={16} style={{ color: "var(--color-text-secondary)" }} />
                   </button>
                 </div>
@@ -759,7 +762,7 @@ export function LessonFormModal({ mode, initialValues = {}, onClose, onSave, cou
                   className="inline-flex items-center self-start transition hover:opacity-80"
                   style={{ gap: "clamp(6px, 0.69vw, 10px)", height: "clamp(38px, 3.06vw, 44px)", background: "var(--color-bg)", border: "1px solid var(--color-draft)", borderRadius: 28, fontFamily: "var(--font-accent)", fontWeight: 500, fontSize: "clamp(14px, 1.39vw, 20px)", letterSpacing: "-0.011em", color: "var(--color-text-primary)", cursor: "pointer", padding: "0 clamp(12px, 1.25vw, 18px)" }}>
                   <Upload size={18} />
-                  Add Documents
+                  {t("addDocuments")}
                 </button>
               )}
               {!readOnly && (
@@ -769,14 +772,14 @@ export function LessonFormModal({ mode, initialValues = {}, onClose, onSave, cou
               )}
             </div>
             )}
-            {!hideDocuments && !readOnly && <p style={hintSt}>PDF, DOCX, XLSX and other files</p>}
+            {!hideDocuments && !readOnly && <p style={hintSt}>{t("documentsHint")}</p>}
           </div>
 
           <div className="grid grid-cols-2" style={{ gap: "clamp(16px, 2.78vw, 40px)" }}>
             <div>
               <div className="flex items-center" style={{ gap: 4, marginBottom: "clamp(8px, 0.83vw, 12px)" }}>
                 <Clock size={24} style={{ color: "var(--color-text-primary)", flexShrink: 0 }} />
-                <label htmlFor="lesson-duration" style={{ ...labelSt, marginBottom: 0 }}>Duration (minutes)</label>
+                <label htmlFor="lesson-duration" style={{ ...labelSt, marginBottom: 0 }}>{t("durationMinutesLabel")}</label>
               </div>
               <input
                 id="lesson-duration"
@@ -791,7 +794,7 @@ export function LessonFormModal({ mode, initialValues = {}, onClose, onSave, cou
               />
             </div>
             <div>
-              <label htmlFor="lesson-min-score" style={labelSt}>Minimum Score (optional)</label>
+              <label htmlFor="lesson-min-score" style={labelSt}>{t("minimumScoreLabel")}</label>
               <input
                 id="lesson-min-score"
                 name="min_score"
@@ -815,19 +818,16 @@ export function LessonFormModal({ mode, initialValues = {}, onClose, onSave, cou
                 disabled={readOnly}
                 onChange={(e) => setValues((prev) => ({ ...prev, is_mandatory: e.target.checked }))}
               />
-              <span style={{ ...labelSt, marginBottom: 0 }}>Required to complete the course</span>
+              <span style={{ ...labelSt, marginBottom: 0 }}>{t("requiredToComplete")}</span>
             </label>
-            <p style={hintSt}>
-              If this lesson has a test, students must pass it before they can finish the course
-              (e.g. a final exam).
-            </p>
+            <p style={hintSt}>{t("requiredToCompleteHint")}</p>
           </div>
         </div>
 
         {!readOnly && (
           <ModalFooter
             onCancel={onClose}
-            submitLabel="Save Lesson"
+            submitLabel={t("saveLesson")}
             loading={loading}
             disabled={!values.title.trim() || loading}
           />

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { PageShell } from "@/shared/ui/PageShell";
 import { GradientButton } from "@/shared/ui/GradientButton";
 import { Pagination } from "@/shared/ui/Pagination";
@@ -39,38 +40,48 @@ type ReviewFilter = "unassigned" | "mine" | "rejected" | "published";
 // their own posts never sit in "review" or "rejected", so those chips are meaningless here.
 type MyFilter = "all" | "draft" | "published" | "archived";
 
-const REVIEW_FILTERS: { value: ReviewFilter; label: string }[] = [
-  { value: "unassigned", label: "Unassigned" },
-  { value: "mine", label: "Assigned to Me" },
-  { value: "rejected", label: "Rejected" },
-  { value: "published", label: "Published" },
-];
+type Translator = (key: string, values?: Record<string, string | number>) => string;
 
-const MY_FILTERS: { value: MyFilter; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "draft", label: "Draft" },
-  { value: "published", label: "Published" },
-  { value: "archived", label: "Archived" },
-];
+function reviewFilters(t: Translator, tStatus: Translator): { value: ReviewFilter; label: string }[] {
+  return [
+    { value: "unassigned", label: t("filterUnassigned") },
+    { value: "mine", label: t("filterAssignedToMe") },
+    { value: "rejected", label: tStatus("rejected") },
+    { value: "published", label: tStatus("published") },
+  ];
+}
 
-const REVIEW_EMPTY_LABEL: Record<ReviewFilter, string> = {
-  unassigned: "No articles waiting for a moderator.",
-  mine: "You have no articles assigned for review.",
-  rejected: "No rejected articles.",
-  published: "No published articles.",
-};
+function myFilters(tCommon: Translator, tStatus: Translator): { value: MyFilter; label: string }[] {
+  return [
+    { value: "all", label: tCommon("all") },
+    { value: "draft", label: tStatus("draft") },
+    { value: "published", label: tStatus("published") },
+    { value: "archived", label: tStatus("archived") },
+  ];
+}
 
-const MY_EMPTY_LABEL: Record<MyFilter, string> = {
-  all: "You haven't written any articles yet.",
-  draft: "You have no draft articles.",
-  published: "You have no published articles.",
-  archived: "You have no archived articles.",
-};
+function reviewEmptyLabel(t: Translator): Record<ReviewFilter, string> {
+  return {
+    unassigned: t("reviewEmptyUnassigned"),
+    mine: t("reviewEmptyMine"),
+    rejected: t("reviewEmptyRejected"),
+    published: t("reviewEmptyPublished"),
+  };
+}
 
-function modeTabs(role: Extract<UserRole, "moderator" | "administrator">): { value: Mode; label: string }[] {
-  const tabs: { value: Mode; label: string }[] = [{ value: "mine", label: "My Publications" }];
-  if (role === "moderator") tabs.push({ value: "review", label: "On Review" });
-  if (role === "administrator") tabs.push({ value: "categories", label: "Categories" });
+function myEmptyLabel(t: Translator): Record<MyFilter, string> {
+  return {
+    all: t("myEmptyAll"),
+    draft: t("myEmptyDraft"),
+    published: t("myEmptyPublished"),
+    archived: t("myEmptyArchived"),
+  };
+}
+
+function modeTabs(role: Extract<UserRole, "moderator" | "administrator">, t: Translator): { value: Mode; label: string }[] {
+  const tabs: { value: Mode; label: string }[] = [{ value: "mine", label: t("tabMyPublications") }];
+  if (role === "moderator") tabs.push({ value: "review", label: t("tabOnReview") });
+  if (role === "administrator") tabs.push({ value: "categories", label: t("tabCategories") });
   return tabs;
 }
 
@@ -119,6 +130,9 @@ type Props = { role: Extract<UserRole, "moderator" | "administrator"> };
  * a ModeratorProfile (see ModeratorProfile.clean()), so self-assign/approve/reject would always
  * fail for them -- admins get Categories in that slot instead. */
 export function BlogModerationView({ role }: Props) {
+  const t = useTranslations("BlogModerationView");
+  const tCommon = useTranslations("Common");
+  const tStatus = useTranslations("ArticleStatus");
   const [mode, setMode] = useState<Mode>("mine");
   const [reviewFilter, setReviewFilter] = useState<ReviewFilter>("unassigned");
   const [myFilter, setMyFilter] = useState<MyFilter>("all");
@@ -192,7 +206,7 @@ export function BlogModerationView({ role }: Props) {
       setCategoryDeleteTarget(null);
       refreshCategories();
     } catch (err) {
-      setCategoryDeleteError((err as ApiError).message ?? "Failed to delete the category.");
+      setCategoryDeleteError((err as ApiError).message ?? t("deleteCategoryError"));
     } finally {
       setCategoryDeleteLoading(false);
     }
@@ -212,8 +226,8 @@ export function BlogModerationView({ role }: Props) {
           className="flex flex-wrap items-center justify-between"
           style={{ marginBottom: "clamp(12px, 1.11vw, 16px)", gap: "clamp(12px, 1.11vw, 16px)" }}
         >
-          <nav aria-label="Blog dashboard mode" className="flex flex-wrap items-center" style={{ gap: "clamp(16px, 1.67vw, 40px)" }}>
-            {modeTabs(role).map(({ value, label }) => (
+          <nav aria-label={t("modeNavAriaLabel")} className="flex flex-wrap items-center" style={{ gap: "clamp(16px, 1.67vw, 40px)" }}>
+            {modeTabs(role, t).map(({ value, label }) => (
               <button
                 key={value}
                 onClick={() => changeMode(value)}
@@ -233,7 +247,7 @@ export function BlogModerationView({ role }: Props) {
 
           {mode === "mine" && (
             <GradientButton href="/blog/create">
-              Add Article
+              {t("addArticle")}
               <Image
                 src="/icons/add.svg"
                 alt=""
@@ -246,7 +260,7 @@ export function BlogModerationView({ role }: Props) {
 
           {mode === "categories" && (
             <GradientButton onClick={() => setCategoryFormOpen("add")}>
-              Add Category
+              {t("addCategory")}
               <Image
                 src="/icons/add.svg"
                 alt=""
@@ -260,11 +274,11 @@ export function BlogModerationView({ role }: Props) {
 
         {mode !== "categories" && (
           <nav
-            aria-label={mode === "mine" ? "Filter my publications" : "Filter review queue"}
+            aria-label={mode === "mine" ? t("filterMyAriaLabel") : t("filterReviewAriaLabel")}
             className="flex flex-wrap items-center gap-3"
             style={{ marginBottom: "clamp(16px, 2.22vw, 32px)" }}
           >
-            {(mode === "mine" ? MY_FILTERS : REVIEW_FILTERS).map((filter) => (
+            {(mode === "mine" ? myFilters(tCommon, tStatus) : reviewFilters(t, tStatus)).map((filter) => (
               <FilterChip
                 key={filter.value}
                 label={filter.label}
@@ -292,19 +306,19 @@ export function BlogModerationView({ role }: Props) {
           />
         ) : loading ? (
           <section className="min-h-[520px] rounded-[20px] bg-white p-4 shadow-(--shadow-dashboard-card) sm:p-6">
-            <p className="mt-16 text-center text-lg text-(--color-text-secondary)">Loading...</p>
+            <p className="mt-16 text-center text-lg text-(--color-text-secondary)">{tCommon("loading")}</p>
           </section>
         ) : (
           <>
             {showingSnapshots ? (
               <ArticleModerationSnapshotList
                 snapshots={pageSnapshots}
-                emptyLabel={REVIEW_EMPTY_LABEL[reviewFilter]}
+                emptyLabel={reviewEmptyLabel(t)[reviewFilter]}
               />
             ) : (
               <ArticleGrid
                 articles={pageArticles}
-                emptyLabel={mode === "mine" ? MY_EMPTY_LABEL[myFilter] : REVIEW_EMPTY_LABEL[reviewFilter]}
+                emptyLabel={mode === "mine" ? myEmptyLabel(t)[myFilter] : reviewEmptyLabel(t)[reviewFilter]}
                 currentUserId={mode === "mine" ? currentUserId : null}
                 currentUserRole={role}
                 onAction={actions.handleAction}

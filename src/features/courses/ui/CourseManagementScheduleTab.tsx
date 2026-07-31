@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import {
   ChevronDown,
   Pencil,
@@ -22,8 +23,8 @@ import type {
   TeacherUnavailability,
   TeacherUnavailabilityPayload,
 } from "@/entities/course/model/schedule";
-import { DAY_LABELS } from "@/entities/course/model/schedule";
-import { padTwo, timeToMinutes, minutesToTime, fmtTime } from "@/shared/lib/time";
+import { DAY_KEYS } from "@/entities/course/model/schedule";
+import { padTwo, timeToMinutes, minutesToTime, fmtTime, formatDate } from "@/shared/lib/time";
 import type { EnrolledStudent } from "@/entities/course/model/cohortGroup";
 import {
   assignScheduleSlot,
@@ -110,10 +111,12 @@ const ERR: React.CSSProperties = {
   marginTop: 4,
 };
 
-const DAYS = (Object.keys(DAY_LABELS) as unknown as DayOfWeek[]).map(d => ({
-  value: Number(d) as DayOfWeek,
-  label: DAY_LABELS[Number(d) as DayOfWeek],
-}));
+const DAY_VALUES = Object.keys(DAY_KEYS).map(Number) as DayOfWeek[];
+
+function useDayOptions(): { value: DayOfWeek; label: string }[] {
+  const tDays = useTranslations("Days");
+  return DAY_VALUES.map(d => ({ value: d, label: tDays(DAY_KEYS[d]) }));
+}
 
 // ── PillSelect ─────────────────────────────────────────────────────────────────
 
@@ -179,6 +182,7 @@ const HOURS   = Array.from({ length: 24 }, (_, i) => i);
 const MINUTES = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
 
 export function TimePicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const t = useTranslations("CourseManagementScheduleTab");
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -228,7 +232,7 @@ export function TimePicker({ value, onChange }: { value: string; onChange: (v: s
 
           {/* Hours — 6-column grid, 4 rows */}
           <div style={{ fontFamily: "var(--font-base)", fontSize: "clamp(10px, 0.63vw, 11px)", fontWeight: 600, color: "var(--color-text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>
-            Hour
+            {t("hour")}
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 2, marginBottom: 10 }}>
             {HOURS.map(hr => (
@@ -242,7 +246,7 @@ export function TimePicker({ value, onChange }: { value: string; onChange: (v: s
 
           {/* Minutes — 6-column grid, 2 rows */}
           <div style={{ fontFamily: "var(--font-base)", fontSize: "clamp(10px, 0.63vw, 11px)", fontWeight: 600, color: "var(--color-text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>
-            Min
+            {t("min")}
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 2 }}>
             {MINUTES.map(mn => (
@@ -313,6 +317,8 @@ function TimeSlotRow({
   onAssign: (slotId: number, enrollmentId: number | null) => Promise<void>;
   hideDay?: boolean;
 }) {
+  const t = useTranslations("CourseManagementScheduleTab");
+  const tDays = useTranslations("Days");
   const [deleting, setDeleting]   = useState(false);
   const [assigning, setAssigning] = useState(false);
   const [pickOpen, setPickOpen]   = useState(false);
@@ -344,7 +350,7 @@ function TimeSlotRow({
   };
 
   const statusColor = slot.is_available ? "var(--color-success)" : "var(--color-text-muted)";
-  const statusLabel = slot.is_available ? "Available" : "Booked";
+  const statusLabel = slot.is_available ? t("available") : t("booked");
 
   // Students not yet assigned to any slot (by student_profile_id)
   const assignedProfileId = slot.booked_by_student?.student_profile_id;
@@ -368,7 +374,7 @@ function TimeSlotRow({
       <div style={{ display: "flex", flexDirection: "column", gap: 3, flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
           <span style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(12px, 0.83vw, 14px)", color: "var(--color-text-primary)" }}>
-            {!hideDay && <>{DAY_LABELS[slot.day_of_week]} &middot; </>}
+            {!hideDay && <>{tDays(DAY_KEYS[slot.day_of_week])} &middot; </>}
             {fmtTime(slot.start_time)} &ndash; {fmtTime(slot.end_time)}
           </span>
           <span style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(10px, 0.63vw, 12px)", color: statusColor }}>
@@ -376,7 +382,11 @@ function TimeSlotRow({
           </span>
           {slot.is_rescheduled && (
             <span style={{ fontFamily: "var(--font-base)", fontSize: "clamp(10px, 0.63vw, 11px)", color: "var(--color-warning)", fontStyle: "italic" }}>
-              Rescheduled (was {DAY_LABELS[slot.original_day_of_week!]} {fmtTime(slot.original_start_time!)} &ndash; {fmtTime(slot.original_end_time!)})
+              {t("rescheduledWas", {
+                day: tDays(DAY_KEYS[slot.original_day_of_week!]),
+                start: fmtTime(slot.original_start_time!),
+                end: fmtTime(slot.original_end_time!),
+              })}
             </span>
           )}
         </div>
@@ -392,7 +402,7 @@ function TimeSlotRow({
               type="button"
               onClick={handleUnassign}
               disabled={assigning}
-              title="Unassign student"
+              title={t("unassignStudent")}
               style={{ background: "none", border: "none", cursor: "pointer", padding: 2, display: "flex", color: "var(--color-text-muted)", lineHeight: 1 }}
             >
               <X size={12} />
@@ -416,7 +426,7 @@ function TimeSlotRow({
               }}
             >
               <UserPlus size={11} />
-              {assigning ? "…" : "Assign student"}
+              {assigning ? "…" : t("assignStudent")}
             </button>
 
             {pickOpen && unassigned.length > 0 && (
@@ -472,7 +482,7 @@ function TimeSlotRow({
                 color: "var(--color-text-muted)",
                 whiteSpace: "nowrap",
               }}>
-                No unassigned students
+                {t("noUnassignedStudents")}
               </div>
             )}
           </div>
@@ -480,13 +490,13 @@ function TimeSlotRow({
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: 2, flexShrink: 0 }}>
-        <IconBtn icon={<Pencil size={14} />} onClick={() => onReschedule(slot)} title="Reschedule" />
+        <IconBtn icon={<Pencil size={14} />} onClick={() => onReschedule(slot)} title={t("reschedule")} />
         <IconBtn
           icon={<Trash2 size={14} />}
           onClick={handleDelete}
           disabled={deleting || !slot.is_available}
           color="var(--color-pink-dark)"
-          title={!slot.is_available ? "Cannot delete a booked slot" : "Delete slot"}
+          title={!slot.is_available ? t("cannotDeleteBooked") : t("deleteSlot")}
         />
       </div>
     </div>
@@ -516,6 +526,8 @@ function DayGroup({
   onDelete: (id: number) => Promise<void>;
   onAssign: (slotId: number, enrollmentId: number | null) => Promise<void>;
 }) {
+  const t = useTranslations("CourseManagementScheduleTab");
+  const tDays = useTranslations("Days");
   const [open, setOpen] = useState(false);
   const booked = slots.filter(s => !s.is_available).length;
   const available = slots.length - booked;
@@ -536,10 +548,10 @@ function DayGroup({
       >
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ fontFamily: "var(--font-base)", fontWeight: 700, fontSize: "clamp(13px, 0.87vw, 15px)", color: "var(--color-text-primary)" }}>
-            {DAY_LABELS[day]}
+            {tDays(DAY_KEYS[day])}
           </span>
           <span style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.72vw, 13px)", color: "var(--color-text-secondary)" }}>
-            {booked > 0 ? `${booked} booked · ` : ""}{available} available
+            {booked > 0 ? `${t("bookedCount", { count: booked })} · ` : ""}{t("availableCount", { count: available })}
           </span>
         </div>
         <ChevronDown
@@ -558,7 +570,7 @@ function DayGroup({
             rescheduling?.id === s.id ? (
               <div key={s.id} style={{ background: "var(--color-bg)", borderRadius: 10, border: "1px solid var(--color-border-light)", padding: "10px 12px" }}>
                 <div style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(12px, 0.83vw, 14px)", color: "var(--color-text-primary)", marginBottom: 8 }}>
-                  Reschedule: {fmtTime(s.start_time)} &ndash; {fmtTime(s.end_time)}
+                  {t("rescheduleLabel", { start: fmtTime(s.start_time), end: fmtTime(s.end_time) })}
                 </div>
                 <RescheduleForm slot={s} onSave={onRescheduleConfirm} onCancel={onRescheduleCancel} />
               </div>
@@ -589,6 +601,8 @@ function AddSlotForm({
   onAdd: (p: ScheduleSlotPayload) => Promise<void>;
   onCancel: () => void;
 }) {
+  const t = useTranslations("CourseManagementScheduleTab");
+  const days = useDayOptions();
   const [day, setDay] = useState<DayOfWeek>(0);
   const [start, setStart] = useState("09:00");
   const [end, setEnd] = useState("10:00");
@@ -597,13 +611,13 @@ function AddSlotForm({
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (end <= start) { setErr("End time must be after start time."); return; }
+    if (end <= start) { setErr(t("errorEndAfterStart")); return; }
     setSaving(true);
     setErr(null);
     try {
       await onAdd({ day_of_week: day, start_time: start, end_time: end });
     } catch (e: unknown) {
-      const msg = (e as { message?: string })?.message ?? "Failed to add slot.";
+      const msg = (e as { message?: string })?.message ?? t("errorAddSlot");
       setErr(msg);
     } finally {
       setSaving(false);
@@ -614,24 +628,24 @@ function AddSlotForm({
     <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
         <div>
-          <label style={LABEL}>Day</label>
-          <PillSelect options={DAYS} value={day} onChange={v => setDay(v as DayOfWeek)} />
+          <label style={LABEL}>{t("day")}</label>
+          <PillSelect options={days} value={day} onChange={v => setDay(v as DayOfWeek)} />
         </div>
         <div>
-          <label style={LABEL}>Start time</label>
+          <label style={LABEL}>{t("startTime")}</label>
           <TimePicker value={start} onChange={setStart} />
         </div>
         <div>
-          <label style={LABEL}>End time</label>
+          <label style={LABEL}>{t("endTime")}</label>
           <TimePicker value={end} onChange={setEnd} />
         </div>
       </div>
       {err && <p style={ERR}>{err}</p>}
       <div style={{ display: "flex", gap: 8 }}>
         <button type="submit" disabled={saving} style={{ ...SUBMIT_BTN, opacity: saving ? 0.7 : 1, cursor: saving ? "not-allowed" : "pointer" }}>
-          <Check size={13} /> {saving ? "Saving…" : "Add slot"}
+          <Check size={13} /> {saving ? t("saving") : t("addSlot")}
         </button>
-        <button type="button" onClick={onCancel} style={CANCEL_BTN}>Cancel</button>
+        <button type="button" onClick={onCancel} style={CANCEL_BTN}>{t("cancel")}</button>
       </div>
     </form>
   );
@@ -648,6 +662,8 @@ function RescheduleForm({
   onSave: (id: number, p: { day_of_week: DayOfWeek; start_time: string; end_time: string }) => Promise<void>;
   onCancel: () => void;
 }) {
+  const t = useTranslations("CourseManagementScheduleTab");
+  const days = useDayOptions();
   const [day, setDay] = useState<DayOfWeek>(slot.day_of_week);
   const [start, setStart] = useState(fmtTime(slot.start_time));
   const [end, setEnd] = useState(fmtTime(slot.end_time));
@@ -656,13 +672,13 @@ function RescheduleForm({
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (end <= start) { setErr("End time must be after start time."); return; }
+    if (end <= start) { setErr(t("errorEndAfterStart")); return; }
     setSaving(true);
     setErr(null);
     try {
       await onSave(slot.id, { day_of_week: day, start_time: start, end_time: end });
     } catch (e: unknown) {
-      const msg = (e as { message?: string })?.message ?? "Failed to reschedule.";
+      const msg = (e as { message?: string })?.message ?? t("errorReschedule");
       setErr(msg);
     } finally {
       setSaving(false);
@@ -673,24 +689,24 @@ function RescheduleForm({
     <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 8 }}>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
         <div>
-          <label style={LABEL}>Day</label>
-          <PillSelect options={DAYS} value={day} onChange={v => setDay(v as DayOfWeek)} />
+          <label style={LABEL}>{t("day")}</label>
+          <PillSelect options={days} value={day} onChange={v => setDay(v as DayOfWeek)} />
         </div>
         <div>
-          <label style={LABEL}>Start time</label>
+          <label style={LABEL}>{t("startTime")}</label>
           <TimePicker value={start} onChange={setStart} />
         </div>
         <div>
-          <label style={LABEL}>End time</label>
+          <label style={LABEL}>{t("endTime")}</label>
           <TimePicker value={end} onChange={setEnd} />
         </div>
       </div>
       {err && <p style={ERR}>{err}</p>}
       <div style={{ display: "flex", gap: 8 }}>
         <button type="submit" disabled={saving} style={{ ...SUBMIT_BTN, opacity: saving ? 0.7 : 1, cursor: saving ? "not-allowed" : "pointer" }}>
-          <Check size={13} /> {saving ? "Saving…" : "Save"}
+          <Check size={13} /> {saving ? t("saving") : t("save")}
         </button>
-        <button type="button" onClick={onCancel} style={CANCEL_BTN}>Cancel</button>
+        <button type="button" onClick={onCancel} style={CANCEL_BTN}>{t("cancel")}</button>
       </div>
     </form>
   );
@@ -698,8 +714,8 @@ function RescheduleForm({
 
 // ── GenerateSlotsForm ──────────────────────────────────────────────────────────
 
-const DURATION_OPTIONS = [30, 45, 60, 90, 120].map(m => ({ value: m, label: `${m} min` }));
-const BREAK_OPTIONS    = [0, 5, 10, 15, 30].map(m => ({ value: m, label: m === 0 ? "No break" : `${m} min` }));
+const DURATION_VALUES = [30, 45, 60, 90, 120];
+const BREAK_VALUES    = [0, 5, 10, 15, 30];
 
 function GenerateSlotsForm({
   onGenerate,
@@ -708,6 +724,10 @@ function GenerateSlotsForm({
   onGenerate: (slots: ScheduleSlotPayload[]) => Promise<void>;
   onCancel: () => void;
 }) {
+  const t = useTranslations("CourseManagementScheduleTab");
+  const days = useDayOptions();
+  const durationOptions = DURATION_VALUES.map(m => ({ value: m, label: t("minutesShort", { count: m }) }));
+  const breakOptions = BREAK_VALUES.map(m => ({ value: m, label: m === 0 ? t("noBreak") : t("minutesShort", { count: m }) }));
   const [day,      setDay]      = useState<DayOfWeek>(0);
   const [from,     setFrom]     = useState("09:00");
   const [to,       setTo]       = useState("17:00");
@@ -731,12 +751,12 @@ function GenerateSlotsForm({
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (preview.length === 0) { setErr("No slots fit in this window with the current duration and break settings."); return; }
+    if (preview.length === 0) { setErr(t("errorNoSlotsFit")); return; }
     setSaving(true); setErr(null);
     try {
       await onGenerate(preview.map(s => ({ day_of_week: day, start_time: s.start, end_time: s.end })));
     } catch (e: unknown) {
-      setErr((e as { message?: string })?.message ?? "Failed to create slots.");
+      setErr((e as { message?: string })?.message ?? t("errorCreateSlots"));
     } finally {
       setSaving(false);
     }
@@ -747,15 +767,15 @@ function GenerateSlotsForm({
       {/* Row 1: day + window */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
         <div>
-          <label style={LABEL}>Day</label>
-          <PillSelect options={DAYS} value={day} onChange={v => setDay(v as DayOfWeek)} />
+          <label style={LABEL}>{t("day")}</label>
+          <PillSelect options={days} value={day} onChange={v => setDay(v as DayOfWeek)} />
         </div>
         <div>
-          <label style={LABEL}>Window start</label>
+          <label style={LABEL}>{t("windowStart")}</label>
           <TimePicker value={from} onChange={setFrom} />
         </div>
         <div>
-          <label style={LABEL}>Window end</label>
+          <label style={LABEL}>{t("windowEnd")}</label>
           <TimePicker value={to} onChange={setTo} />
         </div>
       </div>
@@ -763,23 +783,23 @@ function GenerateSlotsForm({
       {/* Row 2: session duration + break */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
         <div>
-          <label style={LABEL}>Session duration</label>
-          <PillSelect options={DURATION_OPTIONS} value={duration} onChange={v => setDuration(v as number)} />
+          <label style={LABEL}>{t("sessionDuration")}</label>
+          <PillSelect options={durationOptions} value={duration} onChange={v => setDuration(v as number)} />
         </div>
         <div>
-          <label style={LABEL}>Break between sessions</label>
-          <PillSelect options={BREAK_OPTIONS} value={breakMin} onChange={v => setBreakMin(v as number)} />
+          <label style={LABEL}>{t("breakBetweenSessions")}</label>
+          <PillSelect options={breakOptions} value={breakMin} onChange={v => setBreakMin(v as number)} />
         </div>
       </div>
 
       {/* Live preview */}
       <div style={{ background: "var(--color-bg)", borderRadius: 12, padding: "10px 14px" }}>
         <p style={{ ...LABEL, color: "var(--color-text-primary)", marginBottom: 8 }}>
-          Preview — {preview.length} slot{preview.length !== 1 ? "s" : ""} will be created
+          {t("previewSlots", { count: preview.length })}
         </p>
         {preview.length === 0 ? (
           <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(12px, 0.78vw, 13px)", color: "var(--color-text-muted)" }}>
-            No slots fit in this window.
+            {t("noSlotsFit")}
           </p>
         ) : (
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
@@ -803,9 +823,9 @@ function GenerateSlotsForm({
       {err && <p style={ERR}>{err}</p>}
       <div style={{ display: "flex", gap: 8 }}>
         <button type="submit" disabled={saving || preview.length === 0} style={{ ...SUBMIT_BTN, opacity: saving || preview.length === 0 ? 0.5 : 1, cursor: saving || preview.length === 0 ? "not-allowed" : "pointer" }}>
-          <Check size={13} /> {saving ? `Creating…` : `Create ${preview.length} slot${preview.length !== 1 ? "s" : ""}`}
+          <Check size={13} /> {saving ? t("creating") : t("createSlots", { count: preview.length })}
         </button>
-        <button type="button" onClick={onCancel} style={CANCEL_BTN}>Cancel</button>
+        <button type="button" onClick={onCancel} style={CANCEL_BTN}>{t("cancel")}</button>
       </div>
     </form>
   );
@@ -822,6 +842,7 @@ function IndividualFormatSection({
   slug: string;
   onAssigned?: () => void;
 }) {
+  const t = useTranslations("CourseManagementScheduleTab");
   const [slots, setSlots] = useState<ScheduleSlot[]>([]);
   const [loading, setLoading] = useState(true);
   const [addOpen, setAddOpen] = useState(false);
@@ -1054,7 +1075,7 @@ function IndividualFormatSection({
     setAssignConflictLoading(ev.id);
     setAssignConflictRescheduleErr(null);
     if (newDate === ev.date && newStart === ev.start_time && newEnd === ev.end_time) {
-      setAssignConflictRescheduleErr({ message: "Please choose a different date or time.", items: [] });
+      setAssignConflictRescheduleErr({ message: t("errorChooseDifferent"), items: [] });
       setAssignConflictLoading(null);
       return;
     }
@@ -1064,7 +1085,7 @@ function IndividualFormatSection({
     } catch (err: unknown) {
       const e = err as ApiError;
       const items = ((e.fields as Record<string, unknown>)?.conflicts ?? []) as RescheduleConflictItem[];
-      setAssignConflictRescheduleErr({ message: e.message || "Cannot reschedule.", items });
+      setAssignConflictRescheduleErr({ message: e.message || t("errorCannotReschedule"), items });
       throw err;
     } finally { setAssignConflictLoading(null); }
   };
@@ -1089,15 +1110,15 @@ function IndividualFormatSection({
     <div style={CARD}>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 6 }}>
         <div>
-          <p style={SECTION_TITLE}>Individual sessions</p>
+          <p style={SECTION_TITLE}>{t("individualSessions")}</p>
           <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(12px, 0.78vw, 14px)", color: "var(--color-text-secondary)", margin: 0 }}>
-            {booked} booked &middot; {available} available
+            {t("bookedCount", { count: booked })} &middot; {t("availableCount", { count: available })}
           </p>
         </div>
         {!formOpen && (
           <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
-            <AddButton onClick={() => { setGenerateOpen(true); setAddConflictModal(null); }}>Generate slots</AddButton>
-            <AddButton onClick={() => { setAddOpen(true); setAddConflictModal(null); }}>Add slot</AddButton>
+            <AddButton onClick={() => { setGenerateOpen(true); setAddConflictModal(null); }}>{t("generateSlots")}</AddButton>
+            <AddButton onClick={() => { setAddOpen(true); setAddConflictModal(null); }}>{t("addSlot")}</AddButton>
           </div>
         )}
       </div>
@@ -1105,19 +1126,19 @@ function IndividualFormatSection({
       {!formOpen && (
         <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.72vw, 13px)", color: "var(--color-text-muted)", margin: "0 0 12px", display: "flex", alignItems: "center", gap: 5 }}>
           <AlertCircle size={12} style={{ flexShrink: 0 }} />
-          Each slot is one session that a single student can book. Create one slot per time you are available, e.g. 09:00–10:00, 10:15–11:15. Use &ldquo;Generate slots&rdquo; to create many at once.
+          {t("slotsHint")}
         </p>
       )}
 
       {loading && (
         <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(12px, 0.78vw, 14px)", color: "var(--color-text-muted)" }}>
-          Loading…
+          {t("loading")}
         </p>
       )}
 
       {!loading && slots.length === 0 && !formOpen && (
         <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(12px, 0.78vw, 14px)", color: "var(--color-text-muted)" }}>
-          No slots yet.
+          {t("noSlotsYet")}
         </p>
       )}
 
@@ -1172,14 +1193,14 @@ function IndividualFormatSection({
         return (
           <ModalShell
             onClose={() => !addModalSaving && !addEventLoading && (setAddConflictModal(null), setAddPendingEvents([]), setAddEventReschedule(null))}
-            title="Schedule conflicts"
+            title={t("scheduleConflicts")}
             icon={<AlertTriangle size={18} style={{ color: "var(--color-pink-dark)" }} />}
             width="clamp(560px, 52vw, 740px)"
           >
             <div style={{ display: "flex", flexDirection: "column", gap: 18, minHeight: "clamp(320px, 40vh, 520px)" }}>
               {info.group.length > 0 && (
                 <div>
-                  <span style={CLABEL}>Group sessions</span>
+                  <span style={CLABEL}>{t("groupSessions")}</span>
                   {info.group.map(c => (
                     <div key={c.id} style={CROW}>
                       {c.course_title}{c.cohort_name ? ` — ${c.cohort_name}` : ""}
@@ -1190,7 +1211,7 @@ function IndividualFormatSection({
               )}
               {info.individual.length > 0 && (
                 <div>
-                  <span style={CLABEL}>Individual sessions</span>
+                  <span style={CLABEL}>{t("individualSessions")}</span>
                   {info.individual.map(c => (
                     <div key={c.id} style={CROW}>
                       {c.course_title}&nbsp;<span style={CMUTED}>{c.start_time}&ndash;{c.end_time}</span>
@@ -1200,18 +1221,18 @@ function IndividualFormatSection({
               )}
               {hasPersonalBlocks && (
                 <div>
-                  <span style={CLABEL}>Personal unavailability blocks</span>
+                  <span style={CLABEL}>{t("personalUnavailabilityBlocks")}</span>
                   {info.personal.map(b => (
                     <div key={b.id} style={CROW}>
-                      {b.reason || "Personal block"}&nbsp;<span style={CMUTED}>{b.start_time}&ndash;{b.end_time}</span>
+                      {b.reason || t("personalBlockFallback")}&nbsp;<span style={CMUTED}>{b.start_time}&ndash;{b.end_time}</span>
                     </div>
                   ))}
-                  <p style={CNOTE}>These blocks must be deleted before saving.</p>
+                  <p style={CNOTE}>{t("blocksMustBeDeleted")}</p>
                 </div>
               )}
               {addPendingEvents.length > 0 && (
                 <div>
-                  <span style={CLABEL}>Personal events</span>
+                  <span style={CLABEL}>{t("personalEvents")}</span>
                   {addPendingEvents.map(ev => {
                     const isLoading = addEventLoading === ev.id;
                     const isRescheduling = addEventReschedule?.eventId === ev.id;
@@ -1221,7 +1242,7 @@ function IndividualFormatSection({
                           <span>
                             <strong>{ev.title}</strong>
                             &nbsp;<span style={CMUTED}>{ev.date} &middot; {ev.start_time}&ndash;{ev.end_time}</span>
-                            {!ev.is_owner && <span style={{ ...CMUTED, marginLeft: 6 }}>(invited)</span>}
+                            {!ev.is_owner && <span style={{ ...CMUTED, marginLeft: 6 }}>{t("invited")}</span>}
                           </span>
                           <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
                             {ev.is_owner ? (
@@ -1229,17 +1250,17 @@ function IndividualFormatSection({
                                 <button type="button" disabled={isLoading || !!addEventLoading}
                                   onClick={() => setAddEventReschedule(isRescheduling ? null : { eventId: ev.id, date: ev.date, start: ev.start_time, end: ev.end_time })}
                                   style={CBTN()}>
-                                  {isRescheduling ? "Cancel" : "Reschedule"}
+                                  {isRescheduling ? t("cancel") : t("reschedule")}
                                 </button>
                                 <button type="button" disabled={isLoading || !!addEventLoading}
                                   onClick={() => handleAddDeleteEvent(ev)} style={CBTN(true)}>
-                                  {isLoading ? "…" : "Delete"}
+                                  {isLoading ? "…" : t("delete")}
                                 </button>
                               </>
                             ) : (
                               <button type="button" disabled={isLoading || !!addEventLoading}
                                 onClick={() => handleAddDeclineEvent(ev)} style={CBTN(true)}>
-                                {isLoading ? "…" : "Decline invite"}
+                                {isLoading ? "…" : t("declineInvite")}
                               </button>
                             )}
                           </div>
@@ -1247,21 +1268,21 @@ function IndividualFormatSection({
                         {isRescheduling && addEventReschedule && (
                           <div style={{ display: "flex", gap: 8, alignItems: "flex-end", flexWrap: "wrap", paddingTop: 4 }}>
                             <div>
-                              <DatePicker size="sm" label="New date" value={addEventReschedule.date}
+                              <DatePicker size="sm" label={t("newDate")} value={addEventReschedule.date}
                                 onChange={value => setAddEventReschedule(s => s ? { ...s, date: value } : s)} />
                             </div>
                             <div>
-                              <label style={CLABEL}>Start</label>
+                              <label style={CLABEL}>{t("start")}</label>
                               <TimePicker value={addEventReschedule.start} onChange={v => setAddEventReschedule(s => s ? { ...s, start: v } : s)} />
                             </div>
                             <div>
-                              <label style={CLABEL}>End</label>
+                              <label style={CLABEL}>{t("end")}</label>
                               <TimePicker value={addEventReschedule.end} onChange={v => setAddEventReschedule(s => s ? { ...s, end: v } : s)} />
                             </div>
                             <button type="button" disabled={isLoading}
                               onClick={() => handleAddRescheduleEvent(ev)}
                               style={{ ...SUBMIT_BTN, opacity: isLoading ? 0.7 : 1 }}>
-                              {isLoading ? "Saving…" : "Confirm"}
+                              {isLoading ? t("saving") : t("confirm")}
                             </button>
                           </div>
                         )}
@@ -1270,28 +1291,28 @@ function IndividualFormatSection({
                   })}
                 </div>
               )}
-              {blocked && <p style={CNOTE}>Resolve all personal events and blocks to continue.</p>}
+              {blocked && <p style={CNOTE}>{t("resolveAllToContinue")}</p>}
               {hasSessionConflicts && !blocked && (
-                <p style={{ ...CNOTE, color: "var(--color-danger)" }}>Resolve the conflicting sessions above before saving.</p>
+                <p style={{ ...CNOTE, color: "var(--color-danger)" }}>{t("resolveSessionsAbove")}</p>
               )}
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 {hasPersonalBlocks && (
                   <button type="button" onClick={handleAddDeleteBlocksAndSave}
                     disabled={addModalSaving || hasPendingEvents}
                     style={{ ...SUBMIT_BTN, background: "var(--color-pink-dark)", opacity: (addModalSaving || hasPendingEvents) ? 0.5 : 1, cursor: (addModalSaving || hasPendingEvents) ? "not-allowed" : "pointer" }}>
-                    {addModalSaving ? "Saving…" : "Delete blocks & Save"}
+                    {addModalSaving ? t("saving") : t("deleteBlocksAndSave")}
                   </button>
                 )}
                 {!blocked && !hasSessionConflicts && (
                   <button type="button" onClick={handleAddProceed} disabled={addModalSaving}
                     style={{ ...SUBMIT_BTN, opacity: addModalSaving ? 0.7 : 1, cursor: addModalSaving ? "not-allowed" : "pointer" }}>
-                    {addModalSaving ? "Saving…" : "Save"}
+                    {addModalSaving ? t("saving") : t("save")}
                   </button>
                 )}
                 <button type="button" disabled={addModalSaving}
                   onClick={() => { setAddConflictModal(null); setAddPendingEvents([]); setAddEventReschedule(null); }}
                   style={CANCEL_BTN}>
-                  Cancel
+                  {t("cancel")}
                 </button>
               </div>
             </div>
@@ -1319,14 +1340,14 @@ function IndividualFormatSection({
         return (
           <ModalShell
             onClose={() => !rescheduleModalSaving && !rescheduleEventLoading && (setRescheduleConflictModal(null), setReschedulePendingEvents([]), setRescheduleEventReschedule(null))}
-            title="Schedule conflicts"
+            title={t("scheduleConflicts")}
             icon={<AlertTriangle size={18} style={{ color: "var(--color-pink-dark)" }} />}
             width="clamp(560px, 52vw, 740px)"
           >
             <div style={{ display: "flex", flexDirection: "column", gap: 18, minHeight: "clamp(320px, 40vh, 520px)" }}>
               {info.group.length > 0 && (
                 <div>
-                  <span style={CLABEL}>Group sessions</span>
+                  <span style={CLABEL}>{t("groupSessions")}</span>
                   {info.group.map(c => (
                     <div key={c.id} style={CROW}>
                       {c.course_title}{c.cohort_name ? ` — ${c.cohort_name}` : ""}
@@ -1337,7 +1358,7 @@ function IndividualFormatSection({
               )}
               {info.individual.length > 0 && (
                 <div>
-                  <span style={CLABEL}>Individual sessions</span>
+                  <span style={CLABEL}>{t("individualSessions")}</span>
                   {info.individual.map(c => (
                     <div key={c.id} style={CROW}>
                       {c.course_title}&nbsp;<span style={CMUTED}>{c.start_time}&ndash;{c.end_time}</span>
@@ -1347,18 +1368,18 @@ function IndividualFormatSection({
               )}
               {hasPersonalBlocks && (
                 <div>
-                  <span style={CLABEL}>Personal unavailability blocks</span>
+                  <span style={CLABEL}>{t("personalUnavailabilityBlocks")}</span>
                   {info.personal.map(b => (
                     <div key={b.id} style={CROW}>
-                      {b.reason || "Personal block"}&nbsp;<span style={CMUTED}>{b.start_time}&ndash;{b.end_time}</span>
+                      {b.reason || t("personalBlockFallback")}&nbsp;<span style={CMUTED}>{b.start_time}&ndash;{b.end_time}</span>
                     </div>
                   ))}
-                  <p style={CNOTE}>These blocks must be deleted before saving.</p>
+                  <p style={CNOTE}>{t("blocksMustBeDeleted")}</p>
                 </div>
               )}
               {reschedulePendingEvents.length > 0 && (
                 <div>
-                  <span style={CLABEL}>Personal events</span>
+                  <span style={CLABEL}>{t("personalEvents")}</span>
                   {reschedulePendingEvents.map(ev => {
                     const isLoading = rescheduleEventLoading === ev.id;
                     const isRescheduling = rescheduleEventReschedule?.eventId === ev.id;
@@ -1368,7 +1389,7 @@ function IndividualFormatSection({
                           <span>
                             <strong>{ev.title}</strong>
                             &nbsp;<span style={CMUTED}>{ev.date} &middot; {ev.start_time}&ndash;{ev.end_time}</span>
-                            {!ev.is_owner && <span style={{ ...CMUTED, marginLeft: 6 }}>(invited)</span>}
+                            {!ev.is_owner && <span style={{ ...CMUTED, marginLeft: 6 }}>{t("invited")}</span>}
                           </span>
                           <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
                             {ev.is_owner ? (
@@ -1376,17 +1397,17 @@ function IndividualFormatSection({
                                 <button type="button" disabled={isLoading || !!rescheduleEventLoading}
                                   onClick={() => setRescheduleEventReschedule(isRescheduling ? null : { eventId: ev.id, date: ev.date, start: ev.start_time, end: ev.end_time })}
                                   style={CBTN()}>
-                                  {isRescheduling ? "Cancel" : "Reschedule"}
+                                  {isRescheduling ? t("cancel") : t("reschedule")}
                                 </button>
                                 <button type="button" disabled={isLoading || !!rescheduleEventLoading}
                                   onClick={() => handleRescheduleDeleteEvent(ev)} style={CBTN(true)}>
-                                  {isLoading ? "…" : "Delete"}
+                                  {isLoading ? "…" : t("delete")}
                                 </button>
                               </>
                             ) : (
                               <button type="button" disabled={isLoading || !!rescheduleEventLoading}
                                 onClick={() => handleRescheduleDeclineEvent(ev)} style={CBTN(true)}>
-                                {isLoading ? "…" : "Decline invite"}
+                                {isLoading ? "…" : t("declineInvite")}
                               </button>
                             )}
                           </div>
@@ -1394,21 +1415,21 @@ function IndividualFormatSection({
                         {isRescheduling && rescheduleEventReschedule && (
                           <div style={{ display: "flex", gap: 8, alignItems: "flex-end", flexWrap: "wrap", paddingTop: 4 }}>
                             <div>
-                              <DatePicker size="sm" label="New date" value={rescheduleEventReschedule.date}
+                              <DatePicker size="sm" label={t("newDate")} value={rescheduleEventReschedule.date}
                                 onChange={value => setRescheduleEventReschedule(s => s ? { ...s, date: value } : s)} />
                             </div>
                             <div>
-                              <label style={CLABEL}>Start</label>
+                              <label style={CLABEL}>{t("start")}</label>
                               <TimePicker value={rescheduleEventReschedule.start} onChange={v => setRescheduleEventReschedule(s => s ? { ...s, start: v } : s)} />
                             </div>
                             <div>
-                              <label style={CLABEL}>End</label>
+                              <label style={CLABEL}>{t("end")}</label>
                               <TimePicker value={rescheduleEventReschedule.end} onChange={v => setRescheduleEventReschedule(s => s ? { ...s, end: v } : s)} />
                             </div>
                             <button type="button" disabled={isLoading}
                               onClick={() => handleRescheduleRescheduleEvent(ev)}
                               style={{ ...SUBMIT_BTN, opacity: isLoading ? 0.7 : 1 }}>
-                              {isLoading ? "Saving…" : "Confirm"}
+                              {isLoading ? t("saving") : t("confirm")}
                             </button>
                           </div>
                         )}
@@ -1417,28 +1438,28 @@ function IndividualFormatSection({
                   })}
                 </div>
               )}
-              {blocked && <p style={CNOTE}>Resolve all personal events and blocks to continue.</p>}
+              {blocked && <p style={CNOTE}>{t("resolveAllToContinue")}</p>}
               {hasSessionConflicts && !blocked && (
-                <p style={{ ...CNOTE, color: "var(--color-danger)" }}>Resolve the conflicting sessions above before saving.</p>
+                <p style={{ ...CNOTE, color: "var(--color-danger)" }}>{t("resolveSessionsAbove")}</p>
               )}
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 {hasPersonalBlocks && (
                   <button type="button" onClick={handleRescheduleDeleteBlocksAndSave}
                     disabled={rescheduleModalSaving || hasPendingEvents}
                     style={{ ...SUBMIT_BTN, background: "var(--color-pink-dark)", opacity: (rescheduleModalSaving || hasPendingEvents) ? 0.5 : 1, cursor: (rescheduleModalSaving || hasPendingEvents) ? "not-allowed" : "pointer" }}>
-                    {rescheduleModalSaving ? "Saving…" : "Delete blocks & Save"}
+                    {rescheduleModalSaving ? t("saving") : t("deleteBlocksAndSave")}
                   </button>
                 )}
                 {!blocked && !hasSessionConflicts && (
                   <button type="button" onClick={handleRescheduleProceed} disabled={rescheduleModalSaving}
                     style={{ ...SUBMIT_BTN, opacity: rescheduleModalSaving ? 0.7 : 1, cursor: rescheduleModalSaving ? "not-allowed" : "pointer" }}>
-                    {rescheduleModalSaving ? "Saving…" : "Save slot"}
+                    {rescheduleModalSaving ? t("saving") : t("saveSlot")}
                   </button>
                 )}
                 <button type="button" disabled={rescheduleModalSaving}
                   onClick={() => { setRescheduleConflictModal(null); setReschedulePendingEvents([]); setRescheduleEventReschedule(null); }}
                   style={CANCEL_BTN}>
-                  Cancel
+                  {t("cancel")}
                 </button>
               </div>
             </div>
@@ -1449,7 +1470,7 @@ function IndividualFormatSection({
 {/* Personal event conflict modal shown before slot assignment */}
       {assignConflict && (
         <ModalShell
-          title="Personal event conflicts"
+          title={t("personalEventConflicts")}
           icon={<AlertTriangle size={16} />}
           onClose={() => !assignConflictLoading && (setAssignConflict(null), setConflictRescheduleState(null))}
           width="clamp(620px, 56vw, 800px)"
@@ -1457,7 +1478,7 @@ function IndividualFormatSection({
         >
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(12px, 0.78vw, 14px)", color: "var(--color-text-secondary)", margin: 0 }}>
-              The following personal events conflict with this slot&apos;s time. Resolve them to proceed with assignment.
+              {t("slotConflictExplain")}
             </p>
 
             {assignConflict.pending.map(ev => {
@@ -1474,20 +1495,20 @@ function IndividualFormatSection({
                         <button type="button" disabled={!!assignConflictLoading}
                           onClick={() => { setConflictRescheduleState({ eventId: ev.id, date: ev.date, start: ev.start_time, end: ev.end_time }); setAssignConflictRescheduleErr(null); }}
                           style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.72vw, 13px)", fontWeight: 600, color: "var(--color-text-primary)", background: "none", border: "1px solid var(--color-border-light)", borderRadius: 6, padding: "4px 10px", cursor: "pointer" }}>
-                          Reschedule
+                          {t("reschedule")}
                         </button>
                       )}
                       {ev.is_owner ? (
                         <button type="button" disabled={assignConflictLoading === ev.id}
                           onClick={() => handleConflictDelete(ev)}
                           style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.72vw, 13px)", fontWeight: 600, color: "var(--color-danger)", background: "none", border: "1px solid #fca5a5", borderRadius: 6, padding: "4px 10px", cursor: "pointer", opacity: assignConflictLoading === ev.id ? 0.5 : 1 }}>
-                          {assignConflictLoading === ev.id ? "…" : "Delete"}
+                          {assignConflictLoading === ev.id ? "…" : t("delete")}
                         </button>
                       ) : (
                         <button type="button" disabled={assignConflictLoading === ev.id}
                           onClick={() => handleConflictDecline(ev)}
                           style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.72vw, 13px)", fontWeight: 600, color: "var(--color-danger)", background: "none", border: "1px solid #fca5a5", borderRadius: 6, padding: "4px 10px", cursor: "pointer", opacity: assignConflictLoading === ev.id ? 0.5 : 1 }}>
-                          {assignConflictLoading === ev.id ? "…" : "Decline invite"}
+                          {assignConflictLoading === ev.id ? "…" : t("declineInvite")}
                         </button>
                       )}
                     </div>
@@ -1495,26 +1516,26 @@ function IndividualFormatSection({
                   {isRescheduling && conflictRescheduleState && (
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, paddingTop: 4 }}>
                       <div>
-                        <DatePicker size="sm" label="Date" value={conflictRescheduleState.date}
+                        <DatePicker size="sm" label={t("date")} value={conflictRescheduleState.date}
                           onChange={v => setConflictRescheduleState(s => s ? { ...s, date: v } : s)} />
                       </div>
                       <div>
-                        <label style={{ fontFamily: "var(--font-base)", fontSize: "clamp(10px, 0.63vw, 11px)", color: "var(--color-text-secondary)", display: "block", marginBottom: 3 }}>Start</label>
+                        <label style={{ fontFamily: "var(--font-base)", fontSize: "clamp(10px, 0.63vw, 11px)", color: "var(--color-text-secondary)", display: "block", marginBottom: 3 }}>{t("start")}</label>
                         <TimePicker value={conflictRescheduleState.start} onChange={v => setConflictRescheduleState(s => s ? { ...s, start: v } : s)} />
                       </div>
                       <div>
-                        <label style={{ fontFamily: "var(--font-base)", fontSize: "clamp(10px, 0.63vw, 11px)", color: "var(--color-text-secondary)", display: "block", marginBottom: 3 }}>End</label>
+                        <label style={{ fontFamily: "var(--font-base)", fontSize: "clamp(10px, 0.63vw, 11px)", color: "var(--color-text-secondary)", display: "block", marginBottom: 3 }}>{t("end")}</label>
                         <TimePicker value={conflictRescheduleState.end} onChange={v => setConflictRescheduleState(s => s ? { ...s, end: v } : s)} />
                       </div>
                       <div style={{ gridColumn: "1 / -1", display: "flex", gap: 8 }}>
                         <button type="button" disabled={!!assignConflictLoading}
                           onClick={() => handleConflictReschedule(ev, conflictRescheduleState.date, conflictRescheduleState.start, conflictRescheduleState.end).then(() => setConflictRescheduleState(null))}
                           style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(11px, 0.72vw, 13px)", background: "var(--gradient-brand)", border: "none", borderRadius: 6, padding: "5px 14px", cursor: "pointer" }}>
-                          Confirm
+                          {t("confirm")}
                         </button>
                         <button type="button" onClick={() => { setConflictRescheduleState(null); setAssignConflictRescheduleErr(null); }}
                           style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.72vw, 13px)", background: "none", border: "1px solid var(--color-border-light)", borderRadius: 6, padding: "5px 14px", cursor: "pointer" }}>
-                          Cancel
+                          {t("cancel")}
                         </button>
                       </div>
                       {assignConflictRescheduleErr && (
@@ -1522,7 +1543,7 @@ function IndividualFormatSection({
                           <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.72vw, 13px)", fontWeight: 600, color: "var(--color-danger)", margin: "0 0 2px" }}>{assignConflictRescheduleErr.message}</p>
                           {assignConflictRescheduleErr.items.map((c, i) => (
                             <p key={i} style={{ fontFamily: "var(--font-base)", fontSize: "clamp(10px, 0.63vw, 11px)", color: "var(--color-text-secondary)", margin: "1px 0" }}>
-                              {c.type === "group" ? "Group" : c.type === "individual" ? "Individual" : "Personal"}: {c.title} · {c.start_time}–{c.end_time}
+                              {c.type === "group" ? t("conflictType.group") : c.type === "individual" ? t("conflictType.individual") : t("conflictType.personal")}: {c.title} · {c.start_time}–{c.end_time}
                             </p>
                           ))}
                         </div>
@@ -1538,13 +1559,13 @@ function IndividualFormatSection({
                 <button type="button"
                   onClick={() => { doAssign(assignConflict.slotId, assignConflict.enrollmentId); setAssignConflict(null); }}
                   style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(12px, 0.78vw, 14px)", background: "var(--gradient-brand)", border: "none", borderRadius: 8, padding: "7px 18px", cursor: "pointer" }}>
-                  Assign
+                  {t("assign")}
                 </button>
               )}
               <button type="button"
                 onClick={() => { setAssignConflict(null); setConflictRescheduleState(null); }}
                 style={{ fontFamily: "var(--font-base)", fontSize: "clamp(12px, 0.78vw, 14px)", background: "none", border: "1px solid var(--color-border-light)", borderRadius: 8, padding: "7px 18px", cursor: "pointer" }}>
-                Cancel
+                {t("cancel")}
               </button>
             </div>
           </div>
@@ -1564,21 +1585,31 @@ function UnavailabilityRow({
   block: TeacherUnavailability;
   onDelete: (id: number) => Promise<void>;
 }) {
+  const t = useTranslations("CourseManagementScheduleTab");
+  const tDays = useTranslations("Days");
+  const locale = useLocale();
   const [deleting, setDeleting] = useState(false);
 
+  const dayLabel = tDays(DAY_KEYS[block.day_of_week]);
+  const recurrenceLabel =
+    block.recurrence_type === "one_time"
+      ? t("recurrenceOneTime")
+      : block.recurrence_type === "date_range"
+      ? t("recurrenceDateRange")
+      : t("recurrenceWeekly");
+
   const isAllDay = block.start_time.startsWith("00:00") && block.end_time >= "23:59";
-  const timeStr = isAllDay ? "All day" : `${fmtTime(block.start_time)} – ${fmtTime(block.end_time)}`;
+  const timeStr = isAllDay ? t("allDay") : `${fmtTime(block.start_time)} – ${fmtTime(block.end_time)}`;
   function fmtDate(iso: string | null) {
     if (!iso) return "";
-    const [y, m, d] = iso.split("-");
-    return `${d}.${m}.${y}`;
+    return formatDate(iso, locale);
   }
   const dateStr =
     block.recurrence_type === "date_range"
       ? `${fmtDate(block.date)} – ${fmtDate(block.date_to)}`
       : block.recurrence_type === "one_time"
-      ? fmtDate(block.date) || block.day_of_week_display
-      : block.day_of_week_display;
+      ? fmtDate(block.date) || dayLabel
+      : dayLabel;
 
   return (
     <div style={{
@@ -1601,7 +1632,7 @@ function UnavailabilityRow({
           fontSize: "clamp(9px, 0.6vw, 11px)", color: "var(--color-text-secondary)",
           textTransform: "uppercase", letterSpacing: "0.04em",
         }}>
-          {block.recurrence_type_display}
+          {recurrenceLabel}
           {block.reason ? ` — ${block.reason}` : ""}
         </span>
       </div>
@@ -1610,7 +1641,7 @@ function UnavailabilityRow({
         onClick={async () => { setDeleting(true); try { await onDelete(block.id); } finally { setDeleting(false); } }}
         disabled={deleting}
         color="var(--color-pink-dark)"
-        title="Remove block"
+        title={t("removeBlock")}
       />
     </div>
   );
@@ -1625,6 +1656,8 @@ function AddUnavailabilityForm({
   onAdd: (p: TeacherUnavailabilityPayload) => Promise<void>;
   onCancel: () => void;
 }) {
+  const t = useTranslations("CourseManagementScheduleTab");
+  const days = useDayOptions();
   const [recurrence, setRecurrence] = useState<RecurrenceType>("weekly");
   const [day, setDay] = useState<DayOfWeek>(0);
   const [date, setDate] = useState("");
@@ -1654,10 +1687,10 @@ function AddUnavailabilityForm({
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!allDay && end <= start) { setErr("End time must be after start time."); return; }
-    if (recurrence === "one_time" && !date) { setErr("Date is required for one-time block."); return; }
-    if (recurrence === "date_range" && (!date || !dateTo)) { setErr("Both start and end dates are required."); return; }
-    if (recurrence === "date_range" && dateTo < date) { setErr("End date must be on or after start date."); return; }
+    if (!allDay && end <= start) { setErr(t("errorEndAfterStart")); return; }
+    if (recurrence === "one_time" && !date) { setErr(t("errorDateRequired")); return; }
+    if (recurrence === "date_range" && (!date || !dateTo)) { setErr(t("errorBothDatesRequired")); return; }
+    if (recurrence === "date_range" && dateTo < date) { setErr(t("errorEndDateAfterStart")); return; }
     setSaving(true); setErr(null);
     try {
       const resolvedStart = allDay ? "00:00" : start;
@@ -1678,7 +1711,7 @@ function AddUnavailabilityForm({
       }
       await onAdd(payload);
     } catch (e: unknown) {
-      setErr((e as { message?: string })?.message ?? "Failed to save.");
+      setErr((e as { message?: string })?.message ?? t("errorSaveFailed"));
     } finally {
       setSaving(false);
     }
@@ -1689,12 +1722,12 @@ function AddUnavailabilityForm({
 
       {/* Type */}
       <div>
-        <label style={PL}>Type</label>
+        <label style={PL}>{t("type")}</label>
         <PillSelect
           options={[
-            { value: "weekly" as RecurrenceType, label: "Every week (recurring)" },
-            { value: "one_time" as RecurrenceType, label: "One-time" },
-            { value: "date_range" as RecurrenceType, label: "Date range" },
+            { value: "weekly" as RecurrenceType, label: t("recurrenceWeekly") },
+            { value: "one_time" as RecurrenceType, label: t("recurrenceOneTime") },
+            { value: "date_range" as RecurrenceType, label: t("recurrenceDateRange") },
           ]}
           value={recurrence}
           onChange={v => setRecurrence(v as RecurrenceType)}
@@ -1704,24 +1737,24 @@ function AddUnavailabilityForm({
       {/* Day / Date */}
       {recurrence === "weekly" ? (
         <div>
-          <label style={PL}>Day</label>
-          <PillSelect options={DAYS} value={day} onChange={v => setDay(v as DayOfWeek)} />
+          <label style={PL}>{t("day")}</label>
+          <PillSelect options={days} value={day} onChange={v => setDay(v as DayOfWeek)} />
         </div>
       ) : recurrence === "one_time" ? (
-        <DatePicker label="Date" value={date} onChange={setDate} size="md" />
+        <DatePicker label={t("date")} value={date} onChange={setDate} size="md" />
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-          <DatePicker label="From" value={date} onChange={setDate} size="md" />
-          <DatePicker label="To" value={dateTo} onChange={setDateTo} size="md" min={date || undefined} />
+          <DatePicker label={t("from")} value={date} onChange={setDate} size="md" />
+          <DatePicker label={t("to")} value={dateTo} onChange={setDateTo} size="md" min={date || undefined} />
         </div>
       )}
 
       {/* Hours toggle */}
       <div>
-        <span style={PL}>Hours</span>
+        <span style={PL}>{t("hours")}</span>
         <div style={{ display: "flex", gap: 6 }}>
-          <button type="button" style={tabBtn(!allDay)} onClick={() => setAllDay(false)}>Specific</button>
-          <button type="button" style={tabBtn(allDay)}  onClick={() => setAllDay(true)}>All day</button>
+          <button type="button" style={tabBtn(!allDay)} onClick={() => setAllDay(false)}>{t("specific")}</button>
+          <button type="button" style={tabBtn(allDay)}  onClick={() => setAllDay(true)}>{t("allDay")}</button>
         </div>
       </div>
 
@@ -1729,11 +1762,11 @@ function AddUnavailabilityForm({
       {!allDay && (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           <div>
-            <label style={PL}>Start time</label>
+            <label style={PL}>{t("startTime")}</label>
             <TimePicker value={start} onChange={setStart} />
           </div>
           <div>
-            <label style={PL}>End time</label>
+            <label style={PL}>{t("endTime")}</label>
             <TimePicker value={end} onChange={setEnd} />
           </div>
         </div>
@@ -1741,13 +1774,13 @@ function AddUnavailabilityForm({
 
       {/* Reason */}
       <div>
-        <label style={PL}>Reason (optional)</label>
+        <label style={PL}>{t("reasonOptional")}</label>
         <input
           type="text"
           style={INPUT}
           value={reason}
           onChange={e => setReason(e.target.value)}
-          placeholder="e.g. personal plans, vacation…"
+          placeholder={t("reasonPlaceholder")}
           maxLength={255}
         />
       </div>
@@ -1770,7 +1803,7 @@ function AddUnavailabilityForm({
             whiteSpace: "nowrap",
           }}
         >
-          <Check size={13} /> {saving ? "Saving…" : "Add block"}
+          <Check size={13} /> {saving ? t("saving") : t("addBlock")}
         </button>
         <button
           type="button"
@@ -1783,7 +1816,7 @@ function AddUnavailabilityForm({
             textTransform: "uppercase", letterSpacing: "0.04em",
           }}
         >
-          Cancel
+          {t("cancel")}
         </button>
       </div>
     </form>
@@ -1793,6 +1826,7 @@ function AddUnavailabilityForm({
 // ── UnavailabilitySection ─────────────────────────────────────────────────────
 
 export function UnavailabilitySection() {
+  const t = useTranslations("CourseManagementScheduleTab");
   const [blocks, setBlocks] = useState<TeacherUnavailability[]>([]);
   const [loading, setLoading] = useState(true);
   const [addOpen, setAddOpen] = useState(false);
@@ -1822,19 +1856,19 @@ export function UnavailabilitySection() {
         fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.76vw, 13px)",
         color: "var(--color-text-secondary)", margin: 0, lineHeight: 1.5,
       }}>
-        Times blocked here won&apos;t be available for student bookings across all your courses.
+        {t("unavailabilityDescription")}
       </p>
 
       {/* Existing blocks */}
       {loading && (
         <p style={{ fontFamily: "var(--font-accent)", fontSize: "clamp(10px, 0.65vw, 12px)", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-          Loading…
+          {t("loading")}
         </p>
       )}
 
       {!loading && blocks.length === 0 && !addOpen && (
         <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(12px, 0.78vw, 13px)", color: "var(--color-text-muted)" }}>
-          No time blocks set yet.
+          {t("noBlocksYet")}
         </p>
       )}
 
@@ -1866,7 +1900,7 @@ export function UnavailabilitySection() {
             letterSpacing: "0.03em", transition: "opacity 0.2s",
           }}
         >
-          + Block time
+          + {t("blockTime")}
         </button>
       )}
     </div>

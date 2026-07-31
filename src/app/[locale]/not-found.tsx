@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { getTranslations } from "next-intl/server";
 import { AccentButton } from "@/shared/ui/AccentButton";
 
 const TITLE_GRADIENT = "linear-gradient(180deg, #4669DF 34%, rgba(70, 105, 223, 0) 100%)";
@@ -7,7 +8,9 @@ const TITLE_GRADIENT = "linear-gradient(180deg, #4669DF 34%, rgba(70, 105, 223, 
 // already active (public or authenticated) when notFound() was called, so those already
 // supply the header/nav chrome. Rendering our own here doubled it (visible on any client-side
 // navigation to an invalid slug -- e.g. /blog/[slug], /courses/[slug], /profile/[userId]).
-export default function NotFound() {
+export default async function NotFound() {
+  const t = await getTranslations("NotFoundPage");
+
   return (
     <div className="relative flex flex-1 flex-col">
       <NotFoundBackground />
@@ -25,13 +28,11 @@ export default function NotFound() {
 
         <div className="flex flex-col items-center gap-6">
           <div className="flex flex-col items-center gap-3">
-            <h1 className="text-2xl font-semibold text-(--color-text-primary)">Page not found</h1>
-            <p className="text-(--color-text-secondary)">
-              {"We couldn't find the page you are looking for"}
-            </p>
+            <h1 className="text-2xl font-semibold text-(--color-text-primary)">{t("title")}</h1>
+            <p className="text-(--color-text-secondary)">{t("description")}</p>
           </div>
           <AccentButton href="/" size="md" className="tracking-widest">
-            Back home
+            {t("backHome")}
           </AccentButton>
         </div>
       </main>

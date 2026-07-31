@@ -10,6 +10,7 @@ import {
   Upload,
   X,
 } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import {
   createHomeworkAssignment,
   getHomeworkAssignments,
@@ -38,6 +39,9 @@ import type { ApiError } from "@/shared/api/base";
 import { PageShell } from "@/shared/ui/PageShell";
 import { PillSelect } from "@/shared/ui/PillSelect";
 import { DatePicker } from "@/shared/ui/DatePicker";
+import { formatDate } from "@/shared/lib/time";
+
+type Translator = (key: string, values?: Record<string, string | number>) => string;
 
 type FormState = {
   courseSlug: string;
@@ -79,12 +83,21 @@ type RecipientGroupOption = SelectOption & {
 
 type HomeworkQueueFilter = "all" | "waiting_submit" | "to_review" | "completed";
 
-const HOMEWORK_QUEUE_TABS: { value: HomeworkQueueFilter; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "waiting_submit", label: "Waiting for submit" },
-  { value: "to_review", label: "To review" },
-  { value: "completed", label: "Completed" },
+const HOMEWORK_QUEUE_VALUES: HomeworkQueueFilter[] = [
+  "all",
+  "waiting_submit",
+  "to_review",
+  "completed",
 ];
+
+function homeworkQueueTabs(t: Translator): { value: HomeworkQueueFilter; label: string }[] {
+  return [
+    { value: "all", label: t("queueAll") },
+    { value: "waiting_submit", label: t("queueWaitingSubmit") },
+    { value: "to_review", label: t("queueToReview") },
+    { value: "completed", label: t("queueCompleted") },
+  ];
+}
 
 type HomeworkSelectProps = {
   label?: string;
@@ -107,6 +120,7 @@ function HomeworkSelect({
   searchable = false,
   onChange,
 }: HomeworkSelectProps) {
+  const t = useTranslations("TeacherHomeworkPage");
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const rootRef = useRef<HTMLDivElement>(null);
@@ -158,7 +172,7 @@ function HomeworkSelect({
           />
           <button
             type="button"
-            aria-label="Toggle options"
+            aria-label={t("toggleOptions")}
             disabled={disabled}
             onClick={() => {
               if (isOpen) setQuery("");
@@ -203,7 +217,7 @@ function HomeworkSelect({
           }
         >
           {filteredOptions.length === 0 ? (
-            <p className="px-5 py-3 text-[14px] text-[#777]">No matching options</p>
+            <p className="px-5 py-3 text-[14px] text-[#777]">{t("noMatchingOptions")}</p>
           ) : null}
           {filteredOptions.map((option) => {
             const isSelected = option.value === value;
@@ -232,43 +246,36 @@ function HomeworkSelect({
   );
 }
 
-function monthLabel(value: string): string {
-  return new Intl.DateTimeFormat("en-US", { month: "long" }).format(new Date(value));
+function monthLabel(value: string, locale: string): string {
+  return new Intl.DateTimeFormat(locale, { month: "long" }).format(new Date(value));
 }
 
-function dateLabel(value: Date): string {
-  return new Intl.DateTimeFormat("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(value);
+function dateLabel(value: Date, locale: string): string {
+  return formatDate(value, locale, { day: "2-digit", month: "short", year: "numeric" });
 }
 
-function deadlineLabel(value: string | null): string {
-  if (!value) return "No deadline";
-  return dateLabel(new Date(value));
+function deadlineLabel(value: string | null, locale: string, t: Translator): string {
+  if (!value) return t("noDeadline");
+  return dateLabel(new Date(value), locale);
 }
 
-function cardDateLabel(value: string | null): string {
+function cardDateLabel(value: string | null, locale: string): string {
   if (!value) return "-";
-  return new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "2-digit" })
-    .format(new Date(value))
-    .replace(/\//g, ".");
+  return formatDate(new Date(value), locale, { day: "2-digit", month: "2-digit" }).replace(
+    /\//g,
+    ".",
+  );
 }
 
 function assignmentDateValue(assignment: HomeworkAssignment): string {
   return assignment.published_at ?? assignment.created_at;
 }
 
-function assignmentKind(assignment: HomeworkAssignment): "Task" | "Test" {
-  return assignment.test_detail ? "Test" : "Task";
-}
-
-function recipientsLabel(assignment: HomeworkAssignment): string {
+function recipientsLabel(assignment: HomeworkAssignment, t: Translator): string {
   if (assignment.recipients.length === 0) {
     return assignment.recipients_count > 0
-      ? `${assignment.recipients_count} student${assignment.recipients_count === 1 ? "" : "s"}`
-      : "Not sent";
+      ? t("studentsCount", { count: assignment.recipients_count })
+      : t("notSent");
   }
 
   const names = assignment.recipients.map(
@@ -304,14 +311,14 @@ function reviewableSubmissions(assignment: HomeworkAssignment): HomeworkSubmissi
   });
 }
 
-function submissionStatusLabel(status: HomeworkSubmission["status"]): string {
-  if (status === "reviewed") return "Reviewed";
-  if (status === "retrieved") return "Retrieved";
-  return "Submitted";
+function submissionStatusLabel(status: HomeworkSubmission["status"], t: Translator): string {
+  if (status === "reviewed") return t("submissionStatusReviewed");
+  if (status === "retrieved") return t("submissionStatusRetrieved");
+  return t("submissionStatusSubmitted");
 }
 
-function studentSubmissionLabel(submission: HomeworkSubmission): string {
-  return submission.student_name || submission.student_email || "Student";
+function studentSubmissionLabel(submission: HomeworkSubmission, t: Translator): string {
+  return submission.student_name || submission.student_email || t("studentFallback");
 }
 
 function reviewSubmissionForAssignment(assignment: HomeworkAssignment): HomeworkSubmission | null {
@@ -356,7 +363,10 @@ function TeacherHomeworkCard({
   assignment: HomeworkAssignment;
   onOpenReview: () => void;
 }) {
-  const kind = assignmentKind(assignment);
+  const t = useTranslations("TeacherHomeworkPage");
+  const tKind = useTranslations("TeacherHomeworkCheckPanel");
+  const locale = useLocale();
+  const kindLabel = assignment.test_detail ? tKind("test") : tKind("task");
   const iconSrc = assignment.course_image ?? "/icons/book-gradient.svg";
   const returnedAt = latestReviewedAt(assignment);
   const submissionsCount = assignment.teacher_submissions.length;
@@ -381,7 +391,7 @@ function TeacherHomeworkCard({
       </span>
       <span className="min-w-0">
         <span className="block h-5 max-w-[244px] truncate text-[16px] leading-5 font-normal text-[#5E5E5E]">
-          {assignment.course_title || "Course"} &bull; {kind}
+          {assignment.course_title || t("courseFallback")} &bull; {kindLabel}
         </span>
         <span className="mt-[7px] block max-w-[393px] truncate text-[20px] leading-none font-medium text-[#121212]">
           {assignment.title}
@@ -389,17 +399,19 @@ function TeacherHomeworkCard({
       </span>
       <span className="grid gap-1 text-[11px] leading-none font-normal text-[#5E5E5E]">
         <span className="truncate">
-          To: <span className="text-[#121212]">{recipientsLabel(assignment)}</span>
+          {t("toLabel")} <span className="text-[#121212]">{recipientsLabel(assignment, t)}</span>
         </span>
         <span>
-          Sent: <span className="text-[#003AFF]">{cardDateLabel(assignment.published_at)}</span>
+          {t("sentLabel")}{" "}
+          <span className="text-[#003AFF]">{cardDateLabel(assignment.published_at, locale)}</span>
         </span>
         <span>
-          Submitted: <span className="text-[#121212]">{submissionsCount}</span>
+          {t("submittedLabel")} <span className="text-[#121212]">{submissionsCount}</span>
         </span>
         {returnedAt ? (
           <span>
-            Returned: <span className="text-[#003AFF]">{cardDateLabel(returnedAt)}</span>
+            {t("returnedLabel")}{" "}
+            <span className="text-[#003AFF]">{cardDateLabel(returnedAt, locale)}</span>
           </span>
         ) : null}
       </span>
@@ -418,6 +430,8 @@ function HomeworkSubmissionPickerDialog({
   onSelect: (submissionId: number) => void;
   onClose: () => void;
 }) {
+  const t = useTranslations("TeacherHomeworkPage");
+  const locale = useLocale();
   return createPortal(
     <div
       role="presentation"
@@ -434,7 +448,7 @@ function HomeworkSubmissionPickerDialog({
         <div className="flex items-start justify-between gap-4 border-b border-[#E7E7E7] pb-5">
           <div className="min-w-0">
             <p className="text-[12px] font-medium uppercase tracking-wide text-[#5E5E5E]">
-              Student submissions
+              {t("studentSubmissions")}
             </p>
             <h2 id="homework-submissions-title" className="mt-1 truncate text-[24px] font-semibold">
               {assignment.title}
@@ -444,7 +458,7 @@ function HomeworkSubmissionPickerDialog({
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close submission list"
+            aria-label={t("closeSubmissionList")}
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition hover:bg-[#F1F1F1]"
           >
             <X size={18} aria-hidden="true" />
@@ -460,29 +474,35 @@ function HomeworkSubmissionPickerDialog({
               className="min-h-[136px] rounded-lg border border-[#E7E7E7] bg-white p-4 text-left shadow-[0_1px_8px_rgba(0,0,0,0.08)] transition hover:border-[#9DB1FA] hover:shadow-[0_5px_18px_rgba(0,0,0,0.12)] focus:outline-none focus:ring-2 focus:ring-[#9DB1FA]"
             >
               <span className="block truncate text-[17px] font-semibold text-[#121212]">
-                {studentSubmissionLabel(submission)}
+                {studentSubmissionLabel(submission, t)}
               </span>
               <span className="mt-1 block truncate text-[12px] text-[#5E5E5E]">
                 {submission.student_email}
               </span>
               <span className="mt-4 grid gap-1 text-[12px] text-[#5E5E5E]">
                 <span>
-                  Status:{" "}
-                  <span className="text-[#121212]">{submissionStatusLabel(submission.status)}</span>
+                  {t("statusLabel")}{" "}
+                  <span className="text-[#121212]">
+                    {submissionStatusLabel(submission.status, t)}
+                  </span>
                 </span>
                 <span>
-                  Submitted:{" "}
-                  <span className="text-[#003AFF]">{cardDateLabel(submission.submitted_at)}</span>
+                  {t("submittedLabel")}{" "}
+                  <span className="text-[#003AFF]">
+                    {cardDateLabel(submission.submitted_at, locale)}
+                  </span>
                 </span>
                 {submission.reviewed_at ? (
                   <span>
-                    Returned:{" "}
-                    <span className="text-[#003AFF]">{cardDateLabel(submission.reviewed_at)}</span>
+                    {t("returnedLabel")}{" "}
+                    <span className="text-[#003AFF]">
+                      {cardDateLabel(submission.reviewed_at, locale)}
+                    </span>
                   </span>
                 ) : null}
                 {submission.score != null ? (
                   <span>
-                    Score: <span className="text-[#121212]">{submission.score}</span>
+                    {t("scoreLabel")} <span className="text-[#121212]">{submission.score}</span>
                   </span>
                 ) : null}
               </span>
@@ -524,6 +544,8 @@ function HomeworkAttemptReviewDialog({
   attempt: SubmissionTestAttempt;
   onClose: () => void;
 }) {
+  const t = useTranslations("HomeworkReviewDialog");
+
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") onClose();
@@ -537,7 +559,7 @@ function HomeworkAttemptReviewDialog({
   const closeButton = (
     <button
       type="button"
-      aria-label="Close test attempt"
+      aria-label={t("closeTestAttempt")}
       onClick={onClose}
       className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#121212] transition hover:bg-[#F1F1F1]"
     >
@@ -557,29 +579,31 @@ function HomeworkAttemptReviewDialog({
       <section
         role="dialog"
         aria-modal="true"
-        aria-label={`${title} submitted attempt`}
+        aria-label={t("submittedAttemptAriaLabel", { title })}
         className="mx-auto max-w-[1380px]"
         onMouseDown={(event) => event.stopPropagation()}
       >
         <QuizWindow
           title={title}
-          description={`Submitted by ${submission.student_name || submission.student_email}`}
+          description={t("submittedBy", {
+            name: submission.student_name || submission.student_email,
+          })}
           passingScore={attempt.passing_score}
           headerAction={closeButton}
           className="max-w-[1180px]"
         >
           <div className="mb-6 flex flex-wrap items-center gap-3 font-(family-name:--font-base) text-sm">
             <span className="font-semibold text-[#121212]">
-              Best test attempt #{attempt.attempt_number}
+              {t("bestTestAttempt", { number: attempt.attempt_number })}
             </span>
             <span className="rounded bg-[#FFF0D0] px-2 py-1 text-xs text-[#8B5B00]">
               {attempt.score}%
             </span>
             <span className={attempt.passed ? "text-[#067647]" : "text-[#B42318]"}>
-              {attempt.passed ? "Passed" : "Not passed"}
+              {attempt.passed ? t("passed") : t("notPassed")}
             </span>
             <span className="text-[#5E5E5E]">
-              Correct: {attempt.correct_count} / {attempt.total_count}
+              {t("correctCount", { correct: attempt.correct_count, total: attempt.total_count })}
             </span>
           </div>
 
@@ -623,6 +647,9 @@ function HomeworkReviewDialog({
   onRetrieve: () => void;
   onReturn: (event: FormEvent<HTMLFormElement>) => void;
 }) {
+  const t = useTranslations("HomeworkReviewDialog");
+  const tHomework = useTranslations("TeacherHomeworkPage");
+  const locale = useLocale();
   const attempt = submission.test_attempt;
   const [isAttemptReviewOpen, setIsAttemptReviewOpen] = useState(false);
   const maxScore =
@@ -649,7 +676,7 @@ function HomeworkReviewDialog({
         <div className="flex items-start justify-between gap-4 border-b border-[#E7E7E7] pb-5">
           <div className="min-w-0">
             <p className="text-[12px] font-medium uppercase tracking-wide text-[#5E5E5E]">
-              {isReadOnly ? "Homework review - read only" : "Homework review"}
+              {isReadOnly ? t("reviewTitleReadOnly") : t("reviewTitle")}
             </p>
             <h2 id="homework-review-title" className="mt-1 truncate text-[24px] font-semibold">
               {assignment.title}
@@ -666,14 +693,14 @@ function HomeworkReviewDialog({
                 disabled={busy}
                 className="inline-flex h-9 items-center justify-center rounded-full border border-[#E1E1E1] px-4 text-sm font-medium text-[#121212] transition hover:bg-[#F7F7F7] disabled:cursor-not-allowed"
               >
-                Back
+                {t("back")}
               </button>
             ) : null}
             <button
               type="button"
               onClick={onClose}
               disabled={busy}
-              aria-label="Close review"
+              aria-label={t("closeReview")}
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition hover:bg-[#F1F1F1] disabled:cursor-not-allowed"
             >
               <X size={18} aria-hidden="true" />
@@ -684,22 +711,22 @@ function HomeworkReviewDialog({
         <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
           <div className="space-y-5">
             <section className="rounded-lg border border-[#E8E8E8] p-4">
-              <h3 className="text-sm font-semibold">Assignment</h3>
+              <h3 className="text-sm font-semibold">{t("assignmentHeading")}</h3>
               <div className="mt-3 grid gap-3 text-sm text-[#3E3E3E] sm:grid-cols-2">
                 <p>
-                  <span className="font-medium text-[#121212]">Module:</span>{" "}
-                  {assignment.module_title || "Not selected"}
+                  <span className="font-medium text-[#121212]">{t("moduleLabel")}</span>{" "}
+                  {assignment.module_title || t("notSelected")}
                 </p>
                 <p>
-                  <span className="font-medium text-[#121212]">Lesson:</span>{" "}
-                  {assignment.lesson_title || "Not selected"}
+                  <span className="font-medium text-[#121212]">{t("lessonLabel")}</span>{" "}
+                  {assignment.lesson_title || t("notSelected")}
                 </p>
                 <p>
-                  <span className="font-medium text-[#121212]">Due:</span>{" "}
-                  {deadlineLabel(assignment.due_at)}
+                  <span className="font-medium text-[#121212]">{t("dueLabel")}</span>{" "}
+                  {deadlineLabel(assignment.due_at, locale, t)}
                 </p>
                 <p>
-                  <span className="font-medium text-[#121212]">Max score:</span> {maxScore}
+                  <span className="font-medium text-[#121212]">{t("maxScoreLabel")}</span> {maxScore}
                 </p>
               </div>
               {assignment.description ? (
@@ -709,10 +736,14 @@ function HomeworkReviewDialog({
               ) : null}
               {assignment.test_detail ? (
                 <div className="mt-4 rounded-md bg-[#EEF4FF] px-3 py-2 text-sm text-[#24376F]">
-                  <p className="font-medium">Test attachment: {assignment.test_detail.title}</p>
+                  <p className="font-medium">
+                    {t("testAttachmentLabel", { title: assignment.test_detail.title })}
+                  </p>
                   <p className="mt-1 text-xs">
-                    {assignment.test_detail.questions.length} question(s), passing score{" "}
-                    {assignment.test_detail.passing_score}%
+                    {t("questionsCountPassingScore", {
+                      count: assignment.test_detail.questions.length,
+                      score: assignment.test_detail.passing_score,
+                    })}
                   </p>
                 </div>
               ) : null}
@@ -736,20 +767,24 @@ function HomeworkReviewDialog({
             </section>
 
             <section className="rounded-lg border border-[#E8E8E8] p-4">
-              <h3 className="text-sm font-semibold">Student submission</h3>
+              <h3 className="text-sm font-semibold">{t("studentSubmissionHeading")}</h3>
               <div className="mt-3 flex flex-wrap gap-3 text-xs text-[#5E5E5E]">
-                <span>Submitted: {deadlineLabel(submission.submitted_at)}</span>
+                <span>{t("submittedLabel", { date: deadlineLabel(submission.submitted_at, locale, t) })}</span>
                 {submission.reviewed_at ? (
-                  <span>Returned: {deadlineLabel(submission.reviewed_at)}</span>
+                  <span>
+                    {t("returnedLabel", { date: deadlineLabel(submission.reviewed_at, locale, t) })}
+                  </span>
                 ) : null}
-                <span>Status: {submissionStatusLabel(submission.status)}</span>
+                <span>
+                  {t("statusLabel", { status: submissionStatusLabel(submission.status, tHomework) })}
+                </span>
               </div>
               {submission.content ? (
                 <p className="mt-4 whitespace-pre-wrap rounded-md bg-[#F7F7F7] px-3 py-3 text-sm leading-6 text-[#303030]">
                   {submission.content}
                 </p>
               ) : (
-                <p className="mt-4 text-sm text-[#6A6A6A]">No text answer submitted.</p>
+                <p className="mt-4 text-sm text-[#6A6A6A]">{t("noTextAnswerSubmitted")}</p>
               )}
               {submission.attachments.length > 0 ? (
                 <div className="mt-4 flex flex-wrap gap-2 text-xs">
@@ -786,19 +821,19 @@ function HomeworkReviewDialog({
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate font-medium text-[#121212]">
-                      Best test attempt #{attempt.attempt_number}
+                      {t("bestTestAttempt", { number: attempt.attempt_number })}
                     </span>
                     <span className="mt-0.5 flex flex-wrap items-center gap-2 text-xs">
                       <span>{attempt.score}%</span>
                       <span className={attempt.passed ? "text-[#067647]" : "text-[#B42318]"}>
-                        {attempt.passed ? "Passed" : "Not passed"}
+                        {attempt.passed ? t("passed") : t("notPassed")}
                       </span>
                     </span>
                   </span>
                 </button>
               ) : assignment.test_detail ? (
                 <p className="mt-4 rounded-md bg-[#FFF5F5] px-3 py-2 text-sm text-[#B42318]">
-                  No test attempt was submitted with this homework.
+                  {t("noTestAttemptSubmitted")}
                 </p>
               ) : null}
             </section>
@@ -814,14 +849,14 @@ function HomeworkReviewDialog({
             }}
             className="h-fit rounded-lg border border-[#E8E8E8] p-4"
           >
-            <h3 className="text-sm font-semibold">Return to student</h3>
+            <h3 className="text-sm font-semibold">{t("returnToStudentHeading")}</h3>
             {isReadOnly ? (
               <p className="mt-3 rounded-md bg-[#F7F7F7] px-3 py-2 text-xs leading-5 text-[#5E5E5E]">
-                This returned review is read-only. Retrieve it before editing and sending it back.
+                {t("readOnlyNotice")}
               </p>
             ) : null}
             <label className="mt-4 grid gap-2 text-sm font-medium">
-              Score / {maxScore}
+              {t("scoreOfMax", { max: maxScore })}
               <input
                 type="number"
                 min={HOMEWORK_SCORE_MIN}
@@ -834,7 +869,7 @@ function HomeworkReviewDialog({
               />
             </label>
             <label className="mt-4 grid gap-2 text-sm font-medium">
-              Comment
+              {t("comment")}
               <textarea
                 rows={8}
                 value={feedback}
@@ -855,7 +890,7 @@ function HomeworkReviewDialog({
                 disabled={busy}
                 className="mt-5 h-10 w-full rounded-full bg-[#121212] px-5 text-sm font-medium text-white transition hover:bg-[#303030] disabled:cursor-not-allowed disabled:bg-[#BFBFBF]"
               >
-                {retrieving ? "Retrieving..." : "Retrieve"}
+                {retrieving ? t("retrieving") : t("retrieve")}
               </button>
             ) : (
               <button
@@ -863,7 +898,7 @@ function HomeworkReviewDialog({
                 disabled={reviewDisabled}
                 className="mt-5 h-10 w-full rounded-full bg-[#121212] px-5 text-sm font-medium text-white transition hover:bg-[#303030] disabled:cursor-not-allowed disabled:bg-[#BFBFBF]"
               >
-                {saving ? "Returning..." : "Return reviewed homework"}
+                {saving ? t("returning") : t("returnReviewedHomework")}
               </button>
             )}
           </form>
@@ -883,6 +918,11 @@ function HomeworkReviewDialog({
 }
 
 export default function TeacherHomeworkPage() {
+  const t = useTranslations("TeacherHomeworkPage");
+  const tCommon = useTranslations("Common");
+  const tSidebar = useTranslations("AppSidebar");
+  const tStudentsPanel = useTranslations("TeacherStudentsPanel");
+  const locale = useLocale();
   const [courses, setCourses] = useState<CourseListItem[]>([]);
   const [selectedCourseSlug, setSelectedCourseSlug] = useState("");
   const [assignments, setAssignments] = useState<HomeworkAssignment[]>([]);
@@ -922,7 +962,7 @@ export default function TeacherHomeworkPage() {
     const requestedAssignment = query.get("assignment");
     const requestedSubmission = query.get("submission");
 
-    if (HOMEWORK_QUEUE_TABS.some((tab) => tab.value === requestedQueue)) {
+    if (HOMEWORK_QUEUE_VALUES.some((value) => value === requestedQueue)) {
       setQueueFilter(requestedQueue as HomeworkQueueFilter);
     }
     if (
@@ -947,9 +987,9 @@ export default function TeacherHomeworkPage() {
           requestedCourseExists ? (requestedCourse ?? "") : result.results[0]?.slug || "",
         );
       })
-      .catch(() => setError("Could not load your courses."))
+      .catch(() => setError(t("couldNotLoadCourses")))
       .finally(() => setLoadingCourses(false));
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     if (!pendingReviewTarget || loadingAssignments) return;
@@ -972,7 +1012,7 @@ export default function TeacherHomeworkPage() {
     } else {
       const reviewable = reviewableSubmissions(assignment);
       if (reviewable.length === 0) {
-        setError("No submitted homework to review yet.");
+        setError(t("noSubmittedHomeworkToReview"));
       } else if (reviewable.length === 1) {
         setReviewTarget({ assignmentId: assignment.id, submissionId: reviewable[0].id });
         setReviewSelectionAssignmentId(null);
@@ -983,7 +1023,7 @@ export default function TeacherHomeworkPage() {
       }
     }
     setPendingReviewTarget(null);
-  }, [assignments, loadingAssignments, pendingReviewTarget]);
+  }, [assignments, loadingAssignments, pendingReviewTarget, t]);
 
   useEffect(() => {
     if (!selectedCourseSlug) {
@@ -1000,7 +1040,7 @@ export default function TeacherHomeworkPage() {
         setAssignments(homework);
       })
       .catch(() => {
-        if (!cancelled) setError("Could not load homework for this course.");
+        if (!cancelled) setError(t("couldNotLoadCourseHomework"));
       })
       .finally(() => {
         if (!cancelled) setLoadingAssignments(false);
@@ -1009,7 +1049,7 @@ export default function TeacherHomeworkPage() {
     return () => {
       cancelled = true;
     };
-  }, [selectedCourseSlug]);
+  }, [selectedCourseSlug, t]);
 
   useEffect(() => {
     if (!isModalOpen || !form.courseSlug) {
@@ -1028,13 +1068,13 @@ export default function TeacherHomeworkPage() {
         setModalAssignments(homework);
       })
       .catch(() => {
-        if (!cancelled) setError("Could not load course homework data.");
+        if (!cancelled) setError(t("couldNotLoadCourseHomeworkData"));
       });
 
     return () => {
       cancelled = true;
     };
-  }, [form.courseSlug, isModalOpen]);
+  }, [form.courseSlug, isModalOpen, t]);
 
   useEffect(() => {
     if (!isModalOpen || !form.courseSlug) {
@@ -1052,13 +1092,13 @@ export default function TeacherHomeworkPage() {
         }
       })
       .catch(() => {
-        if (!cancelled) setError("Could not load course students.");
+        if (!cancelled) setError(t("couldNotLoadCourseStudents"));
       });
 
     return () => {
       cancelled = true;
     };
-  }, [form.courseSlug, isModalOpen]);
+  }, [form.courseSlug, isModalOpen, t]);
 
   const statusFilteredAssignments = useMemo(
     () =>
@@ -1083,11 +1123,11 @@ export default function TeacherHomeworkPage() {
           new Date(assignmentDateValue(first)).getTime(),
       )
       .forEach((assignment) => {
-        const month = monthLabel(assignmentDateValue(assignment));
+        const month = monthLabel(assignmentDateValue(assignment), locale);
         result.set(month, [...(result.get(month) ?? []), assignment]);
       });
     return [...result.entries()];
-  }, [visibleAssignments]);
+  }, [visibleAssignments, locale]);
   const recipientGroups = useMemo<RecipientGroupOption[]>(() => {
     const activeEnrollmentIds = new Set(availableRecipients.map((recipient) => recipient.id));
     const groups: RecipientGroupOption[] = [];
@@ -1095,7 +1135,7 @@ export default function TeacherHomeworkPage() {
     if (availableRecipients.length > 0) {
       groups.push({
         value: "all",
-        label: `All enrolled students (${availableRecipients.length})`,
+        label: t("allEnrolledStudents", { count: availableRecipients.length }),
         enrollmentIds: availableRecipients.map((recipient) => recipient.id),
       });
     }
@@ -1105,9 +1145,10 @@ export default function TeacherHomeworkPage() {
         .map((member) => member.enrollment_id)
         .filter((id) => activeEnrollmentIds.has(id));
       if (enrollmentIds.length === 0) return;
+      const cohortName = cohort.name || tStudentsPanel("groupFallback", { number: cohort.id });
       groups.push({
         value: `cohort:${cohort.id}`,
-        label: `${cohort.name || `Group ${cohort.id}`} (${enrollmentIds.length})`,
+        label: `${cohortName} (${enrollmentIds.length})`,
         enrollmentIds,
       });
     });
@@ -1117,13 +1158,15 @@ export default function TeacherHomeworkPage() {
       .forEach((recipient) => {
         groups.push({
           value: `individual:${recipient.id}`,
-          label: `${recipient.student_name || recipient.student_email} (individual)`,
+          label: t("individualSuffix", {
+            name: recipient.student_name || recipient.student_email,
+          }),
           enrollmentIds: [recipient.id],
         });
       });
 
     return groups;
-  }, [availableRecipients, modalCourse]);
+  }, [availableRecipients, modalCourse, t, tStudentsPanel]);
   const selectedModalModule = useMemo(
     () => modalModules.find((module) => String(module.id) === form.moduleId) ?? null,
     [form.moduleId, modalModules],
@@ -1212,7 +1255,7 @@ export default function TeacherHomeworkPage() {
   function openAssignmentReview(assignment: HomeworkAssignment) {
     const submissions = reviewableSubmissions(assignment);
     if (submissions.length === 0) {
-      setError("No submitted homework to review yet.");
+      setError(t("noSubmittedHomeworkToReview"));
       return;
     }
     if (submissions.length > 1) {
@@ -1315,7 +1358,7 @@ export default function TeacherHomeworkPage() {
     const selectedFiles = Array.from(files);
     const tooLarge = selectedFiles.find((file) => file.size > 25 * 1024 * 1024);
     if (tooLarge) {
-      setError(`\"${tooLarge.name}\" exceeds the 25 MB file limit.`);
+      setError(t("fileSizeLimit", { name: tooLarge.name }));
       return;
     }
     setAttachmentFiles((current) => [...current, ...selectedFiles]);
@@ -1350,7 +1393,7 @@ export default function TeacherHomeworkPage() {
       setIsTestModalOpen(false);
     } catch (requestError) {
       const apiError = requestError as Partial<ApiError>;
-      setError(apiError.detail || apiError.message || "Could not create the test.");
+      setError(apiError.detail || apiError.message || t("couldNotCreateTest"));
     } finally {
       setSavingTest(false);
     }
@@ -1368,7 +1411,7 @@ export default function TeacherHomeworkPage() {
         maxScore > HOMEWORK_SCORE_MAX)
     ) {
       setError(
-        `Maximum score must be a whole number from ${HOMEWORK_SCORE_MIN} to ${HOMEWORK_SCORE_MAX}.`,
+        t("maxScoreRangeError", { min: HOMEWORK_SCORE_MIN, max: HOMEWORK_SCORE_MAX }),
       );
       return;
     }
@@ -1402,11 +1445,11 @@ export default function TeacherHomeworkPage() {
       } else {
         setSelectedCourseSlug(form.courseSlug);
       }
-      setSuccess(`Homework sent to ${selectedRecipientIds.length} student(s).`);
+      setSuccess(t("homeworkSentCount", { count: selectedRecipientIds.length }));
       setIsModalOpen(false);
     } catch (requestError) {
       const apiError = requestError as Partial<ApiError>;
-      setError(apiError.detail || apiError.message || "Could not save the homework draft.");
+      setError(apiError.detail || apiError.message || t("couldNotSaveHomeworkDraft"));
     } finally {
       setSaving(false);
     }
@@ -1435,10 +1478,10 @@ export default function TeacherHomeworkPage() {
             : assignment,
         ),
       );
-      setSuccess("Homework retrieved for editing.");
+      setSuccess(t("homeworkRetrievedForEditing"));
     } catch (requestError) {
       const apiError = requestError as Partial<ApiError>;
-      setReviewError(apiError.detail || apiError.message || "Could not retrieve homework.");
+      setReviewError(apiError.detail || apiError.message || t("couldNotRetrieveHomework"));
     } finally {
       setReviewRetrieving(false);
     }
@@ -1448,7 +1491,7 @@ export default function TeacherHomeworkPage() {
     event.preventDefault();
     if (!reviewAssignment || !reviewSubmission || reviewSaving) return;
     if (reviewSubmission.status === "reviewed") {
-      setReviewError("Click Retrieve before editing this returned homework.");
+      setReviewError(t("clickRetrieveBeforeEditing"));
       return;
     }
 
@@ -1458,12 +1501,12 @@ export default function TeacherHomeworkPage() {
         ? Math.min(Math.max(reviewAssignment.max_score, HOMEWORK_SCORE_MIN), HOMEWORK_SCORE_MAX)
         : HOMEWORK_SCORE_MAX;
     if (!Number.isInteger(score) || score < HOMEWORK_SCORE_MIN || score > maxScore) {
-      setReviewError(`Score must be a whole number from ${HOMEWORK_SCORE_MIN} to ${maxScore}.`);
+      setReviewError(t("scoreMustBeWholeNumber", { min: HOMEWORK_SCORE_MIN, max: maxScore }));
       return;
     }
     const feedback = reviewFeedback.trim();
     if (!feedback) {
-      setReviewError("Comment is required.");
+      setReviewError(t("commentRequired"));
       return;
     }
 
@@ -1488,17 +1531,19 @@ export default function TeacherHomeworkPage() {
             : assignment,
         ),
       );
-      setSuccess("Homework returned to the student.");
+      setSuccess(t("homeworkReturnedToStudent"));
       setReviewTarget(null);
       setReviewSelectionAssignmentId(null);
       setIsReviewSelectionOpen(false);
     } catch (requestError) {
       const apiError = requestError as Partial<ApiError>;
-      setReviewError(apiError.detail || apiError.message || "Could not return homework.");
+      setReviewError(apiError.detail || apiError.message || t("couldNotReturnHomework"));
     } finally {
       setReviewSaving(false);
     }
   }
+
+  const queueTabs = homeworkQueueTabs(t);
 
   return (
     <PageShell className="relative isolate overflow-hidden bg-white">
@@ -1508,9 +1553,12 @@ export default function TeacherHomeworkPage() {
       />
       <section className="relative z-10 w-full max-w-[1710px] font-(family-name:--font-base)">
         <div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-4">
-          <h1 className="sr-only">Homework</h1>
-          <nav aria-label="Homework queues" className="flex flex-wrap items-center gap-[50px]">
-            {HOMEWORK_QUEUE_TABS.map((tab) => {
+          <h1 className="sr-only">{tSidebar("homework")}</h1>
+          <nav
+            aria-label={t("homeworkQueuesAriaLabel")}
+            className="flex flex-wrap items-center gap-[50px]"
+          >
+            {queueTabs.map((tab) => {
               const active = queueFilter === tab.value;
               return (
                 <button
@@ -1531,9 +1579,9 @@ export default function TeacherHomeworkPage() {
             type="button"
             onClick={openModal}
             disabled={loadingCourses || courses.length === 0}
-            className="inline-flex h-[52px] w-[240px] shrink-0 items-center justify-center gap-2.5 rounded-[28px] bg-[linear-gradient(90deg,#A7BAFA_0%,#FCC4C3_55%,#FFF4DA_100%)] px-7 py-2.5 font-(family-name:--font-accent) text-[20px] leading-[30px] font-medium text-[#121212] uppercase transition hover:brightness-[0.98] focus:outline-none focus:ring-2 focus:ring-[#9DB1FA] disabled:cursor-not-allowed disabled:grayscale disabled:opacity-60"
+            className="inline-flex h-[52px] w-fit min-w-[240px] shrink-0 items-center justify-center gap-2.5 rounded-[28px] bg-[linear-gradient(90deg,#A7BAFA_0%,#FCC4C3_55%,#FFF4DA_100%)] px-7 py-2.5 font-(family-name:--font-accent) text-[20px] leading-[30px] font-medium text-[#121212] uppercase transition hover:brightness-[0.98] focus:outline-none focus:ring-2 focus:ring-[#9DB1FA] disabled:cursor-not-allowed disabled:grayscale disabled:opacity-60"
           >
-            <span className="whitespace-nowrap">Add homework</span>
+            <span className="whitespace-nowrap">{t("addHomework")}</span>
             <Image
               src="/icons/cross.svg"
               alt=""
@@ -1549,25 +1597,25 @@ export default function TeacherHomeworkPage() {
           <PillSelect
             value={selectedCourseSlug}
             options={courses.map((course) => ({ value: course.slug, label: course.title }))}
-            placeholder="Subject"
+            placeholder={t("subjectPlaceholder")}
             disabled={loadingCourses || courses.length === 0}
             onChange={setSelectedCourseSlug}
           />
           <PillSelect
             value={statusFilter}
             options={[
-              { value: "all", label: "Status" },
-              { value: "draft", label: "Drafts" },
-              { value: "published", label: "Published" },
-              { value: "closed", label: "Closed" },
+              { value: "all", label: t("statusFilterPlaceholder") },
+              { value: "draft", label: t("statusFilterDraft") },
+              { value: "published", label: t("statusFilterPublished") },
+              { value: "closed", label: t("statusFilterClosed") },
             ]}
-            placeholder="Status"
+            placeholder={t("statusFilterPlaceholder")}
             onChange={setStatusFilter}
           />
-          <span className="hidden">Group — soon</span>
-          <span className="hidden">Student — soon</span>
+          <span className="hidden">{t("groupComingSoon")}</span>
+          <span className="hidden">{t("studentComingSoon")}</span>
           <span className="inline-flex h-10 items-center rounded-full border border-[#ECECEC] bg-white px-5 font-(family-name:--font-base) text-[20px] leading-none font-normal text-[#121212] shadow-[0_0_4px_rgba(0,0,0,0.06)]">
-            Total Assignments:
+            {t("totalAssignments")}
           </span>
           <span className="inline-flex h-10 min-w-10 items-center justify-center rounded-full border border-[#ECECEC] bg-white px-3 font-(family-name:--font-base) text-[20px] leading-none font-normal text-[#121212] shadow-[0_0_4px_rgba(0,0,0,0.06)]">
             {visibleAssignments.length}
@@ -1587,14 +1635,14 @@ export default function TeacherHomeworkPage() {
 
         <div className="mt-14">
           {loadingAssignments ? (
-            <p className="text-sm text-[#6A6A6A]">Loading assignments...</p>
+            <p className="text-sm text-[#6A6A6A]">{t("loadingAssignmentsText")}</p>
           ) : assignmentsByMonth.length === 0 ? (
             <div className="max-w-[722px] rounded-xl border border-dashed border-[#D9D4CB] bg-white/70 px-6 py-14 text-center">
               <ClipboardList className="mx-auto text-[#9DAEF3]" size={34} aria-hidden="true" />
-              <h2 className="mt-3 text-base font-semibold text-[#121212]">No homework yet</h2>
-              <p className="mt-1 text-sm text-[#6A6A6A]">
-                Create the first draft for the selected subject.
-              </p>
+              <h2 className="mt-3 text-base font-semibold text-[#121212]">
+                {t("noHomeworkYetHeading")}
+              </h2>
+              <p className="mt-1 text-sm text-[#6A6A6A]">{t("noHomeworkYetDescription")}</p>
             </div>
           ) : (
             <div className="space-y-11">
@@ -1670,13 +1718,13 @@ export default function TeacherHomeworkPage() {
                 className="flex items-center gap-2 text-[18px] font-semibold text-[#121212]"
               >
                 <ClipboardList size={16} aria-hidden="true" />
-                Edit Homework
+                {t("editHomeworkTitle")}
               </h2>
               <button
                 type="button"
                 onClick={closeModal}
                 disabled={saving}
-                aria-label="Close dialog"
+                aria-label={t("closeDialog")}
                 className="rounded-full p-1 text-[#121212] transition hover:bg-[#F1F1F1] disabled:cursor-not-allowed"
               >
                 <X size={18} aria-hidden="true" />
@@ -1686,25 +1734,30 @@ export default function TeacherHomeworkPage() {
             <form onSubmit={handleSubmit} className="mt-7">
               <div className="grid gap-5 sm:grid-cols-2">
                 <HomeworkSelect
-                  label="Subject*"
+                  label={t("subjectLabel")}
                   value={form.courseSlug}
                   options={courses.map((course) => ({ value: course.slug, label: course.title }))}
-                  placeholder="Select a subject"
+                  placeholder={t("selectSubjectPlaceholder")}
                   disabled={saving || courses.length === 0}
                   onChange={(value) => updateField("courseSlug", value)}
                 />
                 <HomeworkSelect
-                  label="Reuse previous homework"
+                  label={t("reusePreviousHomework")}
                   value={form.sourceAssignmentId}
                   options={[
-                    { value: "", label: "Start from scratch" },
+                    { value: "", label: t("startFromScratch") },
                     ...modalAssignments.map((assignment) => ({
                       value: String(assignment.id),
-                      label: `${assignment.title} (${assignment.status})`,
+                      label: t("templateOptionLabel", {
+                        title: assignment.title,
+                        status: assignment.status,
+                      }),
                     })),
                   ]}
                   placeholder={
-                    modalAssignments.length === 0 ? "No previous homework" : "Choose a template"
+                    modalAssignments.length === 0
+                      ? t("noPreviousHomework")
+                      : t("chooseTemplate")
                   }
                   disabled={saving || !form.courseSlug || modalAssignments.length === 0}
                   onChange={(value) => updateField("sourceAssignmentId", value)}
@@ -1712,34 +1765,36 @@ export default function TeacherHomeworkPage() {
               </div>
 
               <label className="mt-6 grid gap-2 text-[14px] font-semibold text-[#121212]">
-                Title*
+                {t("titleLabel")}
                 <input
                   value={form.title}
                   onChange={(event) => updateField("title", event.target.value)}
                   maxLength={255}
                   required
                   disabled={saving}
-                  placeholder="Enter homework title"
+                  placeholder={t("titlePlaceholder")}
                   className="h-14 rounded-md bg-[#ECECEC] px-4 text-[15px] outline-none transition placeholder:text-[#858585] focus:ring-2 focus:ring-[#9DB1FA] disabled:cursor-not-allowed"
                 />
               </label>
 
               <div className="mt-6 grid gap-5 sm:grid-cols-2">
                 <HomeworkSelect
-                  label="Module*"
+                  label={t("moduleFieldLabel")}
                   value={form.moduleId}
                   options={modalModules.map((module) => ({
                     value: String(module.id),
                     label: module.title,
                   }))}
                   placeholder={
-                    modalModules.length === 0 ? "No modules available" : "Select a module"
+                    modalModules.length === 0
+                      ? t("noModulesAvailable")
+                      : t("selectModulePlaceholder")
                   }
                   disabled={saving || !form.courseSlug || modalModules.length === 0}
                   onChange={(value) => updateField("moduleId", value)}
                 />
                 <HomeworkSelect
-                  label="Lesson*"
+                  label={t("lessonFieldLabel")}
                   value={form.lessonId}
                   options={(selectedModalModule?.lessons ?? []).map((lesson) => ({
                     value: String(lesson.id),
@@ -1748,9 +1803,9 @@ export default function TeacherHomeworkPage() {
                   placeholder={
                     form.moduleId
                       ? selectedModalModule?.lessons.length
-                        ? "Select a lesson"
-                        : "No lessons in this module"
-                      : "Select a module first"
+                        ? t("selectLessonPlaceholder")
+                        : t("noLessonsInModule")
+                      : t("selectModuleFirst")
                   }
                   disabled={saving || !form.moduleId || !selectedModalModule?.lessons.length}
                   onChange={(value) => updateField("lessonId", value)}
@@ -1761,10 +1816,10 @@ export default function TeacherHomeworkPage() {
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
                   <div className="flex-1">
                     <HomeworkSelect
-                      label="Test as homework"
+                      label={t("testAsHomework")}
                       value={form.testId}
                       options={[
-                        { value: "", label: "No test" },
+                        { value: "", label: t("noTestOption") },
                         ...(selectedModalModule?.tests ?? []).map((test) => ({
                           value: String(test.id),
                           label: test.title,
@@ -1773,9 +1828,9 @@ export default function TeacherHomeworkPage() {
                       placeholder={
                         form.moduleId
                           ? selectedModalModule?.tests.length
-                            ? "Select an existing test"
-                            : "No tests in this module"
-                          : "Select a module first"
+                            ? t("selectExistingTest")
+                            : t("noTestsInModule")
+                          : t("selectModuleFirst")
                       }
                       disabled={saving || !form.moduleId}
                       onChange={(value) => updateField("testId", value)}
@@ -1788,32 +1843,34 @@ export default function TeacherHomeworkPage() {
                     className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-[#CFCFCF] bg-white px-4 text-[13px] font-medium text-[#121212] transition hover:bg-[#F4F4F4] disabled:cursor-not-allowed disabled:text-[#A3A3A3]"
                   >
                     <Plus size={15} aria-hidden="true" />
-                    Create test
+                    {t("createTest")}
                   </button>
                 </div>
                 {selectedTest ? (
                   <div className="mt-3 rounded-md bg-white px-3 py-2 text-[12px] text-[#3E3E3E]">
                     <p className="font-medium text-[#121212]">{selectedTest.title}</p>
                     <p className="mt-1 text-[#6A6A6A]">
-                      {selectedTest.questions.length} question(s), passing score{" "}
-                      {selectedTest.passing_score}
+                      {t("testPreviewQuestionsCount", {
+                        count: selectedTest.questions.length,
+                        score: selectedTest.passing_score,
+                      })}
                     </p>
                   </div>
                 ) : null}
               </div>
 
               <div className="mt-6">
-                <p className="mb-2 text-[14px] font-semibold text-[#121212]">Group or student*</p>
+                <p className="mb-2 text-[14px] font-semibold text-[#121212]">
+                  {t("groupOrStudent")}
+                </p>
                 {availableRecipients.length === 0 ? (
-                  <p className="mt-2 text-[12px] text-[#A44]">
-                    No active students are enrolled in this course.
-                  </p>
+                  <p className="mt-2 text-[12px] text-[#A44]">{t("noActiveStudents")}</p>
                 ) : (
                   <div>
                     <HomeworkSelect
                       value={form.recipientGroupId}
                       options={recipientGroups}
-                      placeholder="Select a group or individual student"
+                      placeholder={t("selectGroupOrStudentPlaceholder")}
                       disabled={saving || recipientGroups.length === 0}
                       onChange={(value) => updateField("recipientGroupId", value)}
                     />
@@ -1834,7 +1891,8 @@ export default function TeacherHomeworkPage() {
               </div>
 
               <label className="mt-6 grid gap-2 text-[14px] font-semibold text-[#121212]">
-                Homework content{form.testId ? "" : "*"}
+                {t("homeworkContentLabel")}
+                {form.testId ? "" : "*"}
                 <textarea
                   value={form.description}
                   onChange={(event) => updateField("description", event.target.value)}
@@ -1843,26 +1901,26 @@ export default function TeacherHomeworkPage() {
                   rows={10}
                   placeholder={
                     form.testId
-                      ? "Optional instructions for this test homework."
-                      : "Write your homework content here... You can include text, instructions, and explanations."
+                      ? t("homeworkContentPlaceholderTest")
+                      : t("homeworkContentPlaceholderTask")
                   }
                   className="h-[300px] resize-none rounded-md bg-[#ECECEC] px-4 py-4 text-[15px] outline-none transition placeholder:text-[#858585] focus:ring-2 focus:ring-[#9DB1FA] disabled:cursor-not-allowed"
                 />
               </label>
               <p className="mt-2 text-[12px] text-[#6A6A6A]">
                 {form.testId
-                  ? "Students will receive the selected test. Extra instructions are optional."
-                  : "This is the main content students will read."}
+                  ? t("homeworkContentHelperTest")
+                  : t("homeworkContentHelperTask")}
               </p>
 
               <div className="mt-6 grid gap-5 sm:grid-cols-2">
                 <DatePicker
-                  label="Due date"
+                  label={t("dueDateLabel")}
                   value={form.dueAt}
                   onChange={(value) => updateField("dueAt", value)}
                 />
                 <label className="grid gap-2 text-[14px] font-semibold text-[#121212]">
-                  Maximum score (1-5)
+                  {t("maxScoreLabel")}
                   <input
                     type="number"
                     min={HOMEWORK_SCORE_MIN}
@@ -1871,23 +1929,23 @@ export default function TeacherHomeworkPage() {
                     value={form.maxScore}
                     onChange={(event) => updateField("maxScore", event.target.value)}
                     disabled={saving}
-                    placeholder="5"
+                    placeholder={t("maxScorePlaceholder")}
                     className="h-14 rounded-md bg-[#ECECEC] px-4 text-[15px] outline-none transition placeholder:text-[#858585] focus:ring-2 focus:ring-[#9DB1FA] disabled:cursor-not-allowed"
                   />
                 </label>
               </div>
 
               <div className="mt-6">
-                <p className="text-[14px] font-semibold text-[#121212]">Homework Material</p>
+                <p className="text-[14px] font-semibold text-[#121212]">
+                  {t("homeworkMaterialLabel")}
+                </p>
                 <div className="mt-2 flex min-h-[208px] flex-col items-center justify-center rounded-md border border-dashed border-[#C9C9C9] px-4 py-5 text-center text-[#4E4E4E]">
                   <Upload className="mb-3" size={20} aria-hidden="true" />
-                  <p className="text-[15px] font-medium">Upload a file for this homework</p>
-                  <p className="mt-1 text-[12px] text-[#6A6A6A]">
-                    Any file type, up to 25 MB per file
-                  </p>
+                  <p className="text-[15px] font-medium">{t("uploadFileHeading")}</p>
+                  <p className="mt-1 text-[12px] text-[#6A6A6A]">{t("uploadFileHelper")}</p>
                   <label className="mt-3 inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-full border border-[#CFCFCF] bg-white px-4 text-[12px] text-[#121212] transition hover:bg-[#F4F4F4] has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-60">
                     <Upload size={13} aria-hidden="true" />
-                    Choose File
+                    {t("chooseFile")}
                     <input
                       type="file"
                       multiple
@@ -1917,7 +1975,7 @@ export default function TeacherHomeworkPage() {
                             }
                             className="shrink-0 text-[#A44] hover:underline disabled:text-[#AAA]"
                           >
-                            Remove
+                            {t("removeFile")}
                           </button>
                         </div>
                       ))}
@@ -1939,14 +1997,14 @@ export default function TeacherHomeworkPage() {
                   disabled={saving}
                   className="h-10 min-w-[124px] rounded-full border border-[#DADADA] px-5 text-[13px] font-medium text-[#121212] transition hover:bg-[#F6F6F6] disabled:cursor-not-allowed"
                 >
-                  Cancel
+                  {tCommon("cancel")}
                 </button>
                 <button
                   type="submit"
                   disabled={isSaveDisabled}
                   className="h-10 min-w-[152px] rounded-full bg-[#121212] px-5 text-[13px] font-medium text-white transition hover:bg-[#303030] disabled:cursor-not-allowed disabled:bg-[#BFBFBF]"
                 >
-                  {saving ? "Saving..." : "Save homework"}
+                  {saving ? tCommon("saving") : t("saveHomework")}
                 </button>
               </div>
             </form>
@@ -1962,20 +2020,20 @@ export default function TeacherHomeworkPage() {
                 <section
                   role="dialog"
                   aria-modal="true"
-                  aria-label="Create homework test"
+                  aria-label={t("createTestDialogAriaLabel")}
                   className="max-h-[calc(100vh-48px)] w-full max-w-[1120px] overflow-y-auto rounded-[16px] bg-white px-6 py-7 shadow-[0_18px_56px_rgba(18,18,18,0.24)] sm:px-10"
                   onMouseDown={(event) => event.stopPropagation()}
                 >
                   <div className="mb-6 flex items-center justify-between gap-4">
                     <h3 className="flex items-center gap-2 text-[18px] font-semibold text-[#121212]">
                       <ClipboardList size={18} aria-hidden="true" />
-                      Create test
+                      {t("createTest")}
                     </h3>
                     <button
                       type="button"
                       onClick={() => setIsTestModalOpen(false)}
                       disabled={savingTest}
-                      aria-label="Close test dialog"
+                      aria-label={t("closeTestDialog")}
                       className="rounded-full p-1 text-[#121212] transition hover:bg-[#F1F1F1] disabled:cursor-not-allowed"
                     >
                       <X size={18} aria-hidden="true" />
@@ -1983,7 +2041,9 @@ export default function TeacherHomeworkPage() {
                   </div>
                   <TestFormBody
                     mode="add"
-                    initialValues={{ title: form.title ? `${form.title} test` : "" }}
+                    initialValues={{
+                      title: form.title ? t("testTitleSuggestion", { title: form.title }) : "",
+                    }}
                     onSave={handleCreateTest}
                     onCancel={() => setIsTestModalOpen(false)}
                   />

@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 type ItemStatus = "approved" | "rejected" | "needs_revision";
 
 type Props = {
@@ -23,6 +25,7 @@ function StatusBadge({ status }: { status: ItemStatus }) {
 
 /** Bordered card for a single lesson row — number + title + optional edit/delete. */
 export function LessonRow({ lesson, index, onEdit, onDelete, moderationStatus, locked }: Props) {
+  const t = useTranslations("ModuleCard");
   return (
     <div
       className="flex items-center justify-between"
@@ -70,7 +73,7 @@ export function LessonRow({ lesson, index, onEdit, onDelete, moderationStatus, l
               onClick={onEdit}
               className="flex items-center justify-center rounded-full transition hover:bg-gray-100"
               style={{ width: 40, height: 40, padding: 6, flexShrink: 0 }}
-              aria-label="Edit lesson"
+              aria-label={t("editLessonAriaLabel")}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/icons/edit.svg" alt="" width={20} height={20} style={{ width: 20, height: 20 }} />
@@ -82,7 +85,7 @@ export function LessonRow({ lesson, index, onEdit, onDelete, moderationStatus, l
               onClick={onDelete}
               className="flex items-center justify-center rounded-full transition hover:bg-red-50"
               style={{ width: 40, height: 40, padding: 6, flexShrink: 0 }}
-              aria-label="Delete lesson"
+              aria-label={t("deleteLessonAriaLabel")}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/icons/trash.svg" alt="" width={20} height={20} style={{ width: 20, height: 20 }} />

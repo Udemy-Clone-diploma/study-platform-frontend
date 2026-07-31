@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { getCategories, createCourse, uploadCourseIcon } from "@/entities/course";
 import type { Category } from "@/entities/course";
@@ -21,6 +22,7 @@ import { mapApiFieldErrors } from "@/shared/lib/apiErrors";
 const EMPTY_FORM: CourseBasicsFormValues = { title: "", short_description: "", full_description: "", category_id: "", level: "" };
 
 export default function NewCoursePage() {
+  const t = useTranslations("CourseBasicsPage");
   const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([]);
   const [teacherProfileId, setTeacherProfileId] = useState<number | null>(null);
@@ -82,7 +84,7 @@ export default function NewCoursePage() {
       if (apiErr.fields && Object.keys(apiErr.fields).length > 0) {
         setFieldErrors(mapApiFieldErrors(apiErr.fields));
       } else {
-        setGeneralError(apiErr.message ?? "Failed to create course.");
+        setGeneralError(apiErr.message ?? t("errorCreate"));
       }
     } finally {
       setSubmitting(false);
@@ -97,7 +99,7 @@ export default function NewCoursePage() {
       await doIconUpload(course.slug);
       router.push("/teacher-dashboard/courses");
     } catch (err) {
-      setGeneralError((err as Partial<ApiError>).message ?? "Failed to save draft.");
+      setGeneralError((err as Partial<ApiError>).message ?? t("errorSaveDraft"));
     } finally {
       setSaving(false);
     }
@@ -105,7 +107,7 @@ export default function NewCoursePage() {
 
   return (
     <CourseCreationLayout>
-      <CoursePageHeader title={form.title || "Untitled Course"} saving={saving} onSaveDraft={handleSaveDraft} />
+      <CoursePageHeader title={form.title || t("untitledCourse")} saving={saving} onSaveDraft={handleSaveDraft} />
       <CourseCreationStepper currentStep={0} />
       <CourseBasicsCard onSubmit={handleSubmit}>
         <CourseBasicsForm

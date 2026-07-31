@@ -2,6 +2,7 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import {
   CardCvcElement,
   CardExpiryElement,
@@ -19,12 +20,6 @@ const stripePublishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "
 const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : null;
 
 type CardFieldName = "number" | "expiry" | "cvc";
-
-const CARD_FIELD_ERROR_MESSAGE: Record<CardFieldName, string> = {
-  number: "*error",
-  expiry: "*error",
-  cvc: "*error",
-};
 
 const CARD_ELEMENT_STYLE = {
   style: {
@@ -91,7 +86,7 @@ function StripePaymentElementForm({
   intent,
   paymentType,
   summary,
-  submitLabel = "To Pay",
+  submitLabel,
   canPayInInstallments = false,
   onCancel,
   onPaymentTypeChange,
@@ -99,6 +94,12 @@ function StripePaymentElementForm({
   onPaymentError,
   onPaymentSuccessRedirect,
 }: StripePaymentFormProps) {
+  const t = useTranslations("StripePaymentForm");
+  const cardFieldErrorMessage: Record<CardFieldName, string> = {
+    number: t("fieldError"),
+    expiry: t("fieldError"),
+    cvc: t("fieldError"),
+  };
   const stripe = useStripe();
   const elements = useElements();
   const [error, setError] = useState("");
@@ -124,7 +125,7 @@ function StripePaymentElementForm({
     setFieldComplete((current) => ({ ...current, [field]: event.complete }));
     setFieldErrors((current) => ({
       ...current,
-      [field]: event.error ? CARD_FIELD_ERROR_MESSAGE[field] : "",
+      [field]: event.error ? cardFieldErrorMessage[field] : "",
     }));
   }
 
@@ -145,7 +146,7 @@ function StripePaymentElementForm({
       link.remove();
       window.setTimeout(() => window.URL.revokeObjectURL(url), 0);
     } catch {
-      setInvoiceError("Could not download invoice.");
+      setInvoiceError(t("errorDownloadInvoice"));
     } finally {
       setInvoiceLoading(false);
     }
@@ -157,7 +158,7 @@ function StripePaymentElementForm({
 
     const cardNumber = elements.getElement(CardNumberElement);
     if (!cardNumber) {
-      const message = "Card fields are unavailable. Please try again.";
+      const message = t("errorCardFieldsUnavailable");
       setError(message);
       onPaymentError?.(message);
       return;
@@ -170,7 +171,7 @@ function StripePaymentElementForm({
       setFieldErrors((current) => {
         const next = { ...current };
         incompleteFields.forEach((field) => {
-          next[field] = CARD_FIELD_ERROR_MESSAGE[field];
+          next[field] = cardFieldErrorMessage[field];
         });
         return next;
       });
@@ -188,7 +189,7 @@ function StripePaymentElementForm({
     });
 
     if (result.error) {
-      const message = result.error.message || "Payment was not completed.";
+      const message = result.error.message || t("errorPaymentNotCompleted");
       const cardFieldByErrorCode: Partial<Record<string, CardFieldName>> = {
         incomplete_number: "number",
         invalid_number: "number",
@@ -203,7 +204,7 @@ function StripePaymentElementForm({
       if (field) {
         setFieldErrors((current) => ({
           ...current,
-          [field]: CARD_FIELD_ERROR_MESSAGE[field],
+          [field]: cardFieldErrorMessage[field],
         }));
       } else {
         setError(message);
@@ -221,7 +222,7 @@ function StripePaymentElementForm({
   }
 
   function handleWalletClick() {
-    setWalletNotice("Coming soon");
+    setWalletNotice(t("comingSoon"));
   }
 
   return (
@@ -235,7 +236,7 @@ function StripePaymentElementForm({
             className="inline-flex h-[25px] items-center gap-2 font-(family-name:--font-base) text-[20px] leading-5 font-semibold text-[#121212] transition-colors hover:text-[#003AFF] disabled:cursor-not-allowed disabled:opacity-60"
           >
             <ArrowLeft size={20} aria-hidden="true" />
-            Go back
+            {t("goBack")}
           </button>
         ) : null}
       </div>
@@ -246,10 +247,10 @@ function StripePaymentElementForm({
             type="button"
             onClick={handleInvoiceDownload}
             disabled={invoiceLoading}
-            title="Download invoice for this order."
+            title={t("invoiceTitle")}
             className="inline-flex h-10 w-fit items-center gap-2.5 rounded-[20px] bg-[#D6E0FF] px-5 font-(family-name:--font-accent) text-[16px] leading-5 font-medium uppercase text-[#121212] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {invoiceLoading ? "Downloading..." : "Download invoice"}
+            {invoiceLoading ? t("downloading") : t("downloadInvoice")}
             <Image src="/icons/download.svg" alt="" aria-hidden="true" width={20} height={20} />
           </button>
           {invoiceError ? (
@@ -261,7 +262,7 @@ function StripePaymentElementForm({
 
         <div
           role="group"
-          aria-label="Payment type"
+          aria-label={t("paymentTypeAriaLabel")}
           className="inline-flex h-10 w-[340px] gap-2.5 overflow-hidden rounded-[20px] border border-[#003AFF] bg-white font-(family-name:--font-accent) text-[16px] leading-5 font-medium uppercase text-[#121212]"
         >
           <button
@@ -274,7 +275,7 @@ function StripePaymentElementForm({
               paymentType === "full" ? "bg-[#D6E0FF]" : "",
             ].join(" ")}
           >
-            Full payment
+            {t("fullPayment")}
           </button>
           <button
             type="button"
@@ -291,14 +292,16 @@ function StripePaymentElementForm({
               paymentType === "installments" ? "bg-[#D6E0FF]" : "",
             ].join(" ")}
           >
-            Partial payment
+            {t("partialPayment")}
           </button>
         </div>
       </div>
 
       <div className="grid flex-1 grid-cols-1 gap-8 md:grid-cols-[365px_490px] md:gap-[94px]">
         <section className="flex min-w-0 flex-col">
-          <h3 className="mb-4 text-[20px] leading-6 font-normal text-[#121212]">Order summary</h3>
+          <h3 className="mb-4 text-[20px] leading-6 font-normal text-[#121212]">
+            {t("orderSummary")}
+          </h3>
 
           <div className="mb-4 flex max-h-[180px] w-full max-w-[365px] flex-col gap-2 overflow-y-auto pr-1">
             {summary.courses.map((course) => (
@@ -313,16 +316,18 @@ function StripePaymentElementForm({
           </div>
 
           <div className="mb-3 flex max-w-[365px] items-center justify-between border-t border-[#D9D9D9] pt-2 text-[14px] leading-5 text-[#121212]">
-            <span>{paymentType === "installments" ? "Due now" : "Total"}</span>
+            <span>{paymentType === "installments" ? t("dueNow") : t("total")}</span>
             <span>{summary.due}</span>
           </div>
 
           {paymentType === "installments" ? (
-            <p className="mb-4 text-[11px] text-[#6A6A6A]">Full order total: {summary.total}</p>
+            <p className="mb-4 text-[11px] text-[#6A6A6A]">
+              {t("fullOrderTotal", { total: summary.total })}
+            </p>
           ) : null}
 
           <p className="mb-5 max-w-[365px] text-[11px] leading-[14px] text-[#121212]">
-            By submitting your order, you confirm that you have read and agree to the terms of use.
+            {t("termsNotice")}
           </p>
 
           <button
@@ -330,7 +335,7 @@ function StripePaymentElementForm({
             disabled={!stripe || !elements || processing}
             className="inline-flex h-10 w-full max-w-[365px] items-center justify-center rounded-full bg-black px-5 text-[18px] leading-none text-white transition-colors hover:bg-[#252525] disabled:cursor-not-allowed disabled:bg-[#6A6A6A]"
           >
-            {processing ? "Processing..." : submitLabel}
+            {processing ? t("processing") : (submitLabel ?? t("toPay"))}
           </button>
 
           <div className="mt-3 flex max-w-[365px] gap-2">
@@ -341,7 +346,7 @@ function StripePaymentElementForm({
               className="inline-flex h-[40px] w-[188px] flex-none items-center justify-center gap-[10px] rounded-[232px] border border-[#121212] px-[10px] text-[14px] leading-none text-[#121212] opacity-100 transition-colors hover:bg-[#F2F2F2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#003AFF]"
             >
               <Image src="/icons/G.svg" alt="" aria-hidden="true" width={17} height={18} />
-              Pay
+              {t("pay")}
             </button>
             <button
               type="button"
@@ -367,7 +372,9 @@ function StripePaymentElementForm({
         </section>
 
         <section className="min-w-0 justify-self-start md:w-full md:max-w-[490px]">
-          <h3 className="mb-5 text-[20px] leading-6 font-normal text-[#121212]">Payment method</h3>
+          <h3 className="mb-5 text-[20px] leading-6 font-normal text-[#121212]">
+            {t("paymentMethod")}
+          </h3>
 
           <div className="w-full max-w-[490px]">
             <div>
@@ -375,7 +382,7 @@ function StripePaymentElementForm({
                 className="mb-1 block text-[14px] leading-5 text-[#6A6A6A]"
                 htmlFor="card-number"
               >
-                Card number
+                {t("cardNumber")}
               </label>
               <div
                 className={`flex h-10 items-center rounded-md border px-3 transition-colors ${
@@ -402,7 +409,7 @@ function StripePaymentElementForm({
                   className="mb-1 block font-(family-name:--font-base) text-[16px] leading-5 font-semibold text-[#5E5E5E]"
                   htmlFor="card-expiry"
                 >
-                  Expiry
+                  {t("expiry")}
                 </label>
                 <div
                   className={`flex h-10 items-center rounded-md border px-3 transition-colors ${
@@ -457,6 +464,7 @@ function StripePaymentElementForm({
 }
 
 export function StripePaymentForm(props: StripePaymentFormProps) {
+  const t = useTranslations("StripePaymentForm");
   const options = useMemo<StripeElementsOptions>(
     () => ({
       clientSecret: props.intent.client_secret,
@@ -510,7 +518,7 @@ export function StripePaymentForm(props: StripePaymentFormProps) {
   if (!stripePromise) {
     return (
       <div className="rounded-md border border-[#F2B8B5] bg-[#FFF5F5] px-4 py-3 text-center font-mono text-[12px] text-[#B42318]">
-        Stripe publishable key is not configured.
+        {t("stripeNotConfigured")}
       </div>
     );
   }

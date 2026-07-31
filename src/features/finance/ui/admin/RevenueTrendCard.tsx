@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { formatMoney } from "@/entities/payment";
 import type { RevenueTimeseriesRow, RevenueTrendGroupBy } from "@/entities/payment";
 import type { PricingPlan } from "@/entities/course";
+import { formatDate } from "@/shared/lib/time";
 import { ChartCard, ChartMessage } from "./ChartCard";
 
 const X0 = 46;
@@ -11,23 +13,22 @@ const X1 = 628;
 const Y_TOP = 16;
 const Y_BASE = 140;
 const VIEW_H = 168;
-const GROUP_OPTIONS: { value: RevenueTrendGroupBy; label: string }[] = [
-  { value: "day", label: "Day" },
-  { value: "week", label: "Week" },
-  { value: "month", label: "Month" },
-];
+const GROUP_OPTIONS: RevenueTrendGroupBy[] = ["day", "week", "month"];
 
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-function periodLabel(period: string, groupBy: RevenueTrendGroupBy): string {
+function periodLabel(period: string, groupBy: RevenueTrendGroupBy, locale: string): string {
   const parts = period.split("-");
-  if (groupBy === "month" && parts.length >= 2) return MONTHS[Number(parts[1]) - 1] ?? period;
-  if (parts.length >= 3) return `${parts[2]}.${parts[1]}`;
+  if (groupBy === "month" && parts.length >= 2) {
+    const date = new Date(Number(parts[0]), Number(parts[1]) - 1, 1);
+    return new Intl.DateTimeFormat(locale, { month: "short" }).format(date);
+  }
+  if (parts.length >= 3) {
+    return formatDate(period, locale, { day: "2-digit", month: "2-digit" });
+  }
   return period;
 }
 
-function compact(value: number): string {
-  return new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(
+function compact(value: number, locale: string): string {
+  return new Intl.NumberFormat(locale, { notation: "compact", maximumFractionDigits: 1 }).format(
     value,
   );
 }
@@ -49,7 +50,15 @@ export function RevenueTrendCard({
   groupBy,
   onGroupByChange,
 }: Props) {
+  const t = useTranslations("RevenueTrendCard");
+  const locale = useLocale();
   const [hover, setHover] = useState<number | null>(null);
+
+  const GROUP_LABELS: Record<RevenueTrendGroupBy, string> = {
+    day: t("groupDay"),
+    week: t("groupWeek"),
+    month: t("groupMonth"),
+  };
 
   const points = (rows ?? [])
     .filter((row) => row.currency === currency)
@@ -82,42 +91,41 @@ export function RevenueTrendCard({
 
   return (
     <ChartCard
-      title="Revenue trends"
+      title={t("title")}
       action={
         <div
           className="flex rounded-full bg-(--color-brand-lavender-soft)"
           style={{ padding: 2, gap: 2 }}
           role="group"
-          aria-label="Group revenue by"
+          aria-label={t("groupByAriaLabel")}
         >
           {GROUP_OPTIONS.map((option) => (
             <button
-              key={option.value}
+              key={option}
               type="button"
-              onClick={() => onGroupByChange(option.value)}
-              aria-pressed={groupBy === option.value}
+              onClick={() => onGroupByChange(option)}
+              aria-pressed={groupBy === option}
               className="cursor-pointer rounded-full border-none transition"
               style={{
                 padding: "3px 12px",
                 fontFamily: "var(--font-base)",
                 fontSize: "clamp(11px, 0.83vw, 13px)",
-                background: groupBy === option.value ? "white" : "transparent",
-                color:
-                  groupBy === option.value ? "var(--color-blue)" : "var(--color-text-secondary)",
+                background: groupBy === option ? "white" : "transparent",
+                color: groupBy === option ? "var(--color-blue)" : "var(--color-text-secondary)",
               }}
             >
-              {option.label}
+              {GROUP_LABELS[option]}
             </button>
           ))}
         </div>
       }
     >
       {error ? (
-        <ChartMessage tone="error">Revenue trend unavailable: {error}</ChartMessage>
+        <ChartMessage tone="error">{t("errorPrefix", { error })}</ChartMessage>
       ) : loading ? (
-        <ChartMessage>Loading revenue trend…</ChartMessage>
+        <ChartMessage>{t("loading")}</ChartMessage>
       ) : count === 0 ? (
-        <ChartMessage>No revenue in this range.</ChartMessage>
+        <ChartMessage>{t("empty")}</ChartMessage>
       ) : (
         <div
           className="relative"
@@ -129,7 +137,11 @@ export function RevenueTrendCard({
             className="h-full w-full"
             viewBox={`0 0 640 ${VIEW_H}`}
             role="img"
-            aria-label={`Gross revenue by ${groupBy}, ${count} periods, peak ${formatMoney(String(max), currency)}`}
+            aria-label={t("chartAriaLabel", {
+              groupBy,
+              count,
+              peak: formatMoney(String(max), currency, locale),
+            })}
           >
             <defs>
               <linearGradient id="revenueTrendFill" x1="0" x2="0" y1="0" y2="1">
@@ -157,7 +169,7 @@ export function RevenueTrendCard({
                     fill="var(--color-text-secondary)"
                     fontSize="10"
                   >
-                    {compact(value)}
+                    {compact(value, locale)}
                   </text>
                 </g>
               );
@@ -205,7 +217,7 @@ export function RevenueTrendCard({
                   fill="var(--color-text-secondary)"
                   fontSize="10"
                 >
-                  {periodLabel(p.period, groupBy)}
+                  {periodLabel(p.period, groupBy, locale)}
                 </text>
               ) : null,
             )}
@@ -226,10 +238,10 @@ export function RevenueTrendCard({
               }}
             >
               <span className="block text-(--color-text-secondary)">
-                {periodLabel(active.period, groupBy)}
+                {periodLabel(active.period, groupBy, locale)}
               </span>
               <span className="block font-semibold text-(--color-text-primary)">
-                {formatMoney(active.gross_revenue, currency)}
+                {formatMoney(active.gross_revenue, currency, locale)}
               </span>
             </div>
           )}

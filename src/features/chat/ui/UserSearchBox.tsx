@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Loader2, Search } from "lucide-react";
 import { searchUsers, type UserSearchResult } from "@/entities/chat";
 import { Avatar } from "./Avatar";
@@ -13,6 +14,7 @@ type Props = {
 
 /** Searches chat users and lets the parent collect selected results. */
 export function UserSearchBox({ selected, onSelect, excludeIds = [] }: Props) {
+  const t = useTranslations("UserSearchBox");
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<UserSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -54,7 +56,7 @@ export function UserSearchBox({ selected, onSelect, excludeIds = [] }: Props) {
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Search by email"
+          placeholder={t("searchByEmailPlaceholder")}
           className="h-10 w-full rounded-lg border border-[#D8DDEA] bg-white pl-9 pr-3 text-sm outline-none transition focus:border-[#A7BAFA] focus:ring-2 focus:ring-[#D6E0FF]"
         />
       </label>
@@ -62,7 +64,7 @@ export function UserSearchBox({ selected, onSelect, excludeIds = [] }: Props) {
         {trimmedQuery.length >= 3 && loading ? (
           <div className="flex h-20 items-center justify-center text-sm text-[#6B7280]">
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Searching
+            {t("searching")}
           </div>
         ) : visibleResults.length > 0 ? (
           visibleResults.map((user) => (
@@ -87,7 +89,7 @@ export function UserSearchBox({ selected, onSelect, excludeIds = [] }: Props) {
           ))
         ) : (
           <div className="flex h-20 items-center justify-center px-4 text-center text-sm text-[#6B7280]">
-            {trimmedQuery.length >= 3 ? "No users found" : "Type at least 3 characters"}
+            {trimmedQuery.length >= 3 ? t("noUsersFound") : t("typeAtLeast3Chars")}
           </div>
         )}
       </div>

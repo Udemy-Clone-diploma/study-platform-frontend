@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { Star } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { getTeacherCourses, getCourseEnrolledStudents } from "@/entities/course";
 import type { CourseListItem } from "@/entities/course";
 import { getTeacherOrders } from "@/entities/payment";
@@ -26,6 +27,8 @@ function amountsLabel(rows: { amount: string; currency: string }[]): string {
  * dashboard's GrowthCard), a top-courses leaderboard, and a recent-payments feed.
  */
 export default function TeacherStatisticsPage() {
+  const t = useTranslations("TeacherStatisticsPage");
+  const tCommon = useTranslations("Common");
   const [courses, setCourses] = useState<CourseListItem[]>([]);
   const [studentsByCourse, setStudentsByCourse] = useState<Record<string, number>>({});
   const [totalStudents, setTotalStudents] = useState(0);
@@ -67,9 +70,9 @@ export default function TeacherStatisticsPage() {
   }, []);
 
   const courseOptions = useMemo(() => [
-    { value: ALL_COURSES, label: "All courses" },
+    { value: ALL_COURSES, label: tCommon("allCourses") },
     ...courses.map((c) => ({ value: c.slug, label: c.title })),
-  ], [courses]);
+  ], [courses, tCommon]);
 
   const publishedCount = useMemo(() => courses.filter((c) => c.status === "published").length, [courses]);
 
@@ -102,10 +105,10 @@ export default function TeacherStatisticsPage() {
   return (
     <PageShell className="bg-my-courses">
       <div style={{ maxWidth: "1648px", margin: "0 auto" }}>
-        <h1 className="mb-6 text-[28px] leading-none font-normal text-(--color-text-primary)">Statistics</h1>
+        <h1 className="mb-6 text-[28px] leading-none font-normal text-(--color-text-primary)">{t("heading")}</h1>
 
         {loading ? (
-          <p className="text-center text-lg text-(--color-text-secondary)">Loading...</p>
+          <p className="text-center text-lg text-(--color-text-secondary)">{tCommon("loading")}</p>
         ) : (
           <div style={{ position: "relative" }}>
             <Image
@@ -131,16 +134,16 @@ export default function TeacherStatisticsPage() {
               {/* Left: 2x2 stat blocks, with the enrollment-growth chart below them */}
               <div className="flex flex-col" style={{ gap: "clamp(12px, 1.11vw, 20px)" }}>
                 <div className="grid grid-cols-2" style={{ gap: "clamp(12px, 1.11vw, 20px)" }}>
-                  <StatCard title="Total courses" value={courses.length} caption={`${publishedCount} published`} />
+                  <StatCard title={t("totalCourses")} value={courses.length} caption={t("publishedCount", { count: publishedCount })} />
                   <StatCard
-                    title="Total students"
+                    title={t("totalStudents")}
                     value={studentsValue}
                     courseFilter={studentsCourseFilter}
                     courseOptions={courseOptions}
                     onCourseChange={setStudentsCourseFilter}
                   />
                   <StatCard
-                    title="Average rating"
+                    title={t("averageRating")}
                     value={averageRating ?? "—"}
                     caption={averageRating ? "/ 5" : undefined}
                     courseFilter={ratingCourseFilter}
@@ -148,7 +151,7 @@ export default function TeacherStatisticsPage() {
                     onCourseChange={setRatingCourseFilter}
                   />
                   <StatCard
-                    title="Revenue"
+                    title={t("revenue")}
                     value={revenueLabel}
                     courseFilter={revenueCourseFilter}
                     courseOptions={courseOptions}
@@ -161,13 +164,13 @@ export default function TeacherStatisticsPage() {
 
               {/* Right: Top courses / Recent payments, stacked */}
               <div className="flex flex-col" style={{ gap: "clamp(12px, 1.11vw, 20px)" }}>
-                <ListPanel title="Top courses" emptyText="No courses yet.">
+                <ListPanel title={t("topCourses")} emptyText={t("noCoursesYet")}>
                   {topCourses.map((course) => (
                     <CoursePerformanceRow key={course.id} course={course} />
                   ))}
                 </ListPanel>
 
-                <ListPanel title="Recent payments" emptyText="No payments yet.">
+                <ListPanel title={t("recentPayments")} emptyText={t("noPaymentsYet")}>
                   {recentPayments.map((row) => (
                     <PaymentRow key={`${row.order_id}-${row.course_slug}`} row={row} />
                   ))}
@@ -247,6 +250,7 @@ function ListPanel({ title, children, emptyText }: {
 }
 
 function CoursePerformanceRow({ course }: { course: CourseListItem }) {
+  const t = useTranslations("TeacherStatisticsPage");
   return (
     <div
       className="flex items-center rounded-xl bg-white"
@@ -264,7 +268,7 @@ function CoursePerformanceRow({ course }: { course: CourseListItem }) {
           {course.title}
         </p>
         <p className="font-(family-name:--font-base) text-(--color-text-secondary)" style={{ fontSize: "clamp(11px, 0.73vw, 13px)" }}>
-          {course.students_count} student{course.students_count === 1 ? "" : "s"}
+          {t("studentsCount", { count: course.students_count })}
         </p>
       </div>
       <span className="flex shrink-0 items-center gap-1 font-(family-name:--font-base) text-(--color-text-primary)" style={{ fontSize: "clamp(12px, 0.9vw, 14px)" }}>
@@ -276,9 +280,10 @@ function CoursePerformanceRow({ course }: { course: CourseListItem }) {
 }
 
 function PaymentStatusDot({ status }: { status: TeacherOrderStatus }) {
+  const tPayments = useTranslations("TeacherPaymentsPage");
   const color =
     status === "paid" ? "var(--color-blue)" : status === "unpaid" ? "var(--color-yellow-dark)" : "var(--color-rejected)";
-  const label = status === "paid" ? "Paid" : status === "unpaid" ? "Unpaid" : "Overdue";
+  const label = status === "paid" ? tPayments("statusPaid") : status === "unpaid" ? tPayments("statusUnpaid") : tPayments("statusOverdue");
   return (
     <span className="flex shrink-0 items-center gap-1 font-(family-name:--font-base)" style={{ fontSize: "clamp(11px, 0.83vw, 13px)", color }}>
       <span style={{ width: 6, height: 6, borderRadius: "50%", background: color }} />

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { PageShell } from "@/shared/ui/PageShell";
 import { Pagination } from "@/shared/ui/Pagination";
@@ -61,6 +62,9 @@ function saveBlob(blob: Blob, filename: string) {
 }
 
 export function FinanceAdminView() {
+  const t = useTranslations("FinanceAdminView");
+  const tPaymentsTable = useTranslations("PaymentsTable");
+  const locale = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -163,13 +167,13 @@ export function FinanceAdminView() {
         }
         setPayments([]);
         setCount(0);
-        setListError(apiError.message ?? "Failed to load transactions.");
+        setListError(apiError.message ?? t("errorLoadTransactions"));
         setLoadedKey(queryKey);
       });
     return () => {
       cancelled = true;
     };
-  }, [page, ordering, status, method, hasRefund, from, to, search, queryKey, updateParams]);
+  }, [page, ordering, status, method, hasRefund, from, to, search, queryKey, updateParams, t]);
 
   useEffect(() => {
     let cancelled = false;
@@ -190,13 +194,13 @@ export function FinanceAdminView() {
       .catch((err) => {
         if (cancelled) return;
         setSummary(null);
-        setSummaryError((err as ApiError).message ?? "Failed to load totals.");
+        setSummaryError((err as ApiError).message ?? t("errorLoadTotals"));
         setSummaryLoadedKey(filterKey);
       });
     return () => {
       cancelled = true;
     };
-  }, [status, method, hasRefund, from, to, search, filterKey]);
+  }, [status, method, hasRefund, from, to, search, filterKey, t]);
 
   const trendKey = [filterKey, groupBy].join("|");
 
@@ -220,13 +224,13 @@ export function FinanceAdminView() {
       .catch((err) => {
         if (cancelled) return;
         setTrend(null);
-        setTrendError((err as ApiError).message ?? "Failed to load the revenue trend.");
+        setTrendError((err as ApiError).message ?? t("errorLoadRevenueTrend"));
         setTrendLoadedKey(trendKey);
       });
     return () => {
       cancelled = true;
     };
-  }, [groupBy, status, method, hasRefund, from, to, search, trendKey]);
+  }, [groupBy, status, method, hasRefund, from, to, search, trendKey, t]);
 
   useEffect(() => {
     let cancelled = false;
@@ -247,13 +251,13 @@ export function FinanceAdminView() {
       .catch((err) => {
         if (cancelled) return;
         setCategories(null);
-        setCategoriesError((err as ApiError).message ?? "Failed to load the category breakdown.");
+        setCategoriesError((err as ApiError).message ?? t("errorLoadCategoryBreakdown"));
         setCategoriesLoadedKey(filterKey);
       });
     return () => {
       cancelled = true;
     };
-  }, [status, method, hasRefund, from, to, search, filterKey]);
+  }, [status, method, hasRefund, from, to, search, filterKey, t]);
 
   const refresh = useCallback(() => setRefreshKey((key) => key + 1), []);
 
@@ -274,7 +278,10 @@ export function FinanceAdminView() {
       }
     } catch (err) {
       const apiError = err as ApiError;
-      setNoticeError(apiError.message ?? `Failed to download the ${kind}.`);
+      setNoticeError(
+        apiError.message ??
+          (kind === "receipt" ? t("errorDownloadReceipt") : t("errorDownloadInvoice")),
+      );
     }
   }
 
@@ -295,7 +302,7 @@ export function FinanceAdminView() {
       setRefundTarget(null);
       refresh();
     } catch (err) {
-      setRefundError((err as ApiError).message ?? "Something went wrong.");
+      setRefundError((err as ApiError).message ?? t("errorRefundGeneric"));
     } finally {
       setRefundLoading(false);
     }
@@ -309,7 +316,7 @@ export function FinanceAdminView() {
     availableCurrencies.find((value) => value === currencyParam) ?? availableCurrencies[0] ?? null;
 
   const totalPages = Math.max(1, Math.ceil(count / PAGE_SIZE));
-  const emptyMessage = loading ? "Loading transactions…" : "No transactions found.";
+  const emptyMessage = loading ? t("loadingTransactions") : t("noTransactionsFound");
   const summaryLoading = summaryLoadedKey !== filterKey;
 
   return (
@@ -327,7 +334,7 @@ export function FinanceAdminView() {
               margin: 0,
             }}
           >
-            Financial management
+            {t("heading")}
           </h1>
           <CurrencyTabs
             currencies={availableCurrencies}
@@ -442,13 +449,28 @@ export function FinanceAdminView() {
 
       {refundTarget && (
         <ConfirmActionModal
-          title={refundedSoFar(refundTarget) > 0 ? "Refund remaining balance" : "Refund payment"}
-          description={`Send ${formatMoney(String(remainingAmount(refundTarget)), refundTarget.currency)} ${refundTarget.currency} back to ${payerName(refundTarget)} for transaction #${refundTarget.id}?${
+          title={
             refundedSoFar(refundTarget) > 0
-              ? ` ${formatMoney(refundTarget.refunded_amount, refundTarget.currency)} has already been refunded on this payment.`
-              : ""
-          } This is a real Stripe refund: the money leaves the platform account and cannot be reversed from this page.`}
-          confirmLabel="Refund"
+              ? t("refundRemainingBalanceTitle")
+              : t("refundPaymentTitle")
+          }
+          description={[
+            t("refundDescription", {
+              amount: formatMoney(String(remainingAmount(refundTarget)), refundTarget.currency, locale),
+              currency: refundTarget.currency,
+              payer: payerName(refundTarget, tPaymentsTable),
+              id: refundTarget.id,
+            }),
+            refundedSoFar(refundTarget) > 0
+              ? t("refundAlreadyRefunded", {
+                  amount: formatMoney(refundTarget.refunded_amount, refundTarget.currency, locale),
+                })
+              : null,
+            t("refundIrreversibleNotice"),
+          ]
+            .filter(Boolean)
+            .join(" ")}
+          confirmLabel={t("refundConfirmLabel")}
           loading={refundLoading}
           error={refundError}
           onConfirm={handleConfirmRefund}

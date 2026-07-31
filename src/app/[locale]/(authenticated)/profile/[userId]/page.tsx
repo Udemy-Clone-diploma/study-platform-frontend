@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { PublicProfileLoader } from "@/features/profile";
 import { getUserRoleCookie } from "@/shared/api/authCookies";
 
@@ -40,12 +41,13 @@ export default async function PublicUserProfilePage({
 
   if (view === "review" && viewerRole && DETAILED_PROFILE_ROLES.has(viewerRole)) {
     const { AdminProfileLoader } = await import("@/features/profile");
+    const t = await getTranslations("PublicProfile");
     return (
       <AdminProfileLoader
         key={numericUserId}
         userId={numericUserId}
         backHref={detailedProfileReturnPath(from)}
-        backLabel="Back to complaints"
+        backLabel={t("backToComplaints")}
       />
     );
   }

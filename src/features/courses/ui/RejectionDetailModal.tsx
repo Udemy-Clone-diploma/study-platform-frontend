@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { ModalShell } from "@/shared/ui/ModalShell";
 import { getCourseBySlug } from "@/entities/course";
 import type { RejectedCourseRecord, CourseDetail } from "@/entities/course";
@@ -17,30 +18,35 @@ const STATUS_VAR: Record<StatusValue, string> = {
   needs_revision: "var(--color-warning)",
   rejected:       "var(--color-rejected)",
 };
-const STATUS_LABEL: Record<StatusValue | "", string> = {
-  approved:       "Approved",
-  needs_revision: "Requires Revision",
-  rejected:       "Rejected",
+const STATUS_LABEL_KEY: Record<StatusValue | "", string> = {
+  approved:       "statusApproved",
+  needs_revision: "statusNeedsRevision",
+  rejected:       "statusRejected",
   "":             "",
 };
-const FIELD_LABEL: Record<string, string> = {
-  "field-title":             "Title",
-  "field-short-description": "Short Description",
-  "field-full-description":  "Full Description",
-  "field-icon":              "Icon",
-  "field-category":          "Category",
-  "field-level":             "Level",
-  "field-price":             "Price",
+const FIELD_LABEL_KEY: Record<string, string> = {
+  "field-title":             "fieldTitle",
+  "field-short-description": "fieldShortDescription",
+  "field-full-description":  "fieldFullDescription",
+  "field-icon":              "fieldIcon",
+  "field-category":          "fieldCategory",
+  "field-level":             "fieldLevel",
+  "field-price":             "fieldPrice",
 };
 
 const bf = "var(--font-base)";
 const af = "var(--font-accent)";
 
-function fmt(iso: string) {
-  return new Date(iso).toLocaleDateString("en-GB");
+function fmt(iso: string, locale: string) {
+  return new Date(iso).toLocaleDateString(locale);
 }
 
-function getFieldValue(key: string, detail: CourseDetail | null, record: RejectedCourseRecord): string {
+function getFieldValue(
+  key: string,
+  detail: CourseDetail | null,
+  record: RejectedCourseRecord,
+  freeLabel: string,
+): string {
   switch (key) {
     case "field-title":             return detail?.title ?? record.course_title;
     case "field-short-description": return detail?.short_description ?? "—";
@@ -53,7 +59,7 @@ function getFieldValue(key: string, detail: CourseDetail | null, record: Rejecte
     }
     case "field-price": {
       const plan = detail?.delivery_formats?.find(f => f.pricing)?.pricing;
-      return plan ? `€${plan.price}` : "Free";
+      return plan ? `€${plan.price}` : freeLabel;
     }
     default: return "—";
   }
@@ -84,6 +90,7 @@ function Section({ title, action, comment, children }: {
   comment?: string;
   children: React.ReactNode;
 }) {
+  const t = useTranslations("RejectionDetailModal");
   const s = (action ?? "") as StatusValue | "";
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -103,7 +110,7 @@ function Section({ title, action, comment, children }: {
           }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={STATUS_ICON[s]} alt={s} width={12} height={12} style={{ width: 12, height: 12 }} />
-            {STATUS_LABEL[s]}
+            {STATUS_LABEL_KEY[s] ? t(STATUS_LABEL_KEY[s]) : ""}
           </span>
         )}
       </div>
@@ -121,6 +128,8 @@ type Props = {
 
 /** View-only modal showing all moderation review data for a rejected course record. */
 export function RejectionDetailModal({ record, onClose, onMoveToDraft }: Props) {
+  const t = useTranslations("RejectionDetailModal");
+  const locale = useLocale();
   const [detail, setDetail] = useState<CourseDetail | null>(null);
   const [moving, setMoving]  = useState(false);
 
@@ -146,17 +155,20 @@ export function RejectionDetailModal({ record, onClose, onMoveToDraft }: Props) 
             letterSpacing: "0.08em", textTransform: "uppercase",
             color: "var(--color-rejected)",
           }}>
-            Rejected
+            {t("rejected")}
           </span>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
           <span style={{ fontFamily: bf, fontSize: 13, color: "var(--color-text-secondary)" }}>
-            Created: {detail ? fmt(detail.created_at) : "—"}&nbsp;·&nbsp;Rejected: {fmt(record.rejected_at)}
+            {t("createdRejected", {
+              created: detail ? fmt(detail.created_at, locale) : "—",
+              rejected: fmt(record.rejected_at, locale),
+            })}
           </span>
           {detail?.teacher && (
             <span style={{ fontFamily: bf, fontSize: 13, color: "var(--color-text-secondary)" }}>
-              Teacher:&nbsp;
+              {t("teacher")}&nbsp;
               <strong style={{ color: "var(--color-text-primary)", fontWeight: 600 }}>
                 {detail.teacher.name}
               </strong>
@@ -165,7 +177,7 @@ export function RejectionDetailModal({ record, onClose, onMoveToDraft }: Props) 
         </div>
 
         {Object.keys(basicsStatuses).length > 0 && (
-          <Section title="Basics" action={record.basics_action} comment={record.basics_comment}>
+          <Section title={t("basics")} action={record.basics_action} comment={record.basics_comment}>
             <div style={{ display: "flex", flexDirection: "column" }}>
               {Object.entries(basicsStatuses).map(([key, rawVal]) => {
                 const s          = String(rawVal) as StatusValue;
@@ -185,7 +197,7 @@ export function RejectionDetailModal({ record, onClose, onMoveToDraft }: Props) 
                       color: "var(--color-text-secondary)",
                       flexShrink: 0, minWidth: 140,
                     }}>
-                      {FIELD_LABEL[key] ?? key}
+                      {FIELD_LABEL_KEY[key] ? t(FIELD_LABEL_KEY[key]) : key}
                     </span>
 
                     <span style={{
@@ -201,7 +213,7 @@ export function RejectionDetailModal({ record, onClose, onMoveToDraft }: Props) 
                           // eslint-disable-next-line @next/next/no-img-element
                           ? <img src={imgSrc} alt="icon" style={{ width: 36, height: 36, objectFit: "contain", borderRadius: 6 }} />
                           : "—"
-                        : getFieldValue(key, detail, record)
+                        : getFieldValue(key, detail, record, t("free"))
                       }
                     </span>
 
@@ -210,7 +222,7 @@ export function RejectionDetailModal({ record, onClose, onMoveToDraft }: Props) 
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={STATUS_ICON[s]} alt={s} width={14} height={14} style={{ width: 14, height: 14 }} />
                         <span style={{ fontFamily: bf, fontSize: 12, fontWeight: 600, color: STATUS_VAR[s], whiteSpace: "nowrap" }}>
-                          {STATUS_LABEL[s]}
+                          {t(STATUS_LABEL_KEY[s])}
                         </span>
                       </div>
                     )}
@@ -222,12 +234,12 @@ export function RejectionDetailModal({ record, onClose, onMoveToDraft }: Props) 
         )}
 
         {modules.length > 0 && (
-          <Section title="Content" action={record.content_action} comment={record.content_comment}>
+          <Section title={t("content")} action={record.content_action} comment={record.content_comment}>
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               {modules.map((mod, i) => (
                 <div key={mod.id} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                   <span style={{ fontFamily: bf, fontWeight: 600, fontSize: 14, color: "var(--color-text-primary)" }}>
-                    Module {i + 1}: {mod.title}
+                    {t("moduleWithTitle", { order: i + 1, title: mod.title })}
                   </span>
                   <div style={{ display: "flex", flexDirection: "column", gap: 3, paddingLeft: 16 }}>
                     {mod.lessons.map((l) => {
@@ -242,7 +254,7 @@ export function RejectionDetailModal({ record, onClose, onMoveToDraft }: Props) 
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img src={STATUS_ICON[s]} alt={s} width={12} height={12} style={{ width: 12, height: 12 }} />
                               <span style={{ fontFamily: bf, fontSize: 11, fontWeight: 600, color: STATUS_VAR[s], whiteSpace: "nowrap" }}>
-                                {STATUS_LABEL[s]}
+                                {t(STATUS_LABEL_KEY[s])}
                               </span>
                             </div>
                           )}
@@ -259,7 +271,7 @@ export function RejectionDetailModal({ record, onClose, onMoveToDraft }: Props) 
         {record.final_comment && (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <span style={{ fontFamily: bf, fontWeight: 700, fontSize: 14, color: "var(--color-text-primary)" }}>
-              Final comment
+              {t("finalComment")}
             </span>
             <CommentBox text={record.final_comment} />
           </div>
@@ -284,7 +296,7 @@ export function RejectionDetailModal({ record, onClose, onMoveToDraft }: Props) 
                 opacity: moving ? 0.6 : 1, transition: "opacity 0.2s",
               }}
             >
-              {moving ? "Moving…" : "Move to Draft"}
+              {moving ? t("moving") : t("moveToDraft")}
             </button>
           </div>
         )}

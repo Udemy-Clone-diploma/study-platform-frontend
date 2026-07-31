@@ -2,10 +2,12 @@
 
 import Image from "next/image";
 import { X } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import type { ArticleListItem } from "@/entities/blog";
 import type { UserRole } from "@/entities/user";
+import { formatDate } from "@/shared/lib/time";
 import { buildArticleMenu, type ArticleMenuAction } from "./ArticleCardMenu";
-import { ARTICLE_STATUS_COLORS, ARTICLE_STATUS_LABELS } from "../model/articleStatus";
+import { ARTICLE_STATUS_COLORS, getArticleStatusLabels } from "../model/articleStatus";
 
 const STAFF_ROLES: UserRole[] = ["moderator", "administrator"];
 
@@ -20,20 +22,28 @@ type Props = {
 /** Side panel shown next to the article list (dashboard tabs) — same glass-panel treatment as
  * TeacherApplicationDetailPanel: info sections plus the available action buttons. */
 export function ArticleDetailPanel({ article, currentUserId, currentUserRole, onClose, onAction }: Props) {
+  const locale = useLocale();
+  const t = useTranslations("ArticleDetailPanel");
+  const tMenu = useTranslations("ArticleCardMenu");
+  const tStatus = useTranslations("ArticleStatus");
+  const statusLabels = getArticleStatusLabels(tStatus);
   const isOwner = currentUserId != null && currentUserId === article.author.id;
   const isStaff = !!currentUserRole && STAFF_ROLES.includes(currentUserRole);
   const authorIsStaff = STAFF_ROLES.includes(article.author.role as UserRole);
-  const menuItems = buildArticleMenu({
-    status: article.status,
-    isOwner,
-    isStaff,
-    authorIsStaff,
-    isAssignedToMe: article.is_assigned_to_me,
-  });
+  const menuItems = buildArticleMenu(
+    {
+      status: article.status,
+      isOwner,
+      isStaff,
+      authorIsStaff,
+      isAssignedToMe: article.is_assigned_to_me,
+    },
+    tMenu,
+  );
 
   return (
     <aside
-      aria-label="Article details"
+      aria-label={t("articleDetailsAriaLabel")}
       className="flex shrink-0 flex-col overflow-y-auto rounded-[20px] border border-white bg-(--color-white-20) shadow-(--shadow-usp-glass) backdrop-blur-md"
       style={{
         width: "clamp(320px, 26vw, 400px)",
@@ -56,7 +66,7 @@ export function ArticleDetailPanel({ article, currentUserId, currentUserRole, on
         <button
           type="button"
           onClick={onClose}
-          aria-label="Close details"
+          aria-label={t("closeDetailsAriaLabel")}
           className="flex shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-1 text-(--color-text-secondary) transition hover:bg-(--color-brand-lavender-soft)"
         >
           <X size={18} />
@@ -78,7 +88,7 @@ export function ArticleDetailPanel({ article, currentUserId, currentUserRole, on
           background: "white",
         }}
       >
-        {ARTICLE_STATUS_LABELS[article.status]}
+        {statusLabels[article.status]}
       </span>
 
       {article.cover_image && (
@@ -87,15 +97,15 @@ export function ArticleDetailPanel({ article, currentUserId, currentUserRole, on
         </div>
       )}
 
-      <PanelSection title="Details">
-        <DetailRow label="Category">{article.category?.name ?? "—"}</DetailRow>
-        <DetailRow label="Author">{article.author.name}</DetailRow>
-        <DetailRow label="Published">
-          {article.published_at ? new Date(article.published_at).toLocaleDateString() : "—"}
+      <PanelSection title={t("detailsSectionTitle")}>
+        <DetailRow label={t("categoryLabel")}>{article.category?.name ?? "—"}</DetailRow>
+        <DetailRow label={t("authorLabel")}>{article.author.name}</DetailRow>
+        <DetailRow label={t("publishedLabel")}>
+          {article.published_at ? formatDate(article.published_at, locale) : "—"}
         </DetailRow>
       </PanelSection>
 
-      {article.subtitle && <DetailTextRow label="Description">{article.subtitle}</DetailTextRow>}
+      {article.subtitle && <DetailTextRow label={t("descriptionLabel")}>{article.subtitle}</DetailTextRow>}
 
       {menuItems.length > 0 && (
         <div className="flex flex-wrap items-center" style={{ gap: 10 }}>

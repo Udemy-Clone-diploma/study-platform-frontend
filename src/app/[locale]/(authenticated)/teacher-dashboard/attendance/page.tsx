@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { PageShell } from "@/shared/ui/PageShell";
 import { PillSelect } from "@/shared/ui/PillSelect";
 import { DatePicker, todayISO } from "@/shared/ui/DatePicker";
@@ -35,11 +36,6 @@ function getInitials(name: string): string {
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 type Mode = "group" | "individual";
-
-const FORMAT_OPTIONS: { value: Mode; label: string }[] = [
-  { value: "group", label: "Group" },
-  { value: "individual", label: "Individual" },
-];
 
 
 // ── StudentAvatar ─────────────────────────────────────────────────────────────
@@ -107,6 +103,14 @@ function AttendanceCheckbox({ checked, disabled, onChange }: AttendanceCheckboxP
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function TeacherAttendancePage() {
+  const t = useTranslations("TeacherAttendancePage");
+  const tCommon = useTranslations("Common");
+  const tSchedule = useTranslations("ScheduleRail");
+  const tStudentsPanel = useTranslations("TeacherStudentsPanel");
+  const FORMAT_OPTIONS: { value: Mode; label: string }[] = [
+    { value: "group", label: tSchedule("groupSession") },
+    { value: "individual", label: tSchedule("individualSession") },
+  ];
   const now = new Date();
 
   const [courses, setCourses]               = useState<CourseListItem[]>([]);
@@ -312,7 +316,7 @@ export default function TeacherAttendancePage() {
   const courseOptions = courses.map((c) => ({ value: c.slug, label: c.title }));
   const cohortOptions = cohorts.map((c, i) => ({
     value: String(c.id),
-    label: c.name ?? `Group ${i + 1}`,
+    label: c.name ?? tStudentsPanel("groupFallback", { number: i + 1 }),
   }));
   const enrollmentOptions = individuals.map((e) => ({
     value: String(e.enrollment_id),
@@ -336,7 +340,7 @@ export default function TeacherAttendancePage() {
   const columns: DataTableColumn<AttendanceRecord>[] = [
     {
       key: "student",
-      label: "Student",
+      label: t("columnStudent"),
       flex: 3,
       render: (row) => (
         <div className="flex items-center" style={{ gap: "clamp(8px, 0.83vw, 12px)" }}>
@@ -349,7 +353,7 @@ export default function TeacherAttendancePage() {
     },
     {
       key: "attendance",
-      label: "Attendance",
+      label: t("columnAttendance"),
       flex: 1,
       cellAlign: "center",
       headerAlign: "center",
@@ -363,7 +367,7 @@ export default function TeacherAttendancePage() {
     },
     {
       key: "monthly",
-      label: "Attendance (month)",
+      label: t("columnAttendanceMonth"),
       flex: 1.5,
       cellAlign: "center",
       headerAlign: "center",
@@ -373,7 +377,7 @@ export default function TeacherAttendancePage() {
     },
     {
       key: "total",
-      label: "Attendance (total)",
+      label: t("columnAttendanceTotal"),
       flex: 1.5,
       cellAlign: "center",
       headerAlign: "center",
@@ -383,7 +387,7 @@ export default function TeacherAttendancePage() {
     },
     {
       key: "performance",
-      label: "Performance",
+      label: t("columnPerformance"),
       flex: 1.5,
       cellAlign: "center",
       headerAlign: "center",
@@ -394,12 +398,12 @@ export default function TeacherAttendancePage() {
   ];
 
   const emptyMessage = !selectedDate
-    ? "Select a session date."
+    ? t("selectSessionDate")
     : loadingRecords
-      ? "Loading…"
+      ? tCommon("loading")
       : mode === "group"
-        ? "No students in this group."
-        : "No session for this student on the selected date.";
+        ? t("noStudentsInGroup")
+        : t("noSessionForStudent");
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -430,7 +434,7 @@ export default function TeacherAttendancePage() {
                 whiteSpace: "nowrap",
               }}
             >
-              Attendance
+              {t("heading")}
             </h1>
             {courseOptions.length > 0 && (
               <PillSelect
@@ -445,7 +449,7 @@ export default function TeacherAttendancePage() {
               options={modeOptions}
               onChange={handleModeChange}
               disabled={loadingFormats || modeOptions.length === 0}
-              placeholder="Type"
+              placeholder={t("typePlaceholder")}
             />
             {mode === "group" && cohortOptions.length > 0 && (
               <PillSelect
@@ -474,7 +478,7 @@ export default function TeacherAttendancePage() {
               selectableDates={sessionDates}
               max={todayISO()}
               disabled={isCalDisabled}
-              placeholder="Select date"
+              placeholder={t("selectDatePlaceholder")}
             />
           </div>
         </div>

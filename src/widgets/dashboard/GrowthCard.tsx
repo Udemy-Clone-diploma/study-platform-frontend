@@ -1,11 +1,21 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { ChevronDown } from "lucide-react";
 import { getGrowth } from "@/entities/homework";
-import type { GrowthPeriod } from "@/entities/homework";
+import type { GrowthPeriod, GrowthPoint } from "@/entities/homework";
 import { getEnrollmentGrowth } from "@/entities/course";
+import { formatDate } from "@/shared/lib/time";
 import { Card } from "./DashboardOverview";
+
+/** Locale-aware x-axis label for a growth point, replacing the backend's English "Week N" / "Jan" text. */
+function pointLabel(point: GrowthPoint, locale: string): string {
+  if (point.period === "yearly") {
+    return formatDate(point.date, locale, { month: "short" });
+  }
+  return formatDate(point.date, locale, { day: "numeric", month: "short" });
+}
 
 const CHART_X0 = 36;
 const CHART_X1 = 628;
@@ -18,7 +28,7 @@ type Metric = "score" | "enrollments";
 type NormalizedGrowth = {
   summaryLabel: string;
   summaryValue: number;
-  points: { label: string; value: number }[];
+  points: GrowthPoint[];
   courses: { slug: string; title: string }[];
   scaleMin: number;
   scaleMax: number;
@@ -133,6 +143,8 @@ export function GrowthCard({
   /** Selects the first available course once options load. */
   defaultToFirstCourse?: boolean;
 }) {
+  const t = useTranslations("GrowthCard");
+  const locale = useLocale();
   const [period, setPeriod] = useState<GrowthPeriod>(initialPeriod);
   const [courseSlug, setCourseSlug] = useState<string>("");
   const [data, setData] = useState<NormalizedGrowth | null>(null);
@@ -142,7 +154,7 @@ export function GrowthCard({
     const request: Promise<NormalizedGrowth> =
       metric === "enrollments"
         ? getEnrollmentGrowth({ course: courseSlug || undefined, period }).then((res) => ({
-            summaryLabel: "New students",
+            summaryLabel: t("newStudents"),
             summaryValue: res.total,
             points: res.points,
             courses: res.courses,
@@ -150,7 +162,7 @@ export function GrowthCard({
             scaleMax: Math.max(1, ...res.points.map((p) => p.value)),
           }))
         : getGrowth({ course: courseSlug || undefined, period, studentId }).then((res) => ({
-            summaryLabel: "Average score",
+            summaryLabel: t("averageScore"),
             summaryValue: res.average,
             points: res.points,
             courses: res.courses,
@@ -170,7 +182,7 @@ export function GrowthCard({
       .catch(() => {
         if (!cancelled) {
           setData({
-            summaryLabel: metric === "enrollments" ? "New students" : "Average score",
+            summaryLabel: metric === "enrollments" ? t("newStudents") : t("averageScore"),
             summaryValue: 0,
             points: [],
             courses: [],
@@ -182,15 +194,15 @@ export function GrowthCard({
     return () => {
       cancelled = true;
     };
-  }, [period, courseSlug, metric, studentId, defaultToFirstCourse]);
+  }, [period, courseSlug, metric, studentId, defaultToFirstCourse, t]);
 
   const courseOptions: Option[] = [
-    { value: "", label: "All courses" },
+    { value: "", label: t("allCourses") },
     ...(data?.courses.map((c) => ({ value: c.slug, label: c.title })) ?? []),
   ];
   const periodOptions: Option[] = [
-    { value: "weekly", label: "Weekly" },
-    { value: "yearly", label: "Yearly" },
+    { value: "weekly", label: t("weekly") },
+    { value: "yearly", label: t("yearly") },
   ];
 
   const points = data?.points ?? [];
@@ -209,7 +221,7 @@ export function GrowthCard({
       : "";
   const labelFontSize = points.length > 6 ? 8 : 10;
   const summaryLabel =
-    data?.summaryLabel ?? (metric === "enrollments" ? "New students" : "Average score");
+    data?.summaryLabel ?? (metric === "enrollments" ? t("newStudents") : t("averageScore"));
   const yAxisSteps = [4, 3, 2, 1, 0].map((step) => {
     const value = scaleMin + ((scaleMax - scaleMin) * step) / 4;
     return isIntegerScale ? Math.round(value) : Number(value.toFixed(1));
@@ -218,7 +230,7 @@ export function GrowthCard({
   return (
     <Card className={cardClassName}>
       <div className="mb-4 flex items-center justify-between gap-4">
-        <h2 className="text-base font-bold text-black">Growth</h2>
+        <h2 className="text-base font-bold text-black">{t("heading")}</h2>
         <div className="flex items-center gap-3">
           <Dropdown value={courseSlug} options={courseOptions} onChange={setCourseSlug} />
           <Dropdown
@@ -240,7 +252,7 @@ export function GrowthCard({
             viewBox="0 0 640 130"
             preserveAspectRatio="none"
             role="img"
-            aria-label="Growth chart"
+            aria-label={t("chartAriaLabel")}
           >
             <defs>
               <linearGradient id="growthFill" x1="0" x2="0" y1="0" y2="1">
@@ -262,14 +274,14 @@ export function GrowthCard({
             ))}
             {points.map((p, index) => (
               <text
-                key={`${p.label}-${index}`}
+                key={`${p.date}-${index}`}
                 x={xFor(index, points.length)}
                 y="128"
                 textAnchor={index === 0 ? "start" : index === points.length - 1 ? "end" : "middle"}
                 fill="#5e5e5e"
                 fontSize={labelFontSize}
               >
-                {p.label}
+                {pointLabel(p, locale)}
               </text>
             ))}
           </svg>

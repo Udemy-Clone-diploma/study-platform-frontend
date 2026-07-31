@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { ModalShell } from "@/shared/ui/ModalShell";
 import { ModalFooter } from "@/shared/ui/ModalFooter";
 
@@ -31,6 +32,7 @@ export function ReasonPromptModal({
   onConfirm,
   onCancel,
 }: Props) {
+  const t = useTranslations("ReasonPromptModal");
   const [reason, setReason] = useState("");
   const [localError, setLocalError] = useState<string | null>(null);
 
@@ -38,7 +40,7 @@ export function ReasonPromptModal({
     e.preventDefault();
     const trimmed = reason.trim();
     if (trimmed.length < MIN_REASON_LENGTH) {
-      setLocalError(`Enter a reason of at least ${MIN_REASON_LENGTH} characters`);
+      setLocalError(t("reasonValidationError", { min: MIN_REASON_LENGTH }));
       return;
     }
     setLocalError(null);

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { updateMe, uploadAvatar, uploadTeacherSignature, updateTeacherProfile, updateStudentProfile, withAuth } from "@/features/auth";
 import { getMe } from "@/entities/user";
@@ -41,6 +42,7 @@ function socialFromUser(user: UserData): SocialLinks {
 }
 
 function ProfilePage() {
+    const t = useTranslations("Profile");
     const router = useRouter();
     const pathname = usePathname();
     const [user, setUser]               = useState<UserData | null>(null);
@@ -225,7 +227,7 @@ function ProfilePage() {
     if (loading) return (
         <div style={{ minHeight: "50vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <span style={{ fontFamily: "var(--font-base)", color: "var(--color-text-secondary)", fontSize: "1.04vw" }}>
-                Loading...
+                {t("loading")}
             </span>
         </div>
     );
@@ -328,7 +330,7 @@ function ProfilePage() {
                         {isMinimal && (
                             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25vw 2.08vw" }}>
                                 <div style={{ display: "flex", flexDirection: "column", gap: "0.208vw" }}>
-                                    <span style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "1.25vw", color: "var(--color-text-secondary)", letterSpacing: "-0.011em" }}>Email</span>
+                                    <span style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "1.25vw", color: "var(--color-text-secondary)", letterSpacing: "-0.011em" }}>{t("email")}</span>
                                     <span style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "1.25vw", color: "var(--color-text-primary)", letterSpacing: "-0.011em" }}>{user.email}</span>
                                 </div>
                             </div>

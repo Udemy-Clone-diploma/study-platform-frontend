@@ -1,23 +1,43 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { PaymentStatus } from "@/entities/payment";
 
-const STATUS_CONFIG: Record<PaymentStatus, { label: string; accent: string; filled?: boolean }> = {
-  pending: { label: "Pending", accent: "var(--color-warning)" },
-  processing: { label: "Processing", accent: "var(--color-warning)" },
-  succeeded: { label: "Succeeded", accent: "var(--color-success)" },
-  failed: { label: "Failed", accent: "var(--color-rejected)" },
-  canceled: { label: "Canceled", accent: "var(--color-text-secondary)" },
-  refunded: { label: "Refunded", accent: "var(--color-blue)", filled: true },
+type Translator = (key: string, values?: Record<string, string | number>) => string;
+
+const STATUS_STYLE: Record<PaymentStatus, { accent: string; filled?: boolean }> = {
+  pending: { accent: "var(--color-warning)" },
+  processing: { accent: "var(--color-warning)" },
+  succeeded: { accent: "var(--color-success)" },
+  failed: { accent: "var(--color-rejected)" },
+  canceled: { accent: "var(--color-text-secondary)" },
+  refunded: { accent: "var(--color-blue)", filled: true },
 };
 
-export const PAYMENT_STATUS_LABELS = Object.entries(STATUS_CONFIG).map(([value, config]) => ({
-  value: value as PaymentStatus,
-  label: config.label,
-}));
+const STATUS_KEYS: Record<PaymentStatus, string> = {
+  pending: "statusPending",
+  processing: "statusProcessing",
+  succeeded: "statusSucceeded",
+  failed: "statusFailed",
+  canceled: "statusCanceled",
+  refunded: "statusRefunded",
+};
+
+export function paymentStatusLabel(status: PaymentStatus, t: Translator): string {
+  return t(STATUS_KEYS[status] ?? STATUS_KEYS.pending);
+}
+
+export function getPaymentStatusOptions(t: Translator): { value: PaymentStatus; label: string }[] {
+  return (Object.keys(STATUS_STYLE) as PaymentStatus[]).map((value) => ({
+    value,
+    label: paymentStatusLabel(value, t),
+  }));
+}
 
 export function PaymentStatusBadge({ status }: { status: PaymentStatus }) {
-  const config = STATUS_CONFIG[status] ?? STATUS_CONFIG.pending;
+  const t = useTranslations("PaymentStatusBadge");
+  const config = STATUS_STYLE[status] ?? STATUS_STYLE.pending;
+  const label = paymentStatusLabel(status, t);
 
   return (
     <span
@@ -30,7 +50,7 @@ export function PaymentStatusBadge({ status }: { status: PaymentStatus }) {
         background: config.filled ? config.accent : "white",
       }}
     >
-      {config.label}
+      {label}
     </span>
   );
 }

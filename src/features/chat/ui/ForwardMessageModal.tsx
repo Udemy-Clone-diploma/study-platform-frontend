@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Loader2, Search, Users, X } from "lucide-react";
 import type { ChatMessage, ChatRoom } from "@/entities/chat";
 import { messageAuthorLabel, messagePreview } from "../lib/chatFormatters";
@@ -25,26 +26,30 @@ export function ForwardMessageModal({
   onClose,
   onForward,
 }: Props) {
+  const t = useTranslations("ForwardMessageModal");
+  const tShared = useTranslations("Common");
+  const tCommon = useTranslations("ChatCommon");
   const [query, setQuery] = useState("");
   const visibleChats = useMemo(() => {
     const normalized = query.trim().toLowerCase();
     if (!normalized) return chats;
     return chats.filter((chat) => {
-      const title = chatTitle(chat, meId).toLowerCase();
+      const title = chatTitle(chat, meId, tCommon).toLowerCase();
       return (
-        title.includes(normalized) || lastMessagePreview(chat).toLowerCase().includes(normalized)
+        title.includes(normalized) ||
+        lastMessagePreview(chat, tCommon).toLowerCase().includes(normalized)
       );
     });
-  }, [chats, meId, query]);
+  }, [chats, meId, query, tCommon]);
 
   return (
     <div className="fixed inset-0 z-[85] flex items-center justify-center bg-black/30 px-6">
       <div className="w-full max-w-[520px] rounded-lg bg-white p-5 shadow-[0_24px_70px_rgba(0,0,0,0.2)]">
         <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold">Forward to</h2>
+          <h2 className="text-base font-semibold">{t("title")}</h2>
           <button
             type="button"
-            aria-label="Close"
+            aria-label={tShared("close")}
             onClick={onClose}
             className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-[#F3F4F6]"
           >
@@ -54,10 +59,10 @@ export function ForwardMessageModal({
 
         <div className="mt-4 rounded-lg border border-[#EEF0F6] bg-[#F7F9FF] px-3 py-2">
           <p className="truncate text-xs font-semibold text-[#4B5563]">
-            {messageAuthorLabel(message, meId)}
+            {messageAuthorLabel(message, meId, tCommon)}
           </p>
           <p className="mt-1 max-h-10 overflow-hidden text-sm leading-5 text-[#121212]">
-            {messagePreview(message)}
+            {messagePreview(message, tCommon)}
           </p>
         </div>
 
@@ -66,7 +71,7 @@ export function ForwardMessageModal({
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search chats"
+            placeholder={t("searchChatsPlaceholder")}
             className="h-10 w-full rounded-lg border border-[#D8DDEA] bg-white pl-9 pr-3 text-sm outline-none transition focus:border-[#A7BAFA] focus:ring-2 focus:ring-[#D6E0FF]"
           />
         </label>
@@ -74,7 +79,7 @@ export function ForwardMessageModal({
         <div className="mt-4 max-h-[360px] overflow-y-auto rounded-lg border border-[#EEF0F6]">
           {visibleChats.length > 0 ? (
             visibleChats.map((chat) => {
-              const title = chatTitle(chat, meId);
+              const title = chatTitle(chat, meId, tCommon);
               const forwarding = forwardingChatId === chat.id;
               return (
                 <button
@@ -93,7 +98,7 @@ export function ForwardMessageModal({
                       ) : null}
                     </span>
                     <span className="mt-1 block truncate text-xs text-[#6B7280]">
-                      {lastMessagePreview(chat)}
+                      {lastMessagePreview(chat, tCommon)}
                     </span>
                   </span>
                   {forwarding ? <Loader2 className="h-4 w-4 animate-spin text-[#003AFF]" /> : null}
@@ -102,7 +107,7 @@ export function ForwardMessageModal({
             })
           ) : (
             <div className="flex h-24 items-center justify-center px-4 text-center text-sm text-[#6B7280]">
-              No chats found
+              {t("noChatsFound")}
             </div>
           )}
         </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Download, FileText, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { ModalShell } from "./ModalShell";
 import { sanitizeCourseHtml } from "@/shared/lib/sanitizeCourseHtml";
 
@@ -35,6 +36,8 @@ type Body =
 /** Renders each PDF page as an image (via pdfjs-dist) into the same white,
  *  toolbar-free surface used for text/.docx — not the browser's native viewer. */
 function PdfPreview({ url }: { url: string }) {
+  const t = useTranslations("MaterialPreviewModal");
+  const tCommon = useTranslations("Common");
   const [pages, setPages] = useState<string[] | null>(null);
   const [error, setError] = useState(false);
 
@@ -75,16 +78,16 @@ function PdfPreview({ url }: { url: string }) {
   }, [url]);
 
   if (error) {
-    return <p className="py-6 text-center text-sm text-(--color-text-secondary)">Couldn&apos;t load file preview.</p>;
+    return <p className="py-6 text-center text-sm text-(--color-text-secondary)">{t("couldNotLoadPreview")}</p>;
   }
   if (pages === null) {
-    return <p className="py-6 text-center text-sm text-(--color-text-secondary)">Loading…</p>;
+    return <p className="py-6 text-center text-sm text-(--color-text-secondary)">{tCommon("loading")}</p>;
   }
   return (
     <div className="flex flex-col items-center gap-3 rounded-md bg-white p-5">
       {pages.map((src, i) => (
         // eslint-disable-next-line @next/next/no-img-element
-        <img key={i} src={src} alt={`Page ${i + 1}`} className="w-full rounded-sm shadow-sm" />
+        <img key={i} src={src} alt={t("pageNumber", { number: i + 1 })} className="w-full rounded-sm shadow-sm" />
       ))}
     </div>
   );
@@ -99,6 +102,8 @@ function PdfPreview({ url }: { url: string }) {
  * back to a Download-only view.
  */
 export function MaterialPreviewModal({ title, url, onClose }: Props) {
+  const t = useTranslations("MaterialPreviewModal");
+  const tCommon = useTranslations("Common");
   const ext = extOf(title);
   const isImage = IMAGE_EXT.has(ext);
   const isVideo = VIDEO_EXT.has(ext);
@@ -150,8 +155,8 @@ export function MaterialPreviewModal({ title, url, onClose }: Props) {
           {url && (
             <a
               href={downloadHref(url, title)}
-              title="Download"
-              aria-label="Download"
+              title={t("download")}
+              aria-label={t("download")}
               className="flex h-8 w-8 items-center justify-center rounded-full transition hover:bg-gray-100"
             >
               <Download size={18} className="text-(--color-text-primary)" />
@@ -160,7 +165,7 @@ export function MaterialPreviewModal({ title, url, onClose }: Props) {
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={tCommon("close")}
             className="flex h-8 w-8 items-center justify-center rounded-full transition hover:bg-gray-100"
           >
             <X size={20} className="text-(--color-text-primary)" />
@@ -169,7 +174,7 @@ export function MaterialPreviewModal({ title, url, onClose }: Props) {
       </div>
 
       {!url ? (
-        <p className="py-6 text-center text-sm text-(--color-text-secondary)">File unavailable.</p>
+        <p className="py-6 text-center text-sm text-(--color-text-secondary)">{t("fileUnavailable")}</p>
       ) : isImage ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={url} alt={title} className="w-full rounded-md object-contain" />
@@ -186,9 +191,9 @@ export function MaterialPreviewModal({ title, url, onClose }: Props) {
         </div>
       ) : isText || isDocx ? (
         loadError ? (
-          <p className="py-6 text-center text-sm text-(--color-text-secondary)">Couldn&apos;t load file preview.</p>
+          <p className="py-6 text-center text-sm text-(--color-text-secondary)">{t("couldNotLoadPreview")}</p>
         ) : body === null ? (
-          <p className="py-6 text-center text-sm text-(--color-text-secondary)">Loading…</p>
+          <p className="py-6 text-center text-sm text-(--color-text-secondary)">{tCommon("loading")}</p>
         ) : body.kind === "text" ? (
           <pre className="whitespace-pre-wrap break-words rounded-md bg-white p-5 text-base leading-relaxed text-(--color-text-primary)">
             {body.value}
@@ -204,7 +209,7 @@ export function MaterialPreviewModal({ title, url, onClose }: Props) {
           <span className="flex h-16 w-16 items-center justify-center rounded-md bg-gradient-to-br from-[#fff3dc] to-[#ffe7ef]">
             <FileText size={30} className="text-(--color-text-secondary)" />
           </span>
-          <p className="text-center text-xs text-(--color-text-secondary)">Preview isn&apos;t available for this file type.</p>
+          <p className="text-center text-xs text-(--color-text-secondary)">{t("previewNotAvailable")}</p>
         </div>
       )}
     </ModalShell>

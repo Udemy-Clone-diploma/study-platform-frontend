@@ -3,6 +3,7 @@
 import { useEffect, useRef, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 type Props = {
   onClose: () => void;
@@ -52,6 +53,7 @@ export function ModalShell({
   ariaLabel,
   children,
 }: Props) {
+  const t = useTranslations("Common");
   const overlayRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const returnFocusRef = useRef<HTMLElement | null>(
@@ -190,7 +192,7 @@ export function ModalShell({
                 onClick={onClose}
                 className="flex items-center justify-center rounded-full transition hover:bg-gray-100"
                 style={{ width: 32, height: 32, background: "transparent", border: "none", cursor: "pointer", flexShrink: 0 }}
-                aria-label="Close"
+                aria-label={t("close")}
               >
                 <X size={20} style={{ color: "var(--color-text-primary)" }} />
               </button>

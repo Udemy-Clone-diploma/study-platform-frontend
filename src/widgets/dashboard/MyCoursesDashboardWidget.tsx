@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { StudentCourseCard, TeacherCourseCard, type TeacherCourseStatus } from "@/features/courses";
 import {
@@ -41,6 +42,8 @@ type Props = {
 
 /** My Courses widget for the teacher and student dashboard home pages */
 export function MyCoursesDashboardWidget({ role }: Props) {
+  const t = useTranslations("MyCoursesDashboardWidget");
+  const tCommon = useTranslations("Common");
   const router = useRouter();
   const [courses, setCourses] = useState<CourseListItem[]>([]);
   const [total, setTotal] = useState(0);
@@ -124,11 +127,11 @@ export function MyCoursesDashboardWidget({ role }: Props) {
               : undefined
           }
         >
-          <span>My courses</span>
+          <span>{tCommon("myCourses")}</span>
           <span>{loading ? "…" : total}</span>
         </div>
         <GradientButton href={allHref} className="catalog-btn">
-          All
+          {tCommon("all")}
           <Image
             src="/icons/arrow-goto.png"
             alt=""
@@ -178,7 +181,7 @@ export function MyCoursesDashboardWidget({ role }: Props) {
           className="flex items-center justify-center text-(--color-text-secondary)"
           style={{ minHeight: "clamp(100px, 7.29vw, 140px)" }}
         >
-          {role === "teacher" ? "No active courses yet." : "No active courses right now."}
+          {role === "teacher" ? t("noActiveCoursesTeacher") : t("noActiveCoursesStudent")}
         </div>
       ))}
     </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Star } from "lucide-react";
 import { ModalShell } from "@/shared/ui/ModalShell";
 import { GradientButton } from "@/shared/ui/GradientButton";
@@ -15,6 +16,7 @@ type Props = {
 
 /** Shown right before a course is marked complete: lets the student rate/review it, or skip straight to finishing. */
 export function CompleteCourseReviewModal({ slug, onDone }: Props) {
+  const t = useTranslations("CompleteCourseReview");
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [text, setText] = useState("");
@@ -33,7 +35,7 @@ export function CompleteCourseReviewModal({ slug, onDone }: Props) {
         onDone();
         return;
       }
-      setError(apiError.message ?? "Could not submit your review.");
+      setError(apiError.message ?? t("errorGeneric"));
       setSubmitting(false);
     }
   }
@@ -41,13 +43,13 @@ export function CompleteCourseReviewModal({ slug, onDone }: Props) {
   const displayRating = hoverRating || rating;
 
   return (
-    <ModalShell onClose={onDone} title="Rate this course" width="clamp(360px, 40vw, 520px)">
+    <ModalShell onClose={onDone} title={t("title")} width="clamp(360px, 40vw, 520px)">
       <div className="flex flex-col items-center gap-6">
         <p className="text-center font-(family-name:--font-base) text-base text-(--color-text-secondary)">
-          Before you go, how was your experience with this course?
+          {t("prompt")}
         </p>
 
-        <div className="flex items-center gap-1" role="radiogroup" aria-label="Rating">
+        <div className="flex items-center gap-1" role="radiogroup" aria-label={t("ratingAriaLabel")}>
           {Array.from({ length: 5 }).map((_, i) => {
             const value = i + 1;
             return (
@@ -57,7 +59,7 @@ export function CompleteCourseReviewModal({ slug, onDone }: Props) {
                 onClick={() => setRating(value)}
                 onMouseEnter={() => setHoverRating(value)}
                 onMouseLeave={() => setHoverRating(0)}
-                aria-label={`${value} star${value > 1 ? "s" : ""}`}
+                aria-label={t("starAriaLabel", { value })}
                 aria-pressed={rating === value}
                 className="p-1"
                 style={{ background: "transparent", border: "none", cursor: "pointer" }}
@@ -76,7 +78,7 @@ export function CompleteCourseReviewModal({ slug, onDone }: Props) {
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Share your thoughts about the course (optional)"
+          placeholder={t("placeholder")}
           rows={4}
           className="w-full resize-none rounded-2xl border border-(--color-border-light) p-4 font-(family-name:--font-base) text-sm text-(--color-text-primary) outline-none focus:border-(--color-blue)"
         />
@@ -95,10 +97,10 @@ export function CompleteCourseReviewModal({ slug, onDone }: Props) {
             className="font-(family-name:--font-accent) text-sm uppercase text-(--color-text-secondary) transition-colors hover:text-(--color-text-primary)"
             style={{ background: "transparent", border: "none", cursor: "pointer" }}
           >
-            Skip
+            {t("skip")}
           </button>
           <GradientButton type="button" onClick={handleSubmit} disabled={submitting || rating === 0}>
-            {submitting ? "Submitting…" : "Submit & finish"}
+            {submitting ? t("submitting") : t("submitAndFinish")}
           </GradientButton>
         </div>
       </div>

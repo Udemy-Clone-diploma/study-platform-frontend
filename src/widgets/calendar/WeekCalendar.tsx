@@ -2,9 +2,10 @@
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import type { CalendarDeadline, CalendarEvent } from "@/entities/course/model/calendar";
 import type { TeacherUnavailability } from "@/entities/course/model/schedule";
-import { timeToMinutes } from "@/shared/lib/time";
+import { getWeekdayNames, timeToMinutes } from "@/shared/lib/time";
 
 const START_HOUR  = 7;
 const END_HOUR    = 23;
@@ -12,8 +13,6 @@ const TOTAL_HOURS = END_HOUR - START_HOUR; // 16
 const TOTAL_MIN   = TOTAL_HOURS * 60;      // 960
 const HOURS = Array.from({ length: TOTAL_HOURS }, (_, i) => i + START_HOUR);
 const ROW_H = "clamp(36px, 2.76vw, 56px)";
-
-const DAY_ABBR = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
 const CHIP_BAR_GRADIENT =
   "linear-gradient(180deg, #A7BAFA 0%, #FCC4C3 50.96%, #FFF4DA 100%)";
@@ -27,11 +26,15 @@ function chipColors(event: CalendarEvent): { bg: string; textColor: string; barC
   return { bg: "rgba(167,186,250,0.5)", textColor: "var(--color-text-primary)" };
 }
 
-function fmtChipTime(hhmm: string): string {
+function fmtChipTime(hhmm: string, locale: string): string {
   const [h, m] = hhmm.split(":").map(Number);
-  const period = h >= 12 ? "PM" : "AM";
-  const h12 = h % 12 || 12;
-  return `${h12}:${String(m).padStart(2, "0")} ${period}`;
+  const d = new Date(2000, 0, 1, h, m);
+  return new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "2-digit" }).format(d);
+}
+
+function fmtHourLabel(hour: number, locale: string): string {
+  const d = new Date(2000, 0, 1, hour, 0);
+  return new Intl.DateTimeFormat(locale, { hour: "numeric" }).format(d);
 }
 
 
@@ -71,13 +74,13 @@ function colBg(d: Date): string {
   return "#fff";
 }
 
-function monthLabel(monday: Date): string {
+function monthLabel(monday: Date, locale: string): string {
   const sunday = addDays(monday, 6);
   if (monday.getMonth() === sunday.getMonth()) {
-    return new Intl.DateTimeFormat("en", { month: "long", year: "numeric" }).format(monday);
+    return new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" }).format(monday);
   }
-  const m1 = new Intl.DateTimeFormat("en", { month: "short" }).format(monday);
-  const m2 = new Intl.DateTimeFormat("en", { month: "short", year: "numeric" }).format(sunday);
+  const m1 = new Intl.DateTimeFormat(locale, { month: "short" }).format(monday);
+  const m2 = new Intl.DateTimeFormat(locale, { month: "short", year: "numeric" }).format(sunday);
   return `${m1} / ${m2}`;
 }
 
@@ -112,10 +115,16 @@ function unavailForDay(blocks: TeacherUnavailability[], d: Date): TeacherUnavail
 function EventChip({
   event,
   onClick,
+  locale,
+  t,
+  tSchedule,
 }: {
   event: CalendarEvent;
   role: "teacher" | "student";
   onClick?: (ev: CalendarEvent) => void;
+  locale: string;
+  t: (key: string) => string;
+  tSchedule: (key: string) => string;
 }) {
   const layout = eventLayout(event.start_time, event.end_time);
   if (!layout) return null;
@@ -135,7 +144,8 @@ function EventChip({
     ? (event.title ?? "")
     : [event.course_title, event.cohort_name, event.student?.name].filter(Boolean).join(" · ");
 
-  const tooltipText = `${subtitle}${event.lesson_title ? ` — ${event.lesson_title}` : ""}${isCancelled ? " [Cancelled]" : isRescheduled ? ` [→ ${event.rescheduled_to_date ?? ""}]` : ""}`;
+  const cancelledLabel = tSchedule("cancelled");
+  const tooltipText = `${subtitle}${event.lesson_title ? ` — ${event.lesson_title}` : ""}${isCancelled ? ` [${cancelledLabel}]` : isRescheduled ? ` [→ ${event.rescheduled_to_date ?? ""}]` : ""}`;
 
   const TINY: React.CSSProperties = {
     fontFamily: "var(--font-accent)",
@@ -175,7 +185,7 @@ function EventChip({
       <div style={{ width: 3, flexShrink: 0, background: chipBar }} />
       <div style={{ flex: 1, minWidth: 0, padding: "4px 6px", display: "flex", flexDirection: "column", gap: 2, overflow: "hidden" }}>
         <div style={{ fontFamily: "var(--font-accent)", fontWeight: 500, fontSize: "clamp(9px, 0.63vw, 11px)", color: textColor, lineHeight: 1.4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textDecoration: isCancelled ? "line-through" : "none" }}>
-          {fmtChipTime(event.start_time)} – {fmtChipTime(event.end_time)}
+          {fmtChipTime(event.start_time, locale)} – {fmtChipTime(event.end_time, locale)}
         </div>
         {subtitle && (
           <div style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(8px, 0.56vw, 10px)", color: textColor, lineHeight: 1.3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textDecoration: isCancelled ? "line-through" : "none" }}>
@@ -183,12 +193,12 @@ function EventChip({
           </div>
         )}
         {event.type === "personal_shared" && !isCancelled && !isRescheduled && (
-          <div style={{ ...TINY, color: "rgba(59,130,246,0.85)" }}>↗ Shared</div>
+          <div style={{ ...TINY, color: "rgba(59,130,246,0.85)" }}>↗ {t("sharedTag")}</div>
         )}
-        {isCancelled && <div style={{ ...TINY, color: "rgba(120,0,0,0.8)" }}>✕ Cancelled</div>}
+        {isCancelled && <div style={{ ...TINY, color: "rgba(120,0,0,0.8)" }}>✕ {cancelledLabel}</div>}
         {isRescheduled && (
           <div style={{ ...TINY, color: "rgba(180,90,0,0.9)" }}>
-            {event.rescheduled_to_date ? `→ ${event.rescheduled_to_date.slice(5).split("-").reverse().join(".")}` : "→ Rescheduled"}
+            {event.rescheduled_to_date ? `→ ${event.rescheduled_to_date.slice(5).split("-").reverse().join(".")}` : `→ ${t("rescheduledShort")}`}
           </div>
         )}
       </div>
@@ -196,12 +206,12 @@ function EventChip({
   );
 }
 
-function UnavailChip({ block }: { block: TeacherUnavailability }) {
+function UnavailChip({ block, t }: { block: TeacherUnavailability; t: (key: string) => string }) {
   const layout = eventLayout(block.start_time.slice(0, 5), block.end_time.slice(0, 5));
   if (!layout) return null;
   return (
     <div
-      title={block.reason || "Unavailable"}
+      title={block.reason || t("unavailable")}
       style={{
         position: "absolute",
         top: layout.top,
@@ -228,6 +238,9 @@ function DayColumn({
   activeHour,
   onSlotClick,
   onEventClick,
+  locale,
+  t,
+  tSchedule,
 }: {
   date: Date;
   events: CalendarEvent[];
@@ -237,6 +250,9 @@ function DayColumn({
   activeHour?: number;
   onSlotClick?: (date: string, hour: number) => void;
   onEventClick?: (event: CalendarEvent) => void;
+  locale: string;
+  t: (key: string) => string;
+  tSchedule: (key: string) => string;
 }) {
   const [hoveredHour, setHoveredHour] = useState<number | null>(null);
   const baseBg        = colBg(date);
@@ -273,7 +289,7 @@ function DayColumn({
           />
         );
       })}
-      {unavailBlocks.map((b, i) => <UnavailChip key={i} block={b} />)}
+      {unavailBlocks.map((b, i) => <UnavailChip key={i} block={b} t={t} />)}
       {(() => {
         const activeEvs = events.filter(e => !e.event_status);
         const hiddenIds = new Set(
@@ -283,7 +299,17 @@ function DayColumn({
             .map(e => e.id)
         );
         return events.map(ev =>
-          hiddenIds.has(ev.id) ? null : <EventChip key={ev.id} event={ev} role={role} onClick={onEventClick} />
+          hiddenIds.has(ev.id) ? null : (
+            <EventChip
+              key={ev.id}
+              event={ev}
+              role={role}
+              onClick={onEventClick}
+              locale={locale}
+              t={t}
+              tSchedule={tSchedule}
+            />
+          )
         );
       })()}
     </div>
@@ -335,6 +361,10 @@ export function WeekCalendar({
   actions,
 }: WeekCalendarProps) {
   const [sunday, setSunday] = useState<Date>(() => getWeekSunday(new Date()));
+  const locale = useLocale();
+  const t = useTranslations("WeekCalendar");
+  const tSchedule = useTranslations("ScheduleRail");
+  const dayAbbr = getWeekdayNames(locale, "short").map(d => d.toUpperCase());
 
   function navigate(delta: number) {
     const next = addDays(sunday, delta * 7);
@@ -381,7 +411,7 @@ export function WeekCalendar({
             color: "#000000",
             textTransform: "capitalize",
           }}>
-            {monthLabel(sunday)}
+            {monthLabel(sunday, locale)}
           </span>
         </div>
 
@@ -398,7 +428,7 @@ export function WeekCalendar({
             padding: "4px 14px",
             cursor: "pointer",
           }}>
-            Today
+            {tSchedule("today")}
           </button>
           {actions}
         </div>
@@ -454,7 +484,7 @@ export function WeekCalendar({
                 textTransform: "uppercase",
                 letterSpacing: "0.05em",
               }}>
-                {DAY_ABBR[i]}
+                {dayAbbr[i]}
               </span>
               <span style={{
                 fontFamily: "var(--font-accent)",
@@ -492,7 +522,7 @@ export function WeekCalendar({
                 color: "var(--color-text-secondary)",
                 lineHeight: 1,
               }}>
-                {h === 12 ? "12 PM" : h > 12 ? `${h - 12} PM` : `${h} AM`}
+                {fmtHourLabel(h, locale)}
               </span>
             </div>
           ))}
@@ -513,6 +543,9 @@ export function WeekCalendar({
             activeHour={activeHour}
             onSlotClick={onSlotClick}
             onEventClick={onEventClick}
+            locale={locale}
+            t={t}
+            tSchedule={tSchedule}
           />
           );
         })}

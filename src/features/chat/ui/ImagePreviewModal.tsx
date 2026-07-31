@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Download, X, ZoomIn, ZoomOut } from "lucide-react";
 import { downloadFile } from "../lib/downloadFile";
 
@@ -12,6 +13,7 @@ type Props = {
 
 /** Displays a chat image above the entire workspace. */
 export function ImagePreviewModal({ url, alt, onClose }: Props) {
+  const t = useTranslations("ImagePreviewModal");
   const [zoom, setZoom] = useState(1);
   const [downloading, setDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState("");
@@ -26,7 +28,7 @@ export function ImagePreviewModal({ url, alt, onClose }: Props) {
     try {
       await downloadFile(url, alt || "chat-image");
     } catch {
-      setDownloadError("Could not download image.");
+      setDownloadError(t("couldNotDownloadImage"));
     } finally {
       setDownloading(false);
     }
@@ -36,7 +38,7 @@ export function ImagePreviewModal({ url, alt, onClose }: Props) {
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Image preview"
+      aria-label={t("ariaLabel")}
       className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden bg-black/80 p-6"
       onClick={onClose}
       onWheel={(event) => {
@@ -48,7 +50,7 @@ export function ImagePreviewModal({ url, alt, onClose }: Props) {
       <div className="absolute right-6 top-6 flex items-center gap-2">
         <button
           type="button"
-          aria-label="Download image"
+          aria-label={t("downloadAriaLabel")}
           disabled={downloading}
           onClick={(event) => {
             event.stopPropagation();
@@ -60,7 +62,7 @@ export function ImagePreviewModal({ url, alt, onClose }: Props) {
         </button>
         <button
           type="button"
-          aria-label="Close image preview"
+          aria-label={t("closeAriaLabel")}
           onClick={(event) => {
             event.stopPropagation();
             onClose();
@@ -73,7 +75,7 @@ export function ImagePreviewModal({ url, alt, onClose }: Props) {
       <div className="absolute bottom-6 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1 rounded-full bg-white/90 p-1 text-[#121212] shadow-lg">
         <button
           type="button"
-          aria-label="Zoom out"
+          aria-label={t("zoomOutAriaLabel")}
           disabled={zoom <= 1}
           onClick={(event) => {
             event.stopPropagation();
@@ -85,7 +87,7 @@ export function ImagePreviewModal({ url, alt, onClose }: Props) {
         </button>
         <button
           type="button"
-          aria-label="Reset zoom"
+          aria-label={t("resetZoomAriaLabel")}
           onClick={(event) => {
             event.stopPropagation();
             setZoom(1);
@@ -96,7 +98,7 @@ export function ImagePreviewModal({ url, alt, onClose }: Props) {
         </button>
         <button
           type="button"
-          aria-label="Zoom in"
+          aria-label={t("zoomInAriaLabel")}
           disabled={zoom >= 3}
           onClick={(event) => {
             event.stopPropagation();

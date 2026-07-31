@@ -1,12 +1,14 @@
 "use client";
 
 import Image from "next/image";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import type { ArticleListItem } from "@/entities/blog";
 import type { UserRole } from "@/entities/user";
 import { fluid3 } from "@/shared/lib/fluidScale";
+import { formatDate } from "@/shared/lib/time";
 import { ArticleCardMenu, type ArticleMenuAction } from "./ArticleCardMenu";
-import { ARTICLE_STATUS_COLORS, ARTICLE_STATUS_LABELS } from "../model/articleStatus";
+import { ARTICLE_STATUS_COLORS, getArticleStatusLabels } from "../model/articleStatus";
 
 const STAFF_ROLES: UserRole[] = ["moderator", "administrator"];
 
@@ -24,7 +26,10 @@ type Props = {
  * the article page. Fluidly sized between 280x316 (phone) and 460x520 (desktop), regardless
  * of the cover photo. */
 export function ArticleCard({ article, currentUserId, currentUserRole, onAction }: Props) {
-  const dateLabel = new Date(article.published_at ?? article.created_at).toLocaleDateString();
+  const locale = useLocale();
+  const tStatus = useTranslations("ArticleStatus");
+  const statusLabels = getArticleStatusLabels(tStatus);
+  const dateLabel = formatDate(article.published_at ?? article.created_at, locale);
   const canManage = !!onAction;
   const isOwner = currentUserId != null && currentUserId === article.author.id;
   const isStaff = !!currentUserRole && STAFF_ROLES.includes(currentUserRole);
@@ -73,7 +78,7 @@ export function ArticleCard({ article, currentUserId, currentUserRole, onAction 
               background: "white",
             }}
           >
-            {ARTICLE_STATUS_LABELS[article.status]}
+            {statusLabels[article.status]}
           </span>
         ) : (
           <span />

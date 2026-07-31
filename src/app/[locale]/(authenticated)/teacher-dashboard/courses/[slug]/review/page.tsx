@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import type { CSSProperties, ReactNode } from "react";
+import { useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { ArrowLeft } from "lucide-react";
@@ -50,25 +51,27 @@ const durationTextSt: CSSProperties = {
 };
 
 function LessonItem({ lesson }: { lesson: CourseLesson }) {
+  const t = useTranslations("CourseReviewPage");
   return (
     <div className="flex items-center" style={{ gap: 8 }}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/icons/play-blue.svg" alt="" style={{ width: 20, height: 20, flexShrink: 0 }} />
       <span style={itemTextSt}>{lesson.title}</span>
       {lesson.duration_minutes != null && (
-        <span style={durationTextSt}>({lesson.duration_minutes} min)</span>
+        <span style={durationTextSt}>{t("lessonMinutes", { count: lesson.duration_minutes })}</span>
       )}
     </div>
   );
 }
 
 function TestItem({ test }: { test: CourseTest }) {
+  const t = useTranslations("CourseReviewPage");
   return (
     <div className="flex items-center" style={{ gap: 8 }}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/icons/copy-check-yellow.svg" alt="" style={{ width: 20, height: 20, flexShrink: 0 }} />
       <span style={itemTextSt}>{test.title}</span>
-      <span style={durationTextSt}>({test.questions?.length ?? 0} questions)</span>
+      <span style={durationTextSt}>{t("testQuestions", { count: test.questions?.length ?? 0 })}</span>
     </div>
   );
 }
@@ -91,6 +94,7 @@ function TwoColGrid<T>({ items, renderItem }: { items: T[]; renderItem: (item: T
 }
 
 function ModuleReviewCard({ module, index }: { module: CourseModule; index: number }) {
+  const t = useTranslations("CourseReviewPage");
   const lessonCount = module.lessons.length;
   const testCount = module.tests?.length ?? 0;
 
@@ -109,18 +113,18 @@ function ModuleReviewCard({ module, index }: { module: CourseModule; index: numb
       <div style={{ width: "calc(100% - 98px)", display: "flex", flexDirection: "column", gap: 13 }}>
         <div className="flex items-center justify-between">
           <span style={{ fontFamily: "var(--font-base)", fontWeight: 700, fontSize: 20, lineHeight: "25px" }}>
-            Module {index + 1}: {module.title}
+            {t("moduleWithTitle", { order: index + 1, title: module.title })}
           </span>
           <div className="flex items-center" style={{ gap: 8 }}>
             <div className="flex items-center" style={{ gap: 4 }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/icons/book.svg" alt="" style={metaIconSt} />
-              <span style={grayTextSt}>{lessonCount} lessons</span>
+              <span style={grayTextSt}>{t("lessonsCount", { count: lessonCount })}</span>
             </div>
             <div className="flex items-center" style={{ gap: 4 }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/icons/test.svg" alt="" style={metaIconSt} />
-              <span style={grayTextSt}>{testCount} tests</span>
+              <span style={grayTextSt}>{t("testsCount", { count: testCount })}</span>
             </div>
           </div>
         </div>
@@ -131,20 +135,20 @@ function ModuleReviewCard({ module, index }: { module: CourseModule; index: numb
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/icons/exclamationmark-triangle.svg" alt="" style={{ width: 20, height: 20, flexShrink: 0 }} />
               <span style={{ fontFamily: "var(--font-base)", fontWeight: 500, fontSize: 16, lineHeight: "20px", color: "var(--color-pink-dark)" }}>
-                This module is empty
+                {t("moduleEmpty")}
               </span>
             </div>
           ) : (
             <>
               {lessonCount > 0 && (
                 <div style={{ display: "flex", flexDirection: "column", gap: 13 }}>
-                  <span style={sectionLabelSt}>Lessons:</span>
+                  <span style={sectionLabelSt}>{t("lessonsLabel")}</span>
                   <TwoColGrid items={module.lessons} renderItem={(l) => <LessonItem lesson={l} />} />
                 </div>
               )}
               {testCount > 0 && (
                 <div style={{ display: "flex", flexDirection: "column", gap: 13 }}>
-                  <span style={sectionLabelSt}>Tests:</span>
+                  <span style={sectionLabelSt}>{t("testsLabel")}</span>
                   <TwoColGrid items={module.tests as CourseTest[]} renderItem={(t) => <TestItem test={t} />} />
                 </div>
               )}
@@ -157,6 +161,7 @@ function ModuleReviewCard({ module, index }: { module: CourseModule; index: numb
 }
 
 export default function CourseReviewPage() {
+  const t = useTranslations("CourseReviewPage");
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
   const [course, setCourse] = useState<CourseDetail | null>(null);
@@ -205,7 +210,7 @@ export default function CourseReviewPage() {
     }
   }
 
-  const title = displayTitle || course?.title || "Untitled Course";
+  const title = displayTitle || course?.title || t("untitledCourse");
   const hasEmptyModule = moduleList.some((m) => m.lessons.length === 0 && (m.tests?.length ?? 0) === 0);
   const hasLesson = moduleList.length > 0 && moduleList.some((m) => m.lessons.length > 0) && !hasEmptyModule;
 
@@ -215,22 +220,20 @@ export default function CourseReviewPage() {
   const totalMinutes = course?.total_duration_minutes ?? 0;
 
   const categoryName = course?.category?.name ?? "";
-  const levelLabel = course?.level
-    ? course.level.charAt(0).toUpperCase() + course.level.slice(1)
-    : "";
+  const levelLabel = course?.level ? t(`level.${course.level}`) : "";
 
   const STATS = [
-    { icon: "/icons/book-gradient.svg",       count: totalModules, label: "Modules" },
-    { icon: "/icons/play-gradient.svg",       count: totalLessons, label: "Lessons" },
-    { icon: "/icons/copy-check-gradient.svg", count: totalTests,   label: "Tests"   },
-    { icon: "/icons/clock-gradient.svg",      count: totalMinutes, label: "Minutes" },
+    { icon: "/icons/book-gradient.svg",       count: totalModules, label: t("statModules") },
+    { icon: "/icons/play-gradient.svg",       count: totalLessons, label: t("statLessons") },
+    { icon: "/icons/copy-check-gradient.svg", count: totalTests,   label: t("statTests")   },
+    { icon: "/icons/clock-gradient.svg",      count: totalMinutes, label: t("statMinutes") },
   ];
 
-  const pageHeading = isPendingEditMode ? "Review Changes" : "Review & Publish";
+  const pageHeading = isPendingEditMode ? t("reviewChanges") : t("reviewAndPublish");
   const pageSubheading = isPendingEditMode
-    ? "Review your changes before submitting for moderation"
-    : "Review your course content and publish when ready";
-  const submitLabel = "Continue to Review & Publish";
+    ? t("reviewChangesSubheading")
+    : t("reviewPublishSubheading");
+  const submitLabel = t("continueToReviewAndPublish");
 
   // NavigationLoadingOverlay already covers the load; avoid a second, plain-text one here.
   if (loading) {
@@ -305,7 +308,7 @@ export default function CourseReviewPage() {
               letterSpacing: "-0.011em",
             }}
           >
-            Course Overview
+            {t("courseOverview")}
           </span>
           <div className="flex items-start justify-between" style={{ gap: 16 }}>
             <div className="flex items-center" style={{ gap: 12, minWidth: 0 }}>
@@ -416,7 +419,7 @@ export default function CourseReviewPage() {
               letterSpacing: "-0.011em",
             }}
           >
-            Course Structure
+            {t("courseStructure")}
           </span>
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
             {moduleList.map((mod, i) => (
@@ -426,7 +429,7 @@ export default function CourseReviewPage() {
         </div>
 
         {/* Moderator final comment */}
-        <ModeratorNoteBanner title="Moderator comment" comment={course?.moderator_comment ?? undefined} />
+        <ModeratorNoteBanner title={t("moderatorComment")} comment={course?.moderator_comment ?? undefined} />
 
         {/* Bottom: back + submit */}
         <div className="flex items-center justify-between">
@@ -450,7 +453,7 @@ export default function CourseReviewPage() {
             }}
           >
             <ArrowLeft size={20} />
-            Back to Edit
+            {t("backToEdit")}
           </button>
 
           <button
@@ -472,7 +475,7 @@ export default function CourseReviewPage() {
               color: "var(--color-text-primary)",
             }}
           >
-            {submitting ? "Submitting..." : submitLabel}
+            {submitting ? t("submitting") : submitLabel}
           </button>
         </div>
       </div>

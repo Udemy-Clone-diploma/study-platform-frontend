@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Bell, BellOff, Camera, ChevronRight, Loader2, Paperclip, X } from "lucide-react";
 import type { ChatRoom, ChatUser } from "@/entities/chat";
 import type { ApiError } from "@/shared/api/base";
@@ -31,7 +32,10 @@ export function GroupInfoModal({
   onViewProfile,
   canManage,
 }: Props) {
-  const currentTitle = chat.title || "Untitled group";
+  const t = useTranslations("GroupInfoModal");
+  const tCommon = useTranslations("ChatCommon");
+  const tShared = useTranslations("Common");
+  const currentTitle = chat.title || tCommon("untitledGroup");
   const [draftTitle, setDraftTitle] = useState(currentTitle);
   const [saving, setSaving] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -58,7 +62,7 @@ export function GroupInfoModal({
   async function saveTitle() {
     const nextTitle = draftTitle.trim();
     if (!nextTitle) {
-      setError("Group title cannot be empty.");
+      setError(t("groupTitleEmptyError"));
       return;
     }
     if (!titleChanged) return;
@@ -70,7 +74,7 @@ export function GroupInfoModal({
       setDraftTitle(nextTitle);
     } catch (requestError) {
       const apiError = requestError as Partial<ApiError>;
-      setError(apiError.detail || apiError.message || "Could not update group title.");
+      setError(apiError.detail || apiError.message || t("couldNotUpdateGroupTitle"));
     } finally {
       setSaving(false);
     }
@@ -79,7 +83,7 @@ export function GroupInfoModal({
   async function handleImageChange(file: File | undefined) {
     if (!file) return;
     if (!file.type.startsWith("image/")) {
-      setError("Please select an image file.");
+      setError(t("selectImageFileError"));
       return;
     }
 
@@ -89,7 +93,7 @@ export function GroupInfoModal({
       await onUpdateImage(chat.id, file);
     } catch (requestError) {
       const apiError = requestError as Partial<ApiError>;
-      setError(apiError.detail || apiError.message || "Could not update group photo.");
+      setError(apiError.detail || apiError.message || t("couldNotUpdateGroupPhoto"));
     } finally {
       setUploadingImage(false);
       if (imageInputRef.current) imageInputRef.current.value = "";
@@ -110,7 +114,7 @@ export function GroupInfoModal({
         <div className="relative flex flex-col items-center text-center">
           <button
             type="button"
-            aria-label="Close"
+            aria-label={tShared("close")}
             onClick={onClose}
             className="absolute right-0 top-0 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#4B5563] transition hover:bg-[#EEF2FF] hover:text-[#003AFF]"
           >
@@ -121,7 +125,7 @@ export function GroupInfoModal({
               <Avatar src={chat.image_url} label={currentTitle} size="xl" />
               {canManage ? (
                 <label
-                  aria-label={chat.image_url ? "Change group photo" : "Add group photo"}
+                  aria-label={chat.image_url ? t("changeGroupPhoto") : t("addGroupPhoto")}
                   className="absolute -bottom-1 -right-1 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-2 border-white bg-[#003AFF] text-white transition hover:bg-[#0B257C]"
                 >
                   {uploadingImage ? (
@@ -143,14 +147,16 @@ export function GroupInfoModal({
             <div className="min-w-0 max-w-full">
               <h2 className="truncate text-3xl font-bold text-[#121212]">{currentTitle}</h2>
               <p className="mt-1 text-sm text-[#4B5563]">
-                {participants.length} {participants.length === 1 ? "member" : "members"}
+                {t("memberCount", { count: participants.length })}
               </p>
             </div>
           </div>
         </div>
 
         <label className="mt-6 block">
-          <span className="mb-2 block text-sm font-semibold text-[#374151]">Chat name</span>
+          <span className="mb-2 block text-sm font-semibold text-[#374151]">
+            {t("chatNameLabel")}
+          </span>
           <span className="flex gap-3">
             <input
               value={draftTitle}
@@ -169,7 +175,7 @@ export function GroupInfoModal({
               onClick={() => void saveTitle()}
               className="inline-flex h-11 min-w-[92px] items-center justify-center rounded-lg bg-black px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-[#A3A3A3]"
             >
-              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save"}
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : tShared("save")}
             </button>
           </span>
         </label>
@@ -188,10 +194,10 @@ export function GroupInfoModal({
         >
           <span className="flex min-w-0 items-center gap-3">
             <NotificationIcon className="h-5 w-5 shrink-0 text-[#003AFF]" />
-            <span className="font-medium text-[#121212]">Notifications</span>
+            <span className="font-medium text-[#121212]">{t("notifications")}</span>
           </span>
           <span className="rounded-full bg-[#EEF2FF] px-3 py-1 text-xs font-semibold text-[#0B257C]">
-            {muted ? "Off" : "On"}
+            {muted ? t("off") : t("on")}
           </span>
         </button>
 
@@ -202,16 +208,16 @@ export function GroupInfoModal({
         >
           <Paperclip className="h-5 w-5 shrink-0 text-[#121212]" />
           <span className="min-w-0 flex-1">
-            <span className="block font-medium text-[#121212]">Attachments</span>
+            <span className="block font-medium text-[#121212]">{t("attachmentsLabel")}</span>
             <span className="mt-1 block text-xs text-[#6B7280]">
-              Files, videos, links and images
+              {t("attachmentsDescription")}
             </span>
           </span>
           <ChevronRight className="h-5 w-5 shrink-0 text-[#121212]" />
         </button>
 
         <div className="mt-7">
-          <h3 className="text-lg font-semibold text-[#374151]">Members</h3>
+          <h3 className="text-lg font-semibold text-[#374151]">{t("membersHeading")}</h3>
           <div className="mt-3 max-h-[320px] overflow-y-auto rounded-lg border border-[#EEF0F6]">
             {participants.length > 0 ? (
               participants.map((participant) => {
@@ -219,10 +225,10 @@ export function GroupInfoModal({
                 const name = userDisplayName(user);
                 const roleLabel =
                   participant.role === "owner"
-                    ? "Owner"
+                    ? t("roleOwner")
                     : participant.role === "admin"
-                      ? "Admin"
-                      : "Member";
+                      ? t("roleAdmin")
+                      : t("roleMember");
                 return (
                   <button
                     key={participant.id}
@@ -247,7 +253,7 @@ export function GroupInfoModal({
               })
             ) : (
               <div className="flex h-20 items-center justify-center text-sm text-[#6B7280]">
-                No members
+                {t("noMembers")}
               </div>
             )}
           </div>

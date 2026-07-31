@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import Image from "next/image";
 import { Upload } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { RichTextEditor } from "@/shared/ui/RichTextEditor";
 import { WhiteButton } from "@/shared/ui/WhiteButton";
 import type { ArticleFormValues, BlogCategory } from "@/entities/blog";
@@ -43,6 +44,7 @@ type Props = {
 /** Title / short info / category / cover upload / rich-text summary fields, shared by the
  * edit modal (ArticleFormModal) and the full-page article creation flow. */
 export function ArticleFormFields({ values, onChange, categories, existingCoverImageUrl }: Props) {
+  const t = useTranslations("ArticleFormFields");
   const [coverPreview, setCoverPreview] = useState<string | null>(existingCoverImageUrl ?? null);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
@@ -55,40 +57,40 @@ export function ArticleFormFields({ values, onChange, categories, existingCoverI
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "clamp(16px, 1.39vw, 20px)" }}>
       <div>
-        <label htmlFor="article-title" style={articleFormLabelSt}>Title*</label>
+        <label htmlFor="article-title" style={articleFormLabelSt}>{t("titleLabel")}</label>
         <input
           id="article-title"
           type="text"
           value={values.title}
           onChange={(e) => onChange({ ...values, title: e.target.value })}
-          placeholder="Text"
+          placeholder={t("textPlaceholder")}
           required
           style={articleFormInputSt}
         />
       </div>
 
       <div>
-        <label htmlFor="article-subtitle" style={articleFormLabelSt}>Short information*</label>
+        <label htmlFor="article-subtitle" style={articleFormLabelSt}>{t("shortInfoLabel")}</label>
         <input
           id="article-subtitle"
           type="text"
           value={values.subtitle}
           onChange={(e) => onChange({ ...values, subtitle: e.target.value })}
-          placeholder="Text"
+          placeholder={t("textPlaceholder")}
           required
           style={articleFormInputSt}
         />
       </div>
 
       <div>
-        <label htmlFor="article-category" style={articleFormLabelSt}>Category</label>
+        <label htmlFor="article-category" style={articleFormLabelSt}>{t("categoryLabel")}</label>
         <select
           id="article-category"
           value={values.category ?? ""}
           onChange={(e) => onChange({ ...values, category: e.target.value ? Number(e.target.value) : null })}
           style={{ ...articleFormInputSt, appearance: "auto" as const }}
         >
-          <option value="">No category</option>
+          <option value="">{t("noCategoryOption")}</option>
           {categories.map((cat) => (
             <option key={cat.id} value={cat.id}>{cat.name}</option>
           ))}
@@ -96,7 +98,7 @@ export function ArticleFormFields({ values, onChange, categories, existingCoverI
       </div>
 
       <div>
-        <label style={articleFormLabelSt}>Article cover</label>
+        <label style={articleFormLabelSt}>{t("coverLabel")}</label>
         <div
           style={{
             border: "2px dashed var(--color-draft)",
@@ -120,10 +122,10 @@ export function ArticleFormFields({ values, onChange, categories, existingCoverI
               <>
                 <Upload size={24} style={{ color: "var(--color-text-secondary)" }} />
                 <p style={{ fontFamily: "var(--font-base)", fontSize: 13, color: "var(--color-text-secondary)", margin: 0 }}>
-                  Upload an image for this article
+                  {t("uploadImageHint")}
                 </p>
                 <p style={{ fontFamily: "var(--font-base)", fontSize: 12, color: "var(--color-text-secondary)", margin: 0 }}>
-                  JPG, PNG, WEBP, SVG or JFIF
+                  {t("uploadFormatsHint")}
                 </p>
               </>
             )}
@@ -132,7 +134,7 @@ export function ArticleFormFields({ values, onChange, categories, existingCoverI
               onClick={() => coverInputRef.current?.click()}
               style={{ minWidth: 200, height: 44 }}
             >
-              Choose File
+              {t("chooseFileLabel")}
             </WhiteButton>
           </div>
           <input ref={coverInputRef} type="file" accept="image/*,.jfif" style={{ display: "none" }} onChange={handleCoverChange} />
@@ -140,11 +142,11 @@ export function ArticleFormFields({ values, onChange, categories, existingCoverI
       </div>
 
       <div>
-        <label style={articleFormLabelSt}>Article Summary</label>
+        <label style={articleFormLabelSt}>{t("summaryLabel")}</label>
         <RichTextEditor
           value={values.body_html}
           onChange={(html) => onChange({ ...values, body_html: html })}
-          placeholder="Enter your text here"
+          placeholder={t("summaryPlaceholder")}
           minHeight={200}
         />
       </div>

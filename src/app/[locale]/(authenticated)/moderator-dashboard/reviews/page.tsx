@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { Check, Star, X } from "lucide-react";
@@ -8,6 +9,7 @@ import { useAutoRefresh } from "@/shared/lib/useAutoRefresh";
 import { PageShell } from "@/shared/ui/PageShell";
 import { AccentButton } from "@/shared/ui/AccentButton";
 import { CourseConfirmModal } from "@/features/courses/ui/CourseConfirmModal";
+import { formatDate } from "@/shared/lib/time";
 import {
   getUnassignedReportedReviews,
   getMyReportedReviews,
@@ -18,21 +20,24 @@ import {
 import type { ModeratorReview } from "@/entities/course";
 import type { ApiError } from "@/shared/api/base";
 
-const TABS = [
-  { key: "unassigned", label: "Unassigned" },
-  { key: "all", label: "All Reviews" },
-  { key: "pending", label: "Under Review" },
-  { key: "approved", label: "Approved" },
-  { key: "rejected", label: "Rejected" },
-] as const;
+const TAB_KEYS = ["unassigned", "all", "pending", "approved", "rejected"] as const;
 
-type TabKey = (typeof TABS)[number]["key"];
+type TabKey = (typeof TAB_KEYS)[number];
+
+const TAB_LABEL_KEYS: Record<TabKey, string> = {
+  unassigned: "tabUnassigned",
+  all: "tabAllReviews",
+  pending: "tabUnderReview",
+  approved: "tabApproved",
+  rejected: "tabRejected",
+};
 
 function StatusPill({ status }: { status: "pending" | "approved" | "rejected" }) {
+  const t = useTranslations("ModeratorReviewsPage");
   const config = {
-    pending: { label: "Under Review", color: "var(--color-gold)" },
-    approved: { label: "Approved", color: "var(--color-success)" },
-    rejected: { label: "Rejected", color: "var(--color-danger)" },
+    pending: { label: t("tabUnderReview"), color: "var(--color-gold)" },
+    approved: { label: t("tabApproved"), color: "var(--color-success)" },
+    rejected: { label: t("tabRejected"), color: "var(--color-danger)" },
   }[status];
   return (
     <span
@@ -99,6 +104,8 @@ function ReviewCard({
   onReject: () => void;
   busy: boolean;
 }) {
+  const t = useTranslations("ModeratorReviewsPage");
+  const locale = useLocale();
   const [showReports, setShowReports] = useState(false);
   const initial = review.student.name.charAt(0);
   const isUnassigned = review.moderator_id == null;
@@ -138,7 +145,7 @@ function ReviewCard({
                 {review.student.name}
               </Link>
               <span className="text-sm text-(--color-text-secondary)">
-                {new Date(review.created_at).toLocaleDateString()}
+                {formatDate(review.created_at, locale)}
               </span>
             </div>
             <Link
@@ -186,14 +193,14 @@ function ReviewCard({
               cursor: "pointer",
             }}
           >
-            {review.report_count} {review.report_count === 1 ? "report" : "reports"}
+            {t("reportCount", { count: review.report_count })}
           </button>
         </div>
 
         <div className="flex items-center gap-2">
           {isUnassigned && (
             <AccentButton type="button" size="sm" disabled={busy} onClick={onAssign}>
-              {busy ? "…" : "Assign to me"}
+              {busy ? "…" : t("assignConfirmLabel")}
             </AccentButton>
           )}
           {isPending && (
@@ -204,7 +211,7 @@ function ReviewCard({
                 disabled={busy}
                 onClick={onReject}
               >
-                Reject
+                {t("rejectAction")}
               </PillActionButton>
               <PillActionButton
                 color="var(--color-success)"
@@ -212,7 +219,7 @@ function ReviewCard({
                 disabled={busy}
                 onClick={onApprove}
               >
-                Approve
+                {t("approveAction")}
               </PillActionButton>
             </>
           )}
@@ -255,7 +262,7 @@ function ReviewCard({
                     {r.reporter_name}
                   </Link>
                   <span className="text-xs text-(--color-text-secondary)">
-                    {new Date(r.created_at).toLocaleDateString()}
+                    {formatDate(r.created_at, locale)}
                   </span>
                 </div>
                 <p className="text-sm text-(--color-text-secondary)">{r.reason}</p>
@@ -269,6 +276,8 @@ function ReviewCard({
 }
 
 export default function ModeratorReviewsPage() {
+  const t = useTranslations("ModeratorReviewsPage");
+  const tCommon = useTranslations("Common");
   const [activeTab, setActiveTab] = useState<TabKey>("unassigned");
   const [unassigned, setUnassigned] = useState<ModeratorReview[]>([]);
   const [mine, setMine] = useState<ModeratorReview[]>([]);
@@ -302,10 +311,10 @@ export default function ModeratorReviewsPage() {
         setLoading(false);
       })
       .catch((err: Partial<ApiError>) => {
-        setError(err.message ?? "Failed to load reviews.");
+        setError(err.message ?? t("errorLoad"));
         setLoading(false);
       });
-  }, []);
+  }, [t]);
 
   useAutoRefresh(refresh);
 
@@ -327,7 +336,7 @@ export default function ModeratorReviewsPage() {
       setActiveTab("pending");
       setPendingAssignId(null);
     } catch (err: unknown) {
-      setAssignError((err as Partial<ApiError>).message ?? "Failed to assign. Please try again.");
+      setAssignError((err as Partial<ApiError>).message ?? t("assignFailedError"));
     } finally {
       setAssigning(false);
     }
@@ -373,11 +382,11 @@ export default function ModeratorReviewsPage() {
     <PageShell style={{ background: "var(--color-brand-lavender-soft)" }}>
       <div style={{ maxWidth: "1648px", margin: "0 auto" }}>
         <nav
-          aria-label="Review moderation filter"
+          aria-label={t("filterAriaLabel")}
           className="flex flex-wrap items-center"
           style={{ gap: "clamp(12px, 2.6vw, 50px)", marginBottom: "clamp(12px, 1.67vw, 28px)" }}
         >
-          {TABS.map(({ key, label }) => (
+          {TAB_KEYS.map((key) => (
             <button
               key={key}
               type="button"
@@ -394,7 +403,7 @@ export default function ModeratorReviewsPage() {
               ].join(" ")}
               style={{ fontSize: "clamp(14px, 1.25vw, 24px)" }}
             >
-              {label}
+              {t(TAB_LABEL_KEYS[key])}
             </button>
           ))}
         </nav>
@@ -404,12 +413,12 @@ export default function ModeratorReviewsPage() {
           style={{ padding: "clamp(16px, 1.67vw, 24px)", marginTop: "clamp(16px, 1.67vw, 24px)" }}
         >
           {loading ? (
-            <p className="py-16 text-center text-lg text-(--color-text-secondary)">Loading…</p>
+            <p className="py-16 text-center text-lg text-(--color-text-secondary)">{tCommon("loading")}</p>
           ) : error ? (
             <p className="py-16 text-center text-lg text-red-500">{error}</p>
           ) : visible.length === 0 ? (
             <p className="py-16 text-center text-lg text-(--color-text-secondary)">
-              No reviews found.
+              {t("noReviewsFound")}
             </p>
           ) : (
             <div className="flex flex-col" style={{ gap: "clamp(12px, 1.11vw, 16px)" }}>
@@ -433,12 +442,9 @@ export default function ModeratorReviewsPage() {
 
       {pendingAssignId != null && (
         <CourseConfirmModal
-          title="Assign as moderator"
-          description={
-            assignError ||
-            "Assign yourself as moderator for this reported review? It will move to your Under Review list."
-          }
-          confirmLabel="Assign to me"
+          title={t("assignModalTitle")}
+          description={assignError || t("assignModalDescription")}
+          confirmLabel={t("assignConfirmLabel")}
           loading={assigning}
           onConfirm={handleAssignConfirm}
           onCancel={() => {

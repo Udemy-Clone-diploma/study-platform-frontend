@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { ExternalLink, FileText, Film, Image as ImageIcon, Link2, Loader2, X } from "lucide-react";
 import type { ChatAttachmentItem } from "@/entities/chat";
 import { resolveMediaUrl } from "@/shared/api/lib/mediaUrl";
@@ -22,11 +22,11 @@ type Props = {
   onOpenImage: (url: string, alt: string) => void;
 };
 
-const sections = [
-  { kind: "file", label: "Files", icon: FileText },
-  { kind: "video", label: "Videos", icon: Film },
-  { kind: "link", label: "Links", icon: Link2 },
-  { kind: "image", label: "Images", icon: ImageIcon },
+const sectionDefs = [
+  { kind: "file", icon: FileText },
+  { kind: "video", icon: Film },
+  { kind: "link", icon: Link2 },
+  { kind: "image", icon: ImageIcon },
 ] as const;
 
 /** Displays every file and link shared in a direct or group chat. */
@@ -39,21 +39,28 @@ export function ChatAttachmentsModal({
   onOpenActions,
   onOpenImage,
 }: Props) {
-  const groupedItems = useMemo(
-    () =>
-      sections.map((section) => ({
-        ...section,
-        items: items.filter((item) => item.kind === section.kind),
-      })),
-    [items],
-  );
+  const t = useTranslations("ChatAttachmentsModal");
+  const tCommon = useTranslations("ChatCommon");
+  const tShared = useTranslations("Common");
+  const locale = useLocale();
+  const sectionLabels: Record<(typeof sectionDefs)[number]["kind"], string> = {
+    file: t("sectionFiles"),
+    video: t("sectionVideos"),
+    link: t("sectionLinks"),
+    image: t("sectionImages"),
+  };
+  const groupedItems = sectionDefs.map((section) => ({
+    ...section,
+    label: sectionLabels[section.kind],
+    items: items.filter((item) => item.kind === section.kind),
+  }));
   const visibleSections = groupedItems.filter((section) => section.items.length > 0);
 
   return (
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Chat attachments"
+      aria-label={t("title")}
       className="fixed inset-0 z-[75] flex items-center justify-center bg-black/30 px-6"
       onClick={onClose}
     >
@@ -63,12 +70,12 @@ export function ChatAttachmentsModal({
       >
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-[#121212]">Attachments</h2>
+            <h2 className="text-2xl font-bold text-[#121212]">{t("title")}</h2>
             <p className="mt-1 truncate text-sm text-[#4B5563]">{title}</p>
           </div>
           <button
             type="button"
-            aria-label="Close"
+            aria-label={tShared("close")}
             onClick={onClose}
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#4B5563] transition hover:bg-[#EEF2FF] hover:text-[#003AFF]"
           >
@@ -86,7 +93,7 @@ export function ChatAttachmentsModal({
           {loading ? (
             <div className="flex h-40 items-center justify-center text-sm text-[#4B5563]">
               <Loader2 className="mr-2 h-4 w-4 animate-spin text-[#003AFF]" />
-              Loading attachments
+              {t("loadingAttachments")}
             </div>
           ) : visibleSections.length > 0 ? (
             <div className="space-y-6">
@@ -105,10 +112,12 @@ export function ChatAttachmentsModal({
                       {section.items.map((item) => {
                         const itemUrl = resolveMediaUrl(item.url);
                         const itemName =
-                          item.kind === "link" ? itemUrl || "Link" : attachmentName(item, 0);
+                          item.kind === "link"
+                            ? itemUrl || t("link")
+                            : attachmentName(item, 0, tCommon);
                         const sender = item.message.sender
                           ? userDisplayName(item.message.sender)
-                          : "Unknown sender";
+                          : tCommon("unknownSender");
                         const isImage = item.kind === "image" && Boolean(itemUrl);
                         return (
                           <div
@@ -160,14 +169,14 @@ export function ChatAttachmentsModal({
                                 </p>
                               )}
                               <p className="mt-1 truncate text-xs text-[#4B5563]">
-                                {sender} · {messageFullDateTime(item.message.created_at)}
+                                {sender} · {messageFullDateTime(item.message.created_at, locale)}
                               </p>
                               <p className="mt-1 truncate text-xs text-[#6B7280]">
-                                {messagePreview(item.message)}
+                                {messagePreview(item.message, tCommon)}
                               </p>
                             </div>
                             <span className="shrink-0 text-xs text-[#6B7280]">
-                              {item.kind === "link" ? "Link" : formatFileSize(item.size)}
+                              {item.kind === "link" ? t("link") : formatFileSize(item.size)}
                             </span>
                           </div>
                         );
@@ -179,7 +188,7 @@ export function ChatAttachmentsModal({
             </div>
           ) : (
             <div className="flex h-40 items-center justify-center rounded-xl border border-dashed border-[#C6D2FF] bg-[#F7F9FF] text-sm text-[#6B7280]">
-              No attachments yet
+              {t("noAttachmentsYet")}
             </div>
           )}
         </div>

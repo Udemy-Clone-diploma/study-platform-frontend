@@ -1,13 +1,14 @@
 export type DayOfWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
-export const DAY_LABELS: Record<DayOfWeek, string> = {
-  0: "Monday",
-  1: "Tuesday",
-  2: "Wednesday",
-  3: "Thursday",
-  4: "Friday",
-  5: "Saturday",
-  6: "Sunday",
+/** Translation keys for the "Days" message namespace, keyed by DayOfWeek. */
+export const DAY_KEYS: Record<DayOfWeek, string> = {
+  0: "monday",
+  1: "tuesday",
+  2: "wednesday",
+  3: "thursday",
+  4: "friday",
+  5: "saturday",
+  6: "sunday",
 };
 
 // ── ScheduleSlot (individual format) ─────────────────────────────────────────

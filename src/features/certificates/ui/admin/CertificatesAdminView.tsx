@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { PageShell } from "@/shared/ui/PageShell";
 import { Pagination } from "@/shared/ui/Pagination";
@@ -37,6 +38,7 @@ type PendingAction = {
 };
 
 export function CertificatesAdminView() {
+  const t = useTranslations("CertificatesAdminView");
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -122,13 +124,13 @@ export function CertificatesAdminView() {
         }
         setCertificates([]);
         setCount(0);
-        setListError(apiError.message ?? "Failed to load certificates.");
+        setListError(apiError.message ?? t("errorLoadCertificates"));
         setLoadedKey(queryKey);
       });
     return () => {
       cancelled = true;
     };
-  }, [page, statusTab, course, search, ordering, queryKey, updateParams]);
+  }, [page, statusTab, course, search, ordering, queryKey, updateParams, t]);
 
   useEffect(() => {
     let cancelled = false;
@@ -175,37 +177,44 @@ export function CertificatesAdminView() {
     } catch (err) {
       const apiError = err as ApiError;
       setActionFieldError(mapApiFieldErrors(apiError.fields).reason);
-      setActionError(apiError.message ?? "Something went wrong.");
+      setActionError(apiError.message ?? t("errorActionGeneric"));
     } finally {
       setActionLoading(false);
     }
   }
 
   const totalPages = Math.max(1, Math.ceil(count / PAGE_SIZE));
-  const emptyMessage = loading ? "Loading certificates…" : "No certificates found.";
+  const emptyMessage = loading ? t("loadingCertificates") : t("noCertificatesFound");
 
   const actionCopy = pendingAction
     ? {
         revoke: {
-          title: "Revoke certificate",
-          description: `Revoke ${pendingAction.certificate.serial}, issued to ${pendingAction.certificate.student.full_name} for "${pendingAction.certificate.course.title}"? It stays in the registry as a revoked record, and any public check of this serial will report it as no longer valid.`,
-          reasonLabel: "Reason for revoking",
-          placeholder: "Why is this certificate being revoked?",
-          confirmLabel: "Revoke",
+          title: t("revokeTitle"),
+          description: t("revokeDescription", {
+            serial: pendingAction.certificate.serial,
+            student: pendingAction.certificate.student.full_name,
+            course: pendingAction.certificate.course.title,
+          }),
+          reasonLabel: t("revokeReasonLabel"),
+          placeholder: t("revokePlaceholder"),
+          confirmLabel: t("revokeConfirmLabel"),
         },
         reissue: {
-          title: "Re-issue certificate",
-          description: `Regenerate the PDF for ${pendingAction.certificate.serial} using current student and course data. It gets a new serial, and the old one keeps resolving on the public verify page with a pointer to the replacement.`,
-          reasonLabel: "Reason for re-issuing",
-          placeholder: "What changed since this certificate was issued?",
-          confirmLabel: "Re-issue",
+          title: t("reissueTitle"),
+          description: t("reissueDescription", { serial: pendingAction.certificate.serial }),
+          reasonLabel: t("reissueReasonLabel"),
+          placeholder: t("reissuePlaceholder"),
+          confirmLabel: t("reissueConfirmLabel"),
         },
         restore: {
-          title: "Restore certificate",
-          description: `Undo the revocation of ${pendingAction.certificate.serial}, issued to ${pendingAction.certificate.student.full_name}? It becomes valid again and will pass a public check. The original revocation stays in the audit trail.`,
-          reasonLabel: "Reason for restoring",
-          placeholder: "Why is this revocation being undone?",
-          confirmLabel: "Restore",
+          title: t("restoreTitle"),
+          description: t("restoreDescription", {
+            serial: pendingAction.certificate.serial,
+            student: pendingAction.certificate.student.full_name,
+          }),
+          reasonLabel: t("restoreReasonLabel"),
+          placeholder: t("restorePlaceholder"),
+          confirmLabel: t("restoreConfirmLabel"),
         },
       }[pendingAction.kind]
     : null;
@@ -221,7 +230,7 @@ export function CertificatesAdminView() {
             margin: "0 0 clamp(16px, 1.67vw, 24px)",
           }}
         >
-          Certificates
+          {t("heading")}
         </h1>
 
         <div style={{ marginBottom: "clamp(16px, 1.67vw, 24px)" }}>

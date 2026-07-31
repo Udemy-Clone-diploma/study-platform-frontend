@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { Flag, Forward, Pencil, Reply, Trash2 } from "lucide-react";
 import type { ChatMessage } from "@/entities/chat";
 import { canModifyMessage } from "../lib/messageActions";
@@ -25,6 +26,8 @@ export function MessageActionModal({
   onDelete,
   onReport,
 }: Props) {
+  const t = useTranslations("MessageActionModal");
+  const tShared = useTranslations("Common");
   const message = state.message;
   const canModify = canModifyMessage(message, meId);
   const canReport = Boolean(message.sender) && message.message_type !== "system";
@@ -35,30 +38,30 @@ export function MessageActionModal({
     <>
       <button
         type="button"
-        aria-label="Close message actions"
+        aria-label={t("closeAriaLabel")}
         className="fixed inset-0 z-[80] bg-black/30"
         onClick={onClose}
       />
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Message actions"
+        aria-label={t("ariaLabel")}
         className="fixed z-[95] w-[240px] rounded-lg bg-white p-3 shadow-[0_18px_54px_rgba(17,24,39,0.24)]"
         style={{ left: state.x, top: state.y }}
       >
         <button type="button" className={itemClass} onClick={() => onReply(message)}>
           <Reply className="h-4 w-4 shrink-0" />
-          Reply
+          {t("reply")}
         </button>
         <button type="button" className={itemClass} onClick={() => onForward(message)}>
           <Forward className="h-4 w-4 shrink-0" />
-          Forward to
+          {t("forwardTo")}
         </button>
         {canModify ? (
           <>
             <button type="button" className={itemClass} onClick={() => onEdit(message)}>
               <Pencil className="h-4 w-4 shrink-0" />
-              Edit
+              {t("edit")}
             </button>
             <button
               type="button"
@@ -66,7 +69,7 @@ export function MessageActionModal({
               onClick={() => onDelete(message)}
             >
               <Trash2 className="h-4 w-4 shrink-0" />
-              Delete
+              {tShared("delete")}
             </button>
           </>
         ) : canReport ? (
@@ -76,7 +79,7 @@ export function MessageActionModal({
             onClick={() => onReport(message)}
           >
             <Flag className="h-4 w-4 shrink-0" />
-            Report
+            {t("report")}
           </button>
         ) : null}
       </div>

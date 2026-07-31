@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { ModalShell } from "@/shared/ui/ModalShell";
 import { ModalFooter } from "@/shared/ui/ModalFooter";
 import { Input } from "@/shared/ui/Input";
@@ -23,6 +24,8 @@ type Props = {
 };
 
 export function CategoryFormModal({ category, onClose, onSaved }: Props) {
+  const t = useTranslations("CategoryFormModal");
+  const tCommon = useTranslations("Common");
   const [name, setName] = useState<LocaleFields>({ ...EMPTY_LOCALE_FIELDS, en: category?.name ?? "" });
   const [description, setDescription] = useState<LocaleFields>({
     ...EMPTY_LOCALE_FIELDS,
@@ -59,7 +62,7 @@ export function CategoryFormModal({ category, onClose, onSaved }: Props) {
         setSlug(detail.slug);
       })
       .catch(() => {
-        if (!cancelled) setDetailError("Failed to load all translations for this category.");
+        if (!cancelled) setDetailError(t("loadError"));
       })
       .finally(() => {
         if (!cancelled) setDetailLoading(false);
@@ -67,17 +70,17 @@ export function CategoryFormModal({ category, onClose, onSaved }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [category]);
+  }, [category, t]);
 
   function validate(): Record<string, string> {
     const errors: Record<string, string> = {};
     const enName = name.en.trim();
     const trimmedSlug = slug.trim();
-    if (!enName) errors.name_en = "Enter a name";
-    else if (enName.length > 100) errors.name_en = "Name must be at most 100 characters";
-    if (trimmedSlug && trimmedSlug.length > 50) errors.slug = "Slug must be at most 50 characters";
+    if (!enName) errors.name_en = t("nameRequired");
+    else if (enName.length > 100) errors.name_en = t("nameTooLong");
+    if (trimmedSlug && trimmedSlug.length > 50) errors.slug = t("slugTooLong");
     else if (trimmedSlug && !SLUG_PATTERN.test(trimmedSlug))
-      errors.slug = "Only letters, numbers, hyphens, and underscores";
+      errors.slug = t("slugInvalid");
     return errors;
   }
 
@@ -111,7 +114,7 @@ export function CategoryFormModal({ category, onClose, onSaved }: Props) {
     } catch (err) {
       const apiError = err as ApiError;
       setFieldErrors(mapApiFieldErrors(apiError.fields));
-      setFormError(apiError.message ?? "Failed to save the category.");
+      setFormError(apiError.message ?? t("saveError"));
       setLoading(false);
     }
   }
@@ -130,7 +133,7 @@ export function CategoryFormModal({ category, onClose, onSaved }: Props) {
     <ModalShell
       onClose={onClose}
       closeOnOverlayClick={false}
-      title={category ? "Edit category" : "Add category"}
+      title={category ? t("editTitle") : t("addTitle")}
       width="clamp(360px, 38vw, 560px)"
       padding="clamp(20px, 2.08vw, 32px) clamp(24px, 2.5vw, 40px)"
       shadow="var(--shadow-modal)"
@@ -140,13 +143,13 @@ export function CategoryFormModal({ category, onClose, onSaved }: Props) {
           <LocaleTabs active={activeLocale} onChange={(l) => setActiveLocale(l as Locale)} filled={filled} />
           {activeLocale !== "en" && (
             <p className="text-xs text-gray-400">
-              Leave blank to show the English text for this locale.
+              {t("localeHint")}
             </p>
           )}
 
           <Input
             id="category-name"
-            label={activeLocale === "en" ? "Name" : `Name (${activeLocale})`}
+            label={activeLocale === "en" ? t("nameLabel") : t("nameLabelWithLocale", { locale: activeLocale })}
             value={name[activeLocale]}
             onChange={(e) => setName((prev) => ({ ...prev, [activeLocale]: e.target.value }))}
             placeholder={activeLocale !== "en" ? name.en : undefined}
@@ -157,11 +160,11 @@ export function CategoryFormModal({ category, onClose, onSaved }: Props) {
           {activeLocale === "en" && (
             <Input
               id="category-slug"
-              label={category ? "Slug" : "Slug (optional)"}
+              label={category ? t("slugLabel") : t("slugLabelOptional")}
               placeholder={
                 category
-                  ? "Leave empty to regenerate from the name"
-                  : "Generated from the name when empty"
+                  ? t("slugPlaceholderEdit")
+                  : t("slugPlaceholderCreate")
               }
               value={slug}
               onChange={(e) => setSlug(e.target.value)}
@@ -175,7 +178,7 @@ export function CategoryFormModal({ category, onClose, onSaved }: Props) {
               htmlFor="category-description"
               className="text-sm font-medium font-mono text-gray-400"
             >
-              {activeLocale === "en" ? "Description (optional)" : `Description (${activeLocale}, optional)`}
+              {activeLocale === "en" ? t("descriptionLabel") : t("descriptionLabelWithLocale", { locale: activeLocale })}
             </label>
             <textarea
               id="category-description"
@@ -194,7 +197,7 @@ export function CategoryFormModal({ category, onClose, onSaved }: Props) {
         </div>
         <ModalFooter
           onCancel={onClose}
-          submitLabel={category ? "Save" : "Create"}
+          submitLabel={category ? tCommon("save") : t("createLabel")}
           loading={loading}
           disabled={submitDisabled}
           error={formError}

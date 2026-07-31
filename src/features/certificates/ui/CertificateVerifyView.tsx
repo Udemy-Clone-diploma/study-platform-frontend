@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { BadgeCheck, CircleAlert, CircleX, Search } from "lucide-react";
 import { verifyCertificate } from "@/entities/certificate";
@@ -16,10 +16,10 @@ type Result =
   | { kind: "missing" }
   | { kind: "error"; message: string };
 
-function formatIssuedDate(iso: string): string {
+function formatIssuedDate(iso: string, locale: string): string {
   const parsed = new Date(iso);
   if (Number.isNaN(parsed.getTime())) return iso;
-  return parsed.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+  return parsed.toLocaleDateString(locale, { day: "numeric", month: "long", year: "numeric" });
 }
 
 export function CertificateVerifyView() {
@@ -173,15 +173,16 @@ export function CertificateVerifyView() {
 function VerificationCard({ data }: { data: CertificateVerification }) {
   const revoked = data.status === "revoked";
   const t = useTranslations("CertificateVerify");
+  const locale = useLocale();
 
   const body = revoked
     ? data.revoked_at
       ? t("issuedAndRevokedOn", {
-          issuedDate: formatIssuedDate(data.issued_at),
-          revokedDate: formatIssuedDate(data.revoked_at),
+          issuedDate: formatIssuedDate(data.issued_at, locale),
+          revokedDate: formatIssuedDate(data.revoked_at, locale),
         })
-      : t("issuedAndRevoked", { issuedDate: formatIssuedDate(data.issued_at) })
-    : t("issuedOn", { date: formatIssuedDate(data.issued_at) });
+      : t("issuedAndRevoked", { issuedDate: formatIssuedDate(data.issued_at, locale) })
+    : t("issuedOn", { date: formatIssuedDate(data.issued_at, locale) });
 
   return (
     <ResultShell

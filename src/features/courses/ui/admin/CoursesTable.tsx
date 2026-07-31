@@ -94,7 +94,9 @@ export function CoursesTable({
       flex: 1.2,
       headerAlign: "center",
       cellAlign: "center",
-      render: (row) => <CourseStatusBadge status={row.status} />,
+      render: (row) => (
+        <CourseStatusBadge status={row.status} pendingEditStatus={row.pending_edit_status} />
+      ),
     },
     {
       key: "students",

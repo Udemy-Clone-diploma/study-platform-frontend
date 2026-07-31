@@ -10,7 +10,12 @@ type Props = {
 };
 
 /** Curriculum section: heading (optional), summary line, accordion of modules. */
-export async function CourseCurriculum({ course, slug, hasPricing = false, hideHeading = false }: Props) {
+export async function CourseCurriculum({
+  course,
+  slug,
+  hasPricing = false,
+  hideHeading = false,
+}: Props) {
   const sorted = [...course.modules].sort((a, b) => a.order - b.order);
   const hasModules = sorted.length > 0;
   const t = await getTranslations("CourseCurriculum");

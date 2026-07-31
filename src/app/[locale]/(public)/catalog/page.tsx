@@ -135,9 +135,7 @@ async function CatalogResults({
   return (
     <>
       <div className={`relative grid gap-5 ${state.filtersOpen ? "lg:grid-cols-[460px_1fr]" : ""}`}>
-        {state.filtersOpen ? (
-          <CatalogFiltersSidebar categories={categories} state={state} />
-        ) : null}
+        {state.filtersOpen ? <CatalogFiltersSidebar categories={categories} state={state} /> : null}
 
         <section>
           {error ? (
@@ -160,7 +158,11 @@ async function CatalogResults({
           ) : (
             <div className="flex flex-wrap justify-center gap-4">
               {courses.map((course) => (
-                <CourseCard key={course.id} course={course} isWishlisted={wishlistSet.has(course.slug)} />
+                <CourseCard
+                  key={course.id}
+                  course={course}
+                  isWishlisted={wishlistSet.has(course.slug)}
+                />
               ))}
             </div>
           )}
@@ -238,7 +240,12 @@ export default async function CatalogPage({
           </div>
 
           <Suspense fallback={<CatalogResultsSkeleton />}>
-            <CatalogResults categories={categories} state={state} page={currentPage} ordering={ordering} />
+            <CatalogResults
+              categories={categories}
+              state={state}
+              page={currentPage}
+              ordering={ordering}
+            />
           </Suspense>
         </div>
       </div>

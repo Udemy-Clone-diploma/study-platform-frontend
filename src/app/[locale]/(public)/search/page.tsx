@@ -66,16 +66,16 @@ export default async function SiteSearchPage({
               overflowWrap: "break-word",
             }}
           >
-            {query ? (
-              t.rich("resultsFor", {
-                query,
-                highlight: (chunks) => (
-                  <span className="bg-(--color-catalog-highlight) px-1 py-0.5 text-(--color-blue)">{chunks}</span>
-                ),
-              })
-            ) : (
-              t("searchHeading")
-            )}
+            {query
+              ? t.rich("resultsFor", {
+                  query,
+                  highlight: (chunks) => (
+                    <span className="bg-(--color-catalog-highlight) px-1 py-0.5 text-(--color-blue)">
+                      {chunks}
+                    </span>
+                  ),
+                })
+              : t("searchHeading")}
           </h1>
           {query && (
             <p
@@ -172,7 +172,13 @@ function ResultSection({
           >
             {title}
           </h2>
-          <span style={{ fontFamily: "var(--font-base)", fontSize: "0.9vw", color: "var(--color-text-secondary)" }}>
+          <span
+            style={{
+              fontFamily: "var(--font-base)",
+              fontSize: "0.9vw",
+              color: "var(--color-text-secondary)",
+            }}
+          >
             {foundLabel}
           </span>
         </div>

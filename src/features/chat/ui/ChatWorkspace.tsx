@@ -193,7 +193,9 @@ export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
     if (!query) return typeFilteredChats;
     return typeFilteredChats.filter((chat) => {
       const title = chatTitle(chat, me?.id ?? null, tCommon).toLowerCase();
-      return title.includes(query) || lastMessagePreview(chat, tCommon).toLowerCase().includes(query);
+      return (
+        title.includes(query) || lastMessagePreview(chat, tCommon).toLowerCase().includes(query)
+      );
     });
   }, [chatSearch, me?.id, typeFilteredChats, tCommon]);
 
@@ -230,46 +232,49 @@ export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
     setSelectedChatId((current) => requestedChatId ?? current ?? data.results[0]?.id ?? null);
   }, [requestedChatId]);
 
-  const loadMessages = useCallback(async (chatId: number) => {
-    const cached = messageCacheRef.current.get(chatId);
-    if (cached) {
-      setMessages(cached.messages);
-      setMessagePage(cached.page);
-      setHasMoreMessages(cached.hasMore);
-      setLoadingMessages(false);
-    } else {
-      setMessages([]);
-      setHasMoreMessages(false);
-      setLoadingMessages(true);
-    }
-    setError("");
-    try {
-      const data = await getMessages(chatId, 1);
-      const nextMessages = [...data.results].reverse();
-      const nextEntry = {
-        messages: nextMessages,
-        page: 1,
-        hasMore: Boolean(data.next),
-      };
-      messageCacheRef.current.set(chatId, nextEntry);
-      if (selectedChatIdRef.current !== chatId) return;
-      setMessages(nextMessages);
-      setMessagePage(nextEntry.page);
-      setHasMoreMessages(nextEntry.hasMore);
-    } catch (requestError) {
-      if (selectedChatIdRef.current !== chatId) return;
-      const apiError = requestError as Partial<ApiError>;
-      if (!cached) {
-        setError(apiError.detail || apiError.message || t("couldNotLoadMessages"));
+  const loadMessages = useCallback(
+    async (chatId: number) => {
+      const cached = messageCacheRef.current.get(chatId);
+      if (cached) {
+        setMessages(cached.messages);
+        setMessagePage(cached.page);
+        setHasMoreMessages(cached.hasMore);
+        setLoadingMessages(false);
+      } else {
         setMessages([]);
         setHasMoreMessages(false);
+        setLoadingMessages(true);
       }
-    } finally {
-      if (selectedChatIdRef.current === chatId) {
-        setLoadingMessages(false);
+      setError("");
+      try {
+        const data = await getMessages(chatId, 1);
+        const nextMessages = [...data.results].reverse();
+        const nextEntry = {
+          messages: nextMessages,
+          page: 1,
+          hasMore: Boolean(data.next),
+        };
+        messageCacheRef.current.set(chatId, nextEntry);
+        if (selectedChatIdRef.current !== chatId) return;
+        setMessages(nextMessages);
+        setMessagePage(nextEntry.page);
+        setHasMoreMessages(nextEntry.hasMore);
+      } catch (requestError) {
+        if (selectedChatIdRef.current !== chatId) return;
+        const apiError = requestError as Partial<ApiError>;
+        if (!cached) {
+          setError(apiError.detail || apiError.message || t("couldNotLoadMessages"));
+          setMessages([]);
+          setHasMoreMessages(false);
+        }
+      } finally {
+        if (selectedChatIdRef.current === chatId) {
+          setLoadingMessages(false);
+        }
       }
-    }
-  }, [t]);
+    },
+    [t],
+  );
 
   const updateMessageScrollbar = useCallback((visible: boolean) => {
     const viewport = messagesViewportRef.current;
@@ -1089,7 +1094,10 @@ export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
     setForwardingChatId(chat.id);
     setError("");
     try {
-      const forwarded = await sendMessage(chat.id, forwardedMessageText(forwardingMessage, tCommon));
+      const forwarded = await sendMessage(
+        chat.id,
+        forwardedMessageText(forwardingMessage, tCommon),
+      );
       setChats((current) =>
         sortChats(
           current.map((item) =>

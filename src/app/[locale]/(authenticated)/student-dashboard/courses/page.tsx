@@ -100,8 +100,7 @@ export default function StudentCoursesPage() {
 
   const months = [...new Set(displayItems.map((entry) => itemMonthLabel(entry, locale)))];
 
-  const emptyLabel =
-    activeTab === "Completed" ? t("noCompletedCoursesYet") : t("noCoursesFound");
+  const emptyLabel = activeTab === "Completed" ? t("noCompletedCoursesYet") : t("noCoursesFound");
 
   function handleTabChange(tab: Tab) {
     setActiveTab(tab);
@@ -135,7 +134,9 @@ export default function StudentCoursesPage() {
         </nav>
 
         {loading ? (
-          <p className="mt-16 text-center text-lg text-(--color-text-secondary)">{tCommon("loading")}</p>
+          <p className="mt-16 text-center text-lg text-(--color-text-secondary)">
+            {tCommon("loading")}
+          </p>
         ) : error ? (
           <p className="mt-16 text-center text-lg text-red-500">{error}</p>
         ) : months.length === 0 ? (

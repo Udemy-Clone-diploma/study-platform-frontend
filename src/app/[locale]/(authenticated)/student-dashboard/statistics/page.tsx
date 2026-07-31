@@ -70,7 +70,10 @@ export default function StudentStatisticsPage() {
   const homeworkOnly = useMemo(() => assignments.filter((a) => !a.test_detail), [assignments]);
   const testsOnly = useMemo(() => assignments.filter((a) => !!a.test_detail), [assignments]);
 
-  const hwOptions = useMemo(() => courseOptionsFrom(homeworkOnly, tCommon), [homeworkOnly, tCommon]);
+  const hwOptions = useMemo(
+    () => courseOptionsFrom(homeworkOnly, tCommon),
+    [homeworkOnly, tCommon],
+  );
   const testOptions = useMemo(() => courseOptionsFrom(testsOnly, tCommon), [testsOnly, tCommon]);
 
   const hwCounts = countsFor(homeworkOnly, hwCourseFilter);
@@ -111,7 +114,9 @@ export default function StudentStatisticsPage() {
   return (
     <PageShell className="bg-wishlist">
       <div style={{ maxWidth: "1648px", margin: "0 auto" }}>
-        <h1 className="mb-6 text-[28px] leading-none font-normal text-(--color-text-primary)">{tSidebar("statistics")}</h1>
+        <h1 className="mb-6 text-[28px] leading-none font-normal text-(--color-text-primary)">
+          {tSidebar("statistics")}
+        </h1>
 
         {loading ? (
           <p className="text-center text-lg text-(--color-text-secondary)">{tCommon("loading")}</p>
@@ -432,7 +437,10 @@ function CourseRow({
           />
         </div>
       </div>
-      <span className="shrink-0 whitespace-nowrap font-(family-name:--font-base) text-(--color-text-secondary)" style={{ fontSize: "clamp(11px, 0.73vw, 13px)" }}>
+      <span
+        className="shrink-0 whitespace-nowrap font-(family-name:--font-base) text-(--color-text-secondary)"
+        style={{ fontSize: "clamp(11px, 0.73vw, 13px)" }}
+      >
         {t("hoursProgressLabel", { done: hoursDone, total: hoursTotal })}
       </span>
     </div>

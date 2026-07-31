@@ -85,7 +85,9 @@ export async function CourseHero({ course }: Props) {
             </div>
 
             <ul className="flex flex-wrap items-center gap-2 sm:gap-3">
-              <MetaPill>{t("languageLabel", { language: LANGUAGE_LABEL[course.language] })}</MetaPill>
+              <MetaPill>
+                {t("languageLabel", { language: LANGUAGE_LABEL[course.language] })}
+              </MetaPill>
               <MetaPill>{MODE_LABEL[course.mode]}</MetaPill>
               <MetaPill>{LEVEL_META_LABEL[course.level]}</MetaPill>
             </ul>

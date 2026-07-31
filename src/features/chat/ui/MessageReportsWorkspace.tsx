@@ -137,13 +137,7 @@ function DetailRow({ label, children }: { label: string; children: React.ReactNo
   );
 }
 
-function ModeratorActionsPanel({
-  user,
-  reportId,
-}: {
-  user: ModerationChatUser;
-  reportId: number;
-}) {
+function ModeratorActionsPanel({ user, reportId }: { user: ModerationChatUser; reportId: number }) {
   const t = useTranslations("MessageReportsWorkspace");
   const tShared = useTranslations("Common");
   const locale = useLocale();
@@ -206,7 +200,9 @@ function ModeratorActionsPanel({
   return (
     <div className="mt-6 border-t border-white/80 pt-5">
       <div className="flex items-center justify-between gap-2">
-        <h3 className="text-sm font-bold text-(--color-text-primary)">{t("moderatorActionHeading")}</h3>
+        <h3 className="text-sm font-bold text-(--color-text-primary)">
+          {t("moderatorActionHeading")}
+        </h3>
         {loading ? <Loader2 className="h-4 w-4 animate-spin text-(--color-blue)" /> : null}
       </div>
 
@@ -216,7 +212,9 @@ function ModeratorActionsPanel({
             <Ban className="h-4 w-4" /> {t("chatAccessRestricted")}
           </span>
           {status.restricted_at ? (
-            <p className="mt-1">{t("sinceDate", { date: dateTime(status.restricted_at, locale) })}</p>
+            <p className="mt-1">
+              {t("sinceDate", { date: dateTime(status.restricted_at, locale) })}
+            </p>
           ) : null}
           {status.restriction_reason ? (
             <p className="mt-1 leading-5">{status.restriction_reason}</p>
@@ -225,7 +223,8 @@ function ModeratorActionsPanel({
       ) : null}
 
       <label className="mt-4 block text-xs font-semibold text-(--color-text-primary)">
-        {t("noteToUserLabel")} <span className="font-normal text-(--color-text-muted)">{t("optionalLabel")}</span>
+        {t("noteToUserLabel")}{" "}
+        <span className="font-normal text-(--color-text-muted)">{t("optionalLabel")}</span>
         <textarea
           value={note}
           maxLength={500}
@@ -378,26 +377,29 @@ export function MessageReportsWorkspace() {
   const [selectedUserKey, setSelectedUserKey] = useState<string | null>(null);
   const [selectedReportId, setSelectedReportId] = useState<number | null>(null);
 
-  const load = useCallback(async (nextPage = 1) => {
-    if (nextPage === 1) {
-      setLoading(true);
-    } else {
-      setLoadingMore(true);
-    }
-    setError("");
-    try {
-      const data = await getMessageReports(nextPage);
-      setReports((current) => (nextPage === 1 ? data.results : [...current, ...data.results]));
-      setPage(nextPage);
-      setHasMore(Boolean(data.next));
-    } catch (requestError) {
-      const apiError = requestError as Partial<ApiError>;
-      setError(apiError.detail || apiError.message || t("couldNotLoadReports"));
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
-    }
-  }, [t]);
+  const load = useCallback(
+    async (nextPage = 1) => {
+      if (nextPage === 1) {
+        setLoading(true);
+      } else {
+        setLoadingMore(true);
+      }
+      setError("");
+      try {
+        const data = await getMessageReports(nextPage);
+        setReports((current) => (nextPage === 1 ? data.results : [...current, ...data.results]));
+        setPage(nextPage);
+        setHasMore(Boolean(data.next));
+      } catch (requestError) {
+        const apiError = requestError as Partial<ApiError>;
+        setError(apiError.detail || apiError.message || t("couldNotLoadReports"));
+      } finally {
+        setLoading(false);
+        setLoadingMore(false);
+      }
+    },
+    [t],
+  );
 
   useEffect(() => {
     void load();
@@ -502,14 +504,14 @@ export function MessageReportsWorkspace() {
           <div className="mt-6 flex min-h-[520px] flex-col items-center justify-center rounded-2xl border border-white/70 bg-white/30 text-center">
             <Search className="h-9 w-9 text-(--color-brand-lavender)" />
             <p className="mt-3 font-bold text-(--color-text-primary)">{t("nothingFound")}</p>
-            <p className="mt-1 text-sm text-(--color-text-secondary)">
-              {t("tryAnotherSearch")}
-            </p>
+            <p className="mt-1 text-sm text-(--color-text-secondary)">{t("tryAnotherSearch")}</p>
           </div>
         ) : (
           <div className="mt-6 grid min-h-[560px] grid-cols-[minmax(250px,0.9fr)_minmax(350px,1.45fr)_minmax(250px,0.9fr)] gap-5">
             <aside className="flex min-h-0 flex-col rounded-2xl border border-white/80 bg-white/20 p-4">
-              <h2 className="px-1 text-sm font-bold text-(--color-text-primary)">{t("reportedUsersHeading")}</h2>
+              <h2 className="px-1 text-sm font-bold text-(--color-text-primary)">
+                {t("reportedUsersHeading")}
+              </h2>
               <div className="mt-4 max-h-[610px] space-y-2 overflow-y-auto pr-1">
                 {groups.map((group) => {
                   const active = selectedGroup?.key === group.key;
@@ -548,7 +550,11 @@ export function MessageReportsWorkspace() {
                   onClick={() => void load(page + 1)}
                   className="mt-4 inline-flex h-10 items-center justify-center rounded-xl border border-white bg-white/60 text-xs font-bold text-(--color-text-primary) disabled:opacity-60"
                 >
-                  {loadingMore ? <Loader2 className="h-4 w-4 animate-spin" /> : t("loadMoreReports")}
+                  {loadingMore ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    t("loadMoreReports")
+                  )}
                 </button>
               ) : null}
             </aside>
@@ -629,7 +635,9 @@ export function MessageReportsWorkspace() {
                         {fullName(selectedReport.sender, t)}
                       </h2>
                       <p className="mt-1 text-xs capitalize text-(--color-text-secondary)">
-                        {selectedReport.sender?.role ? tRoles(selectedReport.sender.role) : t("unknownRole")}
+                        {selectedReport.sender?.role
+                          ? tRoles(selectedReport.sender.role)
+                          : t("unknownRole")}
                       </p>
                       {selectedReport.sender ? (
                         <Link
@@ -669,8 +677,12 @@ export function MessageReportsWorkspace() {
                           {selectedReport.reason_label}
                         </span>
                       </DetailRow>
-                      <DetailRow label={t("reported")}>{dateTime(selectedReport.created_at, locale)}</DetailRow>
-                      <DetailRow label={t("reporter")}>{fullName(selectedReport.reporter, t)}</DetailRow>
+                      <DetailRow label={t("reported")}>
+                        {dateTime(selectedReport.created_at, locale)}
+                      </DetailRow>
+                      <DetailRow label={t("reporter")}>
+                        {fullName(selectedReport.reporter, t)}
+                      </DetailRow>
                       <DetailRow label={t("reporterRole")}>
                         <span className="capitalize">{tRoles(selectedReport.reporter.role)}</span>
                       </DetailRow>
@@ -679,7 +691,9 @@ export function MessageReportsWorkspace() {
 
                   {selectedReport.details ? (
                     <div className="mt-5 rounded-xl bg-white/60 p-4">
-                      <p className="text-xs font-bold text-(--color-text-primary)">{t("reporterNote")}</p>
+                      <p className="text-xs font-bold text-(--color-text-primary)">
+                        {t("reporterNote")}
+                      </p>
                       <p className="mt-2 whitespace-pre-wrap break-words text-xs leading-5 text-(--color-text-secondary)">
                         {selectedReport.details}
                       </p>
@@ -688,7 +702,9 @@ export function MessageReportsWorkspace() {
 
                   {selectedReport.attachments.length ? (
                     <div className="mt-5">
-                      <h3 className="text-sm font-bold text-(--color-text-primary)">{t("attachmentsHeading")}</h3>
+                      <h3 className="text-sm font-bold text-(--color-text-primary)">
+                        {t("attachmentsHeading")}
+                      </h3>
                       <div className="mt-3 space-y-2">
                         {selectedReport.attachments.map((attachment) =>
                           attachment.url ? (
@@ -700,7 +716,9 @@ export function MessageReportsWorkspace() {
                               className="flex items-center gap-2 rounded-xl bg-white/70 px-3 py-2 text-xs font-semibold text-(--color-blue) hover:bg-white"
                             >
                               <FileText className="h-4 w-4 shrink-0" />
-                              <span className="truncate">{t("attachmentNumber", { number: attachment.id })}</span>
+                              <span className="truncate">
+                                {t("attachmentNumber", { number: attachment.id })}
+                              </span>
                             </a>
                           ) : null,
                         )}
@@ -721,7 +739,10 @@ export function MessageReportsWorkspace() {
                   )}
 
                   <div className="mt-6 rounded-xl border border-white/80 bg-white/40 p-3 text-xs text-(--color-text-secondary)">
-                    {t("reportFooter", { number: selectedReport.id, date: compactDate(selectedReport.created_at, locale) })}
+                    {t("reportFooter", {
+                      number: selectedReport.id,
+                      date: compactDate(selectedReport.created_at, locale),
+                    })}
                   </div>
                 </>
               ) : null}

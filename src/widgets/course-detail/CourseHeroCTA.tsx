@@ -51,7 +51,12 @@ export function CourseHeroCTA({ slug, isEnrolled, defaultFormat }: Props) {
 
   if (enrolled) {
     return (
-      <AccentButton size="md" className="self-center lg:self-start" style={heroCtaStyle} href={`/learn/${slug}`}>
+      <AccentButton
+        size="md"
+        className="self-center lg:self-start"
+        style={heroCtaStyle}
+        href={`/learn/${slug}`}
+      >
         {t("continueLearning")}
       </AccentButton>
     );
@@ -103,7 +108,13 @@ export function CourseHeroCTA({ slug, isEnrolled, defaultFormat }: Props) {
 
   return (
     <div className="flex flex-col gap-2">
-      <AccentButton size="md" className="self-center lg:self-start" style={heroCtaStyle} onClick={handleClick} disabled={pending}>
+      <AccentButton
+        size="md"
+        className="self-center lg:self-start"
+        style={heroCtaStyle}
+        onClick={handleClick}
+        disabled={pending}
+      >
         {pending ? t("processing") : isFreeCourse ? t("enrollFree") : t("choosePlan")}
       </AccentButton>
       {notice && (

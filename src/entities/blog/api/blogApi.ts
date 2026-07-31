@@ -92,7 +92,10 @@ export type GetArticlesParams = {
   lang?: string;
 };
 
-export async function getArticles(params: GetArticlesParams = {}, accessToken?: string): Promise<ArticleListItem[]> {
+export async function getArticles(
+  params: GetArticlesParams = {},
+  accessToken?: string,
+): Promise<ArticleListItem[]> {
   const { data } = await api.get<ArticleListItem[]>(ARTICLES, {
     params: {
       category: params.category,
@@ -142,8 +145,14 @@ export async function createArticle(values: ArticleFormValues): Promise<ArticleD
   return data;
 }
 
-export async function updateArticle(slug: string, values: ArticleFormValues): Promise<ArticleDetail> {
-  const { data } = await api.patch<ArticleDetail>(`${ARTICLES}${slug}/`, buildArticleFormData(values));
+export async function updateArticle(
+  slug: string,
+  values: ArticleFormValues,
+): Promise<ArticleDetail> {
+  const { data } = await api.patch<ArticleDetail>(
+    `${ARTICLES}${slug}/`,
+    buildArticleFormData(values),
+  );
   return data;
 }
 

@@ -44,7 +44,11 @@ function formatPrice(price: string, currency: string, locale: string): string {
 }
 
 function formatDate(iso: string, locale: string): string {
-  return new Date(iso).toLocaleDateString(locale, { month: "short", day: "numeric", year: "numeric" });
+  return new Date(iso).toLocaleDateString(locale, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
 /** Cohort radio list shown inside a group format card. Starts collapsed. */
@@ -65,11 +69,7 @@ function CohortPicker({
   const locale = useLocale();
 
   if (cohorts.length === 0) {
-    return (
-      <p className="text-center text-sm text-(--color-text-muted) py-1">
-        {t("noSchedules")}
-      </p>
-    );
+    return <p className="text-center text-sm text-(--color-text-muted) py-1">{t("noSchedules")}</p>;
   }
 
   const activeCohort = cohorts.find((c) => c.id === selected);
@@ -82,7 +82,7 @@ function CohortPicker({
         className="flex items-center justify-between gap-2 w-full text-left"
       >
         <span className="text-sm font-(family-name:--font-accent) uppercase text-(--color-text-secondary) tracking-wide">
-          {activeCohort ? activeCohort.name ?? t("group") : t("selectSchedule")}
+          {activeCohort ? (activeCohort.name ?? t("group")) : t("selectSchedule")}
         </span>
         <ChevronDown
           className="h-4 w-4 shrink-0 text-(--color-text-secondary) transition-transform duration-200"
@@ -438,7 +438,9 @@ export function CoursePricingBlock({ courseId, formats, slug, cohorts = [] }: Pr
                       <span className="font-(family-name:--font-accent) text-xl font-bold uppercase sm:text-2xl">
                         {formatPrice(plan.installment_amount, plan.currency, locale)}
                       </span>
-                      <span className="text-base">{t("monthlyPayments", { count: plan.installment_count })}</span>
+                      <span className="text-base">
+                        {t("monthlyPayments", { count: plan.installment_count })}
+                      </span>
                     </PriceRow>
                   )}
                 </div>

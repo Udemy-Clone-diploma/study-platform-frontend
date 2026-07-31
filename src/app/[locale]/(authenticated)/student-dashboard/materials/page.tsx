@@ -200,7 +200,9 @@ export default function MaterialsPage() {
             <div>
               <p className="mb-5 text-[13px] leading-4 font-semibold">{tSidebar("materials")}</p>
               {selected.materials.length === 0 ? (
-                <p className="text-[12px] text-(--color-text-secondary)">{t("noMaterialsAttached")}</p>
+                <p className="text-[12px] text-(--color-text-secondary)">
+                  {t("noMaterialsAttached")}
+                </p>
               ) : (
                 <div className="flex flex-col gap-5">
                   {selected.materials.map((material) => (
@@ -223,7 +225,9 @@ export default function MaterialsPage() {
                         <span className="block truncate text-[13px] leading-4 font-medium">
                           {material.title}
                         </span>
-                        <span className="mt-0.5 block text-[10px] leading-3 text-(--color-text-secondary)">{t("materialLabel")}</span>
+                        <span className="mt-0.5 block text-[10px] leading-3 text-(--color-text-secondary)">
+                          {t("materialLabel")}
+                        </span>
                       </span>
                     </button>
                   ))}

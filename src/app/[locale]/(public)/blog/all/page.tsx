@@ -43,7 +43,12 @@ export default async function AllArticlesPage({
       <SectionContainer style={{ paddingTop: "7.19vw", paddingBottom: "2.5vw" }}>
         <div
           className="w-full lg:w-auto min-[1024px]:max-[1439px]:max-w-[max(420px,36.46vw)] min-[1440px]:max-w-[max(600px,36.46vw)]"
-          style={{ display: "flex", flexDirection: "column", gap: "clamp(12px, 1.04vw, 15px)", marginBottom: "2.5vw" }}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "clamp(12px, 1.04vw, 15px)",
+            marginBottom: "2.5vw",
+          }}
         >
           <h1
             className="text-[28px] leading-[34px] md:text-[38px] md:leading-[46px] lg:text-[clamp(28px,3.125vw,45px)] lg:leading-[clamp(34px,3.75vw,54px)] lg:whitespace-nowrap"
@@ -56,7 +61,9 @@ export default async function AllArticlesPage({
           >
             {t.rich("title", {
               highlight: (chunks) => (
-                <span className="bg-(--color-catalog-highlight) px-1 py-0.5 text-(--color-blue)">{chunks}</span>
+                <span className="bg-(--color-catalog-highlight) px-1 py-0.5 text-(--color-blue)">
+                  {chunks}
+                </span>
               ),
             })}
           </h1>
@@ -87,10 +94,15 @@ export default async function AllArticlesPage({
         </div>
 
         {pageArticles.length === 0 ? (
-          <p className="mt-16 text-center text-lg text-(--color-text-secondary)">{t("noArticlesFound")}</p>
+          <p className="mt-16 text-center text-lg text-(--color-text-secondary)">
+            {t("noArticlesFound")}
+          </p>
         ) : (
           <>
-            <div className="flex flex-wrap justify-center lg:justify-start" style={{ gap: "1.04vw" }}>
+            <div
+              className="flex flex-wrap justify-center lg:justify-start"
+              style={{ gap: "1.04vw" }}
+            >
               {pageArticles.map((article) => (
                 <ArticleCard key={article.id} article={article} />
               ))}

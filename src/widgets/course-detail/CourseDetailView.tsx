@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { getTranslations } from "next-intl/server";
-import type { CourseDetail, CourseReview } from "@/entities/course";
+import type { CourseReview, PublicCourseDetailView } from "@/entities/course";
 import { SectionContainer } from "@/shared/ui/SectionContainer";
 import { CourseCurriculum } from "./CourseCurriculum";
 import { CourseFeedback } from "./CourseFeedback";
@@ -10,11 +10,11 @@ import { CourseScheduleCard } from "./CourseScheduleCard";
 import { CourseTeacher } from "./CourseTeacher";
 import { PRICING_ANCHOR_ID } from "./pricingAnchor";
 
-type Props = { course: CourseDetail; reviews: CourseReview[] };
+type Props = { course: PublicCourseDetailView; reviews: CourseReview[] };
 
 /** Top-level composition for the /courses/[slug] page. */
 export async function CourseDetailView({ course, reviews }: Props) {
-  const hasPricingPlans = course.delivery_formats.some(f => f.pricing);
+  const hasPricingPlans = course.delivery_formats.some((format) => format.pricing);
   const t = await getTranslations("CourseCurriculum");
 
   return (
@@ -43,15 +43,16 @@ export async function CourseDetailView({ course, reviews }: Props) {
               aria-hidden="true"
               className="pointer-events-none absolute inset-0 -z-10"
               style={{
-                background: "radial-gradient(ellipse at center, rgba(255,255,255,0) 0%, rgba(255,255,255,0.9) 78%, rgba(255,255,255,1) 100%)",
+                background:
+                  "radial-gradient(ellipse at center, rgba(255,255,255,0) 0%, rgba(255,255,255,0.9) 78%, rgba(255,255,255,1) 100%)",
               }}
-              
             />
             <div
               aria-hidden="true"
               className="pointer-events-none absolute inset-0 -z-10"
               style={{
-                background: "radial-gradient(ellipse at center, rgba(255,255,255,0) 0%, rgba(255,255,255,0.9) 78%, rgba(255,255,255,1) 100%)",
+                background:
+                  "radial-gradient(ellipse at center, rgba(255,255,255,0) 0%, rgba(255,255,255,0.9) 78%, rgba(255,255,255,1) 100%)",
               }}
             />
             <CourseTeacher teacher={course.teacher} quote={course.short_description} />

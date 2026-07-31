@@ -10,7 +10,7 @@ export default async function BlogPage() {
   const [accessToken, locale] = await Promise.all([getAccessToken(), getLocale()]);
   const [categories, articles, user] = await Promise.all([
     getBlogCategories(locale),
-    getArticles(),
+    getArticles({ lang: locale }),
     accessToken ? getMe(accessToken).catch(() => null) : Promise.resolve(null),
   ]);
 

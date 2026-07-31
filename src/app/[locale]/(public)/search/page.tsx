@@ -1,6 +1,6 @@
 import Image from "next/image";
-import { getTranslations } from "next-intl/server";
-import { getCourses, getWishlistSlugs, type CourseListItem } from "@/entities/course";
+import { getLocale, getTranslations } from "next-intl/server";
+import { getPublicCourses, getWishlistSlugs, type PublicCourseListItem } from "@/entities/course";
 import { getArticles } from "@/entities/blog";
 import { CourseCard } from "@/features/courses";
 import { ArticleCard } from "@/features/blog";
@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 const RESULT_LIMIT = 6;
 
-const EMPTY_COURSES: CourseListItem[] = [];
+const EMPTY_COURSES: PublicCourseListItem[] = [];
 
 export default async function SiteSearchPage({
   searchParams,
@@ -22,10 +22,13 @@ export default async function SiteSearchPage({
   const query = search?.trim() ?? "";
   const searchQS = query ? `?search=${encodeURIComponent(query)}` : "";
   const t = await getTranslations("Search");
+  const locale = await getLocale();
 
   const [coursesPage, articles, wishlistedSlugs] = await Promise.all([
-    query ? getCourses({ search: query, page_size: RESULT_LIMIT }) : Promise.resolve({ count: 0, next: null, previous: null, results: EMPTY_COURSES }),
-    query ? getArticles({ search: query }) : Promise.resolve([]),
+    query
+      ? getPublicCourses({ search: query, page_size: RESULT_LIMIT, lang: locale })
+      : Promise.resolve({ count: 0, next: null, previous: null, results: EMPTY_COURSES }),
+    query ? getArticles({ search: query, lang: locale }) : Promise.resolve([]),
     getWishlistSlugs().catch(() => []),
   ]);
 
@@ -63,16 +66,16 @@ export default async function SiteSearchPage({
               overflowWrap: "break-word",
             }}
           >
-            {query ? (
-              t.rich("resultsFor", {
-                query,
-                highlight: (chunks) => (
-                  <span className="bg-(--color-catalog-highlight) px-1 py-0.5 text-(--color-blue)">{chunks}</span>
-                ),
-              })
-            ) : (
-              t("searchHeading")
-            )}
+            {query
+              ? t.rich("resultsFor", {
+                  query,
+                  highlight: (chunks) => (
+                    <span className="bg-(--color-catalog-highlight) px-1 py-0.5 text-(--color-blue)">
+                      {chunks}
+                    </span>
+                  ),
+                })
+              : t("searchHeading")}
           </h1>
           {query && (
             <p
@@ -105,7 +108,11 @@ export default async function SiteSearchPage({
               ) : (
                 <div className="flex flex-wrap justify-center gap-4">
                   {courses.map((course) => (
-                    <CourseCard key={course.id} course={course} isWishlisted={wishlistSet.has(course.slug)} />
+                    <CourseCard
+                      key={course.id}
+                      course={course}
+                      isWishlisted={wishlistSet.has(course.slug)}
+                    />
                   ))}
                 </div>
               )}
@@ -149,7 +156,10 @@ function ResultSection({
 }) {
   return (
     <section style={{ marginBottom: "3.5vw" }}>
-      <div className="flex flex-wrap items-center justify-between" style={{ marginBottom: "1.5vw", gap: 12 }}>
+      <div
+        className="flex flex-wrap items-center justify-between"
+        style={{ marginBottom: "1.5vw", gap: 12 }}
+      >
         <div className="flex items-baseline" style={{ gap: 10 }}>
           <h2
             style={{
@@ -162,7 +172,13 @@ function ResultSection({
           >
             {title}
           </h2>
-          <span style={{ fontFamily: "var(--font-base)", fontSize: "0.9vw", color: "var(--color-text-secondary)" }}>
+          <span
+            style={{
+              fontFamily: "var(--font-base)",
+              fontSize: "0.9vw",
+              color: "var(--color-text-secondary)",
+            }}
+          >
             {foundLabel}
           </span>
         </div>

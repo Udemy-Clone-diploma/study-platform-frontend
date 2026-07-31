@@ -13,6 +13,7 @@ export type DeliveryFormatPricing = {
 export type CourseDeliveryFormat = {
   id: number;
   format_type: DeliveryFormatType;
+  chat_id?: number | null;
   // self_paced
   start_type: DeliveryStartType | null;
   course_start_date: string | null;

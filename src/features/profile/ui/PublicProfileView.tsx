@@ -99,7 +99,7 @@ function RoleSpecificDetails({ profile }: { profile: PublicUserProfile }) {
           />
         </dl>
 
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
           <div className="rounded-xl bg-(--color-white-50) p-4 shadow-(--shadow-usp-glass)">
             <div className="flex items-center gap-2 text-sm font-semibold text-(--color-text-secondary)">
               <Star
@@ -228,6 +228,7 @@ export function PublicProfileView({
           onMessage={() => void sendMessage()}
           messaging={messaging}
           messageLabel={messageError ? t("tryAgain") : t("sendMessage")}
+          compact
           topLeftAction={
             onClose ? (
               <button
@@ -269,7 +270,7 @@ export function PublicProfileView({
         <span className="absolute -right-20 bottom-0 h-80 w-80 rounded-full bg-(--color-brand-cream) opacity-70 blur-3xl" />
       </div>
 
-      <div className="mx-auto grid w-full max-w-6xl overflow-hidden rounded-3xl border border-(--color-white-60) bg-(--color-white-60) shadow-(--shadow-card) backdrop-blur-xl lg:grid-cols-[minmax(16rem,0.8fr)_0.25rem_minmax(0,1.7fr)]">
+      <div className="mx-auto grid w-full max-w-6xl grid-cols-1 overflow-hidden rounded-3xl border border-(--color-white-60) bg-(--color-white-60) shadow-(--shadow-card) backdrop-blur-xl lg:grid-cols-[minmax(16rem,0.8fr)_0.25rem_minmax(0,1.7fr)]">
         <aside className="flex flex-col items-center px-6 py-8 text-center sm:px-8 lg:py-12">
           <div className="relative h-40 w-40 overflow-hidden rounded-full bg-(--color-surface) shadow-(--shadow-card) sm:h-48 sm:w-48">
             {profile.avatar ? (

@@ -89,9 +89,13 @@ export type GetArticlesParams = {
   status?: ArticleStatus;
   assigned?: "unassigned" | "mine";
   search?: string;
+  lang?: string;
 };
 
-export async function getArticles(params: GetArticlesParams = {}, accessToken?: string): Promise<ArticleListItem[]> {
+export async function getArticles(
+  params: GetArticlesParams = {},
+  accessToken?: string,
+): Promise<ArticleListItem[]> {
   const { data } = await api.get<ArticleListItem[]>(ARTICLES, {
     params: {
       category: params.category,
@@ -99,14 +103,20 @@ export async function getArticles(params: GetArticlesParams = {}, accessToken?: 
       status: params.status,
       assigned: params.assigned,
       search: params.search,
+      lang: params.lang,
     },
     headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
   });
   return data;
 }
 
-export async function getArticleBySlug(slug: string, accessToken?: string): Promise<ArticleDetail> {
+export async function getArticleBySlug(
+  slug: string,
+  accessToken?: string,
+  locale?: string,
+): Promise<ArticleDetail> {
   const { data } = await api.get<ArticleDetail>(`${ARTICLES}${slug}/`, {
+    params: locale ? { lang: locale } : undefined,
     headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
   });
   return data;
@@ -135,8 +145,14 @@ export async function createArticle(values: ArticleFormValues): Promise<ArticleD
   return data;
 }
 
-export async function updateArticle(slug: string, values: ArticleFormValues): Promise<ArticleDetail> {
-  const { data } = await api.patch<ArticleDetail>(`${ARTICLES}${slug}/`, buildArticleFormData(values));
+export async function updateArticle(
+  slug: string,
+  values: ArticleFormValues,
+): Promise<ArticleDetail> {
+  const { data } = await api.patch<ArticleDetail>(
+    `${ARTICLES}${slug}/`,
+    buildArticleFormData(values),
+  );
   return data;
 }
 

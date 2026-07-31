@@ -1,9 +1,9 @@
 import { getTranslations } from "next-intl/server";
 import { Calendar, Layers, Users } from "lucide-react";
-import type { CourseCohort } from "@/entities/course";
+import type { PublicCourseCohort } from "@/entities/course";
 
 type Props = {
-  cohorts: CourseCohort[];
+  cohorts: PublicCourseCohort[];
   modules_count: number;
   lessons_count: number;
 };
@@ -20,7 +20,7 @@ export async function CourseScheduleCard({ cohorts, modules_count, lessons_count
     : null;
 
   // Compute h/week range across all cohorts
-  const hours = cohorts.map(c => c.hours_per_week).filter(h => h > 0);
+  const hours = cohorts.map((c) => c.hours_per_week).filter((h) => h > 0);
   const minH = hours.length ? Math.min(...hours) : 0;
   const maxH = hours.length ? Math.max(...hours) : 0;
   const hoursLabel =
@@ -30,13 +30,13 @@ export async function CourseScheduleCard({ cohorts, modules_count, lessons_count
         ? t("hoursPerWeek", { hours: minH })
         : t("hoursPerWeekRange", { min: minH, max: maxH });
 
-  const formatLabel = first?.group_size
-    ? t("groupOf", { count: first.group_size })
-    : t("group");
+  const formatLabel = first?.group_size ? t("groupOf", { count: first.group_size }) : t("group");
 
   return (
     <aside className="flex flex-col gap-8 rounded-xl bg-(--color-white-50) px-4 py-6 shadow-(--shadow-usp-glass) backdrop-blur-md sm:gap-10 sm:py-8">
-      <h3 className="text-xl font-semibold text-(--color-text-primary) sm:text-2xl">{t("schedule")}</h3>
+      <h3 className="text-xl font-semibold text-(--color-text-primary) sm:text-2xl">
+        {t("schedule")}
+      </h3>
 
       <ul className="flex flex-col gap-3">
         {first && (

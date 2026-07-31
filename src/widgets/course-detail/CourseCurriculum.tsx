@@ -1,16 +1,21 @@
 import { getTranslations } from "next-intl/server";
-import type { CourseDetail } from "@/entities/course";
+import type { PublicCourseDetail } from "@/entities/course";
 import { CourseModuleItem } from "./CourseModuleItem";
 
 type Props = {
-  course: Pick<CourseDetail, "modules" | "lessons_count">;
+  course: Pick<PublicCourseDetail, "modules" | "lessons_count">;
   slug: string;
   hasPricing?: boolean;
   hideHeading?: boolean;
 };
 
 /** Curriculum section: heading (optional), summary line, accordion of modules. */
-export async function CourseCurriculum({ course, slug, hasPricing = false, hideHeading = false }: Props) {
+export async function CourseCurriculum({
+  course,
+  slug,
+  hasPricing = false,
+  hideHeading = false,
+}: Props) {
   const sorted = [...course.modules].sort((a, b) => a.order - b.order);
   const hasModules = sorted.length > 0;
   const t = await getTranslations("CourseCurriculum");

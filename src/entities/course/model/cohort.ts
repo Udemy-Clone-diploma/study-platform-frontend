@@ -4,6 +4,7 @@ export type CourseCohort = {
   id: number;
   /** ID of the linked CourseDeliveryFormat (format_type=group), or null for legacy cohorts. */
   delivery_format: number | null;
+  chat_id?: number | null;
   name: string | null;
   duration_months: number;
   hours_per_week: number;

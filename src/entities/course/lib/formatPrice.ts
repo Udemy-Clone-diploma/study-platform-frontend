@@ -1,8 +1,8 @@
-import type { CourseListItem } from "../model/types";
+import type { PublicCourseListItem } from "../model/public";
 
-/** Format the headline (cheapest plan) price for a course card. Returns `freeLabel` when the course has no priced plan. */
+/** Format the headline price for a public course card. */
 export function formatPrice(
-  course: Pick<CourseListItem, "price" | "currency">,
+  course: Pick<PublicCourseListItem, "price" | "currency">,
   freeLabel = "Free",
   locale = "en-US",
 ): string {

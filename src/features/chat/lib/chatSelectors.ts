@@ -5,9 +5,9 @@ import type { UserData } from "@/entities/user";
 type Translator = (key: string, values?: Record<string, string | number>) => string;
 
 export function userDisplayName(
-  user: Pick<ChatUser, "name" | "first_name" | "last_name" | "email">,
+  user: Pick<ChatUser, "name" | "first_name" | "last_name">,
 ) {
-  return user.name || `${user.first_name} ${user.last_name}`.trim() || user.email;
+  return user.name || `${user.first_name} ${user.last_name}`.trim() || "User";
 }
 
 export function sortChats(chats: ChatRoom[]) {
@@ -113,7 +113,6 @@ export function toChatUser(user: UserData): ChatUser {
     name: `${user.first_name} ${user.last_name}`.trim() || user.email,
     first_name: user.first_name,
     last_name: user.last_name,
-    email: user.email,
     role: user.role,
     avatar: user.avatar,
   };

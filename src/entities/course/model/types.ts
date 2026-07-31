@@ -36,14 +36,18 @@ export type CourseListItem = {
   mode: CourseMode;
   delivery_type: CourseDeliveryType;
   course_type: CourseType;
-  /** Cheapest pricing plan's price, computed by the backend. Null when the course is free. */
+  /** Cheapest pricing plan's price (after discount, if any), computed by the backend. Null when the course is free. */
   price: string | null;
+  /** Cheapest pricing plan's pre-discount price. Null unless is_on_sale actually lowers the price. */
+  original_price: string | null;
   /** Cheapest pricing plan's currency. Null when the course is free. */
   currency: PricingPlan["currency"] | null;
   duration_hours: number;
   lessons_count: number;
   with_certificate: boolean;
   is_on_sale: boolean;
+  /** 1-99. Set only when is_on_sale is true. */
+  discount_percent: number | null;
   rating_avg: string;
   /** Count of reviews. Kept in sync by a backend signal on Review save/delete. */
   rating_count: number;
@@ -127,7 +131,10 @@ export type RejectedCourseItem = CourseListItem & {
   moderation_review: ModerationReview | null;
 };
 
-export type CourseDetail = Omit<CourseListItem, "teacher_name" | "price" | "currency"> & {
+export type CourseDetail = Omit<
+  CourseListItem,
+  "teacher_name" | "price" | "original_price" | "currency"
+> & {
   /** Course-specific pull-quote. Belongs on the course, not the teacher (one teacher, many courses). */
   quote: string | null;
   full_description: string;

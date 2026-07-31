@@ -2770,6 +2770,8 @@
     },
     "certificate": "Certificat",
     "onSale": "En promotion",
+    "discountPercent": "Réduction (%)",
+    "discountPercentHint": "S'applique à tous les plans tarifaires de ce cours.",
     "yes": "Oui",
     "no": "Non",
     "generating": "Génération…",
@@ -2782,7 +2784,8 @@
     "subtitlePlaceholder": "Un court slogan affiché sous le titre du cours…",
     "subtitleFieldHint": "Différent de la description courte — un accroche marketing facultative sous le titre.",
     "errorSave": "Échec de l'enregistrement. Veuillez réessayer.",
-    "errorPreview": "Impossible de générer l'aperçu du certificat."
+    "errorPreview": "Impossible de générer l'aperçu du certificat.",
+    "errorDiscountRequired": "Saisissez un pourcentage de réduction (1-99) pour activer la promotion."
   },
   "CourseManagementPage": {
     "errorLoad": "Impossible de charger le cours.",

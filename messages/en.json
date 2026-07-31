@@ -2770,6 +2770,8 @@
     },
     "certificate": "Certificate",
     "onSale": "On Sale",
+    "discountPercent": "Discount (%)",
+    "discountPercentHint": "Applied to all pricing plans of this course.",
     "yes": "Yes",
     "no": "No",
     "generating": "Generating…",
@@ -2782,7 +2784,8 @@
     "subtitlePlaceholder": "A short tagline shown under the course title…",
     "subtitleFieldHint": "Not the same as the short description — this is an optional marketing hook under the title.",
     "errorSave": "Failed to save. Try again.",
-    "errorPreview": "Could not generate certificate preview."
+    "errorPreview": "Could not generate certificate preview.",
+    "errorDiscountRequired": "Enter a discount percentage (1-99) to enable the sale."
   },
   "CourseManagementPage": {
     "errorLoad": "Failed to load course.",

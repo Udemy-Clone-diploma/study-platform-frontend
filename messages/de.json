@@ -2770,6 +2770,8 @@
     },
     "certificate": "Zertifikat",
     "onSale": "Im Angebot",
+    "discountPercent": "Rabatt (%)",
+    "discountPercentHint": "Gilt für alle Preispläne dieses Kurses.",
     "yes": "Ja",
     "no": "Nein",
     "generating": "Wird erstellt…",
@@ -2782,7 +2784,8 @@
     "subtitlePlaceholder": "Ein kurzer Slogan unter dem Kurstitel…",
     "subtitleFieldHint": "Nicht dasselbe wie die Kurzbeschreibung — ein optionaler Marketing-Aufhänger unter dem Titel.",
     "errorSave": "Speichern fehlgeschlagen. Bitte erneut versuchen.",
-    "errorPreview": "Zertifikat-Vorschau konnte nicht erstellt werden."
+    "errorPreview": "Zertifikat-Vorschau konnte nicht erstellt werden.",
+    "errorDiscountRequired": "Geben Sie einen Rabatt in Prozent (1-99) ein, um das Angebot zu aktivieren."
   },
   "CourseManagementPage": {
     "errorLoad": "Kurs konnte nicht geladen werden.",

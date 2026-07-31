@@ -16,3 +16,20 @@ export function formatPrice(
     maximumFractionDigits: 0,
   }).format(Number(course.price));
 }
+
+/** Format the pre-discount price for strikethrough display. Null when there's nothing to strike through
+ *  (course is free, or is_on_sale doesn't actually lower the price). */
+export function formatOriginalPrice(
+  course: Pick<CourseListItem, "original_price" | "currency">,
+  locale = "en-US",
+): string | null {
+  if (course.original_price == null || Number(course.original_price) === 0) {
+    return null;
+  }
+
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency: course.currency ?? "USD",
+    maximumFractionDigits: 0,
+  }).format(Number(course.original_price));
+}

@@ -21,6 +21,8 @@ type Props = {
   formats: CourseDeliveryFormat[];
   slug: string;
   cohorts?: CourseCohort[];
+  /** 1-99, set only when the course is on sale. */
+  discountPercent?: number | null;
 };
 
 const CART_URL = "/student-dashboard/payment?tab=card";
@@ -262,7 +264,7 @@ function IndividualSlotPicker({
 }
 
 /** Tuition section: heading badge, intro, pricing cards per delivery format. */
-export function CoursePricingBlock({ courseId, formats, slug, cohorts = [] }: Props) {
+export function CoursePricingBlock({ courseId, formats, slug, cohorts = [], discountPercent }: Props) {
   const router = useRouter();
   const t = useTranslations("CoursePricingBlock");
   const tHeroCta = useTranslations("CourseHeroCTA");
@@ -416,16 +418,31 @@ export function CoursePricingBlock({ courseId, formats, slug, cohorts = [] }: Pr
 
                 <div className="flex flex-col items-center gap-6 sm:gap-7">
                   <PriceRow label={t("fullPrice")}>
+                    {discountPercent && plan.final_price !== plan.price ? (
+                      <span className="text-base text-(--color-text-secondary) line-through">
+                        {formatPrice(plan.price, plan.currency, locale)}
+                      </span>
+                    ) : null}
                     <span className="font-(family-name:--font-accent) text-xl font-bold uppercase sm:text-2xl">
-                      {formatPrice(plan.price, plan.currency, locale)}
+                      {formatPrice(plan.final_price, plan.currency, locale)}
                     </span>
                     <span className="text-base">{t("onePayment")}</span>
+                    {discountPercent && plan.final_price !== plan.price ? (
+                      <span className="rounded-md bg-(--color-brand-pink) px-2 py-px font-(family-name:--font-accent) text-sm text-(--color-pink-dark)">
+                        -{discountPercent}%
+                      </span>
+                    ) : null}
                   </PriceRow>
 
                   {plan.installment_count && plan.installment_amount && (
                     <PriceRow label={t("installmentPlan")}>
+                      {discountPercent && plan.final_installment_amount !== plan.installment_amount ? (
+                        <span className="text-base text-(--color-text-secondary) line-through">
+                          {formatPrice(plan.installment_amount, plan.currency, locale)}
+                        </span>
+                      ) : null}
                       <span className="font-(family-name:--font-accent) text-xl font-bold uppercase sm:text-2xl">
-                        {formatPrice(plan.installment_amount, plan.currency, locale)}
+                        {formatPrice(plan.final_installment_amount ?? plan.installment_amount, plan.currency, locale)}
                       </span>
                       <span className="text-base">{t("monthlyPayments", { count: plan.installment_count })}</span>
                     </PriceRow>

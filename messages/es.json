@@ -2770,6 +2770,8 @@
     },
     "certificate": "Certificado",
     "onSale": "En oferta",
+    "discountPercent": "Descuento (%)",
+    "discountPercentHint": "Se aplica a todos los planes de precios de este curso.",
     "yes": "Sí",
     "no": "No",
     "generating": "Generando…",
@@ -2782,7 +2784,8 @@
     "subtitlePlaceholder": "Un eslogan breve mostrado bajo el título del curso…",
     "subtitleFieldHint": "No es lo mismo que la descripción corta; es un gancho de marketing opcional bajo el título.",
     "errorSave": "No se pudo guardar. Inténtalo de nuevo.",
-    "errorPreview": "No se pudo generar la vista previa del certificado."
+    "errorPreview": "No se pudo generar la vista previa del certificado.",
+    "errorDiscountRequired": "Introduce un porcentaje de descuento (1-99) para activar la oferta."
   },
   "CourseManagementPage": {
     "errorLoad": "No se pudo cargar el curso.",

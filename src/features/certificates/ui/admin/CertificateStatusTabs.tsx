@@ -1,6 +1,9 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { CertificateCounts, CertificateStatus } from "@/entities/certificate";
+
+type Translator = (key: string, values?: Record<string, string | number>) => string;
 
 export type CertificateStatusTab = CertificateStatus | null;
 
@@ -9,11 +12,15 @@ export const STATUS_TAB_VALUES: Record<CertificateStatus, CertificateStatus> = {
   revoked: "revoked",
 };
 
-const TABS: { label: string; value: CertificateStatusTab; countKey: keyof CertificateCounts }[] = [
-  { label: "All Certificates", value: null, countKey: "total" },
-  { label: "Active", value: "valid", countKey: "valid" },
-  { label: "Revoked", value: "revoked", countKey: "revoked" },
-];
+function getTabs(
+  t: Translator,
+): { label: string; value: CertificateStatusTab; countKey: keyof CertificateCounts }[] {
+  return [
+    { label: t("allCertificates"), value: null, countKey: "total" },
+    { label: t("active"), value: "valid", countKey: "valid" },
+    { label: t("revoked"), value: "revoked", countKey: "revoked" },
+  ];
+}
 
 type Props = {
   active: CertificateStatusTab;
@@ -22,10 +29,13 @@ type Props = {
 };
 
 export function CertificateStatusTabs({ active, onChange, counts }: Props) {
+  const t = useTranslations("CertificateStatusTabs");
+  const TABS = getTabs(t);
+
   return (
     <div
       role="tablist"
-      aria-label="Filter certificates by status"
+      aria-label={t("ariaLabel")}
       className="flex flex-wrap items-center"
       style={{ gap: "clamp(16px, 2.22vw, 32px)" }}
     >

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { ChevronDown } from "lucide-react";
 import type { Category } from "@/entities/course";
 import { AccentButton } from "@/shared/ui/AccentButton";
@@ -17,11 +18,7 @@ export const COURSE_ICONS = [
   { name: "workspace",     src: "/cources-default-pic/workspace-pic.svg" },
 ];
 
-const LEVELS = [
-  { value: "beginner",     label: "Beginner" },
-  { value: "intermediate", label: "Intermediate" },
-  { value: "advanced",     label: "Advanced" },
-];
+const LEVEL_VALUES = ["beginner", "intermediate", "advanced"] as const;
 
 const fieldCls = (err: boolean) =>
   ["w-full rounded-xl outline-none transition focus:ring-2 focus:ring-(--color-blue)", err ? "ring-2 ring-red-500" : ""]
@@ -112,6 +109,7 @@ function FormSelect({ name, value, options, placeholder, disabled, hasError, onS
   disabled?: boolean;
   hasError?: boolean;
 }) {
+  const t = useTranslations("CourseBasicsForm");
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const selected = options.find(o => o.value === value);
@@ -149,7 +147,7 @@ function FormSelect({ name, value, options, placeholder, disabled, hasError, onS
         }}
       >
         <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-          {selected?.label ?? placeholder ?? "Select…"}
+          {selected?.label ?? placeholder ?? t("selectPlaceholder")}
         </span>
         <ChevronDown
           size={16}
@@ -208,13 +206,6 @@ function FormSelect({ name, value, options, placeholder, disabled, hasError, onS
   );
 }
 
-const SECTION_ACTION_LABEL: Record<NonNullable<SectionActionValue>, { label: string; color: string }> = {
-  approved:       { label: "Approved",          color: "var(--color-success)" },
-  needs_revision: { label: "Requires Revision", color: "var(--color-warning)" },
-  rejected:       { label: "Rejected",          color: "var(--color-rejected)" },
-  "":             { label: "",                  color: "" },
-};
-
 /** Form card for course basics — shared between new-course and edit-course pages. */
 export function CourseBasicsForm({
   form,
@@ -225,14 +216,22 @@ export function CourseBasicsForm({
   fieldErrors,
   generalError,
   submitting,
-  submitLabel = "Continue to Course Content",
+  submitLabel,
   onCancel,
-  cancelLabel = "Cancel",
+  cancelLabel,
   fieldStatuses,
   moderatorComment,
   moderatorSectionAction,
   readonlyFields,
 }: Props) {
+  const t = useTranslations("CourseBasicsForm");
+  const LEVELS = LEVEL_VALUES.map((value) => ({ value, label: t(`level.${value}`) }));
+  const SECTION_ACTION_LABEL: Record<NonNullable<SectionActionValue>, { label: string; color: string }> = {
+    approved:       { label: t("statusApproved"),      color: "var(--color-success)" },
+    needs_revision: { label: t("statusNeedsRevision"), color: "var(--color-warning)" },
+    rejected:       { label: t("statusRejected"),       color: "var(--color-rejected)" },
+    "":             { label: "",                        color: "" },
+  };
   const ro = (field: string) => readonlyFields?.has(field) ?? false;
   const roWrap = (field: string): React.CSSProperties => ro(field) ? { opacity: 0.5, pointerEvents: "none" } : {};
 
@@ -248,35 +247,35 @@ export function CourseBasicsForm({
         className="font-(family-name:--font-base) text-(--color-text-primary)"
         style={{ fontSize: "clamp(14px, 1.25vw, 24px)", marginBottom: "clamp(14px, 1.04vw, 20px)" }}
       >
-        Course information
+        {t("courseInformation")}
       </p>
 
       <div style={{ display: "flex", flexDirection: "column", gap: "clamp(14px, 1.25vw, 20px)" }}>
 
         {/* Title */}
         <div style={roWrap("title")}>
-          <FieldLabelRow htmlFor="title" label="Course Title*" fieldKey="field-title" fieldStatuses={fieldStatuses} />
-          <input id="title" name="title" value={form.title} onChange={onChange} readOnly={ro("title")} required placeholder="Untitled Course" className={fieldCls(!!fieldErrors.title)} style={fieldSt(!!fieldErrors.title)} />
+          <FieldLabelRow htmlFor="title" label={t("courseTitle")} fieldKey="field-title" fieldStatuses={fieldStatuses} />
+          <input id="title" name="title" value={form.title} onChange={onChange} readOnly={ro("title")} required placeholder={t("untitledCourse")} className={fieldCls(!!fieldErrors.title)} style={fieldSt(!!fieldErrors.title)} />
           {fieldErrors.title && <p className="mt-1 text-xs text-red-500">{fieldErrors.title}</p>}
         </div>
 
         {/* Short Description */}
         <div style={roWrap("short_description")}>
-          <FieldLabelRow htmlFor="short_description" label="Short Description*" fieldKey="field-short-description" fieldStatuses={fieldStatuses} />
-          <input id="short_description" name="short_description" value={form.short_description} onChange={onChange} readOnly={ro("short_description")} required maxLength={500} placeholder="Brief summary shown in course cards and search results..." className={fieldCls(!!fieldErrors.short_description)} style={fieldSt(!!fieldErrors.short_description)} />
+          <FieldLabelRow htmlFor="short_description" label={t("shortDescription")} fieldKey="field-short-description" fieldStatuses={fieldStatuses} />
+          <input id="short_description" name="short_description" value={form.short_description} onChange={onChange} readOnly={ro("short_description")} required maxLength={500} placeholder={t("shortDescriptionPlaceholder")} className={fieldCls(!!fieldErrors.short_description)} style={fieldSt(!!fieldErrors.short_description)} />
           {fieldErrors.short_description && <p className="mt-1 text-xs text-red-500">{fieldErrors.short_description}</p>}
         </div>
 
         {/* Full Description */}
         <div style={roWrap("full_description")}>
-          <FieldLabelRow htmlFor="full_description" label="Full Description*" fieldKey="field-full-description" fieldStatuses={fieldStatuses} />
-          <textarea id="full_description" name="full_description" value={form.full_description} onChange={onChange} readOnly={ro("full_description")} required rows={5} placeholder="Detailed description of the course content, goals, and requirements..." className={fieldCls(!!fieldErrors.full_description)} style={{ ...fieldSt(!!fieldErrors.full_description), resize: "vertical" }} />
+          <FieldLabelRow htmlFor="full_description" label={t("fullDescription")} fieldKey="field-full-description" fieldStatuses={fieldStatuses} />
+          <textarea id="full_description" name="full_description" value={form.full_description} onChange={onChange} readOnly={ro("full_description")} required rows={5} placeholder={t("fullDescriptionPlaceholder")} className={fieldCls(!!fieldErrors.full_description)} style={{ ...fieldSt(!!fieldErrors.full_description), resize: "vertical" }} />
           {fieldErrors.full_description && <p className="mt-1 text-xs text-red-500">{fieldErrors.full_description}</p>}
         </div>
 
         {/* Icon picker */}
         <div style={roWrap("icon")}>
-          <FieldLabelRow label="Course Icon*" fieldKey="field-icon" fieldStatuses={fieldStatuses} />
+          <FieldLabelRow label={t("courseIcon")} fieldKey="field-icon" fieldStatuses={fieldStatuses} />
           <div className="flex items-end" style={{ gap: "clamp(10px, 1.25vw, 20px)" }}>
             {COURSE_ICONS.map((icon) => {
               const isSelected = selectedIcon === icon.name;
@@ -293,13 +292,13 @@ export function CourseBasicsForm({
         {/* Category + Level */}
         <div className="grid grid-cols-2" style={{ gap: "clamp(16px, 2.08vw, 40px)" }}>
           <div style={roWrap("category_id")}>
-            <FieldLabelRow label="Category*" fieldKey="field-category" fieldStatuses={fieldStatuses} />
+            <FieldLabelRow label={t("category")} fieldKey="field-category" fieldStatuses={fieldStatuses} />
             <FormSelect
               name="category_id"
               value={form.category_id}
               options={categories.map(c => ({ value: String(c.id), label: c.name }))}
               onSelect={handleSelectChange}
-              placeholder="Select category"
+              placeholder={t("selectCategory")}
               disabled={ro("category_id")}
               hasError={!!fieldErrors.category_id}
             />
@@ -307,13 +306,13 @@ export function CourseBasicsForm({
           </div>
 
           <div style={roWrap("level")}>
-            <FieldLabelRow label="Level*" fieldKey="field-level" fieldStatuses={fieldStatuses} />
+            <FieldLabelRow label={t("levelLabel")} fieldKey="field-level" fieldStatuses={fieldStatuses} />
             <FormSelect
               name="level"
               value={form.level}
               options={LEVELS}
               onSelect={handleSelectChange}
-              placeholder="Select level"
+              placeholder={t("selectLevel")}
               disabled={ro("level")}
               hasError={!!fieldErrors.level}
             />
@@ -330,9 +329,9 @@ export function CourseBasicsForm({
 
         {/* Submit row */}
         <div className={`flex items-center ${onCancel ? "justify-between" : "justify-end"}`} style={{ marginTop: "clamp(8px, 0.63vw, 12px)" }}>
-          {onCancel && <WhiteButton onClick={onCancel}>{cancelLabel}</WhiteButton>}
+          {onCancel && <WhiteButton onClick={onCancel}>{cancelLabel ?? t("cancel")}</WhiteButton>}
           <AccentButton type="submit" size="md" disabled={submitting}>
-            {submitting ? "Saving..." : submitLabel}
+            {submitting ? t("saving") : (submitLabel ?? t("continueToCourseContent"))}
           </AccentButton>
         </div>
 

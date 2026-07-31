@@ -1,7 +1,9 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
 import { Search, X } from "lucide-react";
 
 type Props = {
@@ -13,6 +15,8 @@ export function BlogSearch({ initialQuery = "" }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(initialQuery);
+  const t = useTranslations("BlogSearch");
+  const tCommon = useTranslations("Common");
 
   function submitSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -52,20 +56,20 @@ export function BlogSearch({ initialQuery = "" }: Props) {
         className="h-6 w-6 shrink-0 text-(--color-text-primary)"
       />
       <label className="sr-only" htmlFor="blog-search">
-        Search articles
+        {t("searchArticles")}
       </label>
       <input
         id="blog-search"
         value={query}
         onChange={(event) => setQuery(event.target.value)}
-        placeholder="Search"
+        placeholder={tCommon("search")}
         className="h-full flex-1 bg-transparent text-xl font-medium text-(--color-text-primary) outline-none placeholder:font-normal placeholder:text-(--color-catalog-placeholder)"
       />
       {initialQuery ? (
         <button
           type="button"
           onClick={clearSearch}
-          aria-label="Clear search"
+          aria-label={t("clearSearch")}
           className="shrink-0 text-(--color-text-secondary) transition-opacity hover:opacity-70"
         >
           <X className="h-5 w-5" />

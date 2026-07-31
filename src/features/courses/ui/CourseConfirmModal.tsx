@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { ModalShell } from "@/shared/ui/ModalShell";
 import { AccentButton } from "@/shared/ui/AccentButton";
 import { WhiteButton } from "@/shared/ui/WhiteButton";
@@ -38,6 +39,7 @@ export function CourseConfirmModal({
   onCancel,
   loading = false,
 }: Props) {
+  const t = useTranslations("CourseConfirmModal");
   return (
     <ModalShell
       onClose={onCancel}
@@ -69,7 +71,7 @@ export function CourseConfirmModal({
             padding: "0 clamp(16px, 1.25vw, 24px)",
           }}
         >
-          Cancel
+          {t("cancel")}
         </WhiteButton>
         <AccentButton
           type="button"

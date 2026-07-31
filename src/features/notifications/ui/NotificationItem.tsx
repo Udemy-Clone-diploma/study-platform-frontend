@@ -1,6 +1,7 @@
 "use client";
 
-import Link from "next/link";
+import { useLocale } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { Award, ShieldAlert, Bell, BookOpen, Bookmark, ClipboardList, MessageSquare } from "lucide-react";
 import type { Notification, NotificationType } from "@/entities/notification";
 import { formatRelativeTime } from "@/shared/lib/time";
@@ -29,6 +30,7 @@ export function NotificationItem({
 }) {
   const Icon = ICONS[notification.type] ?? Bell;
   const isRead = notification.is_read;
+  const locale = useLocale();
 
   const cardClass = `flex w-full items-start gap-4 rounded-3xl p-3 text-left transition-colors ${
     isRead ? "bg-(--color-bg)/40 group-hover:bg-(--color-bg)/70" : "bg-(--color-bg)"
@@ -66,7 +68,7 @@ export function NotificationItem({
           {notification.body}
         </span>
         <time dateTime={notification.created_at} className="text-xs text-(--color-text-secondary)">
-          {formatRelativeTime(notification.created_at)}
+          {formatRelativeTime(notification.created_at, locale)}
         </time>
       </span>
     </>

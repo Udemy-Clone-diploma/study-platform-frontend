@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
 import { PageShell } from "@/shared/ui/PageShell";
 import { Pagination } from "@/shared/ui/Pagination";
 import {
@@ -23,6 +25,7 @@ const STATUSES: TeacherApplicationStatus[] = ["pending", "approved", "cancelled"
 type PendingDecision = { kind: "approve" | "cancel"; application: TeacherApplication };
 
 export function TeacherApplicationsAdminView() {
+  const t = useTranslations("TeacherApplicationsAdmin");
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -93,13 +96,13 @@ export function TeacherApplicationsAdminView() {
         }
         setApplications([]);
         setCount(0);
-        setListError(apiError.message ?? "Failed to load applications.");
+        setListError(apiError.message ?? t("failedToLoad"));
         setLoadedKey(queryKey);
       });
     return () => {
       cancelled = true;
     };
-  }, [page, status, search, ordering, queryKey, updateParams]);
+  }, [page, status, search, ordering, queryKey, updateParams, t]);
 
   const refresh = useCallback(() => setRefreshKey((key) => key + 1), []);
 
@@ -128,14 +131,14 @@ export function TeacherApplicationsAdminView() {
       setPendingDecision(null);
       refresh();
     } catch (err) {
-      setDecisionError((err as ApiError).message ?? "Something went wrong.");
+      setDecisionError((err as ApiError).message ?? t("somethingWrong"));
     } finally {
       setDecisionLoading(false);
     }
   }
 
   const totalPages = Math.max(1, Math.ceil(count / PAGE_SIZE));
-  const emptyMessage = loading ? "Loading applications…" : "No applications found.";
+  const emptyMessage = loading ? t("loadingApplications") : t("noApplicationsFound");
 
   const applicantName = pendingDecision
     ? `${pendingDecision.application.first_name} ${pendingDecision.application.last_name}`.trim() ||
@@ -144,15 +147,15 @@ export function TeacherApplicationsAdminView() {
   const decisionCopy = pendingDecision
     ? {
         approve: {
-          title: "Approve application",
-          description: `Approve ${applicantName}'s application? A teacher account will be created and an invitation email will be sent.`,
-          confirmLabel: "Approve",
+          title: t("approveApplicationTitle"),
+          description: t("approveApplicationDescription", { name: applicantName }),
+          confirmLabel: t("approve"),
           commentRequired: false,
         },
         cancel: {
-          title: "Cancel application",
-          description: `Cancel ${applicantName}'s application? They will receive an email with your comment.`,
-          confirmLabel: "Cancel Application",
+          title: t("cancelApplicationTitle"),
+          description: t("cancelApplicationDescription", { name: applicantName }),
+          confirmLabel: t("cancelApplicationConfirmLabel"),
           commentRequired: true,
         },
       }[pendingDecision.kind]
@@ -169,7 +172,7 @@ export function TeacherApplicationsAdminView() {
             margin: "0 0 clamp(16px, 1.67vw, 24px)",
           }}
         >
-          Teacher Applications
+          {t("heading")}
         </h1>
 
         <div style={{ marginBottom: "clamp(16px, 1.67vw, 24px)" }}>

@@ -1,19 +1,28 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { CertificateStatus } from "@/entities/certificate";
+
+type Translator = (key: string, values?: Record<string, string | number>) => string;
 
 type Props = {
   status: CertificateStatus;
   superseded?: boolean;
 };
 
+function statusConfig(
+  status: CertificateStatus,
+  superseded: boolean,
+  t: Translator,
+): { label: string; accent: string } {
+  if (status === "revoked") return { label: t("statusRevoked"), accent: "var(--color-rejected)" };
+  if (superseded) return { label: t("statusSuperseded"), accent: "var(--color-text-secondary)" };
+  return { label: t("statusActive"), accent: "var(--color-success)" };
+}
+
 export function CertificateStatusBadge({ status, superseded = false }: Props) {
-  const config =
-    status === "revoked"
-      ? { label: "Revoked", accent: "var(--color-rejected)" }
-      : superseded
-        ? { label: "Superseded", accent: "var(--color-text-secondary)" }
-        : { label: "Active", accent: "var(--color-success)" };
+  const t = useTranslations("CertificateStatusBadge");
+  const config = statusConfig(status, superseded, t);
 
   return (
     <span

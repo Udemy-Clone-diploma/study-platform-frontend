@@ -1,7 +1,8 @@
 "use client";
 
 import { Heart } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
 import { useState } from "react";
 import { toggleWishlist } from "@/entities/course";
 import type { ApiError } from "@/shared/api/base";
@@ -18,6 +19,7 @@ export function WishlistButton({ slug, initialLiked = false }: Props) {
   const [liked, setLiked] = useState(initialLiked);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const t = useTranslations("CourseCard");
 
   const role = getClientCookie(AUTH_COOKIE_NAMES.role);
   if (role && role !== "student") return null;
@@ -44,7 +46,7 @@ export function WishlistButton({ slug, initialLiked = false }: Props) {
   return (
     <button
       type="button"
-      aria-label={liked ? "Remove from wishlist" : "Add to wishlist"}
+      aria-label={liked ? t("removeFromWishlist") : t("addToWishlist")}
       aria-pressed={liked}
       disabled={loading}
       onClick={handleClick}

@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { AuthField, AuthShell, useAuthForm } from "@/features/auth";
 import { checkTeacherApplicationEmail, submitTeacherApplication } from "@/entities/teacher-application";
 import { AccentButton } from "@/shared/ui/AccentButton";
@@ -43,11 +44,15 @@ export function TeacherApplicationForm() {
   const router = useRouter();
   const [step, setStep] = useState<Step>(1);
   const [checkingEmail, setCheckingEmail] = useState(false);
+  const t = useTranslations("TeacherApplication");
+  const tAuth = useTranslations("Auth.register");
+  const tValidationAuth = useTranslations("Auth.validation");
+  const tValidation = useTranslations("TeacherApplication.validation");
 
   const { formData, errors, apiError, isSubmitting, handleChange, handleSubmit, setFormData, setErrors, setApiError } =
     useAuthForm<TeacherApplicationFormData>({
       initial: initialForm,
-      validate: validateTeacherApplicationForm,
+      validate: (data) => validateTeacherApplicationForm(data, tValidationAuth, tValidation),
       fieldKeys: [
         "email",
         "bio",
@@ -66,7 +71,7 @@ export function TeacherApplicationForm() {
         phone_number: "phoneNumber",
         years_experience: "yearsExperience",
       },
-      fallbackError: "We could not submit your application. Please try again.",
+      fallbackError: t("fallbackError"),
       submit: async (data) => {
         await submitTeacherApplication({
           first_name: data.firstName.trim(),
@@ -97,7 +102,7 @@ export function TeacherApplicationForm() {
     try {
       const result = await checkTeacherApplicationEmail(trimmed);
       if (!result.available) {
-        setErrors((prev) => ({ ...prev, email: result.detail || "This email cannot be used." }));
+        setErrors((prev) => ({ ...prev, email: result.detail || t("emailUnavailable") }));
         return false;
       }
       return true;
@@ -133,7 +138,7 @@ export function TeacherApplicationForm() {
   async function handleFormSubmit(event: React.FormEvent<HTMLFormElement>) {
     if (step === 1) {
       event.preventDefault();
-      const validationErrors = validateApplicationBasicStep(formData);
+      const validationErrors = validateApplicationBasicStep(formData, tValidationAuth, tValidation);
       if (Object.keys(validationErrors).length > 0) {
         setErrors(validationErrors);
         return;
@@ -146,7 +151,7 @@ export function TeacherApplicationForm() {
     }
     if (step === 2) {
       event.preventDefault();
-      goToStep(3, validateApplicationProfileStep);
+      goToStep(3, (data) => validateApplicationProfileStep(data, tValidation));
       return;
     }
     handleSubmit(event);
@@ -157,7 +162,7 @@ export function TeacherApplicationForm() {
       <form onSubmit={handleFormSubmit} className="w-full">
         <div className="w-full space-y-8">
           <h1 className="text-center text-[2.05rem] font-normal tracking-[0.04em] text-[#0f0d10] uppercase">
-            Apply as a Teacher
+            {t("title")}
           </h1>
 
           {step === 1 ? (
@@ -166,7 +171,7 @@ export function TeacherApplicationForm() {
                 id="firstName"
                 name="firstName"
                 type="text"
-                label="First Name"
+                label={t("firstNameLabel")}
                 value={formData.firstName}
                 onChange={handleChange}
                 error={errors.firstName}
@@ -176,7 +181,7 @@ export function TeacherApplicationForm() {
               <DatePicker
                 variant="underline"
                 allowTyping
-                label="Date of Birth"
+                label={t("dateOfBirthLabel")}
                 max={todayISO()}
                 value={formData.dateOfBirth}
                 error={errors.dateOfBirth}
@@ -191,7 +196,7 @@ export function TeacherApplicationForm() {
                 id="lastName"
                 name="lastName"
                 type="text"
-                label="Last Name"
+                label={t("lastNameLabel")}
                 value={formData.lastName}
                 onChange={handleChange}
                 error={errors.lastName}
@@ -202,7 +207,7 @@ export function TeacherApplicationForm() {
                 id="email"
                 name="email"
                 type="email"
-                label="Email"
+                label={t("emailLabel")}
                 value={formData.email}
                 onChange={handleChange}
                 onBlur={(event) => checkEmailAvailability(event.target.value)}
@@ -214,7 +219,7 @@ export function TeacherApplicationForm() {
                 id="phoneNumber"
                 name="phoneNumber"
                 type="tel"
-                label="Phone Number"
+                label={t("phoneNumberLabel")}
                 value={formData.phoneNumber}
                 onChange={handleChange}
                 error={errors.phoneNumber}
@@ -230,7 +235,7 @@ export function TeacherApplicationForm() {
                   id="specialization"
                   name="specialization"
                   type="text"
-                  label="Field of Study"
+                  label={t("fieldOfStudyLabel")}
                   value={formData.specialization}
                   onChange={handleChange}
                   error={errors.specialization}
@@ -241,7 +246,7 @@ export function TeacherApplicationForm() {
                   name="yearsExperience"
                   type="number"
                   min={0}
-                  label="Years of Experience (optional)"
+                  label={t("yearsExperienceLabel")}
                   value={formData.yearsExperience}
                   onChange={handleChange}
                   error={errors.yearsExperience}
@@ -251,7 +256,7 @@ export function TeacherApplicationForm() {
               <ApplicationTextareaField
                 id="experience"
                 name="experience"
-                label="Work Experience"
+                label={t("workExperienceLabel")}
                 value={formData.experience}
                 onChange={handleTextareaChange}
                 error={errors.experience}
@@ -260,7 +265,7 @@ export function TeacherApplicationForm() {
               <ApplicationTextareaField
                 id="bio"
                 name="bio"
-                label="Bio"
+                label={t("bioLabel")}
                 value={formData.bio}
                 onChange={handleTextareaChange}
                 error={errors.bio}
@@ -278,7 +283,7 @@ export function TeacherApplicationForm() {
               <ApplicationTextareaField
                 id="motivation"
                 name="motivation"
-                label="What would you like to teach, and what makes you the right person to teach it?"
+                label={t("motivationLabel")}
                 value={formData.motivation}
                 onChange={handleTextareaChange}
                 error={errors.motivation}
@@ -289,7 +294,7 @@ export function TeacherApplicationForm() {
                   id="linkedin"
                   name="linkedin"
                   type="url"
-                  label="LinkedIn (optional)"
+                  label={t("linkedinLabel")}
                   value={formData.linkedin}
                   onChange={handleChange}
                   error={errors.linkedin}
@@ -299,7 +304,7 @@ export function TeacherApplicationForm() {
                   id="instagram"
                   name="instagram"
                   type="url"
-                  label="Instagram (optional)"
+                  label={t("instagramLabel")}
                   value={formData.instagram}
                   onChange={handleChange}
                   error={errors.instagram}
@@ -309,7 +314,7 @@ export function TeacherApplicationForm() {
                   id="behance"
                   name="behance"
                   type="url"
-                  label="Behance (optional)"
+                  label={t("behanceLabel")}
                   value={formData.behance}
                   onChange={handleChange}
                   error={errors.behance}
@@ -324,11 +329,11 @@ export function TeacherApplicationForm() {
             <AccentButton type="submit" disabled={isSubmitting || checkingEmail}>
               {step < 3
                 ? checkingEmail
-                  ? "Checking email…"
-                  : "Continue"
+                  ? t("checkingEmail")
+                  : tAuth("continue")
                 : isSubmitting
-                  ? "Submitting"
-                  : "Submit Application"}
+                  ? t("submitting")
+                  : t("submitApplication")}
             </AccentButton>
 
             {step > 1 ? (
@@ -341,14 +346,14 @@ export function TeacherApplicationForm() {
                 }}
                 className="text-[0.68rem] font-medium tracking-[0.26em] text-[#2f2b30] uppercase transition hover:text-black"
               >
-                Back
+                {tAuth("back")}
               </button>
             ) : null}
 
             <p className="text-center text-[0.78rem] text-[#3e3840]">
-              Already have an account?{" "}
+              {tAuth("alreadyHaveAccount")}{" "}
               <Link href="/login" className="text-[#3557ff] transition hover:text-[#1937cb]">
-                Sign in now
+                {tAuth("signInNow")}
               </Link>
             </p>
           </div>

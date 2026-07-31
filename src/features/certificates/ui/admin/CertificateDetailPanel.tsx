@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { Award, X } from "lucide-react";
 import { setCertificatePublic } from "@/entities/certificate";
 import type { Certificate, CertificateActor } from "@/entities/certificate";
@@ -11,8 +12,10 @@ import { AccentButton } from "@/shared/ui/AccentButton";
 import { CertificateStatusBadge } from "./CertificateStatusBadge";
 import { formatCertificateDate } from "./CertificatesTable";
 
-function actorName(actor: CertificateActor): string {
-  return actor.full_name.trim() || `Administrator #${actor.id}`;
+type Translator = (key: string, values?: Record<string, string | number>) => string;
+
+function actorName(actor: CertificateActor, t: Translator): string {
+  return actor.full_name.trim() || t("administratorFallback", { id: actor.id });
 }
 
 type Props = {
@@ -22,6 +25,8 @@ type Props = {
 };
 
 export function CertificateDetailPanel({ certificate, onClose, onVisibilityChange }: Props) {
+  const t = useTranslations("CertificateDetailPanel");
+  const locale = useLocale();
   const [visibilityLoading, setVisibilityLoading] = useState(false);
   const [visibilityError, setVisibilityError] = useState<string | null>(null);
 
@@ -31,7 +36,7 @@ export function CertificateDetailPanel({ certificate, onClose, onVisibilityChang
     try {
       onVisibilityChange(await setCertificatePublic(certificate.id, !certificate.is_public));
     } catch (err) {
-      setVisibilityError((err as ApiError).message ?? "Could not change visibility.");
+      setVisibilityError((err as ApiError).message ?? t("errorVisibilityChange"));
     } finally {
       setVisibilityLoading(false);
     }
@@ -39,7 +44,7 @@ export function CertificateDetailPanel({ certificate, onClose, onVisibilityChang
 
   return (
     <aside
-      aria-label="Certificate details"
+      aria-label={t("ariaLabel")}
       className="flex shrink-0 flex-col rounded-[20px] border border-white bg-(--color-white-20) shadow-(--shadow-usp-glass) backdrop-blur-md"
       style={{
         width: "clamp(300px, 24vw, 360px)",
@@ -57,7 +62,7 @@ export function CertificateDetailPanel({ certificate, onClose, onVisibilityChang
         <button
           type="button"
           onClick={onClose}
-          aria-label="Close details"
+          aria-label={t("closeAriaLabel")}
           className="flex shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-1 text-(--color-text-secondary) transition hover:bg-(--color-brand-lavender-soft)"
         >
           <X size={18} />
@@ -72,9 +77,9 @@ export function CertificateDetailPanel({ certificate, onClose, onVisibilityChang
       />
 
       <dl className="flex flex-col" style={{ gap: 10, margin: 0 }}>
-        <DetailRow label="Student">{certificate.student.full_name}</DetailRow>
-        <DetailRow label="Email">{certificate.student.email}</DetailRow>
-        <DetailRow label="Course">
+        <DetailRow label={t("fieldStudent")}>{certificate.student.full_name}</DetailRow>
+        <DetailRow label={t("fieldEmail")}>{certificate.student.email}</DetailRow>
+        <DetailRow label={t("fieldCourse")}>
           <Link
             href={`/courses/${certificate.course.slug}`}
             target="_blank"
@@ -83,44 +88,47 @@ export function CertificateDetailPanel({ certificate, onClose, onVisibilityChang
             {certificate.course.title}
           </Link>
         </DetailRow>
-        <DetailRow label="Issue date">{formatCertificateDate(certificate.issued_at)}</DetailRow>
+        <DetailRow label={t("fieldIssueDate")}>
+          {formatCertificateDate(certificate.issued_at, locale)}
+        </DetailRow>
         {certificate.final_score && (
-          <DetailRow label="Score">{Number(certificate.final_score)}</DetailRow>
+          <DetailRow label={t("fieldScore")}>{Number(certificate.final_score)}</DetailRow>
         )}
-        <DetailRow label="Issued by">
-          {certificate.issued_by ? actorName(certificate.issued_by) : "Automatic on completion"}
+        <DetailRow label={t("fieldIssuedBy")}>
+          {certificate.issued_by ? actorName(certificate.issued_by, t) : t("automaticOnCompletion")}
         </DetailRow>
         {certificate.revoked_at && (
-          <DetailRow label="Revoked">{formatCertificateDate(certificate.revoked_at)}</DetailRow>
+          <DetailRow label={t("fieldRevoked")}>
+            {formatCertificateDate(certificate.revoked_at, locale)}
+          </DetailRow>
         )}
         {certificate.revoked_by && (
-          <DetailRow label="Revoked by">{actorName(certificate.revoked_by)}</DetailRow>
+          <DetailRow label={t("fieldRevokedBy")}>{actorName(certificate.revoked_by, t)}</DetailRow>
         )}
         {certificate.restored_at && (
-          <DetailRow label="Restored">{formatCertificateDate(certificate.restored_at)}</DetailRow>
+          <DetailRow label={t("fieldRestored")}>
+            {formatCertificateDate(certificate.restored_at, locale)}
+          </DetailRow>
         )}
         {certificate.restored_by && (
-          <DetailRow label="Restored by">{actorName(certificate.restored_by)}</DetailRow>
+          <DetailRow label={t("fieldRestoredBy")}>{actorName(certificate.restored_by, t)}</DetailRow>
         )}
       </dl>
 
       {certificate.issue_note && (
-        <ReasonNote label="Issue note">{certificate.issue_note}</ReasonNote>
+        <ReasonNote label={t("issueNoteLabel")}>{certificate.issue_note}</ReasonNote>
       )}
 
       {certificate.revoke_reason && (
-        <ReasonNote label="Revoke reason">{certificate.revoke_reason}</ReasonNote>
+        <ReasonNote label={t("revokeReasonLabel")}>{certificate.revoke_reason}</ReasonNote>
       )}
 
       {certificate.restore_reason && (
-        <ReasonNote label="Restore reason">{certificate.restore_reason}</ReasonNote>
+        <ReasonNote label={t("restoreReasonLabel")}>{certificate.restore_reason}</ReasonNote>
       )}
 
       {certificate.completion_reverted && (
-        <ReasonNote label="Cannot be restored">
-          The course completion behind this certificate was reverted. Have the student complete the
-          course again, or issue a new certificate by hand.
-        </ReasonNote>
+        <ReasonNote label={t("cannotBeRestoredLabel")}>{t("cannotBeRestoredBody")}</ReasonNote>
       )}
 
       <div className="flex flex-col" style={{ gap: 6 }}>
@@ -140,15 +148,13 @@ export function CertificateDetailPanel({ certificate, onClose, onVisibilityChang
             onChange={toggleVisibility}
             className="h-4 w-4 shrink-0 cursor-pointer accent-(--color-blue)"
           />
-          Publicly verifiable
+          {t("publiclyVerifiable")}
         </label>
         <span
           className="text-(--color-text-secondary)"
           style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.83vw, 13px)" }}
         >
-          {certificate.is_public
-            ? "Anyone with the serial can confirm this certificate."
-            : "Public checks of this serial return no result."}
+          {certificate.is_public ? t("visiblePublicNotice") : t("hiddenPublicNotice")}
         </span>
         {visibilityError && (
           <span
@@ -169,7 +175,7 @@ export function CertificateDetailPanel({ certificate, onClose, onVisibilityChang
             lineHeight: 1.45,
           }}
         >
-          No PDF on file. Re-issue this certificate to generate one.
+          {t("noPdfNotice")}
         </span>
       )}
 
@@ -179,7 +185,7 @@ export function CertificateDetailPanel({ certificate, onClose, onVisibilityChang
           size="md"
           style={{ width: "100%", height: "clamp(40px, 3.06vw, 48px)" }}
         >
-          Open PDF
+          {t("openPdf")}
         </AccentButton>
       )}
     </aside>
@@ -187,6 +193,7 @@ export function CertificateDetailPanel({ certificate, onClose, onVisibilityChang
 }
 
 function CertificatePreview({ url, serial }: { url: string | null; serial: string }) {
+  const t = useTranslations("CertificateDetailPanel");
   const [broken, setBroken] = useState(false);
 
   if (url && !broken) {
@@ -194,7 +201,7 @@ function CertificatePreview({ url, serial }: { url: string | null; serial: strin
       <span className="relative block w-full overflow-hidden rounded-xl aspect-[297/210]">
         <Image
           src={url}
-          alt={`Certificate ${serial}`}
+          alt={t("certificateAlt", { serial })}
           fill
           unoptimized
           sizes="360px"

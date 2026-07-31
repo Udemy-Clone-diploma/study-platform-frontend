@@ -1,11 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { Eye } from "lucide-react";
 import type { ArticleListItem } from "@/entities/blog";
 import type { UserRole } from "@/entities/user";
-import { ARTICLE_STATUS_COLORS, ARTICLE_STATUS_LABELS } from "../model/articleStatus";
+import { formatDate } from "@/shared/lib/time";
+import { ARTICLE_STATUS_COLORS, getArticleStatusLabels } from "../model/articleStatus";
 
 const STAFF_ROLES: UserRole[] = ["moderator", "administrator"];
 
@@ -29,11 +31,14 @@ type Props = {
  * row opens the shared ArticleDetailPanel (info + management actions); the small eye icon is a
  * separate link straight through to the article page. */
 export function ArticleRow({ article, currentUserId, currentUserRole, isSelected, onSelect }: Props) {
+  const locale = useLocale();
+  const t = useTranslations("ArticleRow");
+  const tStatus = useTranslations("ArticleStatus");
   const isOwner = currentUserId != null && currentUserId === article.author.id;
   const isStaff = !!currentUserRole && STAFF_ROLES.includes(currentUserRole);
-  const statusLabel = ARTICLE_STATUS_LABELS[article.status];
+  const statusLabel = getArticleStatusLabels(tStatus)[article.status];
   const statusColor = ARTICLE_STATUS_COLORS[article.status];
-  const dateLabel = new Date(article.published_at ?? article.created_at).toLocaleDateString();
+  const dateLabel = formatDate(article.published_at ?? article.created_at, locale);
 
   const canManage = isOwner || isStaff;
 
@@ -100,8 +105,8 @@ export function ArticleRow({ article, currentUserId, currentUserRole, isSelected
 
           <Link
             href={`/blog/${article.slug}`}
-            aria-label="View article"
-            title="View article"
+            aria-label={t("viewArticleLabel")}
+            title={t("viewArticleLabel")}
             onClick={(e) => e.stopPropagation()}
             className="flex shrink-0 items-center justify-center rounded-full transition hover:bg-(--color-brand-lavender-soft)"
             style={{ width: 32, height: 32, background: "var(--color-bg)" }}

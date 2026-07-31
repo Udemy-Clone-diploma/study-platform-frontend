@@ -1,4 +1,5 @@
 import type { ComponentType } from "react";
+import { useTranslations } from "next-intl";
 import { BookOpen, ListChecks, Video } from "lucide-react";
 import type { LessonItem, LessonItemType } from "@/entities/course";
 import { byOrder } from "@/entities/course";
@@ -11,13 +12,10 @@ export type LessonTab = {
   label: string;
 };
 
-const ITEM_META: Record<
-  LessonItemType,
-  { label: string; Icon: ComponentType<{ className?: string }> }
-> = {
-  video: { label: "Video", Icon: Video },
-  text: { label: "Reading", Icon: BookOpen },
-  test: { label: "Test", Icon: ListChecks },
+const ITEM_ICON: Record<LessonItemType, ComponentType<{ className?: string }>> = {
+  video: Video,
+  text: BookOpen,
+  test: ListChecks,
 };
 
 /** Whether a lesson item has something to render (and therefore earns a tab). */
@@ -32,7 +30,10 @@ function isRenderable(item: LessonItem): boolean {
  * 1-based suffix ("Video 1", "Video 2") so they're distinguishable; a lone block
  * of a type stays unnumbered ("Reading", "Test").
  */
-export function buildLessonTabs(items: LessonItem[]): LessonTab[] {
+export function buildLessonTabs(
+  items: LessonItem[],
+  itemLabels: Record<LessonItemType, string>,
+): LessonTab[] {
   const ordered = byOrder(items).filter(isRenderable);
   const totals = ordered.reduce<Record<string, number>>((acc, item) => {
     acc[item.item_type] = (acc[item.item_type] ?? 0) + 1;
@@ -41,7 +42,7 @@ export function buildLessonTabs(items: LessonItem[]): LessonTab[] {
   const seen: Record<string, number> = {};
   return ordered.map((item) => {
     const n = (seen[item.item_type] = (seen[item.item_type] ?? 0) + 1);
-    const { label } = ITEM_META[item.item_type];
+    const label = itemLabels[item.item_type];
     return {
       id: item.id,
       itemType: item.item_type,
@@ -58,14 +59,15 @@ type Props = {
 
 /** Segmented control: one tab per lesson content block, in order (Figma 3113:14283). */
 export function LessonContentTabs({ tabs, activeId, onSelect }: Props) {
+  const t = useTranslations("LessonContentTabs");
   return (
     <div
       role="tablist"
-      aria-label="Lesson content"
+      aria-label={t("ariaLabel")}
       className="flex w-full max-w-[1044px] items-stretch"
     >
       {tabs.map((tab, i) => {
-        const { Icon } = ITEM_META[tab.itemType];
+        const Icon = ITEM_ICON[tab.itemType];
         const isActive = tab.id === activeId;
         return (
           <button

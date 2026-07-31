@@ -1,6 +1,8 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
 import type { BlogCategory } from "@/entities/blog";
 
 type Props = {
@@ -12,6 +14,7 @@ type Props = {
 export function BlogCategoryFilterBar({ categories, currentSlug }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const t = useTranslations("Common");
 
   function selectCategory(slug: string | null) {
     const params = new URLSearchParams(searchParams.toString());
@@ -21,8 +24,8 @@ export function BlogCategoryFilterBar({ categories, currentSlug }: Props) {
   }
 
   return (
-    <nav aria-label="Categories" className="flex flex-wrap items-center gap-3">
-      <CategoryButton label="All" active={!currentSlug} onClick={() => selectCategory(null)} />
+    <nav aria-label={t("categories")} className="flex flex-wrap items-center gap-3">
+      <CategoryButton label={t("all")} active={!currentSlug} onClick={() => selectCategory(null)} />
       {categories.map((cat) => {
         const active = currentSlug === cat.slug;
         return (

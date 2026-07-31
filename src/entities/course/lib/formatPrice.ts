@@ -1,12 +1,16 @@
 import type { PublicCourseListItem } from "../model/public";
 
-/** Format the headline (cheapest plan) price for a course card. Returns "Free" when the course has no priced plan. */
-export function formatPrice(course: Pick<PublicCourseListItem, "price" | "currency">): string {
+/** Format the headline price for a public course card. */
+export function formatPrice(
+  course: Pick<PublicCourseListItem, "price" | "currency">,
+  freeLabel = "Free",
+  locale = "en-US",
+): string {
   if (course.price == null || Number(course.price) === 0) {
-    return "Free";
+    return freeLabel;
   }
 
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat(locale, {
     style: "currency",
     currency: course.currency ?? "USD",
     maximumFractionDigits: 0,

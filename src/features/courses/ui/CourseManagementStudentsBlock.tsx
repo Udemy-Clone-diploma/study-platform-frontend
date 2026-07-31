@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Award, Check, Pencil, RotateCcw, X } from "lucide-react";
 import { DatePicker } from "@/shared/ui/DatePicker";
 import {
@@ -10,13 +11,10 @@ import {
   uncompleteStudentEnrollment,
   updateEnrollmentPeriod,
 } from "@/entities/course";
+import { DAY_KEYS } from "@/entities/course/model/schedule";
 import type { CourseDetail, EnrolledStudent, ScheduleSlot } from "@/entities/course";
 import type { ApiError } from "@/shared/api/base";
 import { CourseConfirmModal } from "./CourseConfirmModal";
-
-const DAY_SHORT: Record<number, string> = {
-  0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri", 5: "Sat", 6: "Sun",
-};
 
 const ROW: React.CSSProperties = {
   display: "flex", alignItems: "center", gap: 10,
@@ -87,6 +85,7 @@ function ListWrap({ children }: { children: React.ReactNode }) {
 // ── CompletionBadge ────────────────────────────────────────────────────────────
 
 export function CompletionBadge({ completed }: { completed: boolean }) {
+  const t = useTranslations("CourseManagementStudentsBlock");
   return (
     <span
       style={{
@@ -98,7 +97,7 @@ export function CompletionBadge({ completed }: { completed: boolean }) {
         background: "white",
       }}
     >
-      {completed ? "Completed" : "Studying"}
+      {completed ? t("completed") : t("studying")}
     </span>
   );
 }
@@ -110,6 +109,7 @@ function StudentRow({ name, email, meta, badge, completed, onComplete, onUncompl
   onComplete?: () => Promise<void>;
   onUncomplete?: () => Promise<void>;
 }) {
+  const t = useTranslations("CourseManagementStudentsBlock");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [action, setAction] = useState<"complete" | "uncomplete" | null>(null);
@@ -122,7 +122,7 @@ function StudentRow({ name, email, meta, badge, completed, onComplete, onUncompl
       else if (action === "uncomplete") await onUncomplete?.();
       setAction(null);
     } catch (err) {
-      setError((err as ApiError).message ?? "Something went wrong.");
+      setError((err as ApiError).message ?? t("errorGeneric"));
     } finally {
       setPending(false);
     }
@@ -138,12 +138,12 @@ function StudentRow({ name, email, meta, badge, completed, onComplete, onUncompl
         {meta && <span style={META_STYLE}>{meta}</span>}
         {completed != null && <CompletionBadge completed={completed} />}
         {completed === false && onComplete && (
-          <button type="button" onClick={() => setAction("complete")} disabled={pending} style={ICON_BTN} title="Mark as completed">
+          <button type="button" onClick={() => setAction("complete")} disabled={pending} style={ICON_BTN} title={t("markAsCompleted")}>
             <Award size={14} />
           </button>
         )}
         {completed === true && onUncomplete && (
-          <button type="button" onClick={() => setAction("uncomplete")} disabled={pending} style={ICON_BTN} title="Return to course">
+          <button type="button" onClick={() => setAction("uncomplete")} disabled={pending} style={ICON_BTN} title={t("returnToCourse")}>
             <RotateCcw size={14} />
           </button>
         )}
@@ -156,13 +156,13 @@ function StudentRow({ name, email, meta, badge, completed, onComplete, onUncompl
       {error && <p style={ERROR_STYLE}>{error}</p>}
       {action && (
         <CourseConfirmModal
-          title={action === "complete" ? "Mark as completed" : "Return to course"}
+          title={action === "complete" ? t("markAsCompleted") : t("returnToCourse")}
           description={
             action === "complete"
-              ? `Mark ${name || email} as completed?`
-              : `Return ${name || email} to active studying? This removes their completion (and certificate, if any).`
+              ? t("markCompletedConfirm", { name: name || email })
+              : t("returnConfirm", { name: name || email })
           }
-          confirmLabel={action === "complete" ? "Complete" : "Return"}
+          confirmLabel={action === "complete" ? t("complete") : t("return")}
           loading={pending}
           onConfirm={handleConfirm}
           onCancel={() => setAction(null)}
@@ -183,6 +183,7 @@ function IndividualStudentRow({
   fmtId: number;
   onUpdated: (updated: EnrolledStudent) => void;
 }) {
+  const t = useTranslations("CourseManagementStudentsBlock");
   const [editing, setEditing] = useState(false);
   const [start, setStart]     = useState(toDateStr(student.access_granted_at));
   const [end, setEnd]         = useState(toDateStr(student.access_until));
@@ -204,7 +205,7 @@ function IndividualStudentRow({
       }
       setAction(null);
     } catch (err) {
-      setCompleteError((err as ApiError).message ?? "Something went wrong.");
+      setCompleteError((err as ApiError).message ?? t("errorGeneric"));
     } finally {
       setCompleting(false);
     }
@@ -242,13 +243,13 @@ function IndividualStudentRow({
           {student.student_name && <p style={SUB_STYLE}>{student.student_email}</p>}
         </div>
         <div style={{ flex: "1 1 130px", minWidth: 110 }}>
-          <DatePicker label="Start" value={start} onChange={setStart} size="sm" />
+          <DatePicker label={t("start")} value={start} onChange={setStart} size="sm" />
         </div>
         <div style={{ flex: "1 1 130px", minWidth: 110 }}>
-          <DatePicker label="Until" value={end} onChange={setEnd} size="sm" />
+          <DatePicker label={t("until")} value={end} onChange={setEnd} size="sm" />
         </div>
         <button type="button" onClick={save} disabled={saving} style={{ ...SAVE_BTN, opacity: saving ? 0.5 : 1 }}>
-          <Check size={12} /> Save
+          <Check size={12} /> {t("save")}
         </button>
         <button type="button" onClick={cancel} style={ICON_BTN}>
           <X size={15} />
@@ -270,28 +271,28 @@ function IndividualStudentRow({
         {meta && <span style={META_STYLE}>{meta}</span>}
         <CompletionBadge completed={student.is_completed} />
         {!student.is_completed ? (
-          <button type="button" onClick={() => setAction("complete")} disabled={completing} style={ICON_BTN} title="Mark as completed">
+          <button type="button" onClick={() => setAction("complete")} disabled={completing} style={ICON_BTN} title={t("markAsCompleted")}>
             <Award size={14} />
           </button>
         ) : (
-          <button type="button" onClick={() => setAction("uncomplete")} disabled={completing} style={ICON_BTN} title="Return to course">
+          <button type="button" onClick={() => setAction("uncomplete")} disabled={completing} style={ICON_BTN} title={t("returnToCourse")}>
             <RotateCcw size={14} />
           </button>
         )}
-        <button type="button" onClick={() => setEditing(true)} style={ICON_BTN} title="Edit period">
+        <button type="button" onClick={() => setEditing(true)} style={ICON_BTN} title={t("editPeriod")}>
           <Pencil size={14} />
         </button>
       </div>
       {completeError && <p style={ERROR_STYLE}>{completeError}</p>}
       {action && (
         <CourseConfirmModal
-          title={action === "complete" ? "Mark as completed" : "Return to course"}
+          title={action === "complete" ? t("markAsCompleted") : t("returnToCourse")}
           description={
             action === "complete"
-              ? `Mark ${student.student_name || student.student_email} as completed?`
-              : `Return ${student.student_name || student.student_email} to active studying? This removes their completion (and certificate, if any).`
+              ? t("markCompletedConfirm", { name: student.student_name || student.student_email })
+              : t("returnConfirm", { name: student.student_name || student.student_email })
           }
-          confirmLabel={action === "complete" ? "Complete" : "Return"}
+          confirmLabel={action === "complete" ? t("complete") : t("return")}
           loading={completing}
           onConfirm={handleConfirm}
           onCancel={() => setAction(null)}
@@ -307,6 +308,8 @@ function IndividualStudentRow({
 export function IndividualStudentsList({ slug, fmtId, refreshKey }: {
   slug: string; fmtId: number; refreshKey?: number;
 }) {
+  const t = useTranslations("CourseManagementStudentsBlock");
+  const tDays = useTranslations("Days");
   const [students, setStudents] = useState<EnrolledStudent[]>([]);
   const [slots, setSlots]       = useState<ScheduleSlot[]>([]);
   const [loading, setLoading]   = useState(true);
@@ -335,8 +338,8 @@ export function IndividualStudentsList({ slug, fmtId, refreshKey }: {
     setStudents(prev => prev.map(s => s.enrollment_id === updated.enrollment_id ? updated : s));
   }
 
-  if (loading) return <EmptyMsg text="Loading…" />;
-  if (students.length === 0) return <EmptyMsg text="No students enrolled yet." />;
+  if (loading) return <EmptyMsg text={t("loading")} />;
+  if (students.length === 0) return <EmptyMsg text={t("noStudentsEnrolledYet")} />;
 
   return (
     <ListWrap>
@@ -344,7 +347,7 @@ export function IndividualStudentsList({ slug, fmtId, refreshKey }: {
         const mySlots = slotsByStudent.get(s.student_id) ?? [];
         const days = [...new Set(mySlots.map(sl => sl.day_of_week))].sort((a, b) => a - b);
         const meta = mySlots.length > 0
-          ? `${mySlots.length} session${mySlots.length !== 1 ? "s" : ""} · ${days.map(d => DAY_SHORT[d]).join(", ")}`
+          ? `${t("sessionsCount", { count: mySlots.length })} · ${days.map(d => tDays(DAY_KEYS[d])).join(", ")}`
           : undefined;
         return (
           <IndividualStudentRow
@@ -370,14 +373,15 @@ export function GroupStudentsList({ course, slug, onMemberCompleted, onMemberUnc
   onMemberCompleted?: (enrollmentId: number) => void;
   onMemberUncompleted?: (enrollmentId: number) => void;
 }) {
+  const t = useTranslations("CourseManagementStudentsBlock");
   const rows = useMemo(() =>
     (course.cohorts ?? []).flatMap(c =>
-      (c.members ?? []).map(m => ({ ...m, cohortName: c.name ?? "Unnamed cohort" }))
+      (c.members ?? []).map(m => ({ ...m, cohortName: c.name ?? t("unnamedCohort") }))
     ),
-    [course.cohorts],
+    [course.cohorts, t],
   );
 
-  if (rows.length === 0) return <EmptyMsg text="No students assigned to cohorts yet." />;
+  if (rows.length === 0) return <EmptyMsg text={t("noStudentsAssignedYet")} />;
 
   return (
     <ListWrap>
@@ -406,6 +410,7 @@ export function GroupStudentsList({ course, slug, onMemberCompleted, onMemberUnc
 
 /** List content for Scheduled or Self-paced formats — plain student list. */
 export function SimpleStudentsList({ slug, fmtId }: { slug: string; fmtId: number }) {
+  const t = useTranslations("CourseManagementStudentsBlock");
   const [students, setStudents] = useState<EnrolledStudent[]>([]);
   const [loading, setLoading]   = useState(true);
 
@@ -416,8 +421,8 @@ export function SimpleStudentsList({ slug, fmtId }: { slug: string; fmtId: numbe
       .finally(() => setLoading(false));
   }, [slug, fmtId]);
 
-  if (loading) return <EmptyMsg text="Loading…" />;
-  if (students.length === 0) return <EmptyMsg text="No students enrolled yet." />;
+  if (loading) return <EmptyMsg text={t("loading")} />;
+  if (students.length === 0) return <EmptyMsg text={t("noStudentsEnrolledYet")} />;
 
   return (
     <ListWrap>

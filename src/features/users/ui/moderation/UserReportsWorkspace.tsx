@@ -1,7 +1,8 @@
 "use client";
 
-import Link from "next/link";
-import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import { Link } from "@/i18n/navigation";
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import {
   Ban,
   Check,
@@ -29,12 +30,14 @@ import {
   type ModeratedUserReport,
   type ModeratorUserReportAction,
   type PaginatedUserReports,
+  type UserReportAuditAction,
   type UserReportReason,
   type UserReportResolution,
   type UserReportStatus,
   type UserReportUserSummary,
 } from "@/entities/user";
 import type { ApiError } from "@/shared/api/base";
+import { formatDateTime } from "@/shared/lib/time";
 import { ModalShell } from "@/shared/ui/ModalShell";
 import { PageShell } from "@/shared/ui/PageShell";
 import { Pagination } from "@/shared/ui/Pagination";
@@ -48,7 +51,6 @@ type ReportEndpoint = "all" | "unassigned" | "mine";
 
 type ReportTab = {
   key: ReportTabKey;
-  label: string;
   endpoint: ReportEndpoint;
   status?: UserReportStatus;
   resolution?: Exclude<UserReportResolution, "">;
@@ -64,78 +66,80 @@ type PendingReportAction = {
 const REPORTS_PER_PAGE = 5;
 
 const MODERATOR_TABS: ReportTab[] = [
-  { key: "unassigned", label: "Unassigned", endpoint: "unassigned" },
-  { key: "in_review", label: "Under Review", endpoint: "mine", status: "in_review" },
-  { key: "resolved", label: "Resolved", endpoint: "mine", status: "resolved" },
+  { key: "unassigned", endpoint: "unassigned" },
+  { key: "in_review", endpoint: "mine", status: "in_review" },
+  { key: "resolved", endpoint: "mine", status: "resolved" },
   {
     key: "rejected",
-    label: "Rejected",
     endpoint: "mine",
     status: "resolved",
     resolution: "dismissed",
   },
-  { key: "escalated", label: "Escalated", endpoint: "mine", status: "escalated" },
+  { key: "escalated", endpoint: "mine", status: "escalated" },
 ];
 
 const ADMIN_TABS: ReportTab[] = [
-  { key: "all", label: "All Complaints", endpoint: "all" },
-  { key: "unassigned", label: "Unassigned", endpoint: "unassigned" },
-  { key: "in_review", label: "Under Review", endpoint: "all", status: "in_review" },
-  { key: "resolved", label: "Resolved", endpoint: "all", status: "resolved" },
+  { key: "all", endpoint: "all" },
+  { key: "unassigned", endpoint: "unassigned" },
+  { key: "in_review", endpoint: "all", status: "in_review" },
+  { key: "resolved", endpoint: "all", status: "resolved" },
   {
     key: "rejected",
-    label: "Rejected",
     endpoint: "all",
     status: "resolved",
     resolution: "dismissed",
   },
-  { key: "escalated", label: "Escalated", endpoint: "all", status: "escalated" },
+  { key: "escalated", endpoint: "all", status: "escalated" },
 ];
 
-const REASON_OPTIONS: { value: "" | UserReportReason; label: string }[] = [
-  { value: "", label: "All reasons" },
-  { value: "spam", label: "Spam" },
-  { value: "harassment", label: "Harassment" },
-  { value: "hate", label: "Hate speech" },
-  { value: "violence", label: "Violence" },
-  { value: "sexual", label: "Sexual content" },
-  { value: "fraud", label: "Fraud" },
-  { value: "impersonation", label: "Impersonation" },
-  { value: "inappropriate_profile", label: "Inappropriate profile" },
-  { value: "other", label: "Other" },
+const REASON_VALUES: ("" | UserReportReason)[] = [
+  "",
+  "spam",
+  "harassment",
+  "hate",
+  "violence",
+  "sexual",
+  "fraud",
+  "impersonation",
+  "inappropriate_profile",
+  "other",
 ];
 
-const DATE_FORMATTER = new Intl.DateTimeFormat("en", {
-  dateStyle: "medium",
-  timeStyle: "short",
-});
+type Translator = (key: string, values?: Record<string, string | number>) => string;
 
-function formatDate(value: string | null): string {
-  if (!value) return "Not recorded";
+function formatReportDate(value: string | null, locale: string, notRecordedLabel: string): string {
+  if (!value) return notRecordedLabel;
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? "Not recorded" : DATE_FORMATTER.format(date);
+  if (Number.isNaN(date.getTime())) return notRecordedLabel;
+  return formatDateTime(date, locale, { dateStyle: "medium", timeStyle: "short" });
 }
 
-function fullName(user: UserReportUserSummary): string {
+function fullName(user: UserReportUserSummary, userNumberFallback: string): string {
   return (
     user.name?.trim() ||
     (user.first_name + " " + user.last_name).trim() ||
     user.email ||
-    "User #" + user.id
+    userNumberFallback
   );
 }
 
-function humanize(value?: string | null): string {
-  if (!value) return "Unknown";
-  const text = value.replaceAll("_", " ");
-  return text.charAt(0).toUpperCase() + text.slice(1);
+function reportStateLabel(report: ModeratedUserReport, tStates: Translator): string {
+  if (report.status === "resolved" && report.resolution) {
+    return tStates(report.resolution);
+  }
+  return tStates(report.status);
 }
 
-function reportStateLabel(report: ModeratedUserReport): string {
-  if (report.status === "resolved" && report.resolution) {
-    return humanize(report.resolution);
+function actorRoleLabel(
+  role: UserReportAuditAction["actor_role"],
+  tRoles: Translator,
+  t: Translator,
+): string {
+  if (role === "student" || role === "teacher" || role === "moderator" || role === "administrator") {
+    return tRoles(role);
   }
-  return humanize(report.status);
+  if (role === "system") return t("systemActor");
+  return t("unknownRole");
 }
 
 function reportStateClass(report: ModeratedUserReport): string {
@@ -161,6 +165,7 @@ function reportStateClass(report: ModeratedUserReport): string {
 }
 
 function ReportStateBadge({ report }: { report: ModeratedUserReport }) {
+  const tStates = useTranslations("UserReportsWorkspace.states");
   return (
     <span
       className={
@@ -168,7 +173,7 @@ function ReportStateBadge({ report }: { report: ModeratedUserReport }) {
         reportStateClass(report)
       }
     >
-      {reportStateLabel(report)}
+      {reportStateLabel(report, tStates)}
     </span>
   );
 }
@@ -182,10 +187,11 @@ function ReportTabs({
   activeKey: ReportTabKey;
   onChange: (key: ReportTabKey) => void;
 }) {
+  const t = useTranslations("UserReportsWorkspace");
   return (
     <div
       role="tablist"
-      aria-label="Filter complaints by status"
+      aria-label={t("filterByStatusAriaLabel")}
       className="flex flex-wrap items-center"
       style={{ gap: "clamp(16px, 2.22vw, 32px)" }}
     >
@@ -209,7 +215,7 @@ function ReportTabs({
               fontSize: "clamp(16px, 1.67vw, 24px)",
             }}
           >
-            {tab.label}
+            {t(`tabs.${tab.key}`)}
           </button>
         );
       })}
@@ -232,9 +238,19 @@ function ReportsToolbar({
   onReasonChange: (value: "" | UserReportReason) => void;
   onRefresh: () => void;
 }) {
+  const t = useTranslations("UserReportsWorkspace");
+  const tReasons = useTranslations("ReportUser.reasons");
   const [filterOpen, setFilterOpen] = useState(false);
   const filterRef = useRef<HTMLDivElement>(null);
   const activeFilters = reason ? 1 : 0;
+  const reasonOptions = useMemo(
+    () =>
+      REASON_VALUES.map((value) => ({
+        value,
+        label: value === "" ? t("allReasons") : tReasons(value),
+      })),
+    [t, tReasons],
+  );
 
   useEffect(() => {
     if (!filterOpen) return;
@@ -266,8 +282,8 @@ function ReportsToolbar({
           type="search"
           value={query}
           onChange={(event) => onQueryChange(event.target.value)}
-          placeholder="Search"
-          aria-label="Search complaints"
+          placeholder={t("searchPlaceholder")}
+          aria-label={t("searchAriaLabel")}
           className="min-w-0 flex-1 bg-transparent text-base text-(--color-text-primary) outline-none placeholder:text-(--color-text-secondary)"
           style={{ fontFamily: "var(--font-base)" }}
         />
@@ -282,7 +298,7 @@ function ReportsToolbar({
           style={{ fontFamily: "var(--font-base)" }}
         >
           <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
-          All filters
+          {t("allFilters")}
           {activeFilters > 0 ? (
             <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-(--color-blue) px-1 text-xs text-white">
               {activeFilters}
@@ -300,10 +316,10 @@ function ReportsToolbar({
             style={{ boxShadow: "var(--shadow-sort-dropdown)" }}
           >
             <p className="px-4 pb-2 text-xs font-bold tracking-[0.08em] text-(--color-text-secondary) uppercase">
-              Complaint reason
+              {t("complaintReason")}
             </p>
             <div className="max-h-72 overflow-y-auto">
-              {REASON_OPTIONS.map((option) => {
+              {reasonOptions.map((option) => {
                 const selected = option.value === reason;
                 return (
                   <button
@@ -330,8 +346,8 @@ function ReportsToolbar({
       <button
         type="button"
         onClick={onRefresh}
-        title="Refresh complaints"
-        aria-label="Refresh complaints"
+        title={t("refreshComplaints")}
+        aria-label={t("refreshComplaints")}
         className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-(--color-text-primary) shadow-sm transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-blue)"
       >
         <RefreshCw className={"h-4 w-4 " + (refreshing ? "animate-spin" : "")} />
@@ -349,6 +365,11 @@ function ReportCard({
   onReview: () => void;
   onDetails: () => void;
 }) {
+  const t = useTranslations("UserReportsWorkspace");
+  const tRoles = useTranslations("PublicProfile.roles");
+  const tReasons = useTranslations("ReportUser.reasons");
+  const tPublicProfile = useTranslations("PublicProfile");
+  const locale = useLocale();
   return (
     <li className="flex min-h-[154px] flex-col gap-5 rounded-[18px] border border-(--color-border-light) bg-white px-5 py-5 transition hover:border-[#A7BAFA] hover:shadow-sm lg:flex-row lg:items-center lg:justify-between lg:px-7">
       <div className="flex min-w-0 flex-1 flex-col justify-center">
@@ -357,26 +378,29 @@ function ReportCard({
           <div className="min-w-0">
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <p className="truncate font-bold text-(--color-text-primary)">
-                {fullName(report.reported_user)}
+                {fullName(
+                  report.reported_user,
+                  tPublicProfile("userNumber", { id: report.reported_user.id }),
+                )}
               </p>
               <time className="text-xs text-(--color-text-secondary)" dateTime={report.created_at}>
-                {formatDate(report.created_at)}
+                {formatReportDate(report.created_at, locale, t("notRecorded"))}
               </time>
             </div>
             <p className="mt-0.5 truncate text-sm text-(--color-text-secondary)">
-              {humanize(report.reported_user.role)} · {report.reported_user.email}
+              {tRoles(report.reported_user.role)} · {report.reported_user.email}
             </p>
           </div>
         </div>
 
         <p className="mt-4 line-clamp-2 max-w-4xl break-words text-sm text-(--color-text-primary)">
-          {report.details || "No additional details were provided with this complaint."}
+          {report.details || t("noDetailsCard")}
         </p>
 
         <div className="mt-4 flex flex-wrap items-center gap-4">
           <ReportStateBadge report={report} />
           <span className="text-sm font-semibold text-(--color-danger)">
-            {report.reason_label || humanize(report.reason)}
+            {tReasons(report.reason)}
           </span>
         </div>
       </div>
@@ -387,7 +411,7 @@ function ReportCard({
           onClick={onReview}
           className="inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-full border border-(--color-text-primary) bg-white px-4 text-sm font-semibold text-(--color-text-primary) transition hover:bg-(--color-brand-lavender-soft) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-blue)"
         >
-          Review
+          {t("review")}
           <Eye className="h-4 w-4" aria-hidden="true" />
         </button>
         <button
@@ -395,7 +419,7 @@ function ReportCard({
           onClick={onDetails}
           className="inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-full border border-(--color-text-primary) bg-white px-4 text-sm font-semibold text-(--color-text-primary) transition hover:bg-(--color-brand-lavender-soft) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-blue)"
         >
-          Details
+          {t("details")}
           <History className="h-4 w-4" aria-hidden="true" />
         </button>
       </div>
@@ -421,33 +445,44 @@ function UserInformation({
   user: UserReportUserSummary;
   profileLink: string;
 }) {
+  const t = useTranslations("UserReportsWorkspace");
+  const tRoles = useTranslations("PublicProfile.roles");
+  const tAccountStatus = useTranslations("UserReportsWorkspace.accountStatus");
+  const tPublicProfile = useTranslations("PublicProfile");
+  const locale = useLocale();
+  const displayName = fullName(user, tPublicProfile("userNumber", { id: user.id }));
   return (
     <section className="rounded-2xl border border-(--color-border-light) bg-(--color-bg-surface) p-5">
       <div className="mb-5 flex items-center gap-3">
         <UserAvatar user={user} size="56px" />
         <div className="min-w-0">
           <h3 className="truncate text-base font-bold text-(--color-text-primary)">{title}</h3>
-          <p className="truncate text-sm text-(--color-text-secondary)">{fullName(user)}</p>
+          <p className="truncate text-sm text-(--color-text-secondary)">{displayName}</p>
         </div>
       </div>
       <dl className="flex flex-col gap-3">
-        <InfoRow label="Full name">{fullName(user)}</InfoRow>
-        <InfoRow label="Email">{user.email}</InfoRow>
-        <InfoRow label="Registered">{formatDate(user.date_joined)}</InfoRow>
-        <InfoRow label="Role">{humanize(user.role)}</InfoRow>
-        <InfoRow label="Account">{user.is_blocked ? "Blocked" : humanize(user.status)}</InfoRow>
+        <InfoRow label={t("fullName")}>{displayName}</InfoRow>
+        <InfoRow label={t("email")}>{user.email}</InfoRow>
+        <InfoRow label={t("registered")}>
+          {formatReportDate(user.date_joined, locale, t("notRecorded"))}
+        </InfoRow>
+        <InfoRow label={t("role")}>{tRoles(user.role)}</InfoRow>
+        <InfoRow label={t("account")}>
+          {user.is_blocked ? t("blocked") : tAccountStatus(user.status)}
+        </InfoRow>
       </dl>
       <Link
         href={profileLink}
         className="mt-5 inline-flex rounded-full border border-(--color-blue) px-4 py-2 text-sm font-semibold text-(--color-blue) transition hover:bg-white"
       >
-        Open profile
+        {t("openProfile")}
       </Link>
     </section>
   );
 }
 
 function ProfileSnapshot({ report }: { report: ModeratedUserReport }) {
+  const t = useTranslations("UserReportsWorkspace");
   const snapshot = report.profile_snapshot;
   if (!snapshot) return null;
 
@@ -462,13 +497,15 @@ function ProfileSnapshot({ report }: { report: ModeratedUserReport }) {
 
   return (
     <section className="rounded-2xl border border-(--color-border-light) bg-white p-5">
-      <h3 className="text-base font-bold text-(--color-text-primary)">Profile at report time</h3>
+      <h3 className="text-base font-bold text-(--color-text-primary)">
+        {t("profileAtReportTime")}
+      </h3>
       <div className="mt-4 flex flex-wrap items-start gap-5">
         {snapshot.avatar ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={snapshot.avatar}
-            alt="Reported user's avatar at complaint time"
+            alt={t("reportedUserAvatarAlt")}
             className="h-20 w-20 rounded-full object-cover"
           />
         ) : null}
@@ -546,6 +583,11 @@ export function ReportReviewModal({
   onRequestAction: (action: ReportAction) => void;
   onClose: () => void;
 }) {
+  const t = useTranslations("UserReportsWorkspace");
+  const tStates = useTranslations("UserReportsWorkspace.states");
+  const tReasons = useTranslations("ReportUser.reasons");
+  const tPublicProfile = useTranslations("PublicProfile");
+  const locale = useLocale();
   const moderatorCanAct = !readOnly && mode === "moderator" && report.status === "in_review";
   const adminCanAct = !readOnly && mode === "administrator" && report.status === "escalated";
   const blockedDecision =
@@ -563,7 +605,7 @@ export function ReportReviewModal({
 
   return (
     <ModalShell
-      title={"Review complaint #" + report.id}
+      title={t("reviewComplaintTitle", { id: report.id })}
       icon={<Eye className="h-5 w-5" aria-hidden="true" />}
       width="min(1120px, calc(100vw - 32px))"
       padding="clamp(20px, 2.5vw, 36px)"
@@ -573,15 +615,19 @@ export function ReportReviewModal({
       <div className="flex flex-col gap-5 font-(family-name:--font-base)">
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-(--color-brand-lavender-soft) px-5 py-4">
           <div>
-            <p className="text-sm text-(--color-text-secondary)">Current processing status</p>
-            <p className="mt-1 font-bold text-(--color-text-primary)">{reportStateLabel(report)}</p>
+            <p className="text-sm text-(--color-text-secondary)">
+              {t("currentProcessingStatus")}
+            </p>
+            <p className="mt-1 font-bold text-(--color-text-primary)">
+              {reportStateLabel(report, tStates)}
+            </p>
           </div>
           <ReportStateBadge report={report} />
         </div>
 
         <div className="grid gap-5 lg:grid-cols-2">
           <UserInformation
-            title="Reported user"
+            title={t("reportedUser")}
             user={report.reported_user}
             profileLink={
               "/profile/" +
@@ -591,7 +637,7 @@ export function ReportReviewModal({
             }
           />
           <UserInformation
-            title="Complaint submitted by"
+            title={t("complaintSubmittedBy")}
             user={report.reporter}
             profileLink={
               "/profile/" +
@@ -606,18 +652,20 @@ export function ReportReviewModal({
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="text-xs font-bold tracking-[0.08em] text-(--color-text-secondary) uppercase">
-                Complaint reason
+                {t("complaintReason")}
               </p>
               <h3 className="mt-1 text-lg font-bold text-(--color-danger)">
-                {report.reason_label || humanize(report.reason)}
+                {tReasons(report.reason)}
               </h3>
             </div>
             <time className="text-sm text-(--color-text-secondary)" dateTime={report.created_at}>
-              Submitted {formatDate(report.created_at)}
+              {t("submittedDate", {
+                date: formatReportDate(report.created_at, locale, t("notRecorded")),
+              })}
             </time>
           </div>
           <p className="mt-4 whitespace-pre-wrap break-words text-sm leading-6 text-(--color-text-primary)">
-            {report.details || "No additional details were provided."}
+            {report.details || t("noDetailsModal")}
           </p>
         </section>
 
@@ -626,18 +674,23 @@ export function ReportReviewModal({
         <section className="grid gap-4 rounded-2xl border border-(--color-border-light) bg-(--color-bg-surface) p-5 sm:grid-cols-2">
           <div>
             <p className="text-xs font-bold tracking-[0.08em] text-(--color-text-secondary) uppercase">
-              Assigned moderator
+              {t("assignedModerator")}
             </p>
             <p className="mt-2 text-sm font-semibold text-(--color-text-primary)">
-              {report.assigned_moderator ? fullName(report.assigned_moderator) : "Not assigned"}
+              {report.assigned_moderator
+                ? fullName(
+                    report.assigned_moderator,
+                    tPublicProfile("userNumber", { id: report.assigned_moderator.id }),
+                  )
+                : t("notAssigned")}
             </p>
           </div>
           <div>
             <p className="text-xs font-bold tracking-[0.08em] text-(--color-text-secondary) uppercase">
-              Latest decision
+              {t("latestDecision")}
             </p>
             <p className="mt-2 text-sm font-semibold text-(--color-text-primary)">
-              {report.resolution ? humanize(report.resolution) : humanize(report.status)}
+              {report.resolution ? tStates(report.resolution) : tStates(report.status)}
             </p>
             {report.resolution_note || report.escalation_note ? (
               <p className="mt-2 whitespace-pre-wrap break-words text-sm text-(--color-text-secondary)">
@@ -656,24 +709,26 @@ export function ReportReviewModal({
               className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-(--color-text-primary) px-5 text-sm font-semibold text-white transition hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <UserRoundCheck className="h-4 w-4" aria-hidden="true" />
-              {claiming ? "Assigning…" : "Assign to me"}
+              {claiming ? t("assigning") : t("assignToMe")}
             </button>
           </div>
         ) : null}
 
         {canDecide || canUnblock ? (
           <section className="border-t border-(--color-border-light) pt-5">
-            <h3 className="mb-4 text-lg font-bold text-(--color-text-primary)">Take action</h3>
+            <h3 className="mb-4 text-lg font-bold text-(--color-text-primary)">
+              {t("takeAction")}
+            </h3>
             <div className="flex flex-wrap gap-3">
               {canDecide ? (
                 <>
                   <ReviewActionButton action="warning" onClick={() => onRequestAction("warning")}>
                     <TriangleAlert className="h-4 w-4" aria-hidden="true" />
-                    Warning
+                    {t("actionWarning")}
                   </ReviewActionButton>
                   <ReviewActionButton action="block" onClick={() => onRequestAction("block")}>
                     <Ban className="h-4 w-4" aria-hidden="true" />
-                    Block site access
+                    {t("actionBlockSiteAccess")}
                   </ReviewActionButton>
                 </>
               ) : null}
@@ -681,21 +736,21 @@ export function ReportReviewModal({
               {canUnblock ? (
                 <ReviewActionButton action="unblock" onClick={() => onRequestAction("unblock")}>
                   <LockOpen className="h-4 w-4" aria-hidden="true" />
-                  Restore site access
+                  {t("actionRestoreSiteAccess")}
                 </ReviewActionButton>
               ) : null}
 
               {moderatorCanAct ? (
                 <ReviewActionButton action="escalate" onClick={() => onRequestAction("escalate")}>
                   <ShieldAlert className="h-4 w-4" aria-hidden="true" />
-                  Escalate to administrator
+                  {t("actionEscalateToAdministrator")}
                 </ReviewActionButton>
               ) : null}
 
               {canDecide ? (
                 <ReviewActionButton action="dismiss" onClick={() => onRequestAction("dismiss")}>
                   <CircleAlert className="h-4 w-4" aria-hidden="true" />
-                  Reject complaint
+                  {t("actionRejectComplaint")}
                 </ReviewActionButton>
               ) : null}
             </div>
@@ -713,9 +768,14 @@ function ReportHistoryModal({
   report: ModeratedUserReport;
   onClose: () => void;
 }) {
+  const t = useTranslations("UserReportsWorkspace");
+  const tStates = useTranslations("UserReportsWorkspace.states");
+  const tRoles = useTranslations("PublicProfile.roles");
+  const tPublicProfile = useTranslations("PublicProfile");
+  const locale = useLocale();
   return (
     <ModalShell
-      title={"Action history · complaint #" + report.id}
+      title={t("historyModalTitle", { id: report.id })}
       icon={<History className="h-5 w-5" aria-hidden="true" />}
       width="min(760px, calc(100vw - 32px))"
       padding="clamp(20px, 2.5vw, 36px)"
@@ -725,8 +785,10 @@ function ReportHistoryModal({
       <div className="font-(family-name:--font-base)">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-(--color-brand-lavender-soft) px-5 py-4">
           <div>
-            <p className="text-sm text-(--color-text-secondary)">Latest decision</p>
-            <p className="mt-1 font-bold text-(--color-text-primary)">{reportStateLabel(report)}</p>
+            <p className="text-sm text-(--color-text-secondary)">{t("latestDecision")}</p>
+            <p className="mt-1 font-bold text-(--color-text-primary)">
+              {reportStateLabel(report, tStates)}
+            </p>
           </div>
           <ReportStateBadge report={report} />
         </div>
@@ -734,7 +796,7 @@ function ReportHistoryModal({
         {report.actions.length === 0 ? (
           <div className="flex min-h-40 flex-col items-center justify-center gap-3 rounded-2xl border border-(--color-border-light) text-center text-(--color-text-secondary)">
             <Clock3 className="h-6 w-6" aria-hidden="true" />
-            No actions have been recorded yet.
+            {t("noActionsRecorded")}
           </div>
         ) : (
           <ol className="relative ml-2 border-l-2 border-[#D6E0FF] pl-6">
@@ -745,25 +807,27 @@ function ReportHistoryModal({
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <p className="font-bold text-(--color-text-primary)">
-                        {humanize(action.action)}
+                        {tStates(action.action)}
                       </p>
                       <p className="mt-1 text-sm text-(--color-text-secondary)">
-                        {action.actor ? fullName(action.actor) : "System"}
+                        {action.actor
+                          ? fullName(action.actor, tPublicProfile("userNumber", { id: action.actor.id }))
+                          : t("systemActor")}
                         {" · "}
-                        {humanize(action.actor_role)}
+                        {actorRoleLabel(action.actor_role, tRoles, t)}
                       </p>
                     </div>
                     <time
                       className="text-xs text-(--color-text-secondary)"
                       dateTime={action.created_at}
                     >
-                      {formatDate(action.created_at)}
+                      {formatReportDate(action.created_at, locale, t("notRecorded"))}
                     </time>
                   </div>
                   <p className="mt-3 text-xs font-semibold tracking-wide text-(--color-text-secondary) uppercase">
-                    {humanize(action.previous_status)}
+                    {tStates(action.previous_status)}
                     {" → "}
-                    {humanize(action.new_status)}
+                    {tStates(action.new_status)}
                   </p>
                   {action.note ? (
                     <p className="mt-3 whitespace-pre-wrap break-words text-sm leading-6 text-(--color-text-primary)">
@@ -814,6 +878,8 @@ function nextTabForAction(action: ReportAction): ReportTabKey {
 
 /** Displays role-aware complaint queues, review controls, and immutable action history. */
 export function UserReportsWorkspace({ mode }: { mode: UserReportsWorkspaceMode }) {
+  const t = useTranslations("UserReportsWorkspace");
+  const tPublicProfile = useTranslations("PublicProfile");
   const tabs = mode === "moderator" ? MODERATOR_TABS : ADMIN_TABS;
   const [activeTabKey, setActiveTabKey] = useState<ReportTabKey>(tabs[0].key);
   const activeTab = tabs.find((tab) => tab.key === activeTabKey) ?? tabs[0];
@@ -871,13 +937,13 @@ export function UserReportsWorkspace({ mode }: { mode: UserReportsWorkspaceMode 
           return;
         }
         setReports({ count: 0, next: null, previous: null, results: [] });
-        setListError(error.detail || error.message || "Failed to load complaints.");
+        setListError(error.detail || error.message || t("failedToLoad"));
         setLoadedKey(requestKey);
       });
     return () => {
       cancelled = true;
     };
-  }, [activeTab, page, reason, requestKey, search]);
+  }, [activeTab, page, reason, requestKey, search, t]);
 
   function changeTab(key: ReportTabKey) {
     setActiveTabKey(key);
@@ -895,7 +961,7 @@ export function UserReportsWorkspace({ mode }: { mode: UserReportsWorkspaceMode 
       setReviewReport(null);
       setActiveTabKey("in_review");
       setPage(1);
-      setBanner({ tone: "success", message: "Complaint assigned to you." });
+      setBanner({ tone: "success", message: t("complaintAssigned") });
       refresh();
     } catch (error) {
       const apiError = error as ApiError;
@@ -903,8 +969,8 @@ export function UserReportsWorkspace({ mode }: { mode: UserReportsWorkspaceMode 
         tone: "error",
         message:
           apiError.status === 409
-            ? "Another moderator already claimed this complaint. The list has been refreshed."
-            : apiError.detail || apiError.message || "Failed to assign this complaint.",
+            ? t("claimConflict")
+            : apiError.detail || apiError.message || t("failedToAssign"),
       });
       refresh();
     } finally {
@@ -918,7 +984,10 @@ export function UserReportsWorkspace({ mode }: { mode: UserReportsWorkspaceMode 
     setPendingAction({
       action,
       reportId: report.id,
-      targetName: fullName(report.reported_user),
+      targetName: fullName(
+        report.reported_user,
+        tPublicProfile("userNumber", { id: report.reported_user.id }),
+      ),
     });
   }
 
@@ -946,7 +1015,7 @@ export function UserReportsWorkspace({ mode }: { mode: UserReportsWorkspaceMode 
       setPage(1);
       setBanner({
         tone: "success",
-        message: "Decision saved. The complaint card and action history were updated.",
+        message: t("decisionSaved"),
       });
       refresh();
     } catch (error) {
@@ -956,12 +1025,11 @@ export function UserReportsWorkspace({ mode }: { mode: UserReportsWorkspaceMode 
         setActionError(null);
         setBanner({
           tone: "error",
-          message:
-            "This complaint changed while you were reviewing it. The latest state was loaded.",
+          message: t("reportChangedConflict"),
         });
         refresh();
       } else {
-        setActionError(apiError.detail || apiError.message || "Failed to save this decision.");
+        setActionError(apiError.detail || apiError.message || t("failedToSaveDecision"));
       }
     } finally {
       setActionLoading(false);
@@ -980,7 +1048,7 @@ export function UserReportsWorkspace({ mode }: { mode: UserReportsWorkspaceMode 
             margin: "0 0 clamp(16px, 1.67vw, 24px)",
           }}
         >
-          Complaints
+          {t("pageTitle")}
         </h1>
 
         <div style={{ marginBottom: "clamp(20px, 2vw, 30px)" }}>
@@ -1019,9 +1087,11 @@ export function UserReportsWorkspace({ mode }: { mode: UserReportsWorkspaceMode 
 
         <section className="min-h-[520px] rounded-[20px] bg-white p-4 shadow-(--shadow-dashboard-card) sm:p-6">
           <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-lg font-bold text-(--color-text-primary)">{activeTab.label}</h2>
+            <h2 className="text-lg font-bold text-(--color-text-primary)">
+              {t(`tabs.${activeTab.key}`)}
+            </h2>
             <span className="text-sm text-(--color-text-secondary)">
-              {reports.count} complaints
+              {t("complaintsCount", { count: reports.count })}
             </span>
           </div>
 
@@ -1031,7 +1101,7 @@ export function UserReportsWorkspace({ mode }: { mode: UserReportsWorkspaceMode 
               role="status"
             >
               <RefreshCw className="h-5 w-5 animate-spin" aria-hidden="true" />
-              Loading complaints…
+              {t("loadingComplaints")}
             </div>
           ) : listError ? (
             <div className="flex min-h-[390px] flex-col items-center justify-center gap-4 text-center">
@@ -1043,13 +1113,13 @@ export function UserReportsWorkspace({ mode }: { mode: UserReportsWorkspaceMode 
                 onClick={refresh}
                 className="rounded-full border border-(--color-text-primary) px-5 py-2 text-sm font-semibold text-(--color-text-primary)"
               >
-                Try again
+                {t("tryAgain")}
               </button>
             </div>
           ) : reports.results.length === 0 ? (
             <div className="flex min-h-[390px] flex-col items-center justify-center gap-3 text-center text-(--color-text-secondary)">
               <CircleAlert className="h-7 w-7" aria-hidden="true" />
-              No complaints match these filters.
+              {t("noComplaintsMatch")}
             </div>
           ) : (
             <ul className="flex flex-col gap-4">

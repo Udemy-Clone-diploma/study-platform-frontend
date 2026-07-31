@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
 import { PageShell } from "@/shared/ui/PageShell";
 import { Pagination } from "@/shared/ui/Pagination";
 import { ConfirmActionModal } from "@/shared/ui/ConfirmActionModal";
@@ -21,6 +23,7 @@ type PendingAction = {
 };
 
 export function CoursesAdminView() {
+  const t = useTranslations("CoursesAdminView");
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -102,13 +105,13 @@ export function CoursesAdminView() {
         }
         setCourses([]);
         setCount(0);
-        setListError(apiError.message ?? "Failed to load courses.");
+        setListError(apiError.message ?? t("loadError"));
         setLoadedKey(queryKey);
       });
     return () => {
       cancelled = true;
     };
-  }, [page, statusTab, category, search, ordering, queryKey, updateParams]);
+  }, [page, statusTab, category, search, ordering, queryKey, updateParams, t]);
 
   const refresh = useCallback(() => setRefreshKey((key) => key + 1), []);
 
@@ -144,35 +147,36 @@ export function CoursesAdminView() {
       setPendingAction(null);
       refresh();
     } catch (err) {
-      setActionError((err as ApiError).message ?? "Something went wrong.");
+      setActionError((err as ApiError).message ?? t("genericError"));
     } finally {
       setActionLoading(false);
     }
   }
 
   const totalPages = Math.max(1, Math.ceil(count / PAGE_SIZE));
-  const emptyMessage = loading ? "Loading courses…" : "No courses found.";
+  const emptyMessage = loading ? t("loadingCourses") : t("noCoursesFound");
 
   const actionCopy = pendingAction
     ? {
         hide: {
-          title: "Hide course",
-          description: `Hide "${pendingAction.course.title}" from the catalog? Enrolled students keep their access, but new students will not be able to find or buy it.`,
-          confirmLabel: "Hide",
+          title: t("hideTitle"),
+          description: t("hideDescription", { title: pendingAction.course.title }),
+          confirmLabel: t("hideConfirmLabel"),
         },
         unhide: {
-          title: "Unhide course",
-          description: `Return "${pendingAction.course.title}" to the catalog and open it for new enrollments?`,
-          confirmLabel: "Unhide",
+          title: t("unhideTitle"),
+          description: t("unhideDescription", { title: pendingAction.course.title }),
+          confirmLabel: t("unhideConfirmLabel"),
         },
         delete: {
-          title: "Delete course",
+          title: t("deleteTitle"),
           description: pendingAction.course.students_count
-            ? `Delete "${pendingAction.course.title}"? It has ${pendingAction.course.students_count} enrolled ${
-                pendingAction.course.students_count === 1 ? "student" : "students"
-              }. The course will be archived and removed from the catalog; you can find it later under the Archived tab.`
-            : `Delete "${pendingAction.course.title}"? The course will be archived and removed from the catalog; you can find it later under the Archived tab.`,
-          confirmLabel: "Delete",
+            ? t("deleteDescriptionWithStudents", {
+                title: pendingAction.course.title,
+                count: pendingAction.course.students_count,
+              })
+            : t("deleteDescriptionSimple", { title: pendingAction.course.title }),
+          confirmLabel: t("deleteConfirmLabel"),
         },
       }[pendingAction.kind]
     : null;
@@ -188,7 +192,7 @@ export function CoursesAdminView() {
             margin: "0 0 clamp(16px, 1.67vw, 24px)",
           }}
         >
-          Courses
+          {t("title")}
         </h1>
 
         <div style={{ marginBottom: "clamp(16px, 1.67vw, 24px)" }}>

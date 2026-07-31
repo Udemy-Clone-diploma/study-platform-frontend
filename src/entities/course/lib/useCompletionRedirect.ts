@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 
 /** Once a course is completed, Learn is done for it — send the student back to
  *  My Courses (where the completed card with the certificate now lives) instead

@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useRef } from "react";
+import { useTranslations } from "next-intl";
 import { AccentButton } from "@/shared/ui/AccentButton";
 import type { UserData } from "@/entities/user";
 import { PROFILE_SOCIALS, type SocialLinks } from "../model/socialLinks";
@@ -23,6 +24,7 @@ type Props = {
 };
 
 export function ProfileSidebar({ user, editing, avatarPreview, socialLinks, teacherRating, showSocial = true, onSocialChange, onAvatarChange, onEdit, onCancel }: Props) {
+    const t = useTranslations("ProfileSidebar");
     const fullName = `${user.first_name} ${user.last_name}`.trim();
     const fileRef = useRef<HTMLInputElement>(null);
 
@@ -68,7 +70,7 @@ export function ProfileSidebar({ user, editing, avatarPreview, socialLinks, teac
                         fontFamily: "var(--font-base)", textAlign: "center",
                         lineHeight: 1.3,
                     }}>
-                        Change<br />photo
+                        {t("changePhoto")}
                     </div>
                 )}
 
@@ -112,7 +114,7 @@ export function ProfileSidebar({ user, editing, avatarPreview, socialLinks, teac
                     fontFamily: "var(--font-base)", fontWeight: 400,
                     fontSize: "1.667vw", color: "var(--color-text-primary)", lineHeight: 1.25,
                 }}>
-                    My social media
+                    {t("mySocialMedia")}
                 </span>
 
                 {editing ? (
@@ -169,11 +171,11 @@ export function ProfileSidebar({ user, editing, avatarPreview, socialLinks, teac
             {/* Edit / Cancel button */}
             {editing ? (
                 <AccentButton size="md" onClick={onCancel} style={{ marginTop: "0.417vw" }} className="!bg-[var(--color-text-secondary)] hover:!bg-[var(--color-cancel-hover)]">
-                    Cancel &amp; Exit
+                    {t("cancelAndExit")}
                 </AccentButton>
             ) : (
                 <AccentButton size="md" onClick={onEdit} style={{ marginTop: "0.417vw" }}>
-                    Edit
+                    {t("edit")}
                 </AccentButton>
             )}
         </div>

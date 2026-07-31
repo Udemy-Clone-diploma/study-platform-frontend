@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { ProfileField, ProfileLanguageField, ProfileInstructionLanguageField, LABEL_STYLE, VALUE_STYLE, TEXTAREA_STYLE, formatDate } from "./ProfileField";
 import type { TeacherProfile, UserLanguage } from "@/entities/user";
 
@@ -49,6 +50,8 @@ export function TeacherFields({
     onYearsExperienceChange, onPartnershipsCountChange,
     onChangePassword,
 }: Props) {
+    const t = useTranslations("ProfileFields");
+    const locale = useLocale();
     const signatureFileRef = useRef<HTMLInputElement>(null);
     const signatureSrc = signaturePreview ?? profile?.signature ?? null;
 
@@ -59,18 +62,18 @@ export function TeacherFields({
             <div style={GRID_3}>
                 {/* Row 1 */}
                 <ProfileField
-                    label="First name" value={firstName}
+                    label={t("firstName")} value={firstName}
                     editing={editing} inputValue={firstName} onInputChange={onFirstNameChange}
                 />
                 <ProfileField
-                    label="Field of study" value={profile?.specialization || "—"}
+                    label={t("fieldOfStudy")} value={profile?.specialization || "—"}
                     editing={editing} inputValue={specialization} onInputChange={onSpecializationChange}
                 />
-                <ProfileField label="Email" value={email} />
+                <ProfileField label={t("email")} value={email} />
 
                 {/* Row 2 */}
                 <ProfileField
-                    label="Last name" value={lastName}
+                    label={t("lastName")} value={lastName}
                     editing={editing} inputValue={lastName} onInputChange={onLastNameChange}
                 />
                 <ProfileInstructionLanguageField
@@ -79,11 +82,11 @@ export function TeacherFields({
                     inputValue={instructionLanguage}
                     onInputChange={onInstructionLanguageChange}
                 />
-                <ProfileField label="Date of registration" value={formatDate(dateJoined)} />
+                <ProfileField label={t("dateOfRegistration")} value={formatDate(dateJoined, locale)} />
 
                 {/* Row 3 */}
                 <ProfileField
-                    label="Work experience" value={profile?.experience || "—"}
+                    label={t("workExperience")} value={profile?.experience || "—"}
                     editing={editing} inputValue={experience} onInputChange={onExperienceChange}
                 />
                 <ProfileLanguageField
@@ -93,7 +96,7 @@ export function TeacherFields({
 
                 {/* Password cell */}
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.208vw" }}>
-                    <span style={{ ...LABEL_STYLE, visibility: editing ? "hidden" : "visible" }}>Password</span>
+                    <span style={{ ...LABEL_STYLE, visibility: editing ? "hidden" : "visible" }}>{t("password")}</span>
                     {editing ? (
                         <button
                             type="button"
@@ -106,7 +109,7 @@ export function TeacherFields({
                                 letterSpacing: "-0.011em",
                             }}
                         >
-                            Change Password
+                            {t("changePassword")}
                         </button>
                     ) : (
                         <span style={VALUE_STYLE}>••••••••••••••</span>
@@ -115,18 +118,18 @@ export function TeacherFields({
 
                 {/* Row 4 — optional course-detail instructor-card stats. Shown there only if set. */}
                 <ProfileField
-                    label="Years of experience (optional)" value={profile?.years_experience != null ? String(profile.years_experience) : "—"}
+                    label={t("yearsOfExperienceOptional")} value={profile?.years_experience != null ? String(profile.years_experience) : "—"}
                     editing={editing} inputValue={yearsExperience} onInputChange={onYearsExperienceChange}
                 />
                 <ProfileField
-                    label="Partnerships with companies (optional)" value={profile?.partnerships_count != null ? String(profile.partnerships_count) : "—"}
+                    label={t("partnershipsOptional")} value={profile?.partnerships_count != null ? String(profile.partnerships_count) : "—"}
                     editing={editing} inputValue={partnershipsCount} onInputChange={onPartnershipsCountChange}
                 />
             </div>
 
             {/* Bio — full width below the grid */}
             <div style={{ display: "flex", flexDirection: "column", gap: "0.208vw" }}>
-                <span style={LABEL_STYLE}>Bio</span>
+                <span style={LABEL_STYLE}>{t("bio")}</span>
                 {editing ? (
                     <textarea
                         value={bio}
@@ -141,9 +144,9 @@ export function TeacherFields({
 
             {/* Signature — drawn onto generated course certificates */}
             <div style={{ display: "flex", flexDirection: "column", gap: "0.208vw" }}>
-                <span style={LABEL_STYLE}>Signature</span>
+                <span style={LABEL_STYLE}>{t("signature")}</span>
                 <p style={{ ...VALUE_STYLE, fontWeight: 400, color: "var(--color-text-secondary)", margin: 0 }}>
-                    Required before you can enable certificates on a course.
+                    {t("signatureRequired")}
                 </p>
                 <div
                     onClick={editing ? () => signatureFileRef.current?.click() : undefined}
@@ -157,10 +160,10 @@ export function TeacherFields({
                 >
                     {signatureSrc ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={signatureSrc} alt="Signature" style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} />
+                        <img src={signatureSrc} alt={t("signature")} style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} />
                     ) : (
                         <span style={{ ...VALUE_STYLE, fontWeight: 400, color: "var(--color-text-muted)", fontSize: "0.9vw" }}>
-                            {editing ? "Click to upload" : "Not uploaded"}
+                            {editing ? t("clickToUpload") : t("notUploaded")}
                         </span>
                     )}
                 </div>

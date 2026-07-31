@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ChangeEvent, type FormEvent } from "react";
+import { useTranslations } from "next-intl";
 import type { ApiError } from "@/shared/api/base";
 
 export type FieldErrors<T> = Partial<Record<keyof T, string>>;
@@ -20,8 +21,10 @@ export function useAuthForm<T extends object>({
   submit,
   fieldKeys,
   fieldKeyMap,
-  fallbackError = "Something went wrong. Please try again.",
+  fallbackError,
 }: UseAuthFormOptions<T>) {
+  const t = useTranslations("Auth");
+  const resolvedFallbackError = fallbackError ?? t("genericFallbackError");
   const [formData, setFormData] = useState<T>(initial);
   const [errors, setErrors] = useState<FieldErrors<T>>({});
   const [apiError, setApiError] = useState("");
@@ -69,7 +72,7 @@ export function useAuthForm<T extends object>({
         setErrors((prev) => ({ ...prev, ...backendFieldErrors }));
       }
 
-      setApiError(typedError?.message || fallbackError);
+      setApiError(typedError?.message || resolvedFallbackError);
     } finally {
       setIsSubmitting(false);
     }

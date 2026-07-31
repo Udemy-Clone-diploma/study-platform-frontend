@@ -19,12 +19,10 @@ import type {
 } from "../model/public";
 import type {
   ApprovedCourseRecord,
-  CourseDeliveryType,
   CourseDetail,
   CourseLanguage,
   CourseLevel,
   CourseListItem,
-  CourseMode,
   CourseStatus,
   CourseType,
   Paginated,
@@ -48,18 +46,16 @@ export async function getTeacherStudentDashboard(
 
 /**
  * Backend accepts these enum-like filters as comma-separated values
- * (e.g. `?delivery_type=self_paced,group`). Caller passes arrays; the API
+ * (e.g. `?format_type=self_paced,group`). Caller passes arrays; the API
  * function joins. Single-value filters (`category`, `rating_min`) stay
  * stringly-typed because the backend matches them exactly.
  */
 export type CourseListParams = {
   category?: string;
   course_type?: Array<CourseType>;
-  delivery_type?: Array<CourseDeliveryType>;
   is_on_sale?: boolean;
   language?: Array<CourseLanguage>;
   level?: Array<CourseLevel>;
-  mode?: Array<CourseMode>;
   ordering?: string;
   format_type?: Array<DeliveryFormatType>;
   price_min?: number;
@@ -70,10 +66,13 @@ export type CourseListParams = {
   with_certificate?: boolean;
   page?: number;
   page_size?: number;
+  lang?: string;
 };
 
-export async function getCategories(): Promise<Category[]> {
-  const { data } = await api.get<Category[] | Paginated<Category>>(CATEGORIES);
+export async function getCategories(locale?: string): Promise<Category[]> {
+  const { data } = await api.get<Category[] | Paginated<Category>>(CATEGORIES, {
+    params: locale ? { lang: locale } : undefined,
+  });
   return Array.isArray(data) ? data : data.results;
 }
 
@@ -82,6 +81,7 @@ export type CategoryListParams = {
   page?: number;
   page_size?: number;
   ordering?: string;
+  lang?: string;
 };
 
 export async function getCategoriesPage(
@@ -93,22 +93,45 @@ export async function getCategoriesPage(
     : data;
 }
 
+// Backend admin write shape: name/description are per-locale. name_en is required;
+// the rest fall back to it on read whenever left blank (apps.common.i18n).
 export type CategoryInput = {
-  name: string;
+  name_en: string;
+  name_uk?: string;
+  name_fr?: string;
+  name_es?: string;
+  name_de?: string;
   slug?: string;
-  description?: string;
+  description_en?: string;
+  description_uk?: string;
+  description_fr?: string;
+  description_es?: string;
+  description_de?: string;
 };
 
-export async function createCategory(body: CategoryInput): Promise<Category> {
-  const { data } = await api.post<Category>(CATEGORIES, body);
+export type CategoryDetail = CategoryInput & {
+  id: number;
+  slug: string;
+  courses_count?: number;
+  featured_order?: number | null;
+};
+
+/** Admin-only: every locale field for the edit form, unlike the public list's resolved shape. */
+export async function getCategory(id: number): Promise<CategoryDetail> {
+  const { data } = await api.get<CategoryDetail>(`${CATEGORIES}${id}/`);
+  return data;
+}
+
+export async function createCategory(body: CategoryInput): Promise<CategoryDetail> {
+  const { data } = await api.post<CategoryDetail>(CATEGORIES, body);
   return data;
 }
 
 export async function updateCategory(
   id: number,
   patch: Partial<CategoryInput> & { featured_order?: number | null },
-): Promise<Category> {
-  const { data } = await api.patch<Category>(`${CATEGORIES}${id}/`, patch);
+): Promise<CategoryDetail> {
+  const { data } = await api.patch<CategoryDetail>(`${CATEGORIES}${id}/`, patch);
   return data;
 }
 
@@ -120,11 +143,9 @@ function buildCourseListParams(filters: CourseListParams) {
   return {
     ...(filters.category ? { category: filters.category } : {}),
     ...(filters.course_type?.length ? { course_type: filters.course_type.join(",") } : {}),
-    ...(filters.delivery_type?.length ? { delivery_type: filters.delivery_type.join(",") } : {}),
     ...(filters.is_on_sale !== undefined ? { is_on_sale: filters.is_on_sale } : {}),
     ...(filters.language?.length ? { language: filters.language.join(",") } : {}),
     ...(filters.level?.length ? { level: filters.level.join(",") } : {}),
-    ...(filters.mode?.length ? { mode: filters.mode.join(",") } : {}),
     ...(filters.ordering ? { ordering: filters.ordering } : {}),
     ...(filters.format_type?.length ? { format_type: filters.format_type.join(",") } : {}),
     ...(filters.price_min !== undefined ? { price_min: filters.price_min } : {}),
@@ -139,6 +160,7 @@ function buildCourseListParams(filters: CourseListParams) {
       : {}),
     ...(filters.page ? { page: filters.page } : {}),
     ...(filters.page_size ? { page_size: filters.page_size } : {}),
+    ...(filters.lang ? { lang: filters.lang } : {}),
   };
 }
 
@@ -171,18 +193,27 @@ export async function getCourseBySlug(slug: string, accessToken?: string): Promi
   return data;
 }
 
-export async function getPublicCourseBySlug(slug: string): Promise<PublicCourseDetail> {
-  const { data } = await api.get<PublicCourseDetail>(`${COURSES}${slug}/public/`);
+export async function getPublicCourseBySlug(
+  slug: string,
+  locale?: string,
+): Promise<PublicCourseDetail> {
+  const { data } = await api.get<PublicCourseDetail>(`${COURSES}${slug}/public/`, {
+    params: locale ? { lang: locale } : undefined,
+  });
   return data;
 }
 
-export async function getNewCourses(): Promise<PublicCourseListItem[]> {
-  const { data } = await api.get<PublicCourseListItem[]>(`${COURSES}new-courses/`);
+export async function getNewCourses(locale?: string): Promise<PublicCourseListItem[]> {
+  const { data } = await api.get<PublicCourseListItem[]>(`${COURSES}new-courses/`, {
+    params: locale ? { lang: locale } : undefined,
+  });
   return data;
 }
 
-export async function getPopularCourses(): Promise<PublicCourseListItem[]> {
-  const { data } = await api.get<PublicCourseListItem[]>(`${COURSES}popular-courses/`);
+export async function getPopularCourses(locale?: string): Promise<PublicCourseListItem[]> {
+  const { data } = await api.get<PublicCourseListItem[]>(`${COURSES}popular-courses/`, {
+    params: locale ? { lang: locale } : undefined,
+  });
   return data;
 }
 

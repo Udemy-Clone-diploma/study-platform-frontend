@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { Calendar, Layers, Users } from "lucide-react";
 import type { PublicCourseCohort } from "@/entities/course";
 
@@ -8,7 +9,8 @@ type Props = {
 };
 
 /** Right-rail schedule card. Glass panel with a vertical icon list and a start-date footer. */
-export function CourseScheduleCard({ cohorts, modules_count, lessons_count }: Props) {
+export async function CourseScheduleCard({ cohorts, modules_count, lessons_count }: Props) {
+  const t = await getTranslations("CourseScheduleCard");
   const first = cohorts[0];
 
   const startDate = first?.start_date
@@ -25,32 +27,33 @@ export function CourseScheduleCard({ cohorts, modules_count, lessons_count }: Pr
     hours.length === 0
       ? null
       : minH === maxH
-        ? `${minH} hours per week`
-        : `${minH}–${maxH} hours per week`;
+        ? t("hoursPerWeek", { hours: minH })
+        : t("hoursPerWeekRange", { min: minH, max: maxH });
 
-  const formatLabel = first?.group_size ? `Group of ${first.group_size} people` : "Group";
+  const formatLabel = first?.group_size
+    ? t("groupOf", { count: first.group_size })
+    : t("group");
 
   return (
     <aside className="flex flex-col gap-8 rounded-xl bg-(--color-white-50) px-4 py-6 shadow-(--shadow-usp-glass) backdrop-blur-md sm:gap-10 sm:py-8">
-      <h3 className="text-xl font-semibold text-(--color-text-primary) sm:text-2xl">Schedule</h3>
+      <h3 className="text-xl font-semibold text-(--color-text-primary) sm:text-2xl">{t("schedule")}</h3>
 
       <ul className="flex flex-col gap-3">
         {first && (
           <ScheduleRow icon={<Calendar />}>
-            {first.duration_months} {first.duration_months === 1 ? "Month" : "Months"}
+            {t("monthsCount", { count: first.duration_months })}
             {hoursLabel ? ` | ${hoursLabel}` : ""}
           </ScheduleRow>
         )}
         <ScheduleRow icon={<Layers />}>
-          {modules_count} {modules_count === 1 ? "module" : "modules"} | {lessons_count}{" "}
-          {lessons_count === 1 ? "lesson" : "lessons"}
+          {t("modulesLessons", { modules: modules_count, lessons: lessons_count })}
         </ScheduleRow>
         <ScheduleRow icon={<Users />}>{formatLabel}</ScheduleRow>
       </ul>
 
       {startDate && (
         <div className="flex flex-wrap items-baseline gap-3 text-base text-(--color-text-primary) sm:text-xl">
-          <span className="font-semibold">Start date:</span>
+          <span className="font-semibold">{t("startDate")}</span>
           <span>{startDate}</span>
         </div>
       )}

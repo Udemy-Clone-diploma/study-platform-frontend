@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
+import { useTranslations } from "next-intl";
 import { Camera, ImagePlus, Loader2, X } from "lucide-react";
 import {
   createDirectChat,
@@ -22,6 +23,8 @@ type Props = {
 
 /** Creates a direct chat or group chat from searched users. */
 export function ComposeModal({ mode, onModeChange, onClose, onCreated, meId }: Props) {
+  const t = useTranslations("ComposeModal");
+  const tShared = useTranslations("Common");
   const [selected, setSelected] = useState<UserSearchResult[]>([]);
   const [title, setTitle] = useState("");
   const [groupImage, setGroupImage] = useState<File | null>(null);
@@ -46,7 +49,7 @@ export function ComposeModal({ mode, onModeChange, onClose, onCreated, meId }: P
   function handleGroupImageChange(file: File | undefined) {
     if (!file) return;
     if (!file.type.startsWith("image/")) {
-      setError("Please select an image file.");
+      setError(t("selectImageFileError"));
       return;
     }
     setGroupImage(file);
@@ -59,11 +62,11 @@ export function ComposeModal({ mode, onModeChange, onClose, onCreated, meId }: P
     setError("");
 
     if (mode === "direct" && selected.length !== 1) {
-      setError("Select one user.");
+      setError(t("selectOneUserError"));
       return;
     }
     if (mode === "group" && (!title.trim() || selected.length === 0)) {
-      setError("Add a group title and at least one participant.");
+      setError(t("groupRequiredError"));
       return;
     }
 
@@ -81,7 +84,7 @@ export function ComposeModal({ mode, onModeChange, onClose, onCreated, meId }: P
       onClose();
     } catch (requestError) {
       const apiError = requestError as Partial<ApiError>;
-      setError(apiError.detail || apiError.message || "Could not create chat.");
+      setError(apiError.detail || apiError.message || t("couldNotCreateChat"));
     } finally {
       setSaving(false);
     }
@@ -102,7 +105,7 @@ export function ComposeModal({ mode, onModeChange, onClose, onCreated, meId }: P
                 mode === "direct" ? "bg-white text-[#0B257C] shadow-sm" : "text-[#4B5563]"
               }`}
             >
-              Direct
+              {t("direct")}
             </button>
             <button
               type="button"
@@ -111,12 +114,12 @@ export function ComposeModal({ mode, onModeChange, onClose, onCreated, meId }: P
                 mode === "group" ? "bg-white text-[#0B257C] shadow-sm" : "text-[#4B5563]"
               }`}
             >
-              Group
+              {t("group")}
             </button>
           </div>
           <button
             type="button"
-            aria-label="Close"
+            aria-label={tShared("close")}
             onClick={onClose}
             className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-[#F3F4F6]"
           >
@@ -127,7 +130,9 @@ export function ComposeModal({ mode, onModeChange, onClose, onCreated, meId }: P
         {mode === "group" ? (
           <>
             <label className="mt-5 block">
-              <span className="mb-2 block text-sm font-medium text-[#374151]">Title</span>
+              <span className="mb-2 block text-sm font-medium text-[#374151]">
+                {t("titleLabel")}
+              </span>
               <input
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
@@ -152,10 +157,10 @@ export function ComposeModal({ mode, onModeChange, onClose, onCreated, meId }: P
               <div className="min-w-0">
                 <p className="flex items-center gap-2 text-sm font-medium text-[#374151]">
                   <Camera className="h-4 w-4 text-[#003AFF]" />
-                  Group photo
+                  {t("groupPhoto")}
                 </p>
                 <p className="mt-1 truncate text-xs text-[#6B7280]">
-                  {groupImage?.name || "Add a photo for this group"}
+                  {groupImage?.name || t("addPhotoForGroup")}
                 </p>
               </div>
             </div>
@@ -202,7 +207,7 @@ export function ComposeModal({ mode, onModeChange, onClose, onCreated, meId }: P
             disabled={saving}
             className="inline-flex h-10 min-w-[128px] items-center justify-center rounded-lg bg-black px-5 text-sm font-semibold text-white disabled:bg-[#A3A3A3]"
           >
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Create"}
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : t("create")}
           </button>
         </div>
       </form>

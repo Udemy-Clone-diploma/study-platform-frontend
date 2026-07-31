@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import type { PublicCourseDetail } from "@/entities/course";
 import { CourseModuleItem } from "./CourseModuleItem";
 
@@ -9,19 +10,19 @@ type Props = {
 };
 
 /** Curriculum section: heading (optional), summary line, accordion of modules. */
-export function CourseCurriculum({ course, slug, hasPricing = false, hideHeading = false }: Props) {
+export async function CourseCurriculum({ course, slug, hasPricing = false, hideHeading = false }: Props) {
   const sorted = [...course.modules].sort((a, b) => a.order - b.order);
   const hasModules = sorted.length > 0;
+  const t = await getTranslations("CourseCurriculum");
 
   return (
     <section className="flex flex-col gap-6">
       {!hideHeading && (
         <div className="flex flex-col gap-2">
-          <h2 className="text-4xl text-(--color-text-primary) lg:text-5xl">Course Curriculum</h2>
+          <h2 className="text-4xl text-(--color-text-primary) lg:text-5xl">{t("heading")}</h2>
           {hasModules && (
             <p className="text-lg text-(--color-text-secondary)">
-              {course.lessons_count} Video Lessons across {sorted.length}{" "}
-              {sorted.length === 1 ? "Module" : "Modules"}
+              {t("summary", { lessons: course.lessons_count, modules: sorted.length })}
             </p>
           )}
         </div>
@@ -34,7 +35,7 @@ export function CourseCurriculum({ course, slug, hasPricing = false, hideHeading
           ))}
         </div>
       ) : (
-        <p className="text-lg text-(--color-text-secondary)">No curriculum available yet.</p>
+        <p className="text-lg text-(--color-text-secondary)">{t("noCurriculum")}</p>
       )}
     </section>
   );

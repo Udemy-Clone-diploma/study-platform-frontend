@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { getTranslations } from "next-intl/server";
 import { Star } from "lucide-react";
 import type { PublicCourseDetailView } from "@/entities/course";
 import { CourseDescription } from "./CourseDescription";
@@ -6,44 +7,44 @@ import { CourseHeroCTA } from "./CourseHeroCTA";
 
 type Props = { course: PublicCourseDetailView };
 
-const LEVEL_LABEL: Record<PublicCourseDetailView["level"], string> = {
-  beginner: "Beginner",
-  intermediate: "Intermediate",
-  advanced: "Advanced",
-};
-
 const LEVEL_BADGE: Record<PublicCourseDetailView["level"], string> = {
   beginner: "bg-(--color-brand-yellow) text-(--color-yellow-dark)",
   intermediate: "bg-(--color-brand-lavender) text-(--color-blue-dark)",
   advanced: "bg-(--color-brand-pink) text-(--color-pink-dark)",
 };
 
-const LEVEL_META_LABEL: Record<PublicCourseDetailView["level"], string> = {
-  beginner: "Foundational training",
-  intermediate: "Intermediate training",
-  advanced: "Advanced training",
-};
-
-const LANGUAGE_LABEL: Record<PublicCourseDetailView["language"], string> = {
-  english: "English",
-  ukrainian: "Ukrainian",
-  spanish: "Spanish",
-};
-
-const MODE_LABEL: Record<PublicCourseDetailView["mode"], string> = {
-  with_teacher: "With a teacher",
-  self_learning: "Self-paced",
-};
-
 /** Top hero: level badge, title/subtitle/description, rating row, meta pills, CTA. Right column: instructor cutout with a floating name pill. */
-export function CourseHero({ course }: Props) {
+export async function CourseHero({ course }: Props) {
   const ratingValue = Number(course.rating_avg).toFixed(1);
   const reviewsLabel = new Intl.NumberFormat("en-US").format(course.rating_count);
   const hasReviews = course.rating_count > 0;
+  const [t, tEnums] = await Promise.all([
+    getTranslations("CourseHero"),
+    getTranslations("CatalogEnums"),
+  ]);
+  const LEVEL_LABEL = {
+    beginner: tEnums("level.beginner"),
+    intermediate: tEnums("level.intermediate"),
+    advanced: tEnums("level.advanced"),
+  };
+  const LEVEL_META_LABEL = {
+    beginner: t("levelMeta.beginner"),
+    intermediate: t("levelMeta.intermediate"),
+    advanced: t("levelMeta.advanced"),
+  };
+  const LANGUAGE_LABEL = {
+    english: tEnums("language.english"),
+    ukrainian: tEnums("language.ukrainian"),
+    spanish: tEnums("language.spanish"),
+  };
+  const MODE_LABEL = {
+    with_teacher: t("mode.with_teacher"),
+    self_learning: t("mode.self_learning"),
+  };
 
   return (
     <section className="grid grid-cols-1 items-center gap-8 sm:gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,600px)] lg:gap-12">
-      <div className="flex flex-col gap-10 lg:gap-[60px]">
+      <div className="order-2 flex flex-col gap-10 lg:order-none lg:gap-[60px]">
         <div className="flex flex-col gap-6 sm:gap-10">
           <div className="flex flex-col gap-4 sm:gap-5">
             <span
@@ -53,11 +54,11 @@ export function CourseHero({ course }: Props) {
             </span>
 
             <div className="flex flex-col gap-1">
-              <h1 className="text-3xl leading-tight text-(--color-text-primary) sm:text-4xl lg:text-6xl xl:text-7xl">
+              <h1 className="text-3xl leading-tight text-(--color-text-primary) sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl">
                 {course.title}
               </h1>
               {course.subtitle && (
-                <p className="text-xl text-(--color-text-secondary) sm:text-2xl lg:text-4xl">
+                <p className="text-xl text-(--color-text-secondary) sm:text-2xl md:text-3xl lg:text-4xl">
                   {course.subtitle}
                 </p>
               )}
@@ -77,16 +78,14 @@ export function CourseHero({ course }: Props) {
                 stroke="var(--color-gold)"
               />
               {hasReviews ? (
-                <span>
-                  {ratingValue} (based on {reviewsLabel}+ global reviews)
-                </span>
+                <span>{t("ratingLabel", { rating: ratingValue, count: reviewsLabel })}</span>
               ) : (
-                <span className="text-(--color-text-secondary)">No reviews yet</span>
+                <span className="text-(--color-text-secondary)">{t("noReviewsYet")}</span>
               )}
             </div>
 
             <ul className="flex flex-wrap items-center gap-2 sm:gap-3">
-              <MetaPill>Language: {LANGUAGE_LABEL[course.language]}</MetaPill>
+              <MetaPill>{t("languageLabel", { language: LANGUAGE_LABEL[course.language] })}</MetaPill>
               <MetaPill>{MODE_LABEL[course.mode]}</MetaPill>
               <MetaPill>{LEVEL_META_LABEL[course.level]}</MetaPill>
             </ul>
@@ -101,21 +100,21 @@ export function CourseHero({ course }: Props) {
         />
       </div>
 
-      <div className="relative mx-auto w-full max-w-[600px] lg:mx-0">
+      <div className="order-1 relative mx-auto w-full max-w-[280px] sm:max-w-[380px] md:max-w-[460px] lg:order-none lg:max-w-[560px] lg:mx-0">
         {/* Decorative blobs behind the image — same recipe as the homepage hero
             (gradient-blob + blur(90px)). Resize with w-/h-, reposition with top-/left-/right-. */}
         <HeroEllipse className="top-[-25%] right-[-35%] h-[650px] w-[650px]" />
         <HeroEllipse className="top-[-7%] left-[-20%] h-[440px] w-[440px]" />
-        {/* Glitter texture overlay, same blend approach as the homepage hero. */}
+        {/* Glitter texture overlay, same blend approach as the homepage hero. Hidden below lg — too busy behind the smaller mobile image. */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -z-10"
+          className="pointer-events-none absolute -z-10 hidden lg:block"
           style={{
             left: "50%",
             top: "50%",
             width: "180%",
             height: "180%",
-            transform: "translate(-50%, -50%)",
+            transform: "translate(-50%, calc(-50% + 120px))",
             backgroundImage: "url('/main/glitter-bg.png')",
             backgroundRepeat: "no-repeat",
             backgroundPosition: "center",
@@ -130,13 +129,12 @@ export function CourseHero({ course }: Props) {
             width={500}
             height={496}
             priority
-            className="h-auto w-full object-contain"
+            className="h-auto w-full translate-x-0 translate-y-0 object-contain lg:translate-x-[60px] lg:-translate-y-[50px]"
             style={{
-              transform: "translate(60px, -50px)",
               maskImage: "linear-gradient(to bottom, black 75%, transparent 100%)",
               WebkitMaskImage: "linear-gradient(to bottom, black 75%, transparent 100%)",
             }}
-            sizes="(min-width: 1024px) 600px, 90vw"
+            sizes="(min-width: 1024px) 560px, (min-width: 768px) 460px, (min-width: 640px) 380px, 280px"
           />
         ) : (
           <div

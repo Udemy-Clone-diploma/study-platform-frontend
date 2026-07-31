@@ -1,3 +1,4 @@
+import { useLocale, useTranslations } from "next-intl";
 import { ProfileField, ProfileLanguageField, LABEL_STYLE, VALUE_STYLE, TEXTAREA_STYLE, formatDate } from "./ProfileField";
 import { AccentButton } from "@/shared/ui/AccentButton";
 import { DatePicker, todayISO } from "@/shared/ui/DatePicker";
@@ -38,7 +39,9 @@ export function StudentFields({
     onDateOfBirthChange, onLearningGoalsChange,
     onChangePassword, onSave, saving,
 }: Props) {
-    const dobDisplay = profile?.date_of_birth ? formatDate(profile.date_of_birth) : "—";
+    const t = useTranslations("ProfileFields");
+    const locale = useLocale();
+    const dobDisplay = profile?.date_of_birth ? formatDate(profile.date_of_birth, locale) : "—";
 
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: "1.25vw" }}>
@@ -46,35 +49,32 @@ export function StudentFields({
             <div style={GRID_3}>
                 {/* Row 1 */}
                 <ProfileField
-                    label="First name" value={firstName}
+                    label={t("firstName")} value={firstName}
                     editing={editing} inputValue={firstName} onInputChange={onFirstNameChange}
                 />
-                <ProfileField label="Email" value={email} />
+                <ProfileField label={t("email")} value={email} />
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.208vw" }}>
+                    <span style={LABEL_STYLE}>{t("dateOfBirth")}</span>
                     {editing ? (
                         <DatePicker
-                            label="Date of birth"
-                            size="sm"
+                            size="md"
                             max={todayISO()}
                             value={dateOfBirth}
                             onChange={onDateOfBirthChange}
                         />
                     ) : (
-                        <>
-                            <span style={LABEL_STYLE}>Date of birth</span>
-                            <span style={VALUE_STYLE}>{dobDisplay}</span>
-                        </>
+                        <span style={VALUE_STYLE}>{dobDisplay}</span>
                     )}
                 </div>
 
                 {/* Row 2 */}
                 <ProfileField
-                    label="Last name" value={lastName}
+                    label={t("lastName")} value={lastName}
                     editing={editing} inputValue={lastName} onInputChange={onLastNameChange}
                 />
-                <ProfileField label="Date of registration" value={formatDate(dateJoined)} />
+                <ProfileField label={t("dateOfRegistration")} value={formatDate(dateJoined, locale)} />
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.208vw" }}>
-                    <span style={LABEL_STYLE}>Learning goals</span>
+                    <span style={LABEL_STYLE}>{t("learningGoals")}</span>
                     {editing ? (
                         <textarea
                             value={learningGoals}
@@ -93,7 +93,7 @@ export function StudentFields({
                     inputValue={language} onInputChange={onLanguageChange}
                 />
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.208vw" }}>
-                    <span style={{ ...LABEL_STYLE, visibility: editing ? "hidden" : "visible" }}>Password</span>
+                    <span style={{ ...LABEL_STYLE, visibility: editing ? "hidden" : "visible" }}>{t("password")}</span>
                     {editing ? (
                         <button
                             type="button"
@@ -106,7 +106,7 @@ export function StudentFields({
                                 letterSpacing: "-0.011em",
                             }}
                         >
-                            Change Password
+                            {t("changePassword")}
                         </button>
                     ) : (
                         <span style={VALUE_STYLE}>••••••••••••••</span>
@@ -115,7 +115,7 @@ export function StudentFields({
                 {editing && (
                     <div style={{ display: "flex", alignItems: "flex-end" }}>
                         <AccentButton size="md" onClick={onSave} disabled={saving}>
-                            {saving ? "Saving..." : "Save"}
+                            {saving ? t("saving") : t("save")}
                         </AccentButton>
                     </div>
                 )}

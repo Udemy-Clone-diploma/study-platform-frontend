@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { X } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 type Props = {
   open: boolean;
@@ -23,6 +24,7 @@ export function SidePanel({
   width = "clamp(280px, 24vw, 400px)",
   children,
 }: Props) {
+  const t = useTranslations("Common");
   useEffect(() => {
     if (!open) return;
     function handleKeyDown(event: KeyboardEvent) {
@@ -69,7 +71,7 @@ export function SidePanel({
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close panel"
+            aria-label={t("close")}
             style={{
               background: "none",
               border: "none",

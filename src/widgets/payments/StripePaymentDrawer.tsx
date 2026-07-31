@@ -1,6 +1,7 @@
 "use client";
 
 import { createPortal } from "react-dom";
+import { useLocale, useTranslations } from "next-intl";
 import type { PaymentIntent, PaymentType } from "@/entities/payment";
 import { StripePaymentForm, type PaymentFormSummary } from "./StripePaymentForm";
 
@@ -17,9 +18,9 @@ type StripePaymentDrawerProps = {
   onPaymentSuccessRedirect?: () => void;
 };
 
-function formatMoney(amount: string, currency: string | null): string {
-  if (!currency) return Number(amount) === 0 ? "Free" : amount;
-  return new Intl.NumberFormat("en-US", {
+function formatMoney(amount: string, currency: string | null, freeLabel: string, locale: string): string {
+  if (!currency) return Number(amount) === 0 ? freeLabel : amount;
+  return new Intl.NumberFormat(locale, {
     style: "currency",
     currency,
     maximumFractionDigits: 2,
@@ -38,15 +39,20 @@ export function StripePaymentDrawer({
   onPaymentError,
   onPaymentSuccessRedirect,
 }: StripePaymentDrawerProps) {
+  const t = useTranslations("StripePaymentDrawer");
+  const locale = useLocale();
+
   if (!isOpen || !intent?.client_secret) return null;
 
   if (typeof document === "undefined") return null;
+
+  const freeLabel = t("free");
 
   return createPortal(
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Payment method"
+      aria-label={t("ariaLabel")}
       className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-[#B7C7FA]/80 px-4 py-10 md:pt-[112px]"
     >
       <div
@@ -58,14 +64,14 @@ export function StripePaymentDrawer({
           canPayInInstallments={canPayInInstallments}
           summary={
             summary ?? {
-              total: formatMoney(intent.amount, intent.currency),
-              due: formatMoney(intent.amount, intent.currency),
+              total: formatMoney(intent.amount, intent.currency, freeLabel, locale),
+              due: formatMoney(intent.amount, intent.currency, freeLabel, locale),
               courses: [
                 {
                   id: "fallback",
-                  title: "Course checkout",
-                  subtitle: paymentType === "installments" ? "Partial payment" : "Full payment",
-                  amount: formatMoney(intent.amount, intent.currency),
+                  title: t("courseCheckout"),
+                  subtitle: paymentType === "installments" ? t("partialPayment") : t("fullPayment"),
+                  amount: formatMoney(intent.amount, intent.currency, freeLabel, locale),
                 },
               ],
             }

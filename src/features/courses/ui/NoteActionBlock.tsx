@@ -1,18 +1,23 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import type { ItemStatus } from "../model/moderatorReview";
-import { CONTENT_ACTIONS, bodyFont, monoFont } from "../model/moderatorReview";
+import { getContentActions, bodyFont, monoFont } from "../model/moderatorReview";
 
 /** Note textarea + action selector panel used on each moderator review step. */
-export function NoteActionBlock({ note, onNoteChange, itemAction, onItemActionChange, onSave, title = "Section action" }: {
+export function NoteActionBlock({ note, onNoteChange, itemAction, onItemActionChange, onSave, title }: {
   note: string;
   onNoteChange: (v: string) => void;
   itemAction: ItemStatus;
   onItemActionChange: (s: ItemStatus) => void;
   onSave: () => void;
-  title?: string;
+  title: string;
 }) {
+  const t = useTranslations("NoteActionBlock");
+  const tBasics = useTranslations("CourseBasicsForm");
+  const tCommon = useTranslations("Common");
+  const contentActions = getContentActions(tBasics);
   const [isEditing, setIsEditing] = useState(!note);
 
   function handleChange(value: string) {
@@ -37,24 +42,24 @@ export function NoteActionBlock({ note, onNoteChange, itemAction, onItemActionCh
               autoFocus
               value={note}
               onChange={(e) => handleChange(e.target.value)}
-              placeholder="Take a note"
+              placeholder={t("takeNotePlaceholder")}
               style={{ flex: 1, minHeight: 360, resize: "none", border: "none", outline: "none", fontFamily: bodyFont, fontWeight: 400, fontSize: 16, lineHeight: "20px", color: note ? "var(--color-text-primary)" : "var(--color-draft)" }}
             />
           ) : (
             <div style={{ flex: 1, minHeight: 360, fontFamily: bodyFont, fontWeight: 400, fontSize: 16, lineHeight: "20px", color: note ? "var(--color-text-primary)" : "var(--color-draft)", whiteSpace: "pre-wrap" }}>
-              {note || "Take a note"}
+              {note || t("takeNotePlaceholder")}
             </div>
           )}
           <div style={{ display: "flex", justifyContent: "center" }}>
             {isEditing ? (
               <button type="button" onClick={handleSave}
                 style={{ background: "var(--color-text-primary)", color: "white", borderRadius: 28, padding: "10px 28px", minWidth: 200, height: 52, fontFamily: monoFont, fontWeight: 500, fontSize: 20, lineHeight: "150%", textTransform: "uppercase", border: "none", cursor: note.trim() ? "pointer" : "default", opacity: note.trim() ? 1 : 0.6, transition: "opacity 0.2s" }}>
-                Save
+                {tCommon("save")}
               </button>
             ) : (
               <button type="button" onClick={handleEdit}
                 style={{ background: "transparent", color: "var(--color-text-secondary)", borderRadius: 28, padding: "10px 28px", minWidth: 200, height: 52, fontFamily: monoFont, fontWeight: 500, fontSize: 20, lineHeight: "150%", textTransform: "uppercase", border: "1px solid var(--color-draft)", cursor: "pointer" }}>
-                Edit
+                {t("editLabel")}
               </button>
             )}
           </div>
@@ -63,8 +68,8 @@ export function NoteActionBlock({ note, onNoteChange, itemAction, onItemActionCh
         {/* Action panel */}
         <div style={{ width: 274, flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "flex-start", padding: "28px 34px", gap: 12, border: "1px solid var(--color-pink-dark)", borderRadius: 20 }}>
           <span style={{ fontFamily: bodyFont, fontWeight: 700, fontSize: 16, lineHeight: "20px", width: "100%", textAlign: "center" }}>{title}</span>
-          <span style={{ fontFamily: bodyFont, fontWeight: 500, fontSize: 15, lineHeight: "19px", color: "var(--color-text-secondary)", width: "100%", textAlign: "center" }}>Select a status:</span>
-          {CONTENT_ACTIONS.map(({ key, label, color }) => {
+          <span style={{ fontFamily: bodyFont, fontWeight: 500, fontSize: 15, lineHeight: "19px", color: "var(--color-text-secondary)", width: "100%", textAlign: "center" }}>{t("selectStatusLabel")}</span>
+          {contentActions.map(({ key, label, color }) => {
             const isActive = itemAction === key;
             return (
               <button key={key} type="button" onClick={() => onItemActionChange(isActive ? null : key)}

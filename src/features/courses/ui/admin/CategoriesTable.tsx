@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { Pencil, Trash2 } from "lucide-react";
 import type { Category } from "@/entities/course";
 import { DataTable, type DataTableColumn } from "@/shared/ui/DataTable";
@@ -35,12 +36,13 @@ export function CategoriesTable({
   currentSort,
   onSortChange,
 }: Props) {
+  const t = useTranslations("CategoriesTable");
   const columns: DataTableColumn<Category>[] = [
     {
       key: "name",
-      label: "Category",
+      label: t("columnCategory"),
       flex: 1.8,
-      sortKey: "name",
+      sortKey: "name_en",
       render: (row) => (
         <div className="flex min-w-0 items-center" style={{ gap: "clamp(8px, 0.83vw, 12px)" }}>
           <CategoryTile name={row.name} slug={row.slug} />
@@ -52,7 +54,7 @@ export function CategoriesTable({
     },
     {
       key: "slug",
-      label: "Slug",
+      label: t("columnSlug"),
       flex: 1.2,
       render: (row) => (
         <span className="block overflow-hidden text-ellipsis whitespace-nowrap text-(--color-text-secondary)">
@@ -62,7 +64,7 @@ export function CategoriesTable({
     },
     {
       key: "description",
-      label: "Description",
+      label: t("columnDescription"),
       flex: 2.6,
       render: (row) => (
         <span className="block overflow-hidden text-ellipsis whitespace-nowrap">
@@ -72,7 +74,7 @@ export function CategoriesTable({
     },
     {
       key: "courses",
-      label: "Courses",
+      label: t("columnCourses"),
       flex: 0.8,
       headerAlign: "center",
       cellAlign: "center",
@@ -82,7 +84,7 @@ export function CategoriesTable({
           <Link
             href={`/catalog?category=${row.slug}`}
             className="underline decoration-from-font hover:text-(--color-blue)"
-            title={`View ${row.name} courses in the catalog`}
+            title={t("viewCategoryCoursesTitle", { name: row.name })}
           >
             {row.courses_count}
           </Link>
@@ -90,7 +92,7 @@ export function CategoriesTable({
     },
     {
       key: "featured",
-      label: "Featured",
+      label: t("columnFeatured"),
       flex: 0.9,
       headerAlign: "center",
       cellAlign: "center",
@@ -104,7 +106,7 @@ export function CategoriesTable({
     },
     {
       key: "actions",
-      label: "Actions",
+      label: t("columnActions"),
       flex: 1,
       headerAlign: "center",
       cellAlign: "center",
@@ -113,10 +115,10 @@ export function CategoriesTable({
           className="flex items-center justify-center"
           style={{ gap: "clamp(4px, 0.56vw, 8px)" }}
         >
-          <ActionButton title="Edit category" onClick={() => onEdit(row)}>
+          <ActionButton title={t("editCategoryTitle")} onClick={() => onEdit(row)}>
             <Pencil size={16} />
           </ActionButton>
-          <ActionButton title="Delete category" onClick={() => onDelete(row)} danger>
+          <ActionButton title={t("deleteCategoryTitle")} onClick={() => onDelete(row)} danger>
             <Trash2 size={16} />
           </ActionButton>
         </div>
@@ -150,6 +152,7 @@ function FeaturedOrderSelect({
   disabled: boolean;
   onCommit: (next: number | null) => void;
 }) {
+  const t = useTranslations("CategoriesTable");
   const orders = Array.from({ length: FEATURED_LIMIT }, (_, i) => i + 1);
   if (value !== null && !orders.includes(value)) orders.push(value);
 
@@ -158,8 +161,8 @@ function FeaturedOrderSelect({
       value={value === null ? "" : String(value)}
       disabled={disabled}
       onChange={(e) => onCommit(e.target.value === "" ? null : Number(e.target.value))}
-      aria-label="Featured order"
-      title="Position among the featured categories on the homepage. None removes it from featured."
+      aria-label={t("featuredOrderAriaLabel")}
+      title={t("featuredOrderTitle")}
       className="cursor-pointer rounded-lg border border-(--color-border-light) bg-white text-center outline-none transition focus:border-(--color-blue) disabled:cursor-default disabled:opacity-50"
       style={{
         width: "clamp(64px, 5vw, 80px)",
@@ -169,7 +172,7 @@ function FeaturedOrderSelect({
         color: "var(--color-text-primary)",
       }}
     >
-      <option value="">None</option>
+      <option value="">{t("featuredNone")}</option>
       {orders.map((order) => (
         <option key={order} value={order}>
           {order}

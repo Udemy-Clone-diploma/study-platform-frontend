@@ -1,13 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
 import { enrollInFreeCourse, type PublicCourseDeliveryFormat } from "@/entities/course";
 import type { ApiError } from "@/shared/api/base";
 import { AUTH_COOKIE_NAMES } from "@/shared/api/config/authCookies";
 import { getClientCookie } from "@/shared/lib/cookies";
 import { AccentButton } from "@/shared/ui/AccentButton";
+import { ramp, fluid3 } from "@/shared/lib/fluidScale";
 import { PRICING_ANCHOR_ID } from "./pricingAnchor";
+
+const heroCtaStyle = {
+  height: fluid3(375, 40, 1024, 50, 1920, 52),
+  minWidth: fluid3(375, 160, 1024, 190, 1920, 200),
+  fontSize: `clamp(13px, ${ramp(375, 13, 1024, 18)}, 20px)`,
+  padding: `0 ${fluid3(375, 20, 1024, 27, 1920, 28)}`,
+  whiteSpace: "nowrap",
+} as const;
 
 type Props = {
   courseId: number;
@@ -15,11 +25,6 @@ type Props = {
   isEnrolled: boolean;
   defaultFormat: PublicCourseDeliveryFormat | null;
 };
-
-const COURSE_AVAILABLE_NOTICE = "The course is already available in My Courses.";
-const FREE_ENROLLMENT_SUCCESS_NOTICE = "Enrollment complete. You can start this course now.";
-const STUDENT_ONLY_MESSAGE = "Enrollment is available only for students.";
-const NO_PRICING_PLAN_NOTICE = "This course does not have an available pricing plan.";
 
 function scrollToPricing() {
   document
@@ -37,8 +42,8 @@ export function CourseHeroCTA({ slug, isEnrolled, defaultFormat }: Props) {
   const [enrolled, setEnrolled] = useState(isEnrolled);
   const [pending, setPending] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const t = useTranslations("CourseHeroCTA");
 
-  const buttonStyle = { minWidth: 200, height: 52, whiteSpace: "nowrap" } as const;
   const defaultPricingPlan = defaultFormat?.pricing ?? null;
   const isFreeCourse = defaultPricingPlan !== null && Number(defaultPricingPlan.price) === 0;
   const needsSelection =
@@ -46,8 +51,8 @@ export function CourseHeroCTA({ slug, isEnrolled, defaultFormat }: Props) {
 
   if (enrolled) {
     return (
-      <AccentButton size="md" className="self-start" style={buttonStyle} href={`/learn/${slug}`}>
-        Continue learning
+      <AccentButton size="md" className="self-center lg:self-start" style={heroCtaStyle} href={`/learn/${slug}`}>
+        {t("continueLearning")}
       </AccentButton>
     );
   }
@@ -60,12 +65,12 @@ export function CourseHeroCTA({ slug, isEnrolled, defaultFormat }: Props) {
 
     const role = getClientCookie(AUTH_COOKIE_NAMES.role);
     if (role && role !== "student") {
-      setNotice(STUDENT_ONLY_MESSAGE);
+      setNotice(t("studentOnly"));
       return;
     }
 
     if (defaultFormat === null || defaultPricingPlan === null) {
-      setNotice(NO_PRICING_PLAN_NOTICE);
+      setNotice(t("noPricingPlan"));
       return;
     }
 
@@ -80,17 +85,17 @@ export function CourseHeroCTA({ slug, isEnrolled, defaultFormat }: Props) {
     try {
       await enrollInFreeCourse(slug, { delivery_format_id: defaultFormat.id });
       setEnrolled(true);
-      setNotice(FREE_ENROLLMENT_SUCCESS_NOTICE);
+      setNotice(t("freeEnrollmentSuccess"));
     } catch (error) {
       const apiError = error as Partial<ApiError>;
 
       if (apiError.status === 409) {
         setEnrolled(true);
-        setNotice(COURSE_AVAILABLE_NOTICE);
+        setNotice(t("courseAvailable"));
         return;
       }
 
-      setNotice(apiError.message || apiError.detail || "Could not process your request.");
+      setNotice(apiError.message || apiError.detail || t("genericError"));
     } finally {
       setPending(false);
     }
@@ -98,14 +103,8 @@ export function CourseHeroCTA({ slug, isEnrolled, defaultFormat }: Props) {
 
   return (
     <div className="flex flex-col gap-2">
-      <AccentButton
-        size="md"
-        className="self-start"
-        style={buttonStyle}
-        onClick={handleClick}
-        disabled={pending}
-      >
-        {pending ? "Processing..." : isFreeCourse ? "Enroll for free" : "Choose a plan"}
+      <AccentButton size="md" className="self-center lg:self-start" style={heroCtaStyle} onClick={handleClick} disabled={pending}>
+        {pending ? t("processing") : isFreeCourse ? t("enrollFree") : t("choosePlan")}
       </AccentButton>
       {notice && (
         <p role="status" className="max-w-[460px] text-base text-(--color-pink-dark)">

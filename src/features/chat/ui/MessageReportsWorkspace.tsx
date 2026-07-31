@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import {
   AlertTriangle,
   Ban,
@@ -33,24 +34,25 @@ type ReportedUserGroup = {
   reports: MessageReport[];
 };
 
-const REASON_OPTIONS: Array<{ value: MessageReportReason | "all"; label: string }> = [
-  { value: "all", label: "All reasons" },
-  { value: "spam", label: "Spam or advertising" },
-  { value: "harassment", label: "Harassment or bullying" },
-  { value: "hate", label: "Hate speech" },
-  { value: "violence", label: "Violence or threats" },
-  { value: "sexual", label: "Sexual content" },
-  { value: "fraud", label: "Fraud or scam" },
-  { value: "other", label: "Other" },
+const REASON_VALUES: MessageReportReason[] = [
+  "spam",
+  "harassment",
+  "hate",
+  "violence",
+  "sexual",
+  "fraud",
+  "other",
 ];
 
-function fullName(user: ModerationChatUser | null) {
-  if (!user) return "Deleted user";
+type Translator = (key: string, values?: Record<string, string | number>) => string;
+
+function fullName(user: ModerationChatUser | null, t: Translator) {
+  if (!user) return t("deletedUser");
   return user.name || `${user.first_name} ${user.last_name}`.trim() || user.email;
 }
 
-function dateTime(value: string) {
-  return new Intl.DateTimeFormat("en-GB", {
+function dateTime(value: string, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -59,16 +61,16 @@ function dateTime(value: string) {
   }).format(new Date(value));
 }
 
-function compactDate(value: string) {
-  return new Intl.DateTimeFormat("en-GB", {
+function compactDate(value: string, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
   }).format(new Date(value));
 }
 
-function reportMessagePreview(report: MessageReport) {
-  return report.message_text.trim() || "Message contained attachments only.";
+function reportMessagePreview(report: MessageReport, t: Translator) {
+  return report.message_text.trim() || t("attachmentsOnlyPreview");
 }
 
 function Avatar({
@@ -78,12 +80,13 @@ function Avatar({
   user: ModerationChatUser | null;
   size?: "sm" | "md" | "lg";
 }) {
+  const t = useTranslations("MessageReportsWorkspace");
   const dimensions = {
     sm: "h-8 w-8 text-xs",
     md: "h-11 w-11 text-sm",
     lg: "h-14 w-14 text-base",
   }[size];
-  const label = fullName(user);
+  const label = fullName(user, t);
   const source = resolveMediaUrl(user?.avatar);
   const initials = label
     .split(" ")
@@ -141,6 +144,9 @@ function ModeratorActionsPanel({
   user: ModerationChatUser;
   reportId: number;
 }) {
+  const t = useTranslations("MessageReportsWorkspace");
+  const tShared = useTranslations("Common");
+  const locale = useLocale();
   const [status, setStatus] = useState<ChatModerationStatus | null>(null);
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(true);
@@ -158,7 +164,7 @@ function ModeratorActionsPanel({
       .catch((requestError) => {
         if (cancelled) return;
         const apiError = requestError as Partial<ApiError>;
-        setError(apiError.detail || apiError.message || "Could not load moderation history.");
+        setError(apiError.detail || apiError.message || t("couldNotLoadHistory"));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -166,7 +172,7 @@ function ModeratorActionsPanel({
     return () => {
       cancelled = true;
     };
-  }, [user.id]);
+  }, [user.id, t]);
 
   async function runAction(action: ChatModerationActionKind) {
     setPendingAction(action);
@@ -179,16 +185,16 @@ function ModeratorActionsPanel({
       setNote("");
       setSuccess(
         action === "warning"
-          ? "Warning sent to the user."
+          ? t("warningSent")
           : action === "retract_warning"
-            ? "The warning has been retracted."
+            ? t("warningRetracted")
             : action === "restrict"
-              ? "The user can no longer write in chats."
-              : "The user can write in chats again.",
+              ? t("userRestricted")
+              : t("userUnrestricted"),
       );
     } catch (requestError) {
       const apiError = requestError as Partial<ApiError>;
-      setError(apiError.detail || apiError.message || "Could not apply moderation action.");
+      setError(apiError.detail || apiError.message || t("couldNotApplyAction"));
     } finally {
       setPendingAction(null);
     }
@@ -200,17 +206,17 @@ function ModeratorActionsPanel({
   return (
     <div className="mt-6 border-t border-white/80 pt-5">
       <div className="flex items-center justify-between gap-2">
-        <h3 className="text-sm font-bold text-(--color-text-primary)">Moderator action</h3>
+        <h3 className="text-sm font-bold text-(--color-text-primary)">{t("moderatorActionHeading")}</h3>
         {loading ? <Loader2 className="h-4 w-4 animate-spin text-(--color-blue)" /> : null}
       </div>
 
       {status?.is_restricted ? (
         <div className="mt-3 rounded-xl bg-(--color-error-surface) p-3 text-xs text-(--color-pink-dark)">
           <span className="flex items-center gap-2 font-bold">
-            <Ban className="h-4 w-4" /> Chat access restricted
+            <Ban className="h-4 w-4" /> {t("chatAccessRestricted")}
           </span>
           {status.restricted_at ? (
-            <p className="mt-1">Since {dateTime(status.restricted_at)}</p>
+            <p className="mt-1">{t("sinceDate", { date: dateTime(status.restricted_at, locale) })}</p>
           ) : null}
           {status.restriction_reason ? (
             <p className="mt-1 leading-5">{status.restriction_reason}</p>
@@ -219,14 +225,14 @@ function ModeratorActionsPanel({
       ) : null}
 
       <label className="mt-4 block text-xs font-semibold text-(--color-text-primary)">
-        Note to user <span className="font-normal text-(--color-text-muted)">(optional)</span>
+        {t("noteToUserLabel")} <span className="font-normal text-(--color-text-muted)">{t("optionalLabel")}</span>
         <textarea
           value={note}
           maxLength={500}
           rows={3}
           disabled={busy || loading}
           onChange={(event) => setNote(event.target.value)}
-          placeholder="Explain the moderation decision"
+          placeholder={t("notePlaceholder")}
           className="mt-2 w-full resize-none rounded-xl border border-white bg-white/65 px-3 py-2 font-normal leading-5 outline-none focus:border-(--color-brand-pink) disabled:opacity-60"
         />
       </label>
@@ -249,7 +255,7 @@ function ModeratorActionsPanel({
           ) : (
             <ShieldAlert className="h-4 w-4" />
           )}
-          {warningActive ? "Retract warning" : "Give warning"}
+          {warningActive ? t("retractWarning") : t("giveWarning")}
         </button>
 
         <button
@@ -267,7 +273,7 @@ function ModeratorActionsPanel({
           ) : (
             <Ban className="h-4 w-4" />
           )}
-          {status?.is_restricted ? "Unblock user" : "Block user from chats"}
+          {status?.is_restricted ? t("unblockUser") : t("blockUserFromChats")}
         </button>
       </div>
 
@@ -275,8 +281,8 @@ function ModeratorActionsPanel({
         <div className="mt-3 rounded-xl bg-white/60 p-3 text-xs text-(--color-text-secondary)">
           <p className="leading-5">
             {confirmAction === "restrict"
-              ? "The user will immediately lose the ability to send messages in every chat."
-              : "The user will immediately be able to send chat messages again."}
+              ? t("confirmRestrictDescription")
+              : t("confirmRestoreDescription")}
           </p>
           <div className="mt-3 flex gap-2">
             <button
@@ -284,14 +290,14 @@ function ModeratorActionsPanel({
               onClick={() => setConfirmAction(null)}
               className="h-8 flex-1 rounded-full border border-(--color-border-light) bg-white font-bold text-(--color-text-primary)"
             >
-              Cancel
+              {tShared("cancel")}
             </button>
             <button
               type="button"
               onClick={() => void runAction(confirmAction)}
               className="h-8 flex-1 rounded-full bg-black font-bold text-white"
             >
-              Confirm
+              {t("confirm")}
             </button>
           </div>
         </div>
@@ -310,7 +316,7 @@ function ModeratorActionsPanel({
 
       {status?.actions.length ? (
         <div className="mt-6">
-          <h3 className="text-sm font-bold text-(--color-blue)">User moderation history</h3>
+          <h3 className="text-sm font-bold text-(--color-blue)">{t("moderationHistoryHeading")}</h3>
           <div className="mt-3 max-h-52 space-y-3 overflow-y-auto pr-1">
             {status.actions.map((action) => (
               <div key={action.id} className="rounded-xl bg-white/45 p-3 text-xs">
@@ -327,7 +333,7 @@ function ModeratorActionsPanel({
                     {action.action_label}
                   </span>
                   <time className="shrink-0 text-(--color-text-muted)" dateTime={action.created_at}>
-                    {compactDate(action.created_at)}
+                    {compactDate(action.created_at, locale)}
                   </time>
                 </div>
                 {action.note ? (
@@ -336,8 +342,8 @@ function ModeratorActionsPanel({
                   </p>
                 ) : null}
                 <p className="mt-2 text-(--color-text-muted)">
-                  {action.moderator ? fullName(action.moderator) : "Deleted moderator"}
-                  {action.report ? ` · Report #${action.report}` : ""}
+                  {action.moderator ? fullName(action.moderator, t) : t("deletedModerator")}
+                  {action.report ? t("reportRefSuffix", { number: action.report }) : ""}
                 </p>
               </div>
             ))}
@@ -350,6 +356,17 @@ function ModeratorActionsPanel({
 
 /** Displays reports grouped by the users whose messages were reported. */
 export function MessageReportsWorkspace() {
+  const t = useTranslations("MessageReportsWorkspace");
+  const tReasons = useTranslations("ReportUser.reasons");
+  const tRoles = useTranslations("PublicProfile.roles");
+  const locale = useLocale();
+  const reasonOptions = useMemo(
+    () => [
+      { value: "all" as const, label: t("allReasons") },
+      ...REASON_VALUES.map((value) => ({ value, label: tReasons(value) })),
+    ],
+    [t, tReasons],
+  );
   const [reports, setReports] = useState<MessageReport[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
@@ -375,12 +392,12 @@ export function MessageReportsWorkspace() {
       setHasMore(Boolean(data.next));
     } catch (requestError) {
       const apiError = requestError as Partial<ApiError>;
-      setError(apiError.detail || apiError.message || "Could not load message reports.");
+      setError(apiError.detail || apiError.message || t("couldNotLoadReports"));
     } finally {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     void load();
@@ -392,14 +409,14 @@ export function MessageReportsWorkspace() {
       if (reason !== "all" && report.reason !== reason) return false;
       if (!normalizedQuery) return true;
       return [
-        fullName(report.sender),
+        fullName(report.sender, t),
         report.sender?.email,
         report.message_text,
         report.reason_label,
         report.details,
       ].some((value) => value?.toLowerCase().includes(normalizedQuery));
     });
-  }, [query, reason, reports]);
+  }, [query, reason, reports, t]);
 
   const groups = useMemo(() => buildGroups(filteredReports), [filteredReports]);
   const selectedGroup = groups.find((group) => group.key === selectedUserKey) ?? groups[0] ?? null;
@@ -418,24 +435,24 @@ export function MessageReportsWorkspace() {
       <div className="mx-auto max-w-[1500px]">
         <div className="flex flex-wrap items-center gap-4">
           <label className="relative min-w-64 flex-1 lg:max-w-96">
-            <span className="sr-only">Search reported users and messages</span>
+            <span className="sr-only">{t("searchAriaLabel")}</span>
             <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-(--color-brand-lavender)" />
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search users or messages"
+              placeholder={t("searchPlaceholder")}
               className="h-11 w-full rounded-full border border-(--color-brand-lavender) bg-white px-11 text-sm outline-none placeholder:text-(--color-text-muted) focus:ring-2 focus:ring-(--color-brand-lavender)"
             />
           </label>
 
           <label>
-            <span className="sr-only">Filter by report reason</span>
+            <span className="sr-only">{t("filterByReasonAriaLabel")}</span>
             <select
               value={reason}
               onChange={(event) => setReason(event.target.value as MessageReportReason | "all")}
               className="h-11 rounded-full border border-white bg-white px-5 text-sm text-(--color-text-primary) outline-none focus:ring-2 focus:ring-(--color-brand-lavender)"
             >
-              {REASON_OPTIONS.map((option) => (
+              {reasonOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
@@ -450,18 +467,14 @@ export function MessageReportsWorkspace() {
             className="inline-flex h-11 items-center gap-2 rounded-full bg-white px-5 text-sm font-semibold text-(--color-text-primary) transition hover:bg-(--color-bg-surface) disabled:opacity-60"
           >
             <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-            Refresh
+            {t("refresh")}
           </button>
         </div>
 
         <div className="mt-4 flex items-center gap-6 text-sm text-(--color-text-primary)">
-          <span className="font-bold">All reports</span>
-          <span>
-            {groups.length} reported {groups.length === 1 ? "user" : "users"}
-          </span>
-          <span>
-            {filteredReports.length} {filteredReports.length === 1 ? "message" : "messages"}
-          </span>
+          <span className="font-bold">{t("allReportsHeading")}</span>
+          <span>{t("reportedUsersCount", { count: groups.length })}</span>
+          <span>{t("messagesCount", { count: filteredReports.length })}</span>
         </div>
 
         {error ? (
@@ -480,23 +493,23 @@ export function MessageReportsWorkspace() {
         ) : reports.length === 0 ? (
           <div className="mt-6 flex min-h-[520px] flex-col items-center justify-center rounded-2xl border border-white/70 bg-white/30 text-center">
             <AlertTriangle className="h-10 w-10 text-(--color-brand-lavender)" />
-            <p className="mt-3 font-bold text-(--color-text-primary)">No reported messages</p>
+            <p className="mt-3 font-bold text-(--color-text-primary)">{t("noReportedMessages")}</p>
             <p className="mt-1 text-sm text-(--color-text-secondary)">
-              New reports will appear here.
+              {t("newReportsWillAppear")}
             </p>
           </div>
         ) : groups.length === 0 ? (
           <div className="mt-6 flex min-h-[520px] flex-col items-center justify-center rounded-2xl border border-white/70 bg-white/30 text-center">
             <Search className="h-9 w-9 text-(--color-brand-lavender)" />
-            <p className="mt-3 font-bold text-(--color-text-primary)">Nothing found</p>
+            <p className="mt-3 font-bold text-(--color-text-primary)">{t("nothingFound")}</p>
             <p className="mt-1 text-sm text-(--color-text-secondary)">
-              Try another search or reason.
+              {t("tryAnotherSearch")}
             </p>
           </div>
         ) : (
           <div className="mt-6 grid min-h-[560px] grid-cols-[minmax(250px,0.9fr)_minmax(350px,1.45fr)_minmax(250px,0.9fr)] gap-5">
             <aside className="flex min-h-0 flex-col rounded-2xl border border-white/80 bg-white/20 p-4">
-              <h2 className="px-1 text-sm font-bold text-(--color-text-primary)">Reported users</h2>
+              <h2 className="px-1 text-sm font-bold text-(--color-text-primary)">{t("reportedUsersHeading")}</h2>
               <div className="mt-4 max-h-[610px] space-y-2 overflow-y-auto pr-1">
                 {groups.map((group) => {
                   const active = selectedGroup?.key === group.key;
@@ -515,10 +528,10 @@ export function MessageReportsWorkspace() {
                       <Avatar user={group.user} />
                       <span className="min-w-0">
                         <span className="block truncate text-sm font-bold text-(--color-text-primary)">
-                          {fullName(group.user)}
+                          {fullName(group.user, t)}
                         </span>
                         <span className="mt-1 block truncate text-xs text-(--color-text-secondary)">
-                          {reportMessagePreview(latestReport)}
+                          {reportMessagePreview(latestReport, t)}
                         </span>
                       </span>
                       <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-(--color-brand-pink) px-2 text-xs font-bold text-(--color-pink-dark)">
@@ -535,7 +548,7 @@ export function MessageReportsWorkspace() {
                   onClick={() => void load(page + 1)}
                   className="mt-4 inline-flex h-10 items-center justify-center rounded-xl border border-white bg-white/60 text-xs font-bold text-(--color-text-primary) disabled:opacity-60"
                 >
-                  {loadingMore ? <Loader2 className="h-4 w-4 animate-spin" /> : "Load more reports"}
+                  {loadingMore ? <Loader2 className="h-4 w-4 animate-spin" /> : t("loadMoreReports")}
                 </button>
               ) : null}
             </aside>
@@ -548,16 +561,15 @@ export function MessageReportsWorkspace() {
                       <Avatar user={selectedGroup.user} />
                       <div className="min-w-0">
                         <h2 className="truncate text-base font-bold text-(--color-text-primary)">
-                          {fullName(selectedGroup.user)}
+                          {fullName(selectedGroup.user, t)}
                         </h2>
                         <p className="mt-1 truncate text-xs text-(--color-text-secondary)">
-                          {selectedGroup.user?.email || "The user account has been deleted"}
+                          {selectedGroup.user?.email || t("userAccountDeleted")}
                         </p>
                       </div>
                     </div>
                     <span className="shrink-0 rounded-full bg-white px-3 py-1 text-xs font-semibold text-(--color-text-secondary)">
-                      {selectedGroup.reports.length} reported{" "}
-                      {selectedGroup.reports.length === 1 ? "message" : "messages"}
+                      {t("reportedMessagesCount", { count: selectedGroup.reports.length })}
                     </span>
                   </div>
 
@@ -584,20 +596,20 @@ export function MessageReportsWorkspace() {
                               dateTime={report.message_created_at}
                               className="text-xs text-(--color-text-secondary)"
                             >
-                              Sent {dateTime(report.message_created_at)}
+                              {t("sentDate", { date: dateTime(report.message_created_at, locale) })}
                             </time>
                           </div>
                           <p className="mt-4 whitespace-pre-wrap break-words text-sm leading-6 text-(--color-text-primary)">
-                            {reportMessagePreview(report)}
+                            {reportMessagePreview(report, t)}
                           </p>
                           <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-white/70 pt-3 text-xs text-(--color-text-secondary)">
                             <span>
-                              Reported by{" "}
+                              {t("reportedByLabel")}{" "}
                               <strong className="text-(--color-text-primary)">
-                                {fullName(report.reporter)}
+                                {fullName(report.reporter, t)}
                               </strong>
                             </span>
-                            <span>{dateTime(report.created_at)}</span>
+                            <span>{dateTime(report.created_at, locale)}</span>
                           </div>
                         </button>
                       );
@@ -614,57 +626,60 @@ export function MessageReportsWorkspace() {
                     <Avatar user={selectedReport.sender} size="lg" />
                     <div className="min-w-0">
                       <h2 className="truncate text-base font-bold text-(--color-text-primary)">
-                        {fullName(selectedReport.sender)}
+                        {fullName(selectedReport.sender, t)}
                       </h2>
                       <p className="mt-1 text-xs capitalize text-(--color-text-secondary)">
-                        {selectedReport.sender?.role || "Unknown role"}
+                        {selectedReport.sender?.role ? tRoles(selectedReport.sender.role) : t("unknownRole")}
                       </p>
                       {selectedReport.sender ? (
                         <Link
                           href={`/profile/${selectedReport.sender.id}?view=review&from=moderator-chats`}
                           className="mt-2 inline-flex text-xs font-semibold text-(--color-blue) hover:underline"
                         >
-                          View profile
+                          {t("viewProfile")}
                         </Link>
                       ) : null}
                     </div>
                   </div>
 
                   <dl className="mt-6 space-y-3">
-                    <DetailRow label="Sender">
-                      {selectedReport.sender?.email || "Deleted account"}
+                    <DetailRow label={t("sender")}>
+                      {selectedReport.sender?.email || t("deletedAccount")}
                     </DetailRow>
-                    <DetailRow label="Sent">
-                      {dateTime(selectedReport.message_created_at)}
+                    <DetailRow label={t("sent")}>
+                      {dateTime(selectedReport.message_created_at, locale)}
                     </DetailRow>
-                    <DetailRow label="Message ID">#{selectedReport.message}</DetailRow>
-                    <DetailRow label="Chat">
-                      {selectedReport.chat.title || `${selectedReport.chat.type} chat`} · #
-                      {selectedReport.chat.id}
+                    <DetailRow label={t("messageId")}>#{selectedReport.message}</DetailRow>
+                    <DetailRow label={t("chat")}>
+                      {selectedReport.chat.title ||
+                        (selectedReport.chat.type === "group"
+                          ? t("groupChatFallback")
+                          : t("directChatFallback"))}{" "}
+                      · #{selectedReport.chat.id}
                     </DetailRow>
                   </dl>
 
                   <div className="mt-6 border-t border-white/80 pt-5">
                     <h3 className="text-sm font-bold text-(--color-text-primary)">
-                      Report information
+                      {t("reportInformationHeading")}
                     </h3>
                     <dl className="mt-4 space-y-3">
-                      <DetailRow label="Reason">
+                      <DetailRow label={t("reason")}>
                         <span className="font-bold text-(--color-pink-dark)">
                           {selectedReport.reason_label}
                         </span>
                       </DetailRow>
-                      <DetailRow label="Reported">{dateTime(selectedReport.created_at)}</DetailRow>
-                      <DetailRow label="Reporter">{fullName(selectedReport.reporter)}</DetailRow>
-                      <DetailRow label="Reporter role">
-                        <span className="capitalize">{selectedReport.reporter.role}</span>
+                      <DetailRow label={t("reported")}>{dateTime(selectedReport.created_at, locale)}</DetailRow>
+                      <DetailRow label={t("reporter")}>{fullName(selectedReport.reporter, t)}</DetailRow>
+                      <DetailRow label={t("reporterRole")}>
+                        <span className="capitalize">{tRoles(selectedReport.reporter.role)}</span>
                       </DetailRow>
                     </dl>
                   </div>
 
                   {selectedReport.details ? (
                     <div className="mt-5 rounded-xl bg-white/60 p-4">
-                      <p className="text-xs font-bold text-(--color-text-primary)">Reporter note</p>
+                      <p className="text-xs font-bold text-(--color-text-primary)">{t("reporterNote")}</p>
                       <p className="mt-2 whitespace-pre-wrap break-words text-xs leading-5 text-(--color-text-secondary)">
                         {selectedReport.details}
                       </p>
@@ -673,7 +688,7 @@ export function MessageReportsWorkspace() {
 
                   {selectedReport.attachments.length ? (
                     <div className="mt-5">
-                      <h3 className="text-sm font-bold text-(--color-text-primary)">Attachments</h3>
+                      <h3 className="text-sm font-bold text-(--color-text-primary)">{t("attachmentsHeading")}</h3>
                       <div className="mt-3 space-y-2">
                         {selectedReport.attachments.map((attachment) =>
                           attachment.url ? (
@@ -685,7 +700,7 @@ export function MessageReportsWorkspace() {
                               className="flex items-center gap-2 rounded-xl bg-white/70 px-3 py-2 text-xs font-semibold text-(--color-blue) hover:bg-white"
                             >
                               <FileText className="h-4 w-4 shrink-0" />
-                              <span className="truncate">Attachment #{attachment.id}</span>
+                              <span className="truncate">{t("attachmentNumber", { number: attachment.id })}</span>
                             </a>
                           ) : null,
                         )}
@@ -701,12 +716,12 @@ export function MessageReportsWorkspace() {
                     />
                   ) : (
                     <p className="mt-6 rounded-xl bg-white/50 p-3 text-xs leading-5 text-(--color-text-secondary)">
-                      Moderation actions are unavailable because this user account no longer exists.
+                      {t("moderationUnavailable")}
                     </p>
                   )}
 
                   <div className="mt-6 rounded-xl border border-white/80 bg-white/40 p-3 text-xs text-(--color-text-secondary)">
-                    Report #{selectedReport.id} · {compactDate(selectedReport.created_at)}
+                    {t("reportFooter", { number: selectedReport.id, date: compactDate(selectedReport.created_at, locale) })}
                   </div>
                 </>
               ) : null}

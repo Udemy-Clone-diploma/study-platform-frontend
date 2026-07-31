@@ -3,10 +3,12 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
+import { usePathname, useRouter } from "@/i18n/navigation";
 import { X } from "lucide-react";
 import { getCart, removeCartItem, type Cart, type CartItem } from "@/entities/cart";
-import { DAY_LABELS, enrollInFreeCourse, type DayOfWeek } from "@/entities/course";
+import { DAY_KEYS, enrollInFreeCourse, type DayOfWeek } from "@/entities/course";
 import {
   createInstallmentPaymentIntent,
   createPaymentIntent,
@@ -30,16 +32,18 @@ type CheckoutIntentState = {
   installmentCount: number | null;
 };
 
-const allTabs: Array<{ id: TabId; label: string; roles: WorkspaceRole[] }> = [
-  { id: "card", label: "Card", roles: ["student"] },
-  { id: "plans", label: "Plans", roles: ["student", "teacher"] },
-  { id: "history", label: "Payment history", roles: ["student", "teacher"] },
-];
+const TAB_ORDER: TabId[] = ["card", "plans", "history"];
+const TAB_ROLES: Record<TabId, WorkspaceRole[]> = {
+  card: ["student"],
+  plans: ["student", "teacher"],
+  history: ["student", "teacher"],
+};
+const TAB_LABEL_KEYS: Record<TabId, string> = {
+  card: "tabCard",
+  plans: "tabPlans",
+  history: "tabHistory",
+};
 
-const COURSE_AVAILABLE_NOTICE = "The course is already available in My Courses.";
-const PAYMENT_PROCESSING_NOTICE =
-  "Payment is being processed. Access will appear after confirmation.";
-const PAYMENT_CANCELED_NOTICE = "Payment was canceled. Your cart is unchanged.";
 const RECEIPT_ICON_SRC = "/icons/download.svg";
 const CART_CARD_GRADIENT = {
   beginner: "var(--gradient-card-yellow)",
@@ -47,13 +51,18 @@ const CART_CARD_GRADIENT = {
   advanced: "var(--gradient-card-pink)",
 } as const;
 
-function formatDate(value: string): string {
-  return new Intl.DateTimeFormat("en-GB").format(new Date(value)).replace(/\//g, ".");
+function formatDate(value: string, locale: string): string {
+  return new Intl.DateTimeFormat(locale).format(new Date(value)).replace(/\//g, ".");
 }
 
-function formatMoney(amount: string, currency: string | null): string {
-  if (!currency) return Number(amount) === 0 ? "Free" : amount;
-  return new Intl.NumberFormat("en-US", {
+function formatMoney(
+  amount: string,
+  currency: string | null,
+  freeLabel: string,
+  locale: string,
+): string {
+  if (!currency) return Number(amount) === 0 ? freeLabel : amount;
+  return new Intl.NumberFormat(locale, {
     style: "currency",
     currency,
     maximumFractionDigits: 2,
@@ -61,25 +70,36 @@ function formatMoney(amount: string, currency: string | null): string {
 }
 
 /** Group name / chosen weekly slots + start date, shown under the course title in the cart. */
-function getCartItemMeta(item: CartItem): string | null {
+function getCartItemMeta(
+  item: CartItem,
+  tDays: (key: string) => string,
+  t: (key: string, values?: Record<string, string>) => string,
+  locale: string,
+): string | null {
   if (item.pricing_plan_kind === "group" && item.cohort) {
-    const parts = [`Group: ${item.cohort.name ?? "Group"}`];
-    if (item.cohort.start_date) parts.push(`Starts ${formatDate(item.cohort.start_date)}`);
+    const parts = [t("group", { name: item.cohort.name ?? t("groupFallback") })];
+    if (item.cohort.start_date)
+      parts.push(t("starts", { date: formatDate(item.cohort.start_date, locale) }));
     return parts.join(" · ");
   }
 
   if (item.pricing_plan_kind === "individual" && item.schedule_slots.length > 0) {
     const slots = item.schedule_slots
-      .map((s) => `${DAY_LABELS[s.day_of_week as DayOfWeek]} ${s.start_time}–${s.end_time}`)
+      .map((s) => `${tDays(DAY_KEYS[s.day_of_week as DayOfWeek])} ${s.start_time}–${s.end_time}`)
       .join(", ");
-    return `Sessions: ${slots}`;
+    return t("sessions", { slots });
   }
 
   return null;
 }
 
-function formatMoneyValue(amount: number, currency: string | null): string {
-  return formatMoney(amount.toFixed(2), currency);
+function formatMoneyValue(
+  amount: number,
+  currency: string | null,
+  freeLabel: string,
+  locale: string,
+): string {
+  return formatMoney(amount.toFixed(2), currency, freeLabel, locale);
 }
 
 function sumCartItems(items: CartItem[], field: "subtotal" | "installment_amount"): number {
@@ -104,21 +124,21 @@ function installmentOptionForItems(items: CartItem[]) {
   return { count, firstAmount, totalAmount };
 }
 
-function courseLabel(payment: Payment): string {
-  if (payment.items.length === 0) return payment.description || `Payment #${payment.id}`;
+function courseLabel(payment: Payment, t: (key: string, values?: Record<string, number>) => string): string {
+  if (payment.items.length === 0) return payment.description || t("paymentNumber", { id: payment.id });
   if (payment.items.length === 1) return payment.items[0].course_title;
   return payment.items.map((item) => item.course_title).join(", ");
 }
 
-function orderCourseLabel(order: Order): string {
-  if (order.items.length === 0) return `Order #${order.id}`;
+function orderCourseLabel(order: Order, t: (key: string, values?: Record<string, number>) => string): string {
+  if (order.items.length === 0) return t("orderNumber", { id: order.id });
   if (order.items.length === 1) return order.items[0].course_title;
   return order.items.map((item) => item.course_title).join(", ");
 }
 
 function resolveTab(value: string | null, role: WorkspaceRole): TabId {
   const normalizedValue = value === "cart" ? "card" : value;
-  const allowedTabs = allTabs.filter((tab) => tab.roles.includes(role)).map((tab) => tab.id);
+  const allowedTabs = TAB_ORDER.filter((id) => TAB_ROLES[id].includes(role));
   return allowedTabs.includes(normalizedValue as TabId)
     ? (normalizedValue as TabId)
     : allowedTabs[0];
@@ -140,8 +160,9 @@ function PaymentTabs({
   activeTab: TabId;
   onChange: (tab: TabId) => void;
 }) {
+  const t = useTranslations("PaymentWorkspace");
   return (
-    <nav className="flex border-b border-[#A7BAFA]" aria-label="Payment sections">
+    <nav className="flex border-b border-[#A7BAFA]" aria-label={t("paymentSectionsAriaLabel")}>
       {tabs.map((tab) => {
         const isActive = activeTab === tab.id;
 
@@ -167,6 +188,7 @@ function PaymentTabs({
 }
 
 function InvoiceButton({ orderId }: { orderId: number }) {
+  const t = useTranslations("PaymentWorkspace");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -187,7 +209,7 @@ function InvoiceButton({ orderId }: { orderId: number }) {
       link.remove();
       window.setTimeout(() => window.URL.revokeObjectURL(url), 0);
     } catch {
-      setError("Could not download invoice.");
+      setError(t("errorDownloadInvoice"));
     } finally {
       setLoading(false);
     }
@@ -199,10 +221,10 @@ function InvoiceButton({ orderId }: { orderId: number }) {
         type="button"
         onClick={handleDownload}
         disabled={loading}
-        title="Download invoice for this order."
+        title={t("invoiceTitle")}
         className="w-fit text-left font-(family-name:--font-base) text-[16px] leading-5 font-normal text-[#121212] underline underline-offset-2 transition-colors hover:text-[#003AFF] disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {loading ? "..." : "Invoice"}
+        {loading ? "..." : t("invoice")}
       </button>
       {error ? <span className="text-[9px] leading-3 text-[#B42318]">{error}</span> : null}
     </div>
@@ -212,12 +234,13 @@ function InvoiceButton({ orderId }: { orderId: number }) {
 function ReceiptButton({
   paymentId,
   orderId,
-  label = "Receipt",
+  label,
 }: {
   paymentId: number;
   orderId: number | null;
   label?: string;
 }) {
+  const t = useTranslations("PaymentWorkspace");
   const buttonClassName =
     "inline-flex h-7 items-center justify-center gap-1 rounded-full border border-black px-2 font-mono text-[15px] leading-[15px] font-medium text-black";
   const [loading, setLoading] = useState(false);
@@ -240,7 +263,7 @@ function ReceiptButton({
       link.remove();
       window.setTimeout(() => window.URL.revokeObjectURL(url), 0);
     } catch {
-      setError("Could not download receipt.");
+      setError(t("errorDownloadReceipt"));
     } finally {
       setLoading(false);
     }
@@ -254,7 +277,7 @@ function ReceiptButton({
         disabled={loading}
         className={`${buttonClassName} transition-colors hover:bg-[#F2F2F2] disabled:cursor-not-allowed disabled:opacity-60`}
       >
-        {loading ? "..." : label}
+        {loading ? "..." : (label ?? t("receipt"))}
         {!loading && RECEIPT_ICON_SRC ? (
           <img src={RECEIPT_ICON_SRC} alt="" aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />
         ) : null}
@@ -277,12 +300,20 @@ function OrderSummary({
   checkoutError: string;
   onPay: () => void;
 }) {
-  const totalLabel = formatMoneyValue(sumCartItems(selectedItems, "subtotal"), currency);
+  const t = useTranslations("PaymentWorkspace");
+  const locale = useLocale();
+  const freeLabel = t("free");
+  const totalLabel = formatMoneyValue(
+    sumCartItems(selectedItems, "subtotal"),
+    currency,
+    freeLabel,
+    locale,
+  );
   const canPay = selectedItems.length > 0;
 
   return (
     <aside className="min-w-0 font-(family-name:--font-base) text-[#121212]">
-      <h2 className="text-[22px] leading-7 font-semibold">Order summary</h2>
+      <h2 className="text-[22px] leading-7 font-semibold">{t("orderSummary")}</h2>
 
       <div className="mt-5">
         {selectedItems.map((item) => (
@@ -294,20 +325,18 @@ function OrderSummary({
               {item.course.title}
             </span>
             <span className="shrink-0 text-[14px] leading-[18px]">
-              {formatMoney(item.subtotal, item.currency)}
+              {formatMoney(item.subtotal, item.currency, freeLabel, locale)}
             </span>
           </div>
         ))}
       </div>
 
       <div className="mt-3 flex items-center justify-between border-t-2 border-[#003AFF] pt-2 text-[18px] leading-6 font-semibold">
-        <span>Total</span>
+        <span>{t("total")}</span>
         <span>{totalLabel}</span>
       </div>
 
-      <p className="mt-2 text-[14px] leading-[17px]">
-        By submitting your order, you confirm that you have read and agree to the terms of use.
-      </p>
+      <p className="mt-2 text-[14px] leading-[17px]">{t("termsNotice")}</p>
 
       <button
         type="button"
@@ -315,7 +344,7 @@ function OrderSummary({
         disabled={!canPay || checkoutLoading}
         className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-full bg-black px-5 text-[22px] leading-6 text-white transition-colors hover:bg-[#252525] disabled:cursor-not-allowed disabled:bg-[#6A6A6A]"
       >
-        {checkoutLoading ? "Opening..." : "To Pay"}
+        {checkoutLoading ? t("opening") : t("toPay")}
       </button>
 
       {checkoutError ? (
@@ -350,10 +379,14 @@ function CartPaymentPanel({
   onRemoveItem: (itemId: number, courseId: number) => void;
   onPay: () => void;
 }) {
+  const t = useTranslations("PaymentWorkspace");
+  const tDays = useTranslations("Days");
+  const locale = useLocale();
+
   if (loading) {
     return (
       <div className="mt-6 flex min-h-[260px] items-center justify-center font-mono text-[12px] text-[#6A6A6A]">
-        Loading cart...
+        {t("loadingCart")}
       </div>
     );
   }
@@ -369,7 +402,7 @@ function CartPaymentPanel({
   if (!cart || cart.items.length === 0) {
     return (
       <div className="mt-6 flex min-h-[260px] items-center justify-center rounded-md border border-dashed border-[#D9D9D9] px-4 text-center font-mono text-[12px] text-[#6A6A6A]">
-        Your cart is empty.
+        {t("cartEmpty")}
       </div>
     );
   }
@@ -380,7 +413,7 @@ function CartPaymentPanel({
     <div className="mx-6 mt-10 grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_315px]">
       <section className="min-w-0">
         <h2 className="font-(family-name:--font-base) text-[20px] leading-6 font-normal text-[#5E5E5E]">
-          Items in cart
+          {t("itemsInCart")}
         </h2>
 
         <div className="mt-7 flex flex-col gap-6">
@@ -389,7 +422,7 @@ function CartPaymentPanel({
             const gradient = CART_CARD_GRADIENT[item.course.level] ?? CART_CARD_GRADIENT.beginner;
 
             const isRemoving = removingItemId === item.id;
-            const meta = getCartItemMeta(item);
+            const meta = getCartItemMeta(item, tDays, t, locale);
 
             return (
               <label
@@ -430,7 +463,7 @@ function CartPaymentPanel({
                         {item.course.title}
                       </p>
                       <span className="shrink-0 font-(family-name:--font-base) text-[20px] leading-6 text-[#121212]">
-                        {formatMoney(item.subtotal, item.currency)}
+                        {formatMoney(item.subtotal, item.currency, t("free"), locale)}
                       </span>
                     </div>
                     {meta ? (
@@ -441,7 +474,7 @@ function CartPaymentPanel({
                   </div>
                   <button
                     type="button"
-                    aria-label="Remove from cart"
+                    aria-label={t("removeFromCart")}
                     disabled={isRemoving}
                     onClick={(event) => {
                       event.preventDefault();
@@ -479,6 +512,8 @@ function InstallmentPlansTable({
   payingInstallmentId: number | null;
   onPay: (orderId: number, installmentId: number) => void;
 }) {
+  const t = useTranslations("PaymentWorkspace");
+  const locale = useLocale();
   const rows = orders.flatMap((order) =>
     order.payment_type === "installments"
       ? order.installments.map((installment) => ({
@@ -491,7 +526,7 @@ function InstallmentPlansTable({
   if (rows.length === 0) {
     return (
       <div className="mt-6 flex min-h-[160px] items-center justify-center rounded-md border border-dashed border-[#D9D9D9] px-4 text-center font-mono text-[12px] text-[#6A6A6A]">
-        No active installment plans yet.
+        {t("noInstallmentPlans")}
       </div>
     );
   }
@@ -501,9 +536,9 @@ function InstallmentPlansTable({
       {/* TODO: Prefer a dedicated payment-installments endpoint when backend exposes one. */}
       <div className="w-[831px] font-(family-name:--font-base) text-[#121212]">
         <div className="grid w-[831px] grid-cols-[minmax(0,1fr)_120px_120px_120px_96px] items-center px-5 pb-4 text-[13px] text-[#6A6A6A]">
-          <span>Course</span>
-          <span>Date</span>
-          <span>Amount</span>
+          <span>{t("course")}</span>
+          <span>{t("date")}</span>
+          <span>{t("amount")}</span>
           <span aria-hidden="true" />
           <span aria-hidden="true" />
         </div>
@@ -524,11 +559,11 @@ function InstallmentPlansTable({
               >
                 <span className="truncate">
                   {installment.installment_number}/{order.installments_count}{" "}
-                  {orderCourseLabel(order)}
+                  {orderCourseLabel(order, t)}
                 </span>
-                <span className="truncate">{formatDate(installment.due_date)}</span>
+                <span className="truncate">{formatDate(installment.due_date, locale)}</span>
                 <span className="truncate">
-                  {formatMoney(installment.amount, installment.currency)}
+                  {formatMoney(installment.amount, installment.currency, t("free"), locale)}
                 </span>
                 <InvoiceButton orderId={order.id} />
                 <span className="flex justify-end">
@@ -539,7 +574,7 @@ function InstallmentPlansTable({
                       disabled={isPaying}
                       className="inline-flex h-8 min-w-[82px] items-center justify-center rounded-full bg-black px-4 font-(family-name:--font-base) text-[16px] leading-5 font-normal text-white transition-colors hover:bg-[#252525] disabled:cursor-not-allowed disabled:bg-[#6A6A6A]"
                     >
-                      {isPaying ? "..." : "To Pay"}
+                      {isPaying ? "..." : t("toPay")}
                     </button>
                   ) : null}
                 </span>
@@ -553,12 +588,14 @@ function InstallmentPlansTable({
 }
 
 function PaymentHistoryTable({ payments }: { payments: Payment[] }) {
+  const t = useTranslations("PaymentWorkspace");
+  const locale = useLocale();
   const paidPayments = payments.filter((payment) => payment.status === "succeeded");
 
   if (paidPayments.length === 0) {
     return (
       <div className="mt-6 flex min-h-[160px] items-center justify-center rounded-md border border-dashed border-[#D9D9D9] px-4 text-center font-mono text-[12px] text-[#6A6A6A]">
-        No completed payments yet.
+        {t("noCompletedPayments")}
       </div>
     );
   }
@@ -574,21 +611,21 @@ function PaymentHistoryTable({ payments }: { payments: Payment[] }) {
         </colgroup>
         <thead>
           <tr className="border-b border-[#D4D4D4] text-left text-[#6A6A6A]">
-            <th className="h-10 px-4 font-normal text-[20px] leading-5">Course</th>
-            <th className="h-10 px-4 font-normal text-[20px] leading-5">Date</th>
-            <th className="h-10 px-4 font-normal text-[20px] leading-5">Amount</th>
-            <th aria-label="Receipt" className="h-10 px-4" />
+            <th className="h-10 px-4 font-normal text-[20px] leading-5">{t("course")}</th>
+            <th className="h-10 px-4 font-normal text-[20px] leading-5">{t("date")}</th>
+            <th className="h-10 px-4 font-normal text-[20px] leading-5">{t("amount")}</th>
+            <th aria-label={t("receipt")} className="h-10 px-4" />
           </tr>
         </thead>
         <tbody>
           {paidPayments.map((payment) => (
             <tr key={payment.id} className="border-b border-[#D4D4D4]">
-              <td className="truncate px-4 py-2 align-middle">{courseLabel(payment)}</td>
+              <td className="truncate px-4 py-2 align-middle">{courseLabel(payment, t)}</td>
               <td className="truncate px-4 py-2 align-middle">
-                {formatDate(payment.processed_at ?? payment.created_at)}
+                {formatDate(payment.processed_at ?? payment.created_at, locale)}
               </td>
               <td className="truncate px-4 py-2 align-middle">
-                {formatMoney(payment.amount, payment.currency)}
+                {formatMoney(payment.amount, payment.currency, t("free"), locale)}
               </td>
               <td className="h-8 px-4 text-right">
                 <ReceiptButton paymentId={payment.id} orderId={payment.order_id} />
@@ -602,6 +639,9 @@ function PaymentHistoryTable({ payments }: { payments: Payment[] }) {
 }
 
 export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole }) {
+  const t = useTranslations("PaymentWorkspace");
+  const locale = useLocale();
+  const freeLabel = t("free");
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -636,7 +676,14 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
   const [paymentsError, setPaymentsError] = useState("");
   const [toast, setToast] = useState<string | null>(null);
 
-  const tabs = useMemo(() => allTabs.filter((tab) => tab.roles.includes(role)), [role]);
+  const tabs = useMemo(
+    () =>
+      TAB_ORDER.filter((id) => TAB_ROLES[id].includes(role)).map((id) => ({
+        id,
+        label: t(TAB_LABEL_KEYS[id]),
+      })),
+    [role, t],
+  );
   const selectedCartItems = useMemo(
     () => cart?.items.filter((item) => selectedCartItemIds.includes(item.id)) ?? [],
     [cart, selectedCartItemIds],
@@ -652,20 +699,32 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
     const isInstallmentPayment = cartCheckoutIntent.paymentMode === "installments";
 
     return {
-      total: formatMoneyValue(sumCartItems(selectedCartItems, "subtotal"), totalCurrency),
-      due: formatMoney(cartCheckoutIntent.intent.amount, cartCheckoutIntent.intent.currency),
+      total: formatMoneyValue(
+        sumCartItems(selectedCartItems, "subtotal"),
+        totalCurrency,
+        freeLabel,
+        locale,
+      ),
+      due: formatMoney(
+        cartCheckoutIntent.intent.amount,
+        cartCheckoutIntent.intent.currency,
+        freeLabel,
+        locale,
+      ),
       courses: selectedCartItems.map((item) => ({
         id: item.id,
         title: item.course.title,
-        subtitle: item.pricing_plan_kind ?? "Course",
+        subtitle: item.pricing_plan_kind ?? t("course"),
         amount: formatMoney(
           isInstallmentPayment ? (item.installment_amount ?? item.subtotal) : item.subtotal,
           item.currency,
+          freeLabel,
+          locale,
         ),
         image: item.course.image,
       })),
     };
-  }, [cart, cartCheckoutIntent, selectedCartItems]);
+  }, [cart, cartCheckoutIntent, selectedCartItems, freeLabel, locale, t]);
   const installmentPaymentSummary = useMemo(() => {
     if (!installmentCheckoutIntent) return null;
 
@@ -680,33 +739,53 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
 
     return {
       total: order
-        ? formatMoney(order.total_amount, order.currency)
-        : formatMoney(installmentCheckoutIntent.amount, installmentCheckoutIntent.currency),
-      due: formatMoney(installmentCheckoutIntent.amount, installmentCheckoutIntent.currency),
+        ? formatMoney(order.total_amount, order.currency, freeLabel, locale)
+        : formatMoney(
+            installmentCheckoutIntent.amount,
+            installmentCheckoutIntent.currency,
+            freeLabel,
+            locale,
+          ),
+      due: formatMoney(
+        installmentCheckoutIntent.amount,
+        installmentCheckoutIntent.currency,
+        freeLabel,
+        locale,
+      ),
       courses: order?.items.map((item) => ({
         id: item.id,
         title: item.course_title,
         subtitle: installment
-          ? `Installment ${installment.installment_number}/${order.installments_count}`
-          : "Partial payment",
+          ? t("installmentOf", {
+              number: installment.installment_number,
+              total: order.installments_count,
+            })
+          : t("partialPayment"),
         amount: installment
           ? formatMoney(
               (Number(item.unit_amount) / order.installments_count).toFixed(2),
               item.currency,
+              freeLabel,
+              locale,
             )
-          : formatMoney(item.unit_amount, item.currency),
+          : formatMoney(item.unit_amount, item.currency, freeLabel, locale),
         image: null,
       })) ?? [
         {
           id: "installment",
-          title: "Installment payment",
-          subtitle: "Partial payment",
-          amount: formatMoney(installmentCheckoutIntent.amount, installmentCheckoutIntent.currency),
+          title: t("installmentPayment"),
+          subtitle: t("partialPayment"),
+          amount: formatMoney(
+            installmentCheckoutIntent.amount,
+            installmentCheckoutIntent.currency,
+            freeLabel,
+            locale,
+          ),
           image: null,
         },
       ],
     };
-  }, [installmentCheckoutIntent, orders]);
+  }, [installmentCheckoutIntent, orders, freeLabel, locale, t]);
 
   useEffect(() => {
     setActiveTab(resolveTab(searchParams.get("tab"), role));
@@ -717,16 +796,16 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
     const sessionId = searchParams.get("session_id");
     let message: string | null = null;
 
-    if (notice === "course_available") message = COURSE_AVAILABLE_NOTICE;
-    if (notice === "payment_cancelled") message = PAYMENT_CANCELED_NOTICE;
-    if (sessionId) message = PAYMENT_PROCESSING_NOTICE;
+    if (notice === "course_available") message = t("noticeCourseAvailable");
+    if (notice === "payment_cancelled") message = t("noticePaymentCanceled");
+    if (sessionId) message = t("noticePaymentProcessing");
 
     if (!message) return;
 
     setToast(message);
     const timeoutId = window.setTimeout(() => setToast(null), 5000);
     return () => window.clearTimeout(timeoutId);
-  }, [searchParams]);
+  }, [searchParams, t]);
 
   useEffect(() => {
     if (role !== "student" || activeTab !== "card") return;
@@ -751,7 +830,7 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
         });
       })
       .catch(() => {
-        if (!cancelled) setCartError("Could not load cart.");
+        if (!cancelled) setCartError(t("errorLoadCart"));
       })
       .finally(() => {
         if (!cancelled) setCartLoading(false);
@@ -760,7 +839,7 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
     return () => {
       cancelled = true;
     };
-  }, [activeTab, requestedCartItemId, role]);
+  }, [activeTab, requestedCartItemId, role, t]);
 
   useEffect(() => {
     if (checkoutMode === "installments" && !selectedInstallmentOption) {
@@ -789,7 +868,7 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
 
     if (!cartLoading && selectedCartItems.length > 0) {
       setCheckoutMode("full");
-      setCheckoutError("Partial payment is not available for the selected course.");
+      setCheckoutError(t("errorPartialNotAvailable"));
       appliedPaymentRequestRef.current = paymentRequestKey;
     }
   }, [
@@ -800,6 +879,7 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
     role,
     selectedCartItems.length,
     selectedInstallmentOption,
+    t,
   ]);
 
   useEffect(() => {
@@ -814,7 +894,7 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
         if (!cancelled) setOrders(data.results);
       })
       .catch(() => {
-        if (!cancelled) setOrdersError("Could not load payment plans.");
+        if (!cancelled) setOrdersError(t("errorLoadPaymentPlans"));
       })
       .finally(() => {
         if (!cancelled) setOrdersLoading(false);
@@ -823,7 +903,7 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
     return () => {
       cancelled = true;
     };
-  }, [activeTab]);
+  }, [activeTab, t]);
 
   useEffect(() => {
     if (activeTab !== "history") return;
@@ -837,7 +917,7 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
         if (!cancelled) setPayments(data.results);
       })
       .catch(() => {
-        if (!cancelled) setPaymentsError("Could not load payment history.");
+        if (!cancelled) setPaymentsError(t("errorLoadPaymentHistory"));
       })
       .finally(() => {
         if (!cancelled) setPaymentsLoading(false);
@@ -846,7 +926,7 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
     return () => {
       cancelled = true;
     };
-  }, [activeTab]);
+  }, [activeTab, t]);
 
   function handleTabChange(tab: TabId) {
     setActiveTab(tab);
@@ -875,7 +955,7 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
       setCart(updatedCart);
       setSelectedCartItemIds((ids) => ids.filter((id) => id !== itemId));
     } catch {
-      setCartError("Could not remove item from cart.");
+      setCartError(t("errorRemoveItem"));
     } finally {
       setRemovingItemId(null);
     }
@@ -883,7 +963,7 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
 
   async function startCartCheckout(paymentType: PaymentType) {
     if (!cart || selectedCartItems.length === 0 || checkoutLoading) {
-      setCheckoutError("Select at least one course to pay.");
+      setCheckoutError(t("errorSelectCourse"));
       return;
     }
 
@@ -913,14 +993,14 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
 
         if (paidCartItems.length === 0) {
           setCartCheckoutIntent(null);
-          setToast("Free course access has been granted.");
+          setToast(t("freeCourseGranted"));
           return;
         }
       }
 
       const paidInstallmentOption = installmentOptionForItems(paidCartItems);
       if (paymentType === "installments" && !paidInstallmentOption) {
-        setCheckoutError("Partial payment is not available for the selected course.");
+        setCheckoutError(t("errorPartialNotAvailable"));
         return;
       }
 
@@ -942,7 +1022,7 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
       setIsCartPaymentDrawerOpen(true);
     } catch (error) {
       const apiError = error as Partial<ApiError>;
-      setCheckoutError(apiError.detail || apiError.message || "Could not start payment.");
+      setCheckoutError(apiError.detail || apiError.message || t("errorStartPayment"));
     } finally {
       setCheckoutLoading(false);
     }
@@ -981,7 +1061,7 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
       setIsInstallmentPaymentDrawerOpen(true);
     } catch (error) {
       const apiError = error as Partial<ApiError>;
-      setOrdersError(apiError.detail || apiError.message || "Could not start installment payment.");
+      setOrdersError(apiError.detail || apiError.message || t("errorStartInstallment"));
     } finally {
       setPayingInstallmentId(null);
     }
@@ -1023,7 +1103,7 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
 
       <section className="relative z-10 mx-auto w-full max-w-[890px]">
         <h1 className="mb-6 font-(family-name:--font-base) text-[26px] font-semibold leading-[31px] text-[#121212]">
-          Tuition payment
+          {t("tuitionPayment")}
         </h1>
 
         <div
@@ -1055,7 +1135,7 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
           {activeTab === "plans" ? (
             ordersLoading ? (
               <div className="mt-6 flex min-h-[160px] items-center justify-center font-mono text-[12px] text-[#6A6A6A]">
-                Loading payment plans...
+                {t("loadingPaymentPlans")}
               </div>
             ) : ordersError ? (
               <div className="mt-6 flex min-h-[160px] items-center justify-center font-mono text-[12px] text-[#B42318]">
@@ -1075,7 +1155,7 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
           {activeTab === "history" ? (
             paymentsLoading ? (
               <div className="mt-6 flex min-h-[160px] items-center justify-center font-mono text-[12px] text-[#6A6A6A]">
-                Loading payment history...
+                {t("loadingPaymentHistory")}
               </div>
             ) : paymentsError ? (
               <div className="mt-6 flex min-h-[160px] items-center justify-center font-mono text-[12px] text-[#B42318]">

@@ -1,6 +1,7 @@
 "use client";
 
 import { EditorContent, useEditor } from "@tiptap/react";
+import { useTranslations } from "next-intl";
 import { StarterKit } from "@tiptap/starter-kit";
 import { Table } from "@tiptap/extension-table";
 import { TableRow } from "@tiptap/extension-table-row";
@@ -86,6 +87,7 @@ const contentClassName =
  * Outputs sanitizer-compatible HTML (see sanitizeCourseHtml) — bold/italic/headings/
  * lists/quotes/inline code/tables. No image support yet. */
 export function RichTextEditor({ value, onChange, placeholder, minHeight = 160 }: Props) {
+  const t = useTranslations("RichTextEditor");
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
@@ -121,48 +123,48 @@ export function RichTextEditor({ value, onChange, placeholder, minHeight = 160 }
       <div
         className="flex flex-wrap items-center gap-0.5 border-b border-(--color-border-light) px-2 py-1.5"
       >
-        <ToolbarButton active={editor.isActive("bold")} onClick={() => editor.chain().focus().toggleBold().run()} title="Bold">
+        <ToolbarButton active={editor.isActive("bold")} onClick={() => editor.chain().focus().toggleBold().run()} title={t("bold")}>
           <Bold size={15} />
         </ToolbarButton>
-        <ToolbarButton active={editor.isActive("italic")} onClick={() => editor.chain().focus().toggleItalic().run()} title="Italic">
+        <ToolbarButton active={editor.isActive("italic")} onClick={() => editor.chain().focus().toggleItalic().run()} title={t("italic")}>
           <Italic size={15} />
         </ToolbarButton>
         <ToolbarButton
           active={editor.isActive("heading", { level: 2 })}
           onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-          title="Heading 2"
+          title={t("heading2")}
         >
           <Heading2 size={15} />
         </ToolbarButton>
         <ToolbarButton
           active={editor.isActive("heading", { level: 3 })}
           onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-          title="Heading 3"
+          title={t("heading3")}
         >
           <Heading3 size={15} />
         </ToolbarButton>
         <ToolbarButton
           active={editor.isActive("bulletList")}
           onClick={() => editor.chain().focus().toggleBulletList().run()}
-          title="Bullet list"
+          title={t("bulletList")}
         >
           <List size={15} />
         </ToolbarButton>
         <ToolbarButton
           active={editor.isActive("orderedList")}
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          title="Numbered list"
+          title={t("numberedList")}
         >
           <ListOrdered size={15} />
         </ToolbarButton>
         <ToolbarButton
           active={editor.isActive("blockquote")}
           onClick={() => editor.chain().focus().toggleBlockquote().run()}
-          title="Quote"
+          title={t("quote")}
         >
           <Quote size={15} />
         </ToolbarButton>
-        <ToolbarButton active={editor.isActive("code")} onClick={() => editor.chain().focus().toggleCode().run()} title="Inline code">
+        <ToolbarButton active={editor.isActive("code")} onClick={() => editor.chain().focus().toggleCode().run()} title={t("inlineCode")}>
           <Code size={15} />
         </ToolbarButton>
 
@@ -171,25 +173,25 @@ export function RichTextEditor({ value, onChange, placeholder, minHeight = 160 }
         {!inTable ? (
           <ToolbarButton
             onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
-            title="Insert table"
+            title={t("insertTable")}
           >
             <TableIcon size={15} />
           </ToolbarButton>
         ) : (
           <>
-            <ToolbarButton onClick={() => editor.chain().focus().addRowAfter().run()} title="Add row below">
+            <ToolbarButton onClick={() => editor.chain().focus().addRowAfter().run()} title={t("addRowBelow")}>
               <Rows3 size={15} />
             </ToolbarButton>
-            <ToolbarButton onClick={() => editor.chain().focus().addColumnAfter().run()} title="Add column right">
+            <ToolbarButton onClick={() => editor.chain().focus().addColumnAfter().run()} title={t("addColumnRight")}>
               <Columns3 size={15} />
             </ToolbarButton>
-            <ToolbarButton onClick={() => editor.chain().focus().deleteRow().run()} title="Delete row">
+            <ToolbarButton onClick={() => editor.chain().focus().deleteRow().run()} title={t("deleteRow")}>
               <Rows3 size={15} style={{ opacity: 0.5 }} />
             </ToolbarButton>
-            <ToolbarButton onClick={() => editor.chain().focus().deleteColumn().run()} title="Delete column">
+            <ToolbarButton onClick={() => editor.chain().focus().deleteColumn().run()} title={t("deleteColumn")}>
               <Columns3 size={15} style={{ opacity: 0.5 }} />
             </ToolbarButton>
-            <ToolbarButton onClick={() => editor.chain().focus().deleteTable().run()} title="Delete table">
+            <ToolbarButton onClick={() => editor.chain().focus().deleteTable().run()} title={t("deleteTable")}>
               <Trash2 size={15} />
             </ToolbarButton>
           </>

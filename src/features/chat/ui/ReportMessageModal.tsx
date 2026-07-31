@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent } from "react";
+import { useTranslations } from "next-intl";
 import { Loader2, X } from "lucide-react";
 import { reportMessage, type ChatMessage, type MessageReportReason } from "@/entities/chat";
 import type { ApiError } from "@/shared/api/base";
-import { REPORT_REASONS } from "../lib/chatConstants";
+import { REASON_VALUES } from "../lib/chatConstants";
 import { messagePreview } from "../lib/chatFormatters";
 
 type Props = {
@@ -14,16 +15,25 @@ type Props = {
 
 /** Submits a moderation report for a selected message. */
 export function ReportMessageModal({ message, onClose }: Props) {
+  const t = useTranslations("ReportMessageModal");
+  const tReportUser = useTranslations("ReportUser");
+  const tReasons = useTranslations("ReportUser.reasons");
+  const tCommon = useTranslations("ChatCommon");
+  const tShared = useTranslations("Common");
   const [reason, setReason] = useState<MessageReportReason | "">("");
   const [details, setDetails] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [sent, setSent] = useState(false);
+  const reasonOptions = useMemo(
+    () => REASON_VALUES.map((value) => ({ value, label: tReasons(value) })),
+    [tReasons],
+  );
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!reason) {
-      setError("Select a reason for the report.");
+      setError(tReportUser("selectReasonError"));
       return;
     }
     setSaving(true);
@@ -33,7 +43,7 @@ export function ReportMessageModal({ message, onClose }: Props) {
       setSent(true);
     } catch (requestError) {
       const apiError = requestError as Partial<ApiError>;
-      setError(apiError.detail || apiError.message || "Could not send the report.");
+      setError(apiError.detail || apiError.message || tReportUser("genericError"));
     } finally {
       setSaving(false);
     }
@@ -47,15 +57,15 @@ export function ReportMessageModal({ message, onClose }: Props) {
       <section
         role="dialog"
         aria-modal="true"
-        aria-label="Report message"
+        aria-label={t("title")}
         className="w-full max-w-[480px] rounded-lg bg-white p-6 shadow-[0_24px_70px_rgba(0,0,0,0.24)]"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-center justify-between gap-4">
-          <h2 className="text-lg font-bold text-[#121212]">Report message</h2>
+          <h2 className="text-lg font-bold text-[#121212]">{t("title")}</h2>
           <button
             type="button"
-            aria-label="Close"
+            aria-label={tShared("close")}
             disabled={saving}
             onClick={onClose}
             className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-[#F3F4F6]"
@@ -65,27 +75,25 @@ export function ReportMessageModal({ message, onClose }: Props) {
         </div>
         {sent ? (
           <div className="mt-5">
-            <p className="text-sm leading-6 text-[#4B5563]">
-              The report was sent to the moderation team.
-            </p>
+            <p className="text-sm leading-6 text-[#4B5563]">{t("reportSentBody")}</p>
             <button
               type="button"
               onClick={onClose}
               className="mt-6 h-10 w-full rounded-lg bg-black text-sm font-semibold text-white"
             >
-              Done
+              {tReportUser("done")}
             </button>
           </div>
         ) : (
           <form className="mt-5" onSubmit={submit}>
             <p className="rounded-lg bg-[#F7F9FF] px-3 py-2 text-sm text-[#4B5563] line-clamp-3">
-              {messagePreview(message)}
+              {messagePreview(message, tCommon)}
             </p>
             <fieldset className="mt-4 space-y-2">
               <legend className="mb-2 text-sm font-semibold text-[#121212]">
-                Why are you reporting this message?
+                {t("whyReportingLegend")}
               </legend>
-              {REPORT_REASONS.map((item) => (
+              {reasonOptions.map((item) => (
                 <label
                   key={item.value}
                   className="flex cursor-pointer items-center gap-3 rounded-lg border border-[#EEF0F6] px-3 py-2.5 text-sm hover:bg-[#F7F9FF]"

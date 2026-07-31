@@ -1,11 +1,12 @@
 "use client";
 
 import { Ban, LockOpen, Pencil, RotateCcw, Trash2 } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import { resendVerificationEmail } from "@/entities/user";
 import type { UserData } from "@/entities/user";
 import { DataTable, type DataTableColumn } from "@/shared/ui/DataTable";
 import { formatUserDate } from "../../lib/dates";
-import { ROLE_LABELS } from "../../model/labels";
+import { getRoleLabels } from "../../model/labels";
 import { UserAvatar } from "./UserAvatar";
 import { UserStatusBadge } from "./UserStatusBadge";
 
@@ -36,10 +37,14 @@ export function UsersTable({
   currentSort,
   onSortChange,
 }: Props) {
+  const t = useTranslations("UsersTable");
+  const tRoles = useTranslations("PublicProfile.roles");
+  const locale = useLocale();
+  const roleLabels = getRoleLabels(tRoles);
   const columns: DataTableColumn<UserData>[] = [
     {
       key: "user",
-      label: "User",
+      label: t("columnUser"),
       flex: 2.5,
       sortKey: "full_name",
       render: (row) => (
@@ -58,15 +63,15 @@ export function UsersTable({
     },
     {
       key: "role",
-      label: "Role",
+      label: t("columnRole"),
       flex: 1.4,
       headerAlign: "center",
       cellAlign: "center",
-      render: (row) => <span>{ROLE_LABELS[row.role]}</span>,
+      render: (row) => <span>{roleLabels[row.role]}</span>,
     },
     {
       key: "email",
-      label: "Email",
+      label: t("columnEmail"),
       flex: 2.4,
       headerAlign: "center",
       cellAlign: "center",
@@ -77,7 +82,7 @@ export function UsersTable({
     },
     {
       key: "status",
-      label: "Status",
+      label: t("columnStatus"),
       flex: 1.2,
       headerAlign: "center",
       cellAlign: "center",
@@ -90,16 +95,16 @@ export function UsersTable({
     },
     {
       key: "date_joined",
-      label: "Reg. date",
+      label: t("columnRegDate"),
       flex: 1.2,
       headerAlign: "center",
       cellAlign: "center",
       sortKey: "date_joined",
-      render: (row) => <span>{formatUserDate(row.date_joined)}</span>,
+      render: (row) => <span>{formatUserDate(row.date_joined, locale)}</span>,
     },
     {
       key: "actions",
-      label: "Actions",
+      label: t("columnActions"),
       flex: 1.3,
       headerAlign: "center",
       cellAlign: "center",
@@ -107,7 +112,7 @@ export function UsersTable({
         if (row.is_deleted) {
           return (
             <div className="flex items-center justify-center">
-              <ActionButton title="Restore user" onClick={() => onRestore(row)}>
+              <ActionButton title={t("restoreUser")} onClick={() => onRestore(row)}>
                 <RotateCcw size={16} />
               </ActionButton>
             </div>
@@ -119,16 +124,16 @@ export function UsersTable({
             className="flex items-center justify-center"
             style={{ gap: "clamp(4px, 0.56vw, 8px)" }}
           >
-            <ActionButton title="Edit user" onClick={() => onEdit(row)}>
+            <ActionButton title={t("editUser")} onClick={() => onEdit(row)}>
               <Pencil size={16} />
             </ActionButton>
             <ActionButton
               title={
                 isSelf
-                  ? "You cannot block your own account"
+                  ? t("cannotBlockSelf")
                   : row.is_blocked
-                    ? "Unblock user"
-                    : "Block user"
+                    ? t("unblockUser")
+                    : t("blockUser")
               }
               onClick={() => onToggleBlock(row)}
               danger={!row.is_blocked}
@@ -137,7 +142,7 @@ export function UsersTable({
               {row.is_blocked ? <LockOpen size={16} /> : <Ban size={16} />}
             </ActionButton>
             <ActionButton
-              title={isSelf ? "You cannot delete your own account" : "Delete user"}
+              title={isSelf ? t("cannotDeleteSelf") : t("deleteUser")}
               onClick={() => onDelete(row)}
               danger
               disabled={isSelf}

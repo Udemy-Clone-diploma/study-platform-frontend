@@ -1,9 +1,10 @@
 "use client";
 
+import { useState } from "react";
+import { useTranslations } from "next-intl";
 import type { PublicCourseListItem } from "@/entities/course";
 import { CourseCard } from "@/features/courses";
 import { SectionContainer } from "@/shared/ui/SectionContainer";
-import { useState } from "react";
 
 type Props = { courses: PublicCourseListItem[]; wishlistedSlugs: string[] };
 
@@ -11,22 +12,23 @@ export function PopularCoursesSection({ courses, wishlistedSlugs }: Props) {
   const wishlistSet = new Set(wishlistedSlugs);
   const doubled = [...courses, ...courses];
   const [paused, setPaused] = useState(false);
+  const t = useTranslations("HomePopularCourses");
 
   return (
     <section>
       <SectionContainer>
         <h2
+          className="text-[24px] md:text-[30px] lg:text-[2.5vw]"
           style={{
             fontFamily: "var(--font-base)",
             fontWeight: 400,
-            fontSize: "2.5vw",
             lineHeight: 1.25,
             textAlign: "center",
             margin: "3%",
             color: "var(--color-text-primary)",
           }}
         >
-          Popular courses
+          {t("heading")}
         </h2>
       </SectionContainer>
       <div style={{ overflow: "hidden", padding: "16px 0", marginBottom: "3%" }}>
@@ -42,9 +44,9 @@ export function PopularCoursesSection({ courses, wishlistedSlugs }: Props) {
             animationPlayState: paused ? "paused" : "running",
           }}
         >
-          {doubled.map((course, i) => (
+          {doubled.map((course, index) => (
             <CourseCard
-              key={`${course.id}-${i}`}
+              key={`${course.id}-${index}`}
               course={course}
               isWishlisted={wishlistSet.has(course.slug)}
             />

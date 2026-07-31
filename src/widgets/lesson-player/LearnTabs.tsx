@@ -1,4 +1,5 @@
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 
 type Props = {
   slug: string;
@@ -7,12 +8,13 @@ type Props = {
 
 /** Centered "Course / Progress" switch shared by all three lesson-player views. */
 export function LearnTabs({ slug, active }: Props) {
+  const t = useTranslations("LearnTabs");
   return (
-    <nav aria-label="Learning tabs" className="mx-auto flex items-center gap-5 lg:gap-10">
-      <LearnTab href={`/learn/${slug}`} label="Course" isActive={active === "course"} />
+    <nav aria-label={t("ariaLabel")} className="mx-auto flex items-center gap-5 lg:gap-10">
+      <LearnTab href={`/learn/${slug}`} label={t("course")} isActive={active === "course"} />
       <LearnTab
         href={`/learn/${slug}?tab=progress`}
-        label="Progress"
+        label={t("progress")}
         isActive={active === "progress"}
       />
     </nav>

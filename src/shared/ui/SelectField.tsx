@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export type SelectOption = {
   value: string;
@@ -22,12 +23,14 @@ export function SelectField({
   options,
   value,
   onChange,
-  placeholder = "Select…",
+  placeholder,
   disabled = false,
 }: Props) {
+  const t = useTranslations("Common");
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const selected = options.find(o => o.value === value);
+  const resolvedPlaceholder = placeholder ?? t("selectPlaceholder");
 
   useEffect(() => {
     function onOutside(e: MouseEvent) {
@@ -61,7 +64,7 @@ export function SelectField({
         }}
       >
         <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-          {disabled ? "Loading…" : (selected?.label ?? placeholder)}
+          {disabled ? t("loading") : (selected?.label ?? resolvedPlaceholder)}
         </span>
         <ChevronDown
           size={14}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useState } from "react";
 import { enrollInFreeCourse } from "@/entities/course";
 import type { ApiError } from "@/shared/api/base";

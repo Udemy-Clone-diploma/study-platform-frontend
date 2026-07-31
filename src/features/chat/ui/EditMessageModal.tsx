@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { X } from "lucide-react";
 
 type Props = {
@@ -9,14 +10,16 @@ type Props = {
 
 /** Edits the text of an existing chat message. */
 export function EditMessageModal({ value, onChange, onClose, onSave }: Props) {
+  const t = useTranslations("EditMessageModal");
+  const tShared = useTranslations("Common");
   return (
     <div className="fixed inset-0 z-[75] flex items-center justify-center bg-black/30 px-6">
       <div className="w-full max-w-[520px] rounded-lg bg-white p-5 shadow-[0_24px_70px_rgba(0,0,0,0.2)]">
         <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold">Edit message</h2>
+          <h2 className="text-base font-semibold">{t("title")}</h2>
           <button
             type="button"
-            aria-label="Close"
+            aria-label={tShared("close")}
             onClick={onClose}
             className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-[#F3F4F6]"
           >
@@ -35,14 +38,14 @@ export function EditMessageModal({ value, onChange, onClose, onSave }: Props) {
             onClick={onClose}
             className="h-10 rounded-lg border border-[#D8DDEA] px-4 text-sm"
           >
-            Cancel
+            {tShared("cancel")}
           </button>
           <button
             type="button"
             onClick={onSave}
             className="h-10 rounded-lg bg-black px-4 text-sm font-semibold text-white"
           >
-            Save
+            {tShared("save")}
           </button>
         </div>
       </div>

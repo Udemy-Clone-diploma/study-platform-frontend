@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import type { UserData } from "@/entities/user";
 
 type Props = {
@@ -10,6 +11,7 @@ type Props = {
 
 /** Single status pill with priority Deleted > Blocked > Unverified > Active/Inactive; the Unverified pill resends the verification email on click. */
 export function UserStatusBadge({ user, onResendVerification }: Props) {
+  const t = useTranslations("UserStatusBadge");
   const [resend, setResend] = useState<"idle" | "sending" | "sent">("idle");
 
   const state = user.is_deleted
@@ -24,8 +26,13 @@ export function UserStatusBadge({ user, onResendVerification }: Props) {
 
   const label =
     state === "unverified"
-      ? { idle: "Unverified", sending: "Sending…", sent: "Email sent" }[resend]
-      : { deleted: "Deleted", blocked: "Blocked", active: "Active", inactive: "Inactive" }[state];
+      ? { idle: t("unverified"), sending: t("sending"), sent: t("emailSent") }[resend]
+      : {
+          deleted: t("deleted"),
+          blocked: t("blocked"),
+          active: t("active"),
+          inactive: t("inactive"),
+        }[state];
 
   const accent =
     state === "deleted"
@@ -62,7 +69,7 @@ export function UserStatusBadge({ user, onResendVerification }: Props) {
     return (
       <button
         type="button"
-        title="Resend verification email"
+        title={t("resendVerification")}
         onClick={handleResend}
         disabled={resend !== "idle"}
         className={`${badgeClass} transition enabled:cursor-pointer enabled:hover:opacity-75`}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { getCourseReviews } from "@/entities/course";
 import type { CourseReview } from "@/entities/course";
 import { SectionCard } from "@/shared/ui/SectionCard";
@@ -10,6 +11,7 @@ type Props = { slug: string };
 
 /** Course management "Reviews" tab -- read-only list of the course's reviews, with the report action available. */
 export function CourseManagementReviewsTab({ slug }: Props) {
+  const t = useTranslations("CourseManagementReviewsTab");
   const [reviews, setReviews] = useState<CourseReview[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -17,22 +19,22 @@ export function CourseManagementReviewsTab({ slug }: Props) {
   useEffect(() => {
     getCourseReviews(slug)
       .then(data => setReviews(data.results))
-      .catch(() => setError("Failed to load reviews."))
+      .catch(() => setError(t("errorLoad")))
       .finally(() => setLoading(false));
-  }, [slug]);
+  }, [slug, t]);
 
   return (
     <SectionCard>
       <h2 style={{ fontFamily: "var(--font-base)", fontWeight: 700, fontSize: "clamp(16px, 1.25vw, 22px)", color: "var(--color-text-primary)", margin: "0 0 clamp(16px, 1.39vw, 24px)" }}>
-        Reviews
+        {t("reviews")}
       </h2>
 
       {loading ? (
-        <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(13px, 0.83vw, 15px)", color: "var(--color-text-secondary)" }}>Loading…</p>
+        <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(13px, 0.83vw, 15px)", color: "var(--color-text-secondary)" }}>{t("loading")}</p>
       ) : error ? (
         <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(13px, 0.83vw, 15px)", color: "var(--color-danger)" }}>{error}</p>
       ) : reviews.length === 0 ? (
-        <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(13px, 0.83vw, 15px)", color: "var(--color-text-muted)" }}>No reviews yet.</p>
+        <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(13px, 0.83vw, 15px)", color: "var(--color-text-muted)" }}>{t("noReviewsYet")}</p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "clamp(12px, 1.11vw, 16px)" }}>
           {reviews.map(review => (

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { AccentButton } from "./AccentButton";
 import { WhiteButton } from "./WhiteButton";
 
@@ -14,6 +15,7 @@ type Props = {
 
 /** Shared modal footer — divider + optional error + Cancel + submit AccentButton. */
 export function ModalFooter({ onCancel, submitLabel, loading, disabled, error }: Props) {
+  const t = useTranslations("ModalFooter");
   return (
     <div style={{ marginTop: "clamp(20px, 2.22vw, 32px)" }}>
       <div style={{ borderTop: "2px solid var(--color-border-light)", marginBottom: "clamp(16px, 2.22vw, 32px)" }} />
@@ -41,7 +43,7 @@ export function ModalFooter({ onCancel, submitLabel, loading, disabled, error }:
             fontSize: "clamp(14px, 1.39vw, 20px)",
           }}
         >
-          Cancel
+          {t("cancel")}
         </WhiteButton>
         <AccentButton
           type="submit"
@@ -53,7 +55,7 @@ export function ModalFooter({ onCancel, submitLabel, loading, disabled, error }:
             fontSize: "clamp(14px, 1.39vw, 20px)",
           }}
         >
-          {loading ? "Saving…" : submitLabel}
+          {loading ? t("saving") : submitLabel}
         </AccentButton>
       </div>
     </div>

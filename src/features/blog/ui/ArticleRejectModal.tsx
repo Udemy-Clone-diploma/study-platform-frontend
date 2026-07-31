@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { ModalShell } from "@/shared/ui/ModalShell";
 import { AccentButton } from "@/shared/ui/AccentButton";
 import { WhiteButton } from "@/shared/ui/WhiteButton";
@@ -12,6 +13,8 @@ type Props = {
 
 /** Small modal collecting a moderator's rejection reason for an article under review. */
 export function ArticleRejectModal({ onConfirm, onCancel }: Props) {
+  const t = useTranslations("ArticleRejectModal");
+  const tCommon = useTranslations("Common");
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,7 +26,7 @@ export function ArticleRejectModal({ onConfirm, onCancel }: Props) {
     try {
       await onConfirm(comment.trim());
     } catch {
-      setError("Something went wrong. Please try again.");
+      setError(t("error"));
       setLoading(false);
     }
   }
@@ -31,7 +34,7 @@ export function ArticleRejectModal({ onConfirm, onCancel }: Props) {
   return (
     <ModalShell
       onClose={onCancel}
-      title="Reject Article"
+      title={t("title")}
       width="clamp(320px, 32vw, 480px)"
       padding="clamp(20px, 2.08vw, 30px) clamp(20px, 2.08vw, 32px)"
       shadow="var(--shadow-modal)"
@@ -40,13 +43,13 @@ export function ArticleRejectModal({ onConfirm, onCancel }: Props) {
         htmlFor="reject-comment"
         style={{ display: "block", fontFamily: "var(--font-base)", fontWeight: 700, fontSize: 14, color: "var(--color-text-primary)", marginBottom: 8 }}
       >
-        Reason for rejection*
+        {t("reasonLabel")}
       </label>
       <textarea
         id="reject-comment"
         value={comment}
         onChange={(e) => setComment(e.target.value)}
-        placeholder="Explain what needs to change before this article can be published…"
+        placeholder={t("reasonPlaceholder")}
         rows={4}
         style={{
           display: "block",
@@ -69,10 +72,10 @@ export function ArticleRejectModal({ onConfirm, onCancel }: Props) {
       )}
       <div className="flex items-center justify-end" style={{ gap: 12 }}>
         <WhiteButton icon={null} onClick={onCancel} disabled={loading} style={{ minWidth: 120, height: 44 }}>
-          Cancel
+          {tCommon("cancel")}
         </WhiteButton>
         <AccentButton size="md" onClick={handleConfirm} disabled={loading || !comment.trim()} style={{ minWidth: 120, height: 44 }}>
-          {loading ? "Rejecting…" : "Reject"}
+          {loading ? t("rejecting") : t("reject")}
         </AccentButton>
       </div>
     </ModalShell>

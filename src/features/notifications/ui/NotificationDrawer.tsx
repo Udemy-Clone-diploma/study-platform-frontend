@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
+import { useTranslations } from "next-intl";
 import type { Notification } from "@/entities/notification";
 import { NotificationItem } from "./NotificationItem";
 
@@ -36,6 +37,7 @@ export function NotificationDrawer({
   onLoadMore: () => void;
   onToggleEmail: () => void;
 }) {
+  const t = useTranslations("NotificationBell");
   const scrollRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
@@ -78,7 +80,7 @@ export function NotificationDrawer({
       <aside
         role="dialog"
         aria-modal="true"
-        aria-label="Notifications"
+        aria-label={t("notifications")}
         className={`absolute right-0 top-0 flex h-full w-full max-w-[420px] flex-col gap-5 rounded-l-3xl p-6 shadow-(--shadow-card) transition-transform duration-300 ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
@@ -86,11 +88,11 @@ export function NotificationDrawer({
       >
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold uppercase text-(--color-text-primary) font-(family-name:--font-accent)">
-            Notification
+            {t("title")}
           </h2>
           <button
             type="button"
-            aria-label="Close notifications"
+            aria-label={t("closeNotifications")}
             onClick={onClose}
             className="flex h-8 w-8 items-center justify-center transition-opacity hover:opacity-70"
           >
@@ -104,12 +106,12 @@ export function NotificationDrawer({
             onClick={onMarkAllRead}
             className="self-start text-sm font-medium uppercase text-(--color-text-secondary) transition-opacity hover:opacity-70 font-(family-name:--font-accent)"
           >
-            Mark all as read
+            {t("markAllAsRead")}
           </button>
         )}
 
         {notifications.length === 0 ? (
-          <p className="py-6 text-(--color-text-secondary)">You have no new messages</p>
+          <p className="py-6 text-(--color-text-secondary)">{t("empty")}</p>
         ) : (
           <div
             ref={scrollRef}
@@ -127,7 +129,7 @@ export function NotificationDrawer({
             {hasMore && (
               <div ref={sentinelRef} className="flex h-10 shrink-0 items-center justify-center">
                 {loadingMore && (
-                  <span className="text-sm text-(--color-text-secondary)">Loading...</span>
+                  <span className="text-sm text-(--color-text-secondary)">{t("loading")}</span>
                 )}
               </div>
             )}
@@ -136,13 +138,13 @@ export function NotificationDrawer({
 
         <div className="mt-auto flex items-center justify-between gap-3 border-t border-(--color-text-primary)/10 pt-4">
           <span className="text-sm text-(--color-text-primary)">
-            Also get notifications by email
+            {t("emailPreference")}
           </span>
           <button
             type="button"
             role="switch"
             aria-checked={emailEnabled === true}
-            aria-label="Also get notifications by email"
+            aria-label={t("emailPreference")}
             disabled={emailEnabled === null || emailSaving}
             onClick={onToggleEmail}
             className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${

@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { EyeOff } from "lucide-react";
 import type { CourseLevel } from "@/entities/course";
 import { CourseCardMenu, type MenuAction, type TeacherCourseStatus } from "./CourseCardMenu";
@@ -57,32 +58,36 @@ type ModalConfig = {
   hideVariant?: boolean;
 };
 
-function modalConfig(kind: ModalKind, enrolledCount: number): ModalConfig {
+function modalConfig(
+  kind: ModalKind,
+  enrolledCount: number,
+  t: (key: string, values?: Record<string, number>) => string,
+): ModalConfig {
   switch (kind) {
     case "delete":
-      return { title: "Delete", description: "Are you sure you want to delete this course?", confirmLabel: "Delete" };
+      return { title: t("deleteTitle"), description: t("deleteDescription"), confirmLabel: t("delete") };
     case "delete-hide":
-      return { title: "You cannot delete a course.", description: `You cannot delete the course. There are currently ${enrolledCount} students in the course. Do you want to hide the course from new users?`, confirmLabel: "Hide", hideVariant: true };
+      return { title: t("cannotDeleteTitle"), description: t("cannotDeleteDescription", { count: enrolledCount }), confirmLabel: t("hide"), hideVariant: true };
     case "archive":
-      return { title: "Archive", description: "Are you sure you want to archive this course?", confirmLabel: "Archive" };
+      return { title: t("archiveTitle"), description: t("archiveDescription"), confirmLabel: t("archive") };
     case "archive-hide":
-      return { title: "You cannot archive a course.", description: `You cannot archive the course. There are currently ${enrolledCount} students in the course. Do you want to hide the course from new users?`, confirmLabel: "Hide", hideVariant: true };
+      return { title: t("cannotArchiveTitle"), description: t("cannotArchiveDescription", { count: enrolledCount }), confirmLabel: t("hide"), hideVariant: true };
     case "hidden-archive":
-      return { title: "Archive hidden course", description: `There are currently ${enrolledCount} students still enrolled and learning. Archiving will close their access to course content. Are you sure?`, confirmLabel: "Archive" };
+      return { title: t("archiveHiddenTitle"), description: t("archiveHiddenDescription", { count: enrolledCount }), confirmLabel: t("archive") };
     case "withdraw":
-      return { title: "Withdraw from Moderation", description: "Are you sure you want to withdraw this course from moderation? It will be moved back to Draft.", confirmLabel: "Withdraw" };
+      return { title: t("withdrawTitle"), description: t("withdrawDescription"), confirmLabel: t("withdraw") };
     case "unarchive":
-      return { title: "Unarchive", description: "This course will be moved back to Draft. Are you sure?", confirmLabel: "Unarchive" };
+      return { title: t("unarchiveTitle"), description: t("unarchiveDescription"), confirmLabel: t("unarchive") };
     case "publish":
-      return { title: "Submit for Review", description: "Are you sure you want to submit this course for moderation?", confirmLabel: "Submit" };
+      return { title: t("publishTitle"), description: t("publishDescription"), confirmLabel: t("submit") };
     case "submit-changes":
-      return { title: "Submit Changes for Review", description: "Are you sure you want to submit your edits for moderation? You will not be able to edit further until the moderator reviews them.", confirmLabel: "Submit" };
+      return { title: t("submitChangesTitle"), description: t("submitChangesDescription"), confirmLabel: t("submit") };
     case "discard-changes":
-      return { title: "Discard Changes", description: "Are you sure you want to discard all pending changes? The published course will remain unaffected.", confirmLabel: "Discard" };
+      return { title: t("discardChangesTitle"), description: t("discardChangesDescription"), confirmLabel: t("discard") };
     case "withdraw-edit":
-      return { title: "Withdraw Edit from Moderation", description: "Your changes will be moved back to draft state so you can continue editing. The published course is unaffected.", confirmLabel: "Withdraw" };
+      return { title: t("withdrawEditTitle"), description: t("withdrawEditDescription"), confirmLabel: t("withdraw") };
     case "moderation-info":
-      return { title: "Awaiting moderation", description: "This course is currently under review by a moderator. Would you like to withdraw it back to draft?", confirmLabel: "Withdraw" };
+      return { title: t("moderationInfoTitle"), description: t("moderationInfoDescription"), confirmLabel: t("withdraw") };
   }
 }
 
@@ -119,6 +124,7 @@ export function TeacherCourseCard({
   onEdit, onPublish, onWithdraw, onArchive, onUnarchive, onDelete, onHide, onOpen,
   onEditChanges, onSubmitChanges, onWithdrawEdit, onDiscardChanges,
 }: Props) {
+  const t = useTranslations("TeacherCourseCard");
   const gradient   = LEVEL_GRADIENT[level];
   const border     = LEVEL_BORDER[level];
   const statusIcon = STATUS_ICON[status];
@@ -183,7 +189,7 @@ export function TeacherCourseCard({
     }
   }
 
-  const cfg = modal ? modalConfig(modal, enrolledCount) : null;
+  const cfg = modal ? modalConfig(modal, enrolledCount, t) : null;
 
   const showRating = (status === "completed" || status === "active" || status === "active_draft_edit" || status === "active_pending_edit" || status === "active_needs_revision") && rating !== undefined;
 

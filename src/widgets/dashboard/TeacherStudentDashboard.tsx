@@ -3,7 +3,8 @@
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { AlertCircle, Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
 import { createDirectChat } from "@/entities/chat";
 import {
   getTeacherStudentDashboard,
@@ -39,8 +40,8 @@ const ACTIVITY_ICONS = {
 
 type CourseOption = DashboardData["courses"][number];
 
-function formatShortDate(value: string) {
-  return new Intl.DateTimeFormat("en-GB", {
+function formatShortDate(value: string, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
     day: "2-digit",
     month: "2-digit",
   })
@@ -75,10 +76,11 @@ function MetricCard({
 }
 
 function CourseCompletion({ courses }: { courses: CourseOption[] }) {
+  const t = useTranslations("TeacherStudentDashboard");
   return (
     <div>
       <h2 className="mb-2 text-base font-semibold text-(--color-text-primary)">
-        Course completion level
+        {t("courseCompletionLevel")}
       </h2>
       {courses.length ? (
         <div className="space-y-3">
@@ -123,7 +125,7 @@ function CourseCompletion({ courses }: { courses: CourseOption[] }) {
         </div>
       ) : (
         <Card className="flex h-28 items-center justify-center p-5 text-sm text-(--color-text-secondary)">
-          No course enrollments.
+          {t("noCourseEnrollments")}
         </Card>
       )}
     </div>
@@ -181,6 +183,8 @@ function StudentDashboardDecor() {
 
 /** Student analytics profile available to a teacher who teaches at least one of their courses. */
 export function TeacherStudentDashboard({ studentId }: { studentId: number }) {
+  const t = useTranslations("TeacherStudentDashboard");
+  const locale = useLocale();
   const router = useRouter();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -203,7 +207,7 @@ export function TeacherStudentDashboard({ studentId }: { studentId: number }) {
           router.replace(`/profile/${studentId}`);
           return;
         }
-        setError("The student analytics could not be loaded.");
+        setError(t("analyticsLoadError"));
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -212,7 +216,7 @@ export function TeacherStudentDashboard({ studentId }: { studentId: number }) {
     return () => {
       active = false;
     };
-  }, [course, router, studentId]);
+  }, [course, router, studentId, t]);
 
   const courseOptions = useMemo<Option[]>(
     () => data?.courses.map((item) => ({ value: item.slug, label: item.title })) ?? [],
@@ -228,7 +232,7 @@ export function TeacherStudentDashboard({ studentId }: { studentId: number }) {
         kind: activity.kind,
         title: activity.title,
         dateValue: activity.date,
-        dateLabel: formatShortDate(activity.date),
+        dateLabel: formatShortDate(activity.date, locale),
         score: activity.score,
         iconSrc: ACTIVITY_ICONS[activity.kind],
         accent: ACTIVITY_ACCENTS[activity.kind],
@@ -242,7 +246,7 @@ export function TeacherStudentDashboard({ studentId }: { studentId: number }) {
           },
         },
       })) ?? [],
-    [data],
+    [data, locale],
   );
 
   async function sendMessage() {
@@ -253,7 +257,7 @@ export function TeacherStudentDashboard({ studentId }: { studentId: number }) {
       const chat = await createDirectChat(data.profile.id);
       router.push(`/teacher-dashboard/chats?chat=${chat.id}`);
     } catch {
-      setError("The conversation could not be opened.");
+      setError(t("conversationOpenError"));
       setMessaging(false);
     }
   }
@@ -262,7 +266,7 @@ export function TeacherStudentDashboard({ studentId }: { studentId: number }) {
     return (
       <PageShell>
         <div className="flex min-h-28 items-center justify-center text-(--color-blue)">
-          <Loader2 className="h-6 w-6 animate-spin" aria-label="Loading student profile" />
+          <Loader2 className="h-6 w-6 animate-spin" aria-label={t("loadingStudentProfileAriaLabel")} />
         </div>
       </PageShell>
     );
@@ -319,21 +323,21 @@ export function TeacherStudentDashboard({ studentId }: { studentId: number }) {
           <div className="min-w-0 space-y-5">
             <div className="grid gap-4 sm:grid-cols-3">
               <MetricCard
-                label="Homeworks done"
+                label={t("homeworksDone")}
                 value={data.metrics.homeworks_done}
                 options={courseOptions}
                 course={course}
                 onCourseChange={setCourse}
               />
               <MetricCard
-                label="Tests done"
+                label={t("testsDone")}
                 value={data.metrics.tests_done}
                 options={courseOptions}
                 course={course}
                 onCourseChange={setCourse}
               />
               <MetricCard
-                label="Absences"
+                label={t("absences")}
                 value={data.metrics.absences}
                 options={courseOptions}
                 course={course}

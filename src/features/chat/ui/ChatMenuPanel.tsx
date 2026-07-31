@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import {
   Ban,
   Bell,
@@ -47,6 +48,7 @@ export function ChatMenuPanel({
   onDeleteChat,
   onToggleBlock,
 }: Props) {
+  const t = useTranslations("ChatMenuPanel");
   const itemClass =
     "flex h-11 w-full items-center gap-3 rounded-md px-2 text-left text-[15px] font-medium text-[#121212] transition hover:bg-[#F6F7FB] disabled:cursor-not-allowed disabled:opacity-45";
   const NotificationIcon = muted ? BellOff : Bell;
@@ -60,21 +62,21 @@ export function ChatMenuPanel({
           : "pointer-events-none translate-x-8 opacity-0"
       }`}
     >
-      <div className="mb-2 pl-2 text-xs text-[#4B5563]">Menu</div>
+      <div className="mb-2 pl-2 text-xs text-[#4B5563]">{t("menuLabel")}</div>
       <div className="rounded-lg bg-white p-4 shadow-[0_16px_36px_rgba(17,24,39,0.18)]">
         <button type="button" onClick={onToggleMute} className={itemClass}>
           <NotificationIcon className="h-5 w-5 shrink-0 text-[#003AFF]" />
-          {muted ? "Turn on notifications" : "Turn off notifications"}
+          {muted ? t("turnOnNotifications") : t("turnOffNotifications")}
         </button>
         {readOnly ? (
           <div className="flex min-h-11 items-center gap-3 rounded-md px-2 text-sm font-medium text-[#4B5563]">
             <LockKeyhole className="h-5 w-5 shrink-0" />
-            Official read-only chat
+            {t("officialReadOnlyChat")}
           </div>
         ) : isGroup ? (
           <button type="button" onClick={onOpenMembers} className={itemClass}>
             <Users className="h-5 w-5 shrink-0" />
-            Members
+            {t("members")}
           </button>
         ) : (
           <button
@@ -84,23 +86,23 @@ export function ChatMenuPanel({
             className={itemClass}
           >
             <CircleUserRound className="h-5 w-5 shrink-0" />
-            View profile
+            {t("viewProfile")}
           </button>
         )}
         <button type="button" onClick={onOpenAttachments} className={itemClass}>
           <Paperclip className="h-5 w-5 shrink-0 text-[#121212]" />
-          Attachments
+          {t("attachments")}
         </button>
         {!readOnly ? (
           <button type="button" onClick={onClearHistory} className={itemClass}>
             <Eraser className="h-5 w-5 shrink-0" />
-            Clear history
+            {t("clearHistory")}
           </button>
         ) : null}
         {!isGroup && !readOnly ? (
           <button type="button" disabled={!canBlock} onClick={onToggleBlock} className={itemClass}>
             <Ban className="h-5 w-5 shrink-0" />
-            {blocked ? "Unblock user" : "Block user"}
+            {blocked ? t("unblockUser") : t("blockUser")}
           </button>
         ) : null}
         {!readOnly ? (
@@ -115,7 +117,7 @@ export function ChatMenuPanel({
             ) : (
               <Trash2 className="h-5 w-5 shrink-0" />
             )}
-            Delete chat
+            {t("deleteChat")}
           </button>
         ) : null}
       </div>

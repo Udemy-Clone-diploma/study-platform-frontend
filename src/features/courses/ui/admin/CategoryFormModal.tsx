@@ -1,45 +1,86 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { ModalShell } from "@/shared/ui/ModalShell";
 import { ModalFooter } from "@/shared/ui/ModalFooter";
 import { Input } from "@/shared/ui/Input";
-import { createCategory, updateCategory } from "@/entities/course";
-import type { Category } from "@/entities/course";
+import { LocaleTabs } from "@/shared/ui/LocaleTabs";
+import { createCategory, getCategory, updateCategory } from "@/entities/course";
+import type { Category, CategoryDetail } from "@/entities/course";
 import type { ApiError } from "@/shared/api/base";
 import { mapApiFieldErrors } from "@/shared/lib/apiErrors";
 
 const SLUG_PATTERN = /^[-a-zA-Z0-9_]+$/;
+type Locale = "en" | "uk" | "fr" | "es" | "de";
+type LocaleFields = Record<Locale, string>;
+
+const EMPTY_LOCALE_FIELDS: LocaleFields = { en: "", uk: "", fr: "", es: "", de: "" };
 
 type Props = {
   category?: Category;
   onClose: () => void;
-  onSaved: (category: Category) => void;
+  onSaved: (category: CategoryDetail) => void;
 };
 
 export function CategoryFormModal({ category, onClose, onSaved }: Props) {
-  const [form, setForm] = useState({
-    name: category?.name ?? "",
-    slug: category?.slug ?? "",
-    description: category?.description ?? "",
+  const t = useTranslations("CategoryFormModal");
+  const tCommon = useTranslations("Common");
+  const [name, setName] = useState<LocaleFields>({ ...EMPTY_LOCALE_FIELDS, en: category?.name ?? "" });
+  const [description, setDescription] = useState<LocaleFields>({
+    ...EMPTY_LOCALE_FIELDS,
+    en: category?.description ?? "",
   });
+  const [slug, setSlug] = useState(category?.slug ?? "");
+  const [activeLocale, setActiveLocale] = useState<Locale>("en");
+  const [detailLoading, setDetailLoading] = useState(!!category);
+  const [detailError, setDetailError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  function setField<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
-    setForm((prev) => ({ ...prev, [key]: value }));
-  }
+  useEffect(() => {
+    if (!category) return;
+    let cancelled = false;
+    getCategory(category.id)
+      .then((detail) => {
+        if (cancelled) return;
+        setName({
+          en: detail.name_en,
+          uk: detail.name_uk ?? "",
+          fr: detail.name_fr ?? "",
+          es: detail.name_es ?? "",
+          de: detail.name_de ?? "",
+        });
+        setDescription({
+          en: detail.description_en ?? "",
+          uk: detail.description_uk ?? "",
+          fr: detail.description_fr ?? "",
+          es: detail.description_es ?? "",
+          de: detail.description_de ?? "",
+        });
+        setSlug(detail.slug);
+      })
+      .catch(() => {
+        if (!cancelled) setDetailError(t("loadError"));
+      })
+      .finally(() => {
+        if (!cancelled) setDetailLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [category, t]);
 
   function validate(): Record<string, string> {
     const errors: Record<string, string> = {};
-    const name = form.name.trim();
-    const slug = form.slug.trim();
-    if (!name) errors.name = "Enter a name";
-    else if (name.length > 100) errors.name = "Name must be at most 100 characters";
-    if (slug && slug.length > 50) errors.slug = "Slug must be at most 50 characters";
-    else if (slug && !SLUG_PATTERN.test(slug))
-      errors.slug = "Only letters, numbers, hyphens, and underscores";
+    const enName = name.en.trim();
+    const trimmedSlug = slug.trim();
+    if (!enName) errors.name_en = t("nameRequired");
+    else if (enName.length > 100) errors.name_en = t("nameTooLong");
+    if (trimmedSlug && trimmedSlug.length > 50) errors.slug = t("slugTooLong");
+    else if (trimmedSlug && !SLUG_PATTERN.test(trimmedSlug))
+      errors.slug = t("slugInvalid");
     return errors;
   }
 
@@ -51,11 +92,19 @@ export function CategoryFormModal({ category, onClose, onSaved }: Props) {
 
     setLoading(true);
     setFormError(null);
-    const slug = form.slug.trim();
+    const trimmedSlug = slug.trim();
     const body = {
-      name: form.name.trim(),
-      ...(category || slug ? { slug } : {}),
-      description: form.description.trim(),
+      name_en: name.en.trim(),
+      name_uk: name.uk.trim(),
+      name_fr: name.fr.trim(),
+      name_es: name.es.trim(),
+      name_de: name.de.trim(),
+      ...(category || trimmedSlug ? { slug: trimmedSlug } : {}),
+      description_en: description.en.trim(),
+      description_uk: description.uk.trim(),
+      description_fr: description.fr.trim(),
+      description_es: description.es.trim(),
+      description_de: description.de.trim(),
     };
     try {
       const saved = category
@@ -65,69 +114,92 @@ export function CategoryFormModal({ category, onClose, onSaved }: Props) {
     } catch (err) {
       const apiError = err as ApiError;
       setFieldErrors(mapApiFieldErrors(apiError.fields));
-      setFormError(apiError.message ?? "Failed to save the category.");
+      setFormError(apiError.message ?? t("saveError"));
       setLoading(false);
     }
   }
+
+  const filled: Record<string, boolean> = {
+    en: !!name.en.trim(),
+    uk: !!name.uk.trim(),
+    fr: !!name.fr.trim(),
+    es: !!name.es.trim(),
+    de: !!name.de.trim(),
+  };
+
+  const submitDisabled = loading || detailLoading || !!detailError;
 
   return (
     <ModalShell
       onClose={onClose}
       closeOnOverlayClick={false}
-      title={category ? "Edit category" : "Add category"}
+      title={category ? t("editTitle") : t("addTitle")}
       width="clamp(360px, 38vw, 560px)"
       padding="clamp(20px, 2.08vw, 32px) clamp(24px, 2.5vw, 40px)"
       shadow="var(--shadow-modal)"
     >
       <form onSubmit={handleSubmit} noValidate>
         <div className="flex flex-col gap-4">
+          <LocaleTabs active={activeLocale} onChange={(l) => setActiveLocale(l as Locale)} filled={filled} />
+          {activeLocale !== "en" && (
+            <p className="text-xs text-gray-400">
+              {t("localeHint")}
+            </p>
+          )}
+
           <Input
             id="category-name"
-            label="Name"
-            value={form.name}
-            onChange={(e) => setField("name", e.target.value)}
-            error={fieldErrors.name}
+            label={activeLocale === "en" ? t("nameLabel") : t("nameLabelWithLocale", { locale: activeLocale })}
+            value={name[activeLocale]}
+            onChange={(e) => setName((prev) => ({ ...prev, [activeLocale]: e.target.value }))}
+            placeholder={activeLocale !== "en" ? name.en : undefined}
+            error={activeLocale === "en" ? fieldErrors.name_en : undefined}
+            disabled={detailLoading}
           />
-          <Input
-            id="category-slug"
-            label={category ? "Slug" : "Slug (optional)"}
-            placeholder={
-              category
-                ? "Leave empty to regenerate from the name"
-                : "Generated from the name when empty"
-            }
-            value={form.slug}
-            onChange={(e) => setField("slug", e.target.value)}
-            error={fieldErrors.slug}
-          />
+
+          {activeLocale === "en" && (
+            <Input
+              id="category-slug"
+              label={category ? t("slugLabel") : t("slugLabelOptional")}
+              placeholder={
+                category
+                  ? t("slugPlaceholderEdit")
+                  : t("slugPlaceholderCreate")
+              }
+              value={slug}
+              onChange={(e) => setSlug(e.target.value)}
+              error={fieldErrors.slug}
+              disabled={detailLoading}
+            />
+          )}
+
           <div className="flex flex-col gap-1">
             <label
               htmlFor="category-description"
               className="text-sm font-medium font-mono text-gray-400"
             >
-              Description (optional)
+              {activeLocale === "en" ? t("descriptionLabel") : t("descriptionLabelWithLocale", { locale: activeLocale })}
             </label>
             <textarea
               id="category-description"
               rows={3}
-              value={form.description}
-              onChange={(e) => setField("description", e.target.value)}
-              className={`w-full resize-y rounded-lg border px-3 py-2 outline-none transition ${
-                fieldErrors.description
-                  ? "border-red-500 focus:border-red-500"
-                  : "border-gray-300 focus:border-black"
-              }`}
+              value={description[activeLocale]}
+              onChange={(e) =>
+                setDescription((prev) => ({ ...prev, [activeLocale]: e.target.value }))
+              }
+              placeholder={activeLocale !== "en" ? description.en : undefined}
+              disabled={detailLoading}
+              className="w-full resize-y rounded-lg border border-gray-300 px-3 py-2 outline-none transition focus:border-black"
             />
-            {fieldErrors.description && (
-              <span className="text-sm text-red-500">{fieldErrors.description}</span>
-            )}
           </div>
+
+          {detailError && <p className="text-sm text-red-500">{detailError}</p>}
         </div>
         <ModalFooter
           onCancel={onClose}
-          submitLabel={category ? "Save" : "Create"}
+          submitLabel={category ? tCommon("save") : t("createLabel")}
           loading={loading}
-          disabled={loading}
+          disabled={submitDisabled}
           error={formError}
         />
       </form>

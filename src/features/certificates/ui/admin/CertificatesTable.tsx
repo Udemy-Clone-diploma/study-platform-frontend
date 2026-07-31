@@ -1,15 +1,15 @@
 "use client";
 
-import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { Ban, ExternalLink, RotateCcw, Undo2 } from "lucide-react";
 import type { Certificate } from "@/entities/certificate";
 import { DataTable, type DataTableColumn } from "@/shared/ui/DataTable";
-import { padTwo } from "@/shared/lib/time";
+import { formatDate } from "@/shared/lib/time";
 import { CertificateStatusBadge } from "./CertificateStatusBadge";
 
-export function formatCertificateDate(iso: string): string {
-  const d = new Date(iso);
-  return `${padTwo(d.getDate())}.${padTwo(d.getMonth() + 1)}.${d.getFullYear()}`;
+export function formatCertificateDate(iso: string, locale: string): string {
+  return formatDate(iso, locale);
 }
 
 type Props = {
@@ -35,10 +35,13 @@ export function CertificatesTable({
   currentSort,
   onSortChange,
 }: Props) {
+  const t = useTranslations("CertificatesTable");
+  const locale = useLocale();
+
   const columns: DataTableColumn<Certificate>[] = [
     {
       key: "certificate",
-      label: "Certificate",
+      label: t("columnCertificate"),
       flex: 1.5,
       sortKey: "serial",
       render: (row) => (
@@ -47,7 +50,7 @@ export function CertificatesTable({
           onClick={() => onSelect(row)}
           className="min-w-0 max-w-full cursor-pointer overflow-hidden border-none bg-transparent p-0 text-left font-mono text-ellipsis whitespace-nowrap text-(--color-blue) hover:underline"
           style={{ fontSize: "inherit" }}
-          title={`Show details for ${row.serial}`}
+          title={t("showDetailsTitle", { serial: row.serial })}
         >
           {row.serial}
         </button>
@@ -55,7 +58,7 @@ export function CertificatesTable({
     },
     {
       key: "student",
-      label: "Student",
+      label: t("columnStudent"),
       flex: 1.3,
       sortKey: "student_name",
       render: (row) => (
@@ -69,7 +72,7 @@ export function CertificatesTable({
     },
     {
       key: "course",
-      label: "Course",
+      label: t("columnCourse"),
       flex: 1.5,
       sortKey: "course_title",
       render: (row) => (
@@ -85,16 +88,16 @@ export function CertificatesTable({
     },
     {
       key: "issued",
-      label: "Issue date",
+      label: t("columnIssueDate"),
       flex: 1,
       headerAlign: "center",
       cellAlign: "center",
       sortKey: "issued_at",
-      render: (row) => <span>{formatCertificateDate(row.issued_at)}</span>,
+      render: (row) => <span>{formatCertificateDate(row.issued_at, locale)}</span>,
     },
     {
       key: "status",
-      label: "Status",
+      label: t("columnStatus"),
       flex: 1.1,
       headerAlign: "center",
       cellAlign: "center",
@@ -104,7 +107,7 @@ export function CertificatesTable({
     },
     {
       key: "actions",
-      label: "Actions",
+      label: t("columnActions"),
       flex: 1.1,
       headerAlign: "center",
       cellAlign: "center",
@@ -120,8 +123,8 @@ export function CertificatesTable({
                 href={row.certificate_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                title="Open certificate PDF"
-                aria-label={`Open certificate ${row.serial} as PDF`}
+                title={t("openPdfTitle")}
+                aria-label={t("openPdfAriaLabel", { serial: row.serial })}
                 className="inline-flex cursor-pointer items-center justify-center rounded-full p-1.5 text-(--color-text-primary) transition hover:bg-(--color-brand-lavender-soft) focus-visible:outline-2 focus-visible:outline-(--color-blue)"
               >
                 <ExternalLink size={16} />
@@ -129,7 +132,7 @@ export function CertificatesTable({
             ) : null}
             {replaceable && (
               <ActionButton
-                title={`Re-issue certificate ${row.serial}`}
+                title={t("reissueTitle", { serial: row.serial })}
                 onClick={() => onReissue(row)}
               >
                 <RotateCcw size={16} />
@@ -137,7 +140,7 @@ export function CertificatesTable({
             )}
             {row.status === "valid" && (
               <ActionButton
-                title={`Revoke certificate ${row.serial}`}
+                title={t("revokeTitle", { serial: row.serial })}
                 onClick={() => onRevoke(row)}
                 danger
               >
@@ -148,8 +151,8 @@ export function CertificatesTable({
               <ActionButton
                 title={
                   row.completion_reverted
-                    ? `${row.serial} cannot be restored: the course completion behind it was reverted. Issue a new certificate by hand instead.`
-                    : `Restore certificate ${row.serial}`
+                    ? t("restoreDisabledTitle", { serial: row.serial })
+                    : t("restoreTitle", { serial: row.serial })
                 }
                 onClick={() => onRestore(row)}
                 disabled={row.completion_reverted}

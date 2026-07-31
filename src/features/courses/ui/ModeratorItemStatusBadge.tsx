@@ -1,16 +1,18 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { ItemStatus } from "../model/moderatorReview";
 
 /** Clickable cycle badge for moderator per-item status (null → approved → needs_revision → rejected). */
 export function ModeratorItemStatusBadge({ status, onClick, locked = false }: { status: ItemStatus; onClick: () => void; locked?: boolean }) {
+  const t = useTranslations("ModeratorItemStatusBadge");
   return (
     <button
       type="button"
       onClick={locked ? undefined : onClick}
-      title={locked ? "Auto-approved (unchanged)" : "Click to change status"}
+      title={locked ? t("autoApprovedTitle") : t("clickToChangeTitle")}
       style={{ background: "transparent", border: "none", cursor: locked ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, flexShrink: 0, width: 40, height: 40, opacity: locked ? 0.45 : 1 }}
-      aria-label={locked ? "Auto-approved" : "Toggle item status"}
+      aria-label={locked ? t("autoApprovedAriaLabel") : t("toggleAriaLabel")}
     >
       {status === "approved" && (
         // eslint-disable-next-line @next/next/no-img-element

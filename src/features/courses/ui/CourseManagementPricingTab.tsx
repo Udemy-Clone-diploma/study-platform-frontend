@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { ChevronDown, X, Check, Lock, LockOpen } from "lucide-react";
 import { AddButton } from "@/shared/ui/AddButton";
 import { ModalShell } from "@/shared/ui/ModalShell";
@@ -17,20 +18,6 @@ import {
 } from "@/entities/course";
 
 // ── constants ──────────────────────────────────────────────────────────────
-
-const FORMAT_LABELS: Record<DeliveryFormatType, string> = {
-  self_paced:  "Self-paced",
-  scheduled:   "Scheduled",
-  individual:  "Individual (1-on-1)",
-  group:       "Group",
-};
-
-const FORMAT_DESCRIPTIONS: Record<DeliveryFormatType, string> = {
-  self_paced:  "Student studies on their own schedule, access to all content immediately.",
-  scheduled:   "Content unlocks on a fixed schedule from the course start date.",
-  individual:  "One-on-one sessions with the teacher.",
-  group:       "Cohort-based learning, group start dates managed in the Groups tab.",
-};
 
 const ALL_FORMATS: DeliveryFormatType[] = ["self_paced", "scheduled", "individual", "group"];
 const CURRENCY_OPTIONS: Array<{ value: "USD" | "EUR" | "UAH"; label: string }> = [
@@ -126,6 +113,7 @@ function CurrencySelect({
 // ── InstallmentToggle ──────────────────────────────────────────────────────
 
 function InstallmentToggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
+  const t = useTranslations("CourseManagementPricingTab");
   const pill = (active: boolean): React.CSSProperties => ({
     padding: "clamp(5px, 0.42vw, 8px) clamp(16px, 1.25vw, 22px)",
     borderRadius: 999,
@@ -141,10 +129,10 @@ function InstallmentToggle({ value, onChange }: { value: boolean; onChange: (v: 
   });
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-      <span style={FIELD_LABEL}>Installments</span>
+      <span style={FIELD_LABEL}>{t("installments")}</span>
       <div style={{ display: "flex", gap: 8 }}>
-        <button type="button" style={pill(!value)} onClick={() => onChange(false)}>Off</button>
-        <button type="button" style={pill(value)}  onClick={() => onChange(true)}>On</button>
+        <button type="button" style={pill(!value)} onClick={() => onChange(false)}>{t("off")}</button>
+        <button type="button" style={pill(value)}  onClick={() => onChange(true)}>{t("on")}</button>
       </div>
     </div>
   );
@@ -164,11 +152,12 @@ type PricingFieldsProps = {
 function PricingFields({
   price, currency, installments, installmentCount, installmentAmount, onChange,
 }: PricingFieldsProps) {
+  const t = useTranslations("CourseManagementPricingTab");
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <div style={{ display: "flex", gap: 12, alignItems: "flex-end" }}>
         <div style={{ flex: 1 }}>
-          <label style={FIELD_LABEL}>Price</label>
+          <label style={FIELD_LABEL}>{t("price")}</label>
           <input
             type="number" min="0" step="0.01"
             value={price}
@@ -178,7 +167,7 @@ function PricingFields({
           />
         </div>
         <div style={{ paddingBottom: 0 }}>
-          <label style={FIELD_LABEL}>Currency</label>
+          <label style={FIELD_LABEL}>{t("currency")}</label>
           <CurrencySelect value={currency} onChange={v => onChange("currency", v)} />
         </div>
       </div>
@@ -188,17 +177,17 @@ function PricingFields({
       {installments && (
         <div style={{ display: "flex", gap: 12 }}>
           <div style={{ flex: 1 }}>
-            <label style={FIELD_LABEL}>Installment count</label>
+            <label style={FIELD_LABEL}>{t("installmentCount")}</label>
             <input
               type="number" min="2"
               value={installmentCount}
               onChange={e => onChange("installmentCount", e.target.value)}
-              placeholder="e.g. 4"
+              placeholder={t("installmentCountPlaceholder")}
               style={PILL_INPUT}
             />
           </div>
           <div style={{ flex: 1 }}>
-            <label style={FIELD_LABEL}>Amount per installment</label>
+            <label style={FIELD_LABEL}>{t("amountPerInstallment")}</label>
             <input
               type="number"
               value={installmentAmount}
@@ -226,10 +215,11 @@ function RemoveFormatModal({
   onCloseEnrollment: () => Promise<void>;
   onCancel: () => void;
 }) {
+  const t = useTranslations("CourseManagementPricingTab");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const hasStudents = (fmt.enrolled_count ?? 0) > 0;
-  const name = FORMAT_LABELS[fmt.format_type];
+  const name = t(`formatLabel.${fmt.format_type}`);
 
   async function handleAction() {
     setBusy(true);
@@ -241,13 +231,13 @@ function RemoveFormatModal({
         await onDelete();
       }
     } catch (err: unknown) {
-      setError((err as { message?: string })?.message ?? "Something went wrong.");
+      setError((err as { message?: string })?.message ?? t("errorGeneric"));
     } finally {
       setBusy(false);
     }
   }
 
-  const title = hasStudents ? "Format has enrolled students" : `Remove "${name}" format?`;
+  const title = hasStudents ? t("formatHasStudents") : t("removeFormatTitle", { name });
 
   const BTN_BASE: React.CSSProperties = {
     fontFamily: "var(--font-base)", fontWeight: 600,
@@ -259,16 +249,13 @@ function RemoveFormatModal({
   return (
     <ModalShell onClose={onCancel} title={title} width="clamp(320px, 30vw, 460px)">
       <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(13px, 0.83vw, 15px)", color: "var(--color-text-secondary)", margin: 0, lineHeight: 1.6 }}>
-        {hasStudents ? (
-          <>
-            <strong>{fmt.enrolled_count}</strong> student{fmt.enrolled_count !== 1 ? "s" : ""}{" "}
-            {fmt.enrolled_count !== 1 ? "are" : "is"} enrolled in the{" "}
-            <strong>{name}</strong> format. You can close enrollment to prevent new sign-ups
-            — existing students keep access.
-          </>
-        ) : (
-          "This will also delete the pricing plan for this format. This action cannot be undone."
-        )}
+        {hasStudents
+          ? t.rich("enrolledMessage", {
+              count: fmt.enrolled_count,
+              name,
+              strong: chunks => <strong>{chunks}</strong>,
+            })
+          : t("deleteConfirm")}
       </p>
       {error && (
         <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.72vw, 13px)", color: "var(--color-danger)", marginTop: 8, marginBottom: 0 }}>
@@ -280,13 +267,13 @@ function RemoveFormatModal({
           type="button" onClick={onCancel} disabled={busy}
           style={{ ...BTN_BASE, background: "none", border: "1px solid var(--color-border-light)", color: "var(--color-text-secondary)" }}
         >
-          Cancel
+          {t("cancel")}
         </button>
         <button
           type="button" onClick={handleAction} disabled={busy}
           style={{ ...BTN_BASE, background: "var(--color-text-primary)", color: "#fff" }}
         >
-          {busy ? "Saving…" : hasStudents ? "Close enrollment" : "Remove"}
+          {busy ? t("saving") : hasStudents ? t("closeEnrollment") : t("remove")}
         </button>
       </div>
     </ModalShell>
@@ -303,6 +290,7 @@ type FormatCardProps = {
 };
 
 function FormatCard({ fmt, slug, onUpdated, onDeleted }: FormatCardProps) {
+  const t = useTranslations("CourseManagementPricingTab");
   const [editing, setEditing]   = useState(false);
   const [saving, setSaving]     = useState(false);
   const [error, setError]       = useState<string | null>(null);
@@ -369,7 +357,7 @@ function FormatCard({ fmt, slug, onUpdated, onDeleted }: FormatCardProps) {
       onUpdated(updated);
       setEditing(false);
     } catch (e: unknown) {
-      setError((e as { message?: string })?.message ?? "Failed to save.");
+      setError((e as { message?: string })?.message ?? t("errorSaveFailed"));
     } finally {
       setSaving(false);
     }
@@ -392,10 +380,10 @@ function FormatCard({ fmt, slug, onUpdated, onDeleted }: FormatCardProps) {
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span style={{ fontFamily: "var(--font-base)", fontWeight: 700, fontSize: "clamp(14px, 0.94vw, 17px)", color: "var(--color-text-primary)" }}>
-              {FORMAT_LABELS[fmt.format_type]}
+              {t(`formatLabel.${fmt.format_type}`)}
             </span>
             {!editing && (() => {
-              const label = isFull ? "Full" : isClosed ? "Closed" : "Open";
+              const label = isFull ? t("statusFull") : isClosed ? t("statusClosed") : t("statusOpen");
               const color = isFull ? "var(--color-text-muted)" : isClosed ? "var(--color-rejected)" : "var(--color-success)";
               const bg    = isFull ? "var(--color-bg)" : isClosed ? "#fff3f3" : "#f0faf0";
               const bdr   = isFull ? "var(--color-border-light)" : isClosed ? "#ffc5c5" : "#b8e6b8";
@@ -409,13 +397,13 @@ function FormatCard({ fmt, slug, onUpdated, onDeleted }: FormatCardProps) {
           {!editing && (
             <div style={{ fontFamily: "var(--font-base)", fontSize: "clamp(12px, 0.78vw, 14px)", color: "var(--color-text-secondary)", marginTop: 4 }}>
               {fmt.pricing
-                ? `${fmt.pricing.currency} ${fmt.pricing.price}${fmt.pricing.installment_count ? ` · ${fmt.pricing.installment_count}× installments` : ""}`
-                : "No price set"}
+                ? `${fmt.pricing.currency} ${fmt.pricing.price}${fmt.pricing.installment_count ? ` · ${t("installmentsSuffix", { count: fmt.pricing.installment_count })}` : ""}`
+                : t("noPriceSet")}
               {fmt.format_type === "individual" && fmt.max_students != null && (
-                <span style={{ marginLeft: 8 }}>&middot; {fmt.max_students} spots</span>
+                <span style={{ marginLeft: 8 }}>&middot; {t("spotsCount", { count: fmt.max_students })}</span>
               )}
               {isClosed && fmt.enrollment_deadline && (
-                <span style={{ marginLeft: 8, color: "var(--color-rejected)" }}>&middot; deadline {fmt.enrollment_deadline}</span>
+                <span style={{ marginLeft: 8, color: "var(--color-rejected)" }}>&middot; {t("deadline", { date: fmt.enrollment_deadline })}</span>
               )}
             </div>
           )}
@@ -425,18 +413,18 @@ function FormatCard({ fmt, slug, onUpdated, onDeleted }: FormatCardProps) {
             <>
               <IconBtn
                 onClick={handleToggleEnrollment}
-                title={isFull ? "Format is full" : isClosed ? "Re-open enrollment" : "Close enrollment"}
+                title={isFull ? t("formatIsFull") : isClosed ? t("reopenEnrollment") : t("closeEnrollment")}
                 disabled={toggling || isFull}
               >
                 {isClosed ? <LockOpen size={14} /> : <Lock size={14} />}
               </IconBtn>
-              <IconBtn onClick={() => setEditing(true)} title="Edit pricing">
+              <IconBtn onClick={() => setEditing(true)} title={t("editPricing")}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                   <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                 </svg>
               </IconBtn>
-              <IconBtn onClick={() => setShowRemoveModal(true)} title="Remove format" danger>
+              <IconBtn onClick={() => setShowRemoveModal(true)} title={t("removeFormat")} danger>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
                   <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
@@ -445,8 +433,8 @@ function FormatCard({ fmt, slug, onUpdated, onDeleted }: FormatCardProps) {
             </>
           ) : (
             <>
-              <IconBtn onClick={handleSave} title="Save" accent disabled={saving}><Check size={14} /></IconBtn>
-              <IconBtn onClick={() => { setEditing(false); setError(null); }} title="Cancel"><X size={14} /></IconBtn>
+              <IconBtn onClick={handleSave} title={t("save")} accent disabled={saving}><Check size={14} /></IconBtn>
+              <IconBtn onClick={() => { setEditing(false); setError(null); }} title={t("cancel")}><X size={14} /></IconBtn>
             </>
           )}
         </div>
@@ -463,13 +451,13 @@ function FormatCard({ fmt, slug, onUpdated, onDeleted }: FormatCardProps) {
           />
           {fmt.format_type === "individual" && (
             <div style={{ marginTop: 12 }}>
-              <label style={FIELD_LABEL}>Max students (spots)</label>
+              <label style={FIELD_LABEL}>{t("maxStudents")}</label>
               <input
                 type="number"
                 min={1}
                 value={maxStudents}
                 onChange={e => setMaxStudents(e.target.value)}
-                placeholder="Unlimited"
+                placeholder={t("unlimited")}
                 style={{ ...PILL_INPUT, width: 180 }}
               />
             </div>
@@ -504,6 +492,7 @@ type AddFormatPanelProps = {
 };
 
 function AddFormatPanel({ slug, existingTypes, onCreated, onClose }: AddFormatPanelProps) {
+  const t = useTranslations("CourseManagementPricingTab");
   const available = ALL_FORMATS.filter(f => !existingTypes.includes(f));
   const [selected, setSelected]                   = useState<DeliveryFormatType>(available[0] ?? "self_paced");
   const [price, setPrice]                         = useState("");
@@ -550,7 +539,7 @@ function AddFormatPanel({ slug, existingTypes, onCreated, onClose }: AddFormatPa
       const fmt = await createDeliveryFormat(slug, payload);
       onCreated(fmt);
     } catch (e: unknown) {
-      setError((e as { message?: string })?.message ?? "Failed to create.");
+      setError((e as { message?: string })?.message ?? t("errorCreateFailed"));
     } finally {
       setSaving(false);
     }
@@ -577,7 +566,7 @@ function AddFormatPanel({ slug, existingTypes, onCreated, onClose }: AddFormatPa
     <div style={{ background: "#fff", border: "1.5px solid var(--color-border-light)", borderRadius: 16, padding: "clamp(16px, 1.25vw, 22px)", display: "flex", flexDirection: "column", gap: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <span style={{ fontFamily: "var(--font-base)", fontWeight: 700, fontSize: "clamp(13px, 0.83vw, 15px)", color: "var(--color-text-primary)" }}>
-          Add delivery format
+          {t("addDeliveryFormat")}
         </span>
         <button type="button" onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-text-muted)", padding: 4 }}>
           <X size={16} />
@@ -586,20 +575,20 @@ function AddFormatPanel({ slug, existingTypes, onCreated, onClose }: AddFormatPa
 
       {available.length === 0 ? (
         <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(12px, 0.78vw, 14px)", color: "var(--color-text-muted)", margin: 0 }}>
-          All delivery formats are already configured.
+          {t("allFormatsConfigured")}
         </p>
       ) : (
         <>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
             {available.map(f => (
               <button key={f} type="button" onClick={() => setSelected(f)} style={TYPE_BTN(selected === f)}>
-                {FORMAT_LABELS[f]}
+                {t(`formatLabel.${f}`)}
               </button>
             ))}
           </div>
 
           <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.72vw, 13px)", color: "var(--color-text-secondary)", margin: 0 }}>
-            {FORMAT_DESCRIPTIONS[selected]}
+            {t(`formatDescription.${selected}`)}
           </p>
 
           <PricingFields
@@ -634,7 +623,7 @@ function AddFormatPanel({ slug, existingTypes, onCreated, onClose }: AddFormatPa
                 opacity: saving ? 0.7 : 1,
               }}
             >
-              {saving ? "Creating…" : "Create"}
+              {saving ? t("creating") : t("create")}
             </button>
           </div>
         </>
@@ -687,6 +676,7 @@ export function CourseManagementPricingTab({
   slug: string;
   onFormatsChanged?: (formats: CourseDeliveryFormat[]) => void;
 }) {
+  const t = useTranslations("CourseManagementPricingTab");
   const [formats, setFormats] = useState<CourseDeliveryFormat[]>(course.delivery_formats);
   const [adding, setAdding]   = useState(false);
 
@@ -712,10 +702,10 @@ export function CourseManagementPricingTab({
     <div>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "clamp(12px, 1.04vw, 18px)" }}>
         <h2 style={{ fontFamily: "var(--font-base)", fontWeight: 700, fontSize: "clamp(15px, 1.04vw, 19px)", color: "var(--color-text-primary)", margin: 0 }}>
-          Delivery formats &amp; pricing
+          {t("heading")}
         </h2>
         {!adding && existingTypes.length < ALL_FORMATS.length && (
-          <AddButton onClick={() => setAdding(true)}>Add format</AddButton>
+          <AddButton onClick={() => setAdding(true)}>{t("addFormat")}</AddButton>
         )}
       </div>
 
@@ -726,7 +716,7 @@ export function CourseManagementPricingTab({
           color: "var(--color-text-muted)", fontFamily: "var(--font-base)",
           fontSize: "clamp(13px, 0.83vw, 15px)",
         }}>
-          No delivery formats configured yet. Add one to set pricing for this course.
+          {t("noFormatsYet")}
         </div>
       )}
 

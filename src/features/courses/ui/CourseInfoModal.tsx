@@ -1,16 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { ModalShell } from "@/shared/ui/ModalShell";
 import { getCourseBySlug } from "@/entities/course";
 import type { ApprovedCourseRecord, CourseDetail } from "@/entities/course";
+import { formatDate } from "@/shared/lib/time";
 
 const bf = "var(--font-base)";
 const af = "var(--font-accent)";
-
-function fmt(iso: string) {
-  return new Date(iso).toLocaleDateString("en-GB");
-}
 
 function CommentBox({ text }: { text: string }) {
   if (!text) return null;
@@ -85,16 +83,22 @@ type Props = {
 
 /** View-only modal showing course info for an approved course record. */
 export function CourseInfoModal({ record, onClose }: Props) {
+  const t = useTranslations("CourseInfoModal");
+  const tRejection = useTranslations("RejectionDetailModal");
+  const tBasics = useTranslations("CourseBasicsForm");
+  const tCommon = useTranslations("Common");
+  const locale = useLocale();
   const [detail, setDetail] = useState<CourseDetail | null>(null);
 
   useEffect(() => {
     getCourseBySlug(record.course_slug).then(setDetail).catch(() => {});
   }, [record.course_slug]);
 
-  const modules = detail?.modules ?? [];
-  const price   = detail?.delivery_formats?.find(f => f.pricing)?.pricing?.price ? `€${detail!.delivery_formats.find(f => f.pricing)!.pricing!.price}` : "Free";
-  const level   = (detail?.level ?? record.course_level ?? "").replace(/^\w/, (c) => c.toUpperCase());
-  const imgSrc  = detail?.image ?? record.course_image_url ?? null;
+  const modules   = detail?.modules ?? [];
+  const price     = detail?.delivery_formats?.find(f => f.pricing)?.pricing?.price ? `€${detail!.delivery_formats.find(f => f.pricing)!.pricing!.price}` : tRejection("free");
+  const levelRaw  = detail?.level ?? record.course_level ?? "";
+  const level     = levelRaw ? tBasics(`level.${levelRaw}`) : "";
+  const imgSrc    = detail?.image ?? record.course_image_url ?? null;
 
   return (
     <ModalShell onClose={onClose} title={record.course_title} width="clamp(480px, 60vw, 860px)">
@@ -109,17 +113,20 @@ export function CourseInfoModal({ record, onClose }: Props) {
             letterSpacing: "0.08em", textTransform: "uppercase",
             color: "var(--color-success)",
           }}>
-            Approved
+            {tRejection("statusApproved")}
           </span>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
           <span style={{ fontFamily: bf, fontSize: 13, color: "var(--color-text-secondary)" }}>
-            Created: {detail ? fmt(detail.created_at) : "—"}&nbsp;·&nbsp;Approved: {fmt(record.approved_at)}
+            {t("createdApproved", {
+              created: detail ? formatDate(detail.created_at, locale) : "—",
+              approved: formatDate(record.approved_at, locale),
+            })}
           </span>
           {detail?.teacher && (
             <span style={{ fontFamily: bf, fontSize: 13, color: "var(--color-text-secondary)" }}>
-              Teacher:&nbsp;
+              {tRejection("teacher")}&nbsp;
               <strong style={{ color: "var(--color-text-primary)", fontWeight: 600 }}>
                 {detail.teacher.name}
               </strong>
@@ -127,36 +134,36 @@ export function CourseInfoModal({ record, onClose }: Props) {
           )}
         </div>
 
-        <Section title="Basics">
+        <Section title={tRejection("basics")}>
           <div style={{ display: "flex", flexDirection: "column" }}>
-            <FieldRow label="Title"             value={detail?.title           ?? record.course_title} />
-            <FieldRow label="Short Description" value={detail?.short_description ?? "—"} />
-            <FieldRow label="Full Description"  value={detail?.full_description  ?? "—"} multiline />
+            <FieldRow label={tRejection("fieldTitle")}            value={detail?.title           ?? record.course_title} />
+            <FieldRow label={tRejection("fieldShortDescription")} value={detail?.short_description ?? "—"} />
+            <FieldRow label={tRejection("fieldFullDescription")}  value={detail?.full_description  ?? "—"} multiline />
             {imgSrc && (
               <div style={{
                 display: "flex", alignItems: "center", gap: 12,
                 padding: "10px 0", borderBottom: "1px solid var(--color-border-light)",
               }}>
                 <span style={{ fontFamily: bf, fontWeight: 600, fontSize: 13, color: "var(--color-text-secondary)", flexShrink: 0, minWidth: 140 }}>
-                  Icon
+                  {tRejection("fieldIcon")}
                 </span>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={imgSrc} alt="icon" style={{ width: 36, height: 36, objectFit: "contain", borderRadius: 6 }} />
               </div>
             )}
-            <FieldRow label="Category" value={record.course_category || detail?.category?.name || "—"} />
-            <FieldRow label="Level"    value={level || "—"} />
-            <FieldRow label="Price"    value={price} />
+            <FieldRow label={tRejection("fieldCategory")} value={record.course_category || detail?.category?.name || "—"} />
+            <FieldRow label={tRejection("fieldLevel")}    value={level || "—"} />
+            <FieldRow label={tRejection("fieldPrice")}    value={price} />
           </div>
         </Section>
 
         {modules.length > 0 && (
-          <Section title="Content">
+          <Section title={tRejection("content")}>
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               {modules.map((mod, i) => (
                 <div key={mod.id} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                   <span style={{ fontFamily: bf, fontWeight: 600, fontSize: 14, color: "var(--color-text-primary)" }}>
-                    Module {i + 1}: {mod.title}
+                    {tRejection("moduleWithTitle", { order: i + 1, title: mod.title })}
                   </span>
                   <div style={{ display: "flex", flexDirection: "column", gap: 3, paddingLeft: 16 }}>
                     {mod.lessons.map((l) => (
@@ -173,7 +180,7 @@ export function CourseInfoModal({ record, onClose }: Props) {
 
         {!detail && (
           <p style={{ fontFamily: bf, color: "var(--color-text-secondary)", fontSize: 14, textAlign: "center" }}>
-            Loading…
+            {tCommon("loading")}
           </p>
         )}
 

@@ -1,35 +1,37 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { FileText, Receipt, RotateCcw } from "lucide-react";
 import { DataTable, type DataTableColumn } from "@/shared/ui/DataTable";
-import { padTwo } from "@/shared/lib/time";
+import { formatDate } from "@/shared/lib/time";
 import { formatMoney } from "@/entities/payment";
 import type { AdminPayment } from "@/entities/payment";
 import { PaymentStatusBadge } from "./PaymentStatusBadge";
 
-export function formatPaymentDate(iso: string | null): string {
-  if (!iso) return "n/a";
+type Translator = (key: string, values?: Record<string, string | number>) => string;
+
+export function formatPaymentDate(iso: string | null, locale: string, naLabel: string): string {
+  if (!iso) return naLabel;
   const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "n/a";
-  return `${padTwo(d.getDate())}.${padTwo(d.getMonth() + 1)}.${d.getFullYear()}`;
+  if (Number.isNaN(d.getTime())) return naLabel;
+  return formatDate(d, locale);
 }
 
-export function payerName(payment: AdminPayment): string {
-  return payment.user?.full_name || "Unknown payer";
+export function payerName(payment: AdminPayment, t: Translator): string {
+  return payment.user?.full_name || t("unknownPayer");
 }
 
-export function paymentCourses(payment: AdminPayment): string {
+export function paymentCourses(payment: AdminPayment, t: Translator): string {
   const titles = payment.items.map((item) => item.course_title).filter(Boolean);
-  if (titles.length === 0) return "No course on this payment";
+  if (titles.length === 0) return t("noCourseOnPayment");
   if (titles.length === 1) return titles[0];
-  return `${titles[0]} +${titles.length - 1} more`;
+  return `${titles[0]} ${t("moreCourses", { count: titles.length - 1 })}`;
 }
 
-const METHOD_LABELS: Record<AdminPayment["payment_method"], string> = {
-  stripe: "Stripe",
-  manual: "Manual",
-};
+export function methodLabel(method: AdminPayment["payment_method"], t: Translator): string {
+  return method === "stripe" ? t("methodStripe") : t("methodManual");
+}
 
 export function refundedSoFar(payment: AdminPayment): number {
   return Number(payment.refunded_amount) || 0;
@@ -70,10 +72,16 @@ export function PaymentsTable({
   currentSort,
   onSortChange,
 }: Props) {
+  const t = useTranslations("PaymentsTable");
+  const tTeacherPayments = useTranslations("TeacherPaymentsPage");
+  const tCommon = useTranslations("Common");
+  const locale = useLocale();
+  const naLabel = tCommon("notAvailable");
+
   const columns: DataTableColumn<AdminPayment>[] = [
     {
       key: "payer",
-      label: "Payer",
+      label: t("columnPayer"),
       flex: 1.7,
       render: (row) => (
         <button
@@ -83,7 +91,7 @@ export function PaymentsTable({
           style={{ font: "inherit", color: "inherit" }}
         >
           <span className="overflow-hidden font-semibold text-ellipsis whitespace-nowrap underline decoration-from-font hover:text-(--color-blue)">
-            {payerName(row)}
+            {payerName(row, t)}
           </span>
           <span
             className="text-(--color-text-secondary)"
@@ -96,20 +104,20 @@ export function PaymentsTable({
     },
     {
       key: "course",
-      label: "Course",
+      label: t("columnCourse"),
       flex: 2,
       render: (row) => (
         <span
           className="block overflow-hidden text-ellipsis whitespace-nowrap"
-          title={paymentCourses(row)}
+          title={paymentCourses(row, t)}
         >
-          {paymentCourses(row)}
+          {paymentCourses(row, t)}
         </span>
       ),
     },
     {
       key: "amount",
-      label: "Amount",
+      label: tTeacherPayments("columnAmount"),
       flex: 1,
       headerAlign: "center",
       cellAlign: "center",
@@ -117,14 +125,14 @@ export function PaymentsTable({
       render: (row) => (
         <div className="flex flex-col">
           <span className="font-semibold whitespace-nowrap">
-            {formatMoney(row.amount, row.currency)}
+            {formatMoney(row.amount, row.currency, locale)}
           </span>
           {isPartiallyRefunded(row) && (
             <span
               className="whitespace-nowrap text-(--color-text-secondary)"
               style={{ fontSize: "clamp(11px, 0.83vw, 13px)" }}
             >
-              {formatMoney(row.refunded_amount, row.currency)} refunded
+              {t("refundedAmount", { amount: formatMoney(row.refunded_amount, row.currency, locale) })}
             </span>
           )}
         </div>
@@ -132,15 +140,15 @@ export function PaymentsTable({
     },
     {
       key: "method",
-      label: "Method",
+      label: t("columnMethod"),
       flex: 0.9,
       headerAlign: "center",
       cellAlign: "center",
-      render: (row) => <span>{METHOD_LABELS[row.payment_method] ?? row.payment_method}</span>,
+      render: (row) => <span>{methodLabel(row.payment_method, t)}</span>,
     },
     {
       key: "status",
-      label: "Status",
+      label: tTeacherPayments("columnStatus"),
       flex: 1.2,
       headerAlign: "center",
       cellAlign: "center",
@@ -149,16 +157,16 @@ export function PaymentsTable({
     },
     {
       key: "date",
-      label: "Date",
+      label: tTeacherPayments("columnDate"),
       flex: 1,
       headerAlign: "center",
       cellAlign: "center",
       sortKey: "created_at",
-      render: (row) => <span>{formatPaymentDate(row.created_at)}</span>,
+      render: (row) => <span>{formatPaymentDate(row.created_at, locale, naLabel)}</span>,
     },
     {
       key: "actions",
-      label: "Actions",
+      label: t("columnActions"),
       flex: 1.1,
       headerAlign: "center",
       cellAlign: "center",
@@ -168,17 +176,17 @@ export function PaymentsTable({
           style={{ gap: "clamp(4px, 0.56vw, 8px)" }}
         >
           {hasReceipt(row) && (
-            <ActionButton title="Download receipt" onClick={() => onDownloadReceipt(row)}>
+            <ActionButton title={t("actionDownloadReceipt")} onClick={() => onDownloadReceipt(row)}>
               <Receipt size={16} />
             </ActionButton>
           )}
           {row.order_id !== null && (
-            <ActionButton title="Download invoice" onClick={() => onDownloadInvoice(row)}>
+            <ActionButton title={t("actionDownloadInvoice")} onClick={() => onDownloadInvoice(row)}>
               <FileText size={16} />
             </ActionButton>
           )}
           {row.can_be_refunded && (
-            <ActionButton title="Refund payment" onClick={() => onRefund(row)} danger>
+            <ActionButton title={t("actionRefundPayment")} onClick={() => onRefund(row)} danger>
               <RotateCcw size={16} />
             </ActionButton>
           )}

@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import type { UserLanguage } from "@/entities/user";
+import { LOCALE_OPTIONS } from "@/shared/lib/useLocaleSwitcher";
 
 export const LABEL_STYLE: React.CSSProperties = {
     fontFamily: "var(--font-base)", fontWeight: 600,
@@ -40,15 +42,17 @@ export const TEXTAREA_STYLE: React.CSSProperties = {
     lineHeight: 1.6,
 };
 
-export const LANG_LABELS: Record<UserLanguage, string> = { en: "English", uk: "Ukrainian" };
+export const LANG_LABELS: Record<UserLanguage, string> = Object.fromEntries(
+    LOCALE_OPTIONS.map(o => [o.value, o.label]),
+) as Record<UserLanguage, string>;
 
-const LANG_OPTIONS: { value: UserLanguage; label: string }[] = [
-    { value: "en", label: "English" },
-    { value: "uk", label: "Ukrainian" },
-];
+const LANG_OPTIONS: { value: UserLanguage; label: string }[] = LOCALE_OPTIONS.map(o => ({
+    value: o.value as UserLanguage,
+    label: o.label,
+}));
 
-export function formatDate(iso: string) {
-    return new Date(iso).toLocaleDateString("en-GB", {
+export function formatDate(iso: string, locale = "en-GB") {
+    return new Date(iso).toLocaleDateString(locale, {
         day: "2-digit", month: "2-digit", year: "numeric",
     });
 }
@@ -173,9 +177,10 @@ export type ProfileLanguageFieldProps = {
 };
 
 export function ProfileLanguageField({ inputValue, onInputChange }: ProfileLanguageFieldProps) {
+    const t = useTranslations("ProfileFields");
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: "0.208vw" }}>
-            <span style={LABEL_STYLE}>Website language</span>
+            <span style={LABEL_STYLE}>{t("websiteLanguage")}</span>
             <ProfileCustomSelect
                 options={LANG_OPTIONS}
                 value={inputValue}
@@ -194,9 +199,10 @@ export type ProfileInstructionLanguageFieldProps = {
 
 /** Teaching language field — editable in edit mode, read-only otherwise. */
 export function ProfileInstructionLanguageField({ editing, value, inputValue, onInputChange }: ProfileInstructionLanguageFieldProps) {
+    const t = useTranslations("ProfileFields");
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: "0.208vw" }}>
-            <span style={LABEL_STYLE}>Languages of instruction</span>
+            <span style={LABEL_STYLE}>{t("instructionLanguages")}</span>
             {editing ? (
                 <ProfileCustomSelect
                     options={LANG_OPTIONS}

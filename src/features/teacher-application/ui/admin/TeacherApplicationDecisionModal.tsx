@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { ModalShell } from "@/shared/ui/ModalShell";
 import { AccentButton } from "@/shared/ui/AccentButton";
 import { WhiteButton } from "@/shared/ui/WhiteButton";
@@ -27,6 +28,8 @@ export function TeacherApplicationDecisionModal({
   onConfirm,
   onCancel,
 }: Props) {
+  const t = useTranslations("TeacherApplicationsAdmin");
+  const tCommon = useTranslations("Common");
   const [comment, setComment] = useState("");
   const canConfirm = !commentRequired || comment.trim().length > 0;
 
@@ -49,13 +52,13 @@ export function TeacherApplicationDecisionModal({
         className="mb-1 block font-(family-name:--font-base) text-(--color-text-primary)"
         style={{ fontSize: "clamp(13px, 0.97vw, 15px)" }}
       >
-        Comment {commentRequired ? "" : "(optional)"}
+        {commentRequired ? t("commentLabelRequired") : t("commentLabelOptional")}
       </label>
       <textarea
         value={comment}
         onChange={(e) => setComment(e.target.value)}
         rows={3}
-        placeholder={commentRequired ? "Explain why the application is being cancelled" : "Add a note"}
+        placeholder={commentRequired ? t("commentPlaceholderCancel") : t("commentPlaceholderApprove")}
         className="w-full resize-y rounded-xl border border-(--color-pink-dark) bg-white outline-none focus:border-(--color-blue)"
         style={{
           fontFamily: "var(--font-base)",
@@ -86,7 +89,7 @@ export function TeacherApplicationDecisionModal({
             fontSize: "clamp(12px, 0.97vw, 15px)",
           }}
         >
-          Cancel
+          {tCommon("cancel")}
         </WhiteButton>
         <AccentButton
           size="md"
@@ -98,7 +101,7 @@ export function TeacherApplicationDecisionModal({
             fontSize: "clamp(12px, 0.97vw, 15px)",
           }}
         >
-          {loading ? "Please wait…" : confirmLabel}
+          {loading ? tCommon("pleaseWait") : confirmLabel}
         </AccentButton>
       </div>
     </ModalShell>

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from "react";
 
 type GradientButtonBaseProps = {
@@ -27,7 +27,6 @@ const baseStyle: CSSProperties = {
   borderRadius: 28,
   fontFamily: "var(--font-accent)",
   fontWeight: 500,
-  fontSize: "clamp(12px, 1.04vw, 20px)",
   lineHeight: 1.5,
   textTransform: "uppercase",
   color: "var(--color-text-primary)",
@@ -43,20 +42,23 @@ const disabledStyle: CSSProperties = {
   cursor: "not-allowed",
 };
 
+const fontSizeClassName = "text-[15px] md:text-[17px] lg:text-[clamp(15px,1.04vw,20px)]";
+
 export function GradientButton({ children, className, style, ...props }: GradientButtonProps) {
   const isDisabled = !("href" in props) && !!(props as GradientButtonAsButtonProps).disabled;
   const mergedStyle = { ...baseStyle, ...(isDisabled ? disabledStyle : {}), ...style };
+  const mergedClassName = [fontSizeClassName, className].filter(Boolean).join(" ");
 
   if ("href" in props && props.href) {
     return (
-      <Link href={props.href} className={className} style={mergedStyle}>
+      <Link href={props.href} className={mergedClassName} style={mergedStyle}>
         {children}
       </Link>
     );
   }
 
   return (
-    <button className={className} style={mergedStyle} {...props}>
+    <button className={mergedClassName} style={mergedStyle} {...props}>
       {children}
     </button>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { ChevronDown, Play, Plus } from "lucide-react";
 import type { CourseModule, CourseLesson } from "@/entities/course";
 import { GradientButton } from "@/shared/ui/GradientButton";
@@ -77,6 +78,7 @@ function isLocked(key: string, statuses?: Record<string, ItemStatus>) {
 
 /** Expandable module card showing only lessons (tests live inside lesson content blocks). */
 export function ModuleCard({ module, index, onEdit, onDelete, onAddLesson, onEditLesson, onDeleteLesson, itemStatuses }: Props) {
+  const t = useTranslations("ModuleCard");
   const [open, setOpen] = useState(false);
   const lessonCount = module.lessons.length;
 
@@ -93,7 +95,7 @@ export function ModuleCard({ module, index, onEdit, onDelete, onAddLesson, onEdi
       <div className="flex items-center justify-between" style={{ gap: 8 }}>
         <div className="flex min-w-0 items-center" style={{ gap: 8 }}>
           <span style={{ ...metaSt, color: "var(--color-text-secondary)", flexShrink: 0 }}>
-            Module {index + 1}
+            {t("moduleNumber", { order: index + 1 })}
           </span>
           <span style={{ ...metaSt, color: "var(--color-text-primary)", overflow: "hidden", textOverflow: "ellipsis" }}>
             {module.title}
@@ -101,7 +103,7 @@ export function ModuleCard({ module, index, onEdit, onDelete, onAddLesson, onEdi
           <span className="flex shrink-0 items-center" style={{ gap: 4 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/icons/book.svg" alt="" width={16} height={16} style={{ width: 16, height: 16, flexShrink: 0 }} />
-            <span style={{ ...metaSt, color: "var(--color-text-secondary)" }}>{lessonCount} lessons</span>
+            <span style={{ ...metaSt, color: "var(--color-text-secondary)" }}>{t("lessonsCount", { count: lessonCount })}</span>
           </span>
         </div>
 
@@ -110,7 +112,7 @@ export function ModuleCard({ module, index, onEdit, onDelete, onAddLesson, onEdi
           onClick={() => setOpen((v) => !v)}
           className="flex shrink-0 items-center justify-center rounded-full transition hover:bg-gray-100"
           style={{ width: 40, height: 40 }}
-          aria-label={open ? "Collapse module" : "Expand module"}
+          aria-label={open ? t("collapseModuleAriaLabel") : t("expandModuleAriaLabel")}
         >
           <ChevronDown
             size={20}
@@ -130,7 +132,7 @@ export function ModuleCard({ module, index, onEdit, onDelete, onAddLesson, onEdi
           onClick={onEdit}
           className="flex items-center justify-center rounded-full transition hover:bg-gray-100"
           style={{ width: 40, height: 40, padding: 6, flexShrink: 0 }}
-          aria-label="Rename module"
+          aria-label={t("renameModuleAriaLabel")}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/icons/edit.svg" alt="" width={20} height={20} style={{ width: 20, height: 20 }} />
@@ -140,7 +142,7 @@ export function ModuleCard({ module, index, onEdit, onDelete, onAddLesson, onEdi
           onClick={onDelete}
           className="flex items-center justify-center rounded-full transition hover:bg-red-50"
           style={{ width: 40, height: 40, padding: 6, flexShrink: 0 }}
-          aria-label="Delete module"
+          aria-label={t("deleteModuleAriaLabel")}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/icons/trash.svg" alt="" width={20} height={20} style={{ width: 20, height: 20 }} />
@@ -153,7 +155,7 @@ export function ModuleCard({ module, index, onEdit, onDelete, onAddLesson, onEdi
           <div className="flex items-center justify-between">
             <div className="flex items-center" style={{ gap: 8 }}>
               <Play size={20} style={{ color: "var(--color-text-primary)", flexShrink: 0 }} />
-              <span style={sectionTitleSt}>Lessons</span>
+              <span style={sectionTitleSt}>{t("lessons")}</span>
             </div>
             <GradientButton
               type="button"
@@ -161,7 +163,7 @@ export function ModuleCard({ module, index, onEdit, onDelete, onAddLesson, onEdi
               style={{ gap: 8, minWidth: "clamp(160px, 10.42vw, 200px)", height: "clamp(38px, 2.29vw, 44px)" }}
             >
               <Plus size={16} />
-              Add Lesson
+              {t("addLesson")}
             </GradientButton>
           </div>
 
@@ -170,11 +172,11 @@ export function ModuleCard({ module, index, onEdit, onDelete, onAddLesson, onEdi
               <div className="flex flex-col items-center" style={{ gap: "clamp(16px, 1.39vw, 20px)" }}>
                 <div className="flex flex-col items-center" style={{ gap: "clamp(8px, 0.83vw, 12px)" }}>
                   <Play size={40} style={{ width: "clamp(32px, 2.78vw, 40px)", height: "clamp(32px, 2.78vw, 40px)", color: "var(--color-text-primary)" }} />
-                  <span style={emptyTextSt}>No lessons in this module yet</span>
+                  <span style={emptyTextSt}>{t("noLessonsYet")}</span>
                 </div>
                 <button type="button" onClick={onAddLesson} className="transition hover:opacity-80" style={outlinedBtnSt}>
                   <Plus size={20} />
-                  Create First Lesson
+                  {t("createFirstLesson")}
                 </button>
               </div>
             </div>

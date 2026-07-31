@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { Check, ChevronDown } from "lucide-react";
 import type { CourseModule } from "@/entities/course";
 import { byOrder } from "@/entities/course";
@@ -34,6 +35,7 @@ export function LessonBreadcrumb({
   lessonTitle,
   completedLessonIds,
 }: Props) {
+  const t = useTranslations("LessonBreadcrumb");
   const sortedModules = byOrder(modules);
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -58,7 +60,7 @@ export function LessonBreadcrumb({
 
   return (
     <nav
-      aria-label="Breadcrumb"
+      aria-label={t("ariaLabel")}
       className="flex w-full items-center gap-1.5 rounded-[20px] bg-white px-6 py-3 font-(family-name:--font-base) text-lg font-semibold text-(--color-text-primary) shadow-[0_0_11.45px_var(--shadow-pink)]"
     >
       <Link
@@ -66,7 +68,7 @@ export function LessonBreadcrumb({
         className="group inline-flex max-w-[38%] shrink-0 cursor-pointer items-center gap-1.5 rounded-lg px-2 py-1 transition-colors hover:bg-(--color-brand-lavender)/20"
       >
         <span className="shrink-0 text-(--color-text-secondary) transition-colors group-hover:text-(--color-blue)">
-          Course:
+          {t("course")}
         </span>
         <span className="truncate transition-colors group-hover:text-(--color-blue)">
           {courseTitle}
@@ -84,11 +86,11 @@ export function LessonBreadcrumb({
           className="group/bc flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 rounded-lg px-2 py-1 text-left transition-colors hover:bg-(--color-brand-lavender)/20"
         >
           <Segment
-            label={currentModule ? `Module ${currentModule.order}` : "Module"}
+            label={currentModule ? t("module", { order: currentModule.order }) : t("moduleBare")}
             value={currentModule?.title ?? courseTitle}
           />
           <Slash />
-          <Segment label={`Lesson ${lessonOrder}`} value={lessonTitle} />
+          <Segment label={t("lesson", { order: lessonOrder })} value={lessonTitle} />
           <ChevronDown
             aria-hidden="true"
             className={`h-5 w-5 shrink-0 text-(--color-text-secondary) transition-[transform,color] group-hover/bc:text-(--color-blue) ${open ? "rotate-180" : ""}`}
@@ -146,6 +148,7 @@ function CurriculumPopover({
   completedLessonIds: number[];
   onNavigate: () => void;
 }) {
+  const t = useTranslations("LessonBreadcrumb");
   const completed = new Set(completedLessonIds);
   const allLessons = modules.flatMap((m) => m.lessons);
   const total = allLessons.length;
@@ -161,10 +164,8 @@ function CurriculumPopover({
       <div className="max-h-[60vh] overflow-y-auto rounded-2xl bg-white p-4 shadow-[0_12px_32px_rgba(18,18,18,0.16)]">
         <header className="mb-3 flex flex-col gap-1.5 border-b border-(--color-border-light) px-2 pb-3">
           <div className="flex items-center justify-between font-(family-name:--font-base) text-sm font-medium text-(--color-text-secondary)">
-            <span>Course progress</span>
-            <span>
-              {done} / {total} lessons · {percent}%
-            </span>
+            <span>{t("courseProgress")}</span>
+            <span>{t("lessonsSummary", { done, total, percent })}</span>
           </div>
           <div className="h-1.5 w-full rounded-full bg-(--color-brand-lavender-soft)">
             <div
@@ -177,7 +178,7 @@ function CurriculumPopover({
           {modules.map((mod) => (
             <li key={mod.id} className="flex flex-col gap-1">
               <p className="px-2 font-(family-name:--font-base) text-sm font-semibold uppercase tracking-wide text-(--color-text-secondary)">
-                Module {mod.order}: {mod.title}
+                {t("moduleWithTitle", { order: mod.order, title: mod.title })}
               </p>
               <ul className="flex flex-col">
                 {byOrder(mod.lessons).map((lsn) => {
@@ -206,14 +207,14 @@ function CurriculumPopover({
                           <Check className="h-2.5 w-2.5" strokeWidth={3} />
                         </span>
                         <span className="min-w-0 truncate">
-                          Lesson {lsn.order}: {lsn.title}
+                          {t("lessonWithTitle", { order: lsn.order, title: lsn.title })}
                         </span>
                         {lsn.is_mandatory && (
                           <span className="ml-auto flex-shrink-0 rounded-full bg-(--color-brand-yellow) px-2 py-0.5 font-(family-name:--font-accent) text-[10px] uppercase text-(--color-text-primary)">
-                            Mandatory
+                            {t("mandatory")}
                           </span>
                         )}
-                        {isDone && <span className="sr-only">Completed</span>}
+                        {isDone && <span className="sr-only">{t("completed")}</span>}
                       </Link>
                     </li>
                   );

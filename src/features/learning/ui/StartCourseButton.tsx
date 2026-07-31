@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { AccentButton } from "@/shared/ui/AccentButton";
 
 type Props = {
@@ -14,10 +15,11 @@ type Props = {
  * stalls the click. When no lessons exist, the button renders disabled.
  */
 export function StartCourseButton({ slug, lessonId, hasProgress = false }: Props) {
+  const t = useTranslations("CourseOverview");
   if (lessonId == null) {
     return (
       <AccentButton size="md" style={{ width: 200, minWidth: 200, height: 52 }} disabled>
-        Start the course
+        {t("startTheCourse")}
       </AccentButton>
     );
   }
@@ -27,7 +29,7 @@ export function StartCourseButton({ slug, lessonId, hasProgress = false }: Props
       style={{ minWidth: 240, height: 52, padding: "0 32px", whiteSpace: "nowrap" }}
       href={`/learn/${slug}/${lessonId}`}
     >
-      {hasProgress ? "Continue learning" : "Start the course"}
+      {hasProgress ? t("continueLearning") : t("startTheCourse")}
     </AccentButton>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { ArrowUpRight } from "lucide-react";
 import type { CourseDetail, CourseProgress } from "@/entities/course";
 import { byOrder, useCompletionRedirect, useCourseProgress } from "@/entities/course";
@@ -20,13 +21,9 @@ type Props = {
   isMock?: boolean;
 };
 
-const FORMAT_BY_MODE: Record<CourseDetail["mode"], string> = {
-  with_teacher: "With a teacher.",
-  self_learning: "Self-paced.",
-};
-
 /** Course tab of the lesson player at `/learn/<slug>`: title, description, Start CTA, mentor tip, module accordion. */
 export function CourseOverviewView({ course, initialProgress = null, isMock = false }: Props) {
+  const t = useTranslations("CourseOverview");
   const sortedModules = useMemo(() => byOrder(course.modules), [course.modules]);
 
   const [openModuleIds, setOpenModuleIds] = useState<Set<number>>(
@@ -59,10 +56,11 @@ export function CourseOverviewView({ course, initialProgress = null, isMock = fa
     });
   };
 
-  const formatLabel = FORMAT_BY_MODE[course.mode];
+  const formatLabel =
+    course.mode === "with_teacher" ? t("formatWithTeacher") : t("formatSelfPaced");
   const cohort = course.cohorts[0] ?? null;
   const scheduleHint = cohort
-    ? ` Live meetings ${cohort.hours_per_week_min}-${cohort.hours_per_week_max} hours per week.`
+    ? ` ${t("scheduleHint", { min: cohort.hours_per_week_min ?? 0, max: cohort.hours_per_week_max ?? 0 })}`
     : "";
 
   const firstLessonId = sortedModules.flatMap((m) => byOrder(m.lessons))[0]?.id ?? null;
@@ -93,7 +91,7 @@ export function CourseOverviewView({ course, initialProgress = null, isMock = fa
         <div className="flex max-w-[1657px] flex-col gap-6">
           <CourseDescriptionText html={course.full_description} />
           <p className="max-w-[580px] font-(family-name:--font-base) text-base leading-tight text-(--color-text-primary) lg:text-xl">
-            <span className="font-bold">Format:</span> {formatLabel}
+            <span className="font-bold">{t("formatLabel")}</span> {formatLabel}
             {scheduleHint}
           </p>
         </div>
@@ -121,7 +119,7 @@ export function CourseOverviewView({ course, initialProgress = null, isMock = fa
               aria-pressed={allOpen}
               style={{ width: 200, justifyContent: "center" }}
             >
-              {allOpen ? "Collapse all" : "Open all"}
+              {allOpen ? t("collapseAll") : t("openAll")}
             </GradientButton>
           </div>
 
@@ -145,6 +143,7 @@ export function CourseOverviewView({ course, initialProgress = null, isMock = fa
 
 /** "Group chat" outlined link in the top-right of the hero. Opens the chat URL in a new tab. */
 function GroupChatLink({ href }: { href: string }) {
+  const t = useTranslations("CourseOverview");
   return (
     <a
       href={href}
@@ -152,7 +151,7 @@ function GroupChatLink({ href }: { href: string }) {
       rel="noopener noreferrer"
       className="mt-1 inline-flex items-center gap-2 self-start whitespace-nowrap font-(family-name:--font-accent) text-sm uppercase text-(--color-text-primary) transition hover:opacity-80 lg:mt-2 lg:text-xl"
     >
-      Group chat
+      {t("groupChat")}
       <ArrowUpRight aria-hidden="true" className="h-5 w-5 sm:h-7 sm:w-7" />
     </a>
   );
@@ -176,12 +175,13 @@ type TeacherTipProps = {
 
 /** "Useful tips from <teacher>" card with a circular gradient avatar on the right. */
 function TeacherTip({ teacherName, quote, avatar }: TeacherTipProps) {
+  const t = useTranslations("CourseOverview");
   if (!quote) return null;
   return (
     <div className="flex items-center gap-5">
       <div className="flex max-w-[580px] flex-col items-end gap-2 text-right text-(--color-text-primary)">
         <p className="font-(family-name:--font-base) text-base font-bold leading-tight lg:text-xl">
-          Useful tips from {teacherName}
+          {t("usefulTipsFrom", { name: teacherName })}
         </p>
         <p className="font-(family-name:--font-base) text-sm leading-snug lg:text-base">
           &ldquo;{quote}&rdquo;

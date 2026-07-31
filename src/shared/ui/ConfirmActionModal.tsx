@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { ModalShell } from "@/shared/ui/ModalShell";
 import { AccentButton } from "@/shared/ui/AccentButton";
 import { WhiteButton } from "@/shared/ui/WhiteButton";
@@ -23,6 +24,7 @@ export function ConfirmActionModal({
   onConfirm,
   onCancel,
 }: Props) {
+  const t = useTranslations("Common");
   return (
     <ModalShell
       onClose={onCancel}
@@ -60,7 +62,7 @@ export function ConfirmActionModal({
             fontSize: "clamp(12px, 0.97vw, 15px)",
           }}
         >
-          Cancel
+          {t("cancel")}
         </WhiteButton>
         <AccentButton
           size="md"
@@ -72,7 +74,7 @@ export function ConfirmActionModal({
             fontSize: "clamp(12px, 0.97vw, 15px)",
           }}
         >
-          {loading ? "Please wait…" : confirmLabel}
+          {loading ? t("pleaseWait") : confirmLabel}
         </AccentButton>
       </div>
     </ModalShell>

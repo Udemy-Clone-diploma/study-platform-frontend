@@ -3,6 +3,9 @@ import type {
   TeacherApplicationFormErrors,
 } from "@/features/teacher-application/model/types";
 
+/** Translator scoped to the "Auth.validation" namespace (shared fields) or "TeacherApplication.validation" (form-specific fields). */
+type ValidationTranslator = (key: string) => string;
+
 function isValidUrl(value: string): boolean {
   if (!value.trim()) return true;
   try {
@@ -15,34 +18,36 @@ function isValidUrl(value: string): boolean {
 
 export function validateApplicationBasicStep(
   values: TeacherApplicationFormData,
+  tAuth: ValidationTranslator,
+  t: ValidationTranslator,
 ): TeacherApplicationFormErrors {
   const errors: TeacherApplicationFormErrors = {};
 
   if (!values.firstName.trim()) {
-    errors.firstName = "Enter your first name";
+    errors.firstName = tAuth("enterFirstName");
   }
 
   if (!values.lastName.trim()) {
-    errors.lastName = "Enter your last name";
+    errors.lastName = tAuth("enterLastName");
   }
 
   if (!values.email.trim()) {
-    errors.email = "Enter your email";
+    errors.email = tAuth("enterEmail");
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) {
-    errors.email = "Enter a valid email";
+    errors.email = tAuth("enterValidEmail");
   }
 
   if (!values.dateOfBirth) {
-    errors.dateOfBirth = "Enter your date of birth";
+    errors.dateOfBirth = tAuth("enterDateOfBirth");
   } else {
     const birthDate = new Date(`${values.dateOfBirth}T00:00:00`);
     if (Number.isNaN(birthDate.getTime()) || birthDate > new Date()) {
-      errors.dateOfBirth = "Enter a valid date of birth";
+      errors.dateOfBirth = tAuth("enterValidDateOfBirth");
     }
   }
 
   if (!values.phoneNumber.trim()) {
-    errors.phoneNumber = "Enter a phone number so a moderator can reach you";
+    errors.phoneNumber = t("enterPhoneNumber");
   }
 
   return errors;
@@ -50,25 +55,26 @@ export function validateApplicationBasicStep(
 
 export function validateApplicationProfileStep(
   values: TeacherApplicationFormData,
+  t: ValidationTranslator,
 ): TeacherApplicationFormErrors {
   const errors: TeacherApplicationFormErrors = {};
 
   if (!values.specialization.trim()) {
-    errors.specialization = "Enter your field of study";
+    errors.specialization = t("enterFieldOfStudy");
   }
 
   if (!values.experience.trim()) {
-    errors.experience = "Describe your work experience";
+    errors.experience = t("describeExperience");
   }
 
   if (!values.bio.trim()) {
-    errors.bio = "Write a short bio";
+    errors.bio = t("writeShortBio");
   }
 
   if (values.yearsExperience.trim()) {
     const years = Number(values.yearsExperience);
     if (!Number.isInteger(years) || years < 0) {
-      errors.yearsExperience = "Enter a valid number of years";
+      errors.yearsExperience = t("enterValidYears");
     }
   }
 
@@ -77,26 +83,29 @@ export function validateApplicationProfileStep(
 
 export function validateApplicationAdditionalStep(
   values: TeacherApplicationFormData,
+  t: ValidationTranslator,
 ): TeacherApplicationFormErrors {
   const errors: TeacherApplicationFormErrors = {};
 
   if (!values.motivation.trim()) {
-    errors.motivation = "Tell us why you want to teach on the platform";
+    errors.motivation = t("tellUsWhyTeach");
   }
 
-  if (!isValidUrl(values.instagram)) errors.instagram = "Enter a valid URL";
-  if (!isValidUrl(values.linkedin)) errors.linkedin = "Enter a valid URL";
-  if (!isValidUrl(values.behance)) errors.behance = "Enter a valid URL";
+  if (!isValidUrl(values.instagram)) errors.instagram = t("enterValidUrl");
+  if (!isValidUrl(values.linkedin)) errors.linkedin = t("enterValidUrl");
+  if (!isValidUrl(values.behance)) errors.behance = t("enterValidUrl");
 
   return errors;
 }
 
 export function validateTeacherApplicationForm(
   values: TeacherApplicationFormData,
+  tAuth: ValidationTranslator,
+  t: ValidationTranslator,
 ): TeacherApplicationFormErrors {
   return {
-    ...validateApplicationBasicStep(values),
-    ...validateApplicationProfileStep(values),
-    ...validateApplicationAdditionalStep(values),
+    ...validateApplicationBasicStep(values, tAuth, t),
+    ...validateApplicationProfileStep(values, t),
+    ...validateApplicationAdditionalStep(values, t),
   };
 }

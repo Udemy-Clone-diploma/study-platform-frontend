@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import {
   CalendarDays,
   Check,
@@ -10,28 +11,12 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 import { DatePicker } from "@/shared/ui/DatePicker";
+import { formatDate } from "@/shared/lib/time";
 import type { PaymentMethod, PaymentStatus } from "@/entities/payment";
-import { PAYMENT_STATUS_LABELS } from "./PaymentStatusBadge";
+import { getPaymentStatusOptions } from "./PaymentStatusBadge";
 
 const CONTROL_HEIGHT = "clamp(34px, 2.78vw, 40px)";
 const ICON_SIZE = { width: "clamp(14px, 1.11vw, 18px)", height: "clamp(14px, 1.11vw, 18px)" };
-
-const STATUS_OPTIONS: { label: string; value: PaymentStatus | null }[] = [
-  { label: "All statuses", value: null },
-  ...PAYMENT_STATUS_LABELS.map((s) => ({ label: s.label, value: s.value })),
-];
-
-const METHOD_OPTIONS: { label: string; value: PaymentMethod | null }[] = [
-  { label: "All methods", value: null },
-  { label: "Stripe", value: "stripe" },
-  { label: "Manual", value: "manual" },
-];
-
-const REFUND_OPTIONS: { label: string; value: RefundFilter }[] = [
-  { label: "Any", value: null },
-  { label: "Has a refund", value: "true" },
-  { label: "No refund", value: "false" },
-];
 
 export type RefundFilter = "true" | "false" | null;
 
@@ -66,6 +51,28 @@ export function FinanceToolbar({
   onRefresh,
   refreshing,
 }: Props) {
+  const t = useTranslations("FinanceToolbar");
+  const tCommon = useTranslations("Common");
+  const tStatus = useTranslations("PaymentStatusBadge");
+  const locale = useLocale();
+
+  const STATUS_OPTIONS: { label: string; value: PaymentStatus | null }[] = [
+    { label: t("allStatuses"), value: null },
+    ...getPaymentStatusOptions(tStatus),
+  ];
+
+  const METHOD_OPTIONS: { label: string; value: PaymentMethod | null }[] = [
+    { label: t("allMethods"), value: null },
+    { label: t("methodStripe"), value: "stripe" },
+    { label: t("methodManual"), value: "manual" },
+  ];
+
+  const REFUND_OPTIONS: { label: string; value: RefundFilter }[] = [
+    { label: t("any"), value: null },
+    { label: t("refundHasRefund"), value: "true" },
+    { label: t("refundNoRefund"), value: "false" },
+  ];
+
   const [query, setQuery] = useState(search);
   const [prevSearch, setPrevSearch] = useState(search);
   const [filterOpen, setFilterOpen] = useState(false);
@@ -124,7 +131,7 @@ export function FinanceToolbar({
         />
         <input
           type="search"
-          placeholder="Search"
+          placeholder={tCommon("search")}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="min-w-0 flex-1 bg-transparent outline-none"
@@ -133,7 +140,7 @@ export function FinanceToolbar({
             fontSize: "clamp(14px, 1.11vw, 18px)",
             color: "var(--color-text-primary)",
           }}
-          aria-label="Search payments by payer, course or transaction reference"
+          aria-label={t("searchAriaLabel")}
         />
       </label>
 
@@ -153,7 +160,7 @@ export function FinanceToolbar({
           }}
         >
           <SlidersHorizontal aria-hidden="true" style={ICON_SIZE} />
-          {filterLabel || "All Filter"}
+          {filterLabel || t("allFilter")}
         </button>
 
         {filterOpen && (
@@ -167,7 +174,7 @@ export function FinanceToolbar({
             }}
           >
             <FilterGroup
-              heading="Status"
+              heading={t("statusGroupHeading")}
               options={STATUS_OPTIONS}
               selected={status}
               onSelect={(value) => {
@@ -181,7 +188,7 @@ export function FinanceToolbar({
               aria-hidden="true"
             />
             <FilterGroup
-              heading="Method"
+              heading={t("methodGroupHeading")}
               options={METHOD_OPTIONS}
               selected={method}
               onSelect={(value) => {
@@ -195,7 +202,7 @@ export function FinanceToolbar({
               aria-hidden="true"
             />
             <FilterGroup
-              heading="Refunds"
+              heading={t("refundsGroupHeading")}
               options={REFUND_OPTIONS}
               selected={refunds}
               onSelect={(value) => {
@@ -207,13 +214,13 @@ export function FinanceToolbar({
         )}
       </div>
 
-      <DateRangeFilter from={from} to={to} onDateChange={onDateChange} />
+      <DateRangeFilter from={from} to={to} onDateChange={onDateChange} locale={locale} />
 
       <button
         type="button"
         onClick={onRefresh}
-        title="Refresh transactions"
-        aria-label="Refresh transactions"
+        title={t("refreshTitle")}
+        aria-label={t("refreshTitle")}
         className="flex cursor-pointer items-center justify-center rounded-full bg-white text-(--color-text-primary) transition hover:opacity-80"
         style={{ width: CONTROL_HEIGHT, height: CONTROL_HEIGHT, border: "none" }}
       >
@@ -227,20 +234,19 @@ export function FinanceToolbar({
   );
 }
 
-function formatShort(iso: string): string {
-  const [y, m, d] = iso.split("-");
-  return `${d}.${m}.${y.slice(2)}`;
-}
-
 function DateRangeFilter({
   from,
   to,
   onDateChange,
+  locale,
 }: {
   from: string;
   to: string;
   onDateChange: (updates: { from?: string; to?: string }) => void;
+  locale: string;
 }) {
+  const t = useTranslations("FinanceToolbar");
+  const tTeacherPayments = useTranslations("TeacherPaymentsPage");
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -253,10 +259,12 @@ function DateRangeFilter({
     return () => document.removeEventListener("mousedown", onOutside);
   }, [open]);
 
+  const formatShort = (iso: string) => formatDate(iso, locale, { day: "2-digit", month: "2-digit", year: "2-digit" });
+
   const label =
     from || to
-      ? `${from ? formatShort(from) : "Any"} to ${to ? formatShort(to) : "Any"}`
-      : "Any date";
+      ? `${from ? formatShort(from) : t("any")} ${t("dateRangeJoiner")} ${to ? formatShort(to) : t("any")}`
+      : t("anyDate");
 
   return (
     <div ref={ref} className="relative">
@@ -299,14 +307,14 @@ function DateRangeFilter({
             <DatePicker
               value={from}
               onChange={(value) => onDateChange({ from: value })}
-              label="From"
+              label={tTeacherPayments("fromLabel")}
               max={to || undefined}
               size="sm"
             />
             <DatePicker
               value={to}
               onChange={(value) => onDateChange({ to: value })}
-              label="To"
+              label={tTeacherPayments("toLabel")}
               min={from || undefined}
               size="sm"
             />
@@ -318,7 +326,7 @@ function DateRangeFilter({
               className="cursor-pointer self-start border-none bg-transparent p-0 text-(--color-blue) hover:underline"
               style={{ fontFamily: "var(--font-base)", fontSize: "clamp(12px, 0.83vw, 14px)" }}
             >
-              Clear
+              {tTeacherPayments("clear")}
             </button>
           )}
         </div>

@@ -1,7 +1,8 @@
 "use client";
 
 import { useId } from "react";
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { Astroid, ChevronDown } from "lucide-react";
 import type { CourseModule } from "@/entities/course";
 import { byOrder } from "@/entities/course";
@@ -23,6 +24,7 @@ export function LearnCurriculumModule({
   onToggle,
   completedLessonIds = [],
 }: Props) {
+  const t = useTranslations("LearnCurriculum");
   const panelId = useId();
   const headerId = useId();
   const completed = new Set(completedLessonIds);
@@ -38,7 +40,7 @@ export function LearnCurriculumModule({
         className="-mx-2 flex w-[calc(100%+1rem)] items-center gap-3 rounded-lg px-2 py-5 text-left transition-colors hover:bg-(--color-brand-lavender)/15 sm:py-6"
       >
         <span className="inline-flex flex-shrink-0 items-center justify-center rounded-[20px] bg-(--color-brand-lavender-soft) px-3 py-0.5 font-(family-name:--font-base) text-base font-semibold text-(--color-blue) sm:text-xl">
-          Module {courseModule.order}
+          {t("module", { order: courseModule.order })}
         </span>
         <span className="flex-1 font-(family-name:--font-base) text-base font-semibold text-(--color-text-primary) sm:text-xl">
           {courseModule.title}
@@ -74,11 +76,11 @@ export function LearnCurriculumModule({
                       opacity={isDone ? 1 : 0.85}
                     />
                     <span className="min-w-0">
-                      Lesson {lesson.order}: {lesson.title}.
+                      {t("lessonWithTitle", { order: lesson.order, title: lesson.title })}.
                     </span>
                     {lesson.is_mandatory && (
                       <span className="flex-shrink-0 rounded-full bg-(--color-brand-yellow) px-3 py-0.5 font-(family-name:--font-accent) text-xs uppercase text-(--color-text-primary)">
-                        Mandatory
+                        {t("mandatory")}
                       </span>
                     )}
                   </Link>

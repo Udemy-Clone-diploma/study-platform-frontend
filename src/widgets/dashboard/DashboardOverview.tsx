@@ -1,5 +1,9 @@
+"use client";
+
 import Image from "next/image";
-import type { CSSProperties, ReactNode } from "react";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
+import type { ComponentProps, CSSProperties, ReactNode } from "react";
 import {
   HomeworkQueuePanel,
   HomeworkReviewPanel,
@@ -9,12 +13,14 @@ import { GrowthCard } from "./GrowthCard";
 import { MyCoursesDashboardWidget } from "./MyCoursesDashboardWidget";
 import { ScheduleRail } from "./ScheduleRail";
 import { StudentNotesPanel } from "./StudentNotesPanel";
+import { TeacherHomeworkCheckPanel } from "./TeacherHomeworkCheckPanel";
 import { TeacherStudentsPanel } from "./TeacherStudentsPanel";
 import { PAGE_PADDING_TOP, SIDEBAR_GAP } from "@/shared/ui/PageShell";
 
 type DashboardRole = "student" | "teacher";
 
-type DashboardListItem = {
+export type DashboardListItem = {
+  id: string | number;
   course: string;
   meta: string;
   title: string;
@@ -23,47 +29,13 @@ type DashboardListItem = {
   date?: string;
   badge?: string;
   author?: string;
+  href?: ComponentProps<typeof Link>["href"];
 };
 
 const scheduleRailStyle = {
   marginRight: "clamp(16px, calc(-11.43px + 2.68vw), 40px)",
   "--schedule-height": "calc(100vh - 76px - clamp(16px, 2.22vw, 32px))",
 } as CSSProperties;
-
-const teacherChecks: DashboardListItem[] = [
-  {
-    course: "UX/UI Design Principles Compact",
-    meta: "Task",
-    title: "Landing",
-    icon: "/icons/world.png",
-    accent: "from-[#fff3dc] to-[#ffe7ef]",
-    author: "Aisha Khan",
-  },
-  {
-    course: "Marketing",
-    meta: "Test",
-    title: "Research",
-    icon: "/icons/statistics.svg",
-    accent: "from-[#ffe7ef] to-[#dfd7ff]",
-    badge: "5+",
-  },
-  {
-    course: "Business analytics",
-    meta: "Task",
-    title: "Risk analysis",
-    icon: "/icons/curses.svg",
-    accent: "from-[#e0fbf5] to-[#d8ddff]",
-    author: "Aisha Khan",
-  },
-  {
-    course: "UX research",
-    meta: "Review",
-    title: "Interview map",
-    icon: "/icons/diary.svg",
-    accent: "from-[#edf1ff] to-[#fff3dc]",
-    author: "Maksym Dovzhenko",
-  },
-];
 
 export function DashboardOverview({ role }: { role: DashboardRole }) {
   if (role === "teacher") {
@@ -138,7 +110,7 @@ function TeacherDashboard() {
           <div className="flex min-w-0 flex-col" style={{ gap: "clamp(12px, 1.04vw, 20px)" }}>
             <MyCoursesDashboardWidget role="teacher" />
             <GrowthCard metric="enrollments" />
-            <TodoPanel title="Check" secondaryLabel="Verified" items={teacherChecks} teacher />
+            <TeacherHomeworkCheckPanel />
           </div>
 
           <div
@@ -160,36 +132,66 @@ function TeacherDashboard() {
   );
 }
 
-function TodoPanel({
+export function TodoPanel({
   title,
   secondaryLabel,
+  activeTab,
+  onTabChange,
   items,
+  loading = false,
+  emptyLabel,
   teacher = false,
 }: {
   title: string;
   secondaryLabel: string;
+  activeTab: "primary" | "secondary";
+  onTabChange: (tab: "primary" | "secondary") => void;
   items: DashboardListItem[];
+  loading?: boolean;
+  emptyLabel?: string;
   teacher?: boolean;
 }) {
+  const t = useTranslations("DashboardOverview");
+
   return (
-    <Card className="max-h-[230px] overflow-hidden p-3">
-      <div className="mb-2 flex items-center gap-3">
-        <span className="rounded-full bg-[linear-gradient(90deg,#a7bafa_0%,#fcc4c3_60%,#fff4da_100%)] px-4 py-1 text-sm text-black">
+    <Card className="flex h-[230px] flex-col overflow-hidden p-3">
+      <div className="mb-2 flex shrink-0 items-center gap-3">
+        <button
+          type="button"
+          onClick={() => onTabChange("primary")}
+          className={
+            activeTab === "primary"
+              ? "rounded-full bg-[linear-gradient(90deg,#a7bafa_0%,#fcc4c3_60%,#fff4da_100%)] px-4 py-1 text-sm text-black"
+              : "rounded-full border border-black/10 px-4 py-1 text-sm text-black transition-colors hover:bg-black/5"
+          }
+        >
           {title}
-        </span>
-        <span className="rounded-full border border-black px-4 py-0.5 text-sm text-black">
+        </button>
+        <button
+          type="button"
+          onClick={() => onTabChange("secondary")}
+          className={
+            activeTab === "secondary"
+              ? "rounded-full bg-[linear-gradient(90deg,#a7bafa_0%,#fcc4c3_60%,#fff4da_100%)] px-4 py-0.5 text-sm text-black"
+              : "rounded-full border border-black px-4 py-0.5 text-sm text-black transition-colors hover:bg-black/5"
+          }
+        >
           {secondaryLabel}
-        </span>
+        </button>
       </div>
-      <ScrollableList>
-        {items.map((item) => (
-          <ListRow
-            key={`${item.title}-${item.author ?? item.badge}`}
-            item={item}
-            teacher={teacher}
-          />
-        ))}
-      </ScrollableList>
+      {loading ? (
+        <p className="pt-6 text-center text-xs text-[#5e5e5e]">{t("loading")}</p>
+      ) : items.length === 0 ? (
+        <p className="pt-6 text-center text-xs text-[#5e5e5e]">
+          {emptyLabel ?? t("nothingHereYet")}
+        </p>
+      ) : (
+        <ScrollableList>
+          {items.map((item) => (
+            <ListRow key={item.id} item={item} teacher={teacher} />
+          ))}
+        </ScrollableList>
+      )}
     </Card>
   );
 }
@@ -203,13 +205,15 @@ function ListRow({
   compact?: boolean;
   teacher?: boolean;
 }) {
-  return (
-    <div
-      className={[
-        "mb-2 flex items-center gap-3 rounded-md border border-black/5 bg-white px-3 shadow-[0_1px_8px_rgba(0,0,0,0.12)]",
-        compact ? "min-h-[58px]" : "min-h-[56px]",
-      ].join(" ")}
-    >
+  const t = useTranslations("DashboardOverview");
+  const className = [
+    "mb-2 flex items-center gap-3 rounded-md border border-black/5 bg-white px-3 shadow-[0_1px_8px_rgba(0,0,0,0.12)]",
+    compact ? "min-h-[58px]" : "min-h-[56px]",
+    item.href ? "transition hover:bg-black/[0.02]" : "",
+  ].join(" ");
+
+  const content = (
+    <>
       <IconTile accent={item.accent} icon={item.icon} size="sm" />
       <div className="min-w-0 flex-1">
         <p className="truncate text-[11px] text-[#5e5e5e]">
@@ -224,13 +228,21 @@ function ListRow({
       ) : null}
       {item.author ? (
         <span className="whitespace-nowrap text-xs text-black">
-          From: <span className="text-[#003aff]">{item.author}</span>
+          {t("from")} <span className="text-[#003aff]">{item.author}</span>
         </span>
       ) : null}
       {item.date && !teacher ? (
         <span className="whitespace-nowrap text-xs text-[#003aff]">{item.date}</span>
       ) : null}
-    </div>
+    </>
+  );
+
+  return item.href ? (
+    <Link href={item.href} className={className}>
+      {content}
+    </Link>
+  ) : (
+    <div className={className}>{content}</div>
   );
 }
 
@@ -278,7 +290,7 @@ function IconTile({
 }
 
 export function ScrollableList({ children }: { children: ReactNode }) {
-  return <div className="max-h-full overflow-y-auto pr-1">{children}</div>;
+  return <div className="min-h-0 flex-1 overflow-y-auto pr-1">{children}</div>;
 }
 
 export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {

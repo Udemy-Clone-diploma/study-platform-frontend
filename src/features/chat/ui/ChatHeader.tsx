@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { MoreVertical } from "lucide-react";
 import type { ChatRoom, ChatUser } from "@/entities/chat";
 import { Avatar } from "./Avatar";
@@ -26,6 +27,7 @@ export function ChatHeader({
   onOpenMembers,
   onToggleMenu,
 }: Props) {
+  const t = useTranslations("ChatHeader");
   const canOpenAvatar = chat.type === "group" || Boolean(peer);
 
   return (
@@ -34,7 +36,7 @@ export function ChatHeader({
         {canOpenAvatar ? (
           <button
             type="button"
-            aria-label={chat.type === "group" ? "View members" : "View profile"}
+            aria-label={chat.type === "group" ? t("viewMembers") : t("viewProfile")}
             onClick={chat.type === "group" ? onOpenMembers : onViewProfile}
             className="shrink-0 rounded-full outline-none ring-offset-2 transition hover:brightness-95 focus-visible:ring-2 focus-visible:ring-[#003AFF]"
           >
@@ -52,7 +54,7 @@ export function ChatHeader({
       </div>
       <button
         type="button"
-        aria-label="Chat menu"
+        aria-label={t("chatMenu")}
         aria-expanded={menuOpen}
         onClick={onToggleMenu}
         className="flex h-10 w-10 items-center justify-center rounded-lg text-black transition hover:bg-white/55"

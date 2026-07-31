@@ -1,6 +1,7 @@
 "use client";
 
-import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { ClipboardCheck, Eye, Star } from "lucide-react";
 import type {
   ApprovedCourseRecord,
@@ -13,6 +14,8 @@ import { CourseThumb, formatCourseDate } from "./admin/CoursesTable";
 
 export type ModeratorCourseTab = "unassigned" | "review" | "needs_revision";
 export type ModeratorHistoryStatus = "approved" | "rejected";
+
+type Translator = (key: string, values?: Record<string, string | number>) => string;
 
 const LEVEL_COLORS: Record<CourseLevel, string> = {
   beginner: "var(--color-blue)",
@@ -35,22 +38,22 @@ function humanize(value: string | null | undefined) {
   return value.replace(/_/g, " ").replace(/\b\w/g, (character) => character.toUpperCase());
 }
 
-function formatPrice(course: CourseListItem) {
-  if (!course.price || Number(course.price) === 0) return "Free";
+function formatPrice(course: CourseListItem, freeLabel: string) {
+  if (!course.price || Number(course.price) === 0) return freeLabel;
   return `${course.price}${course.currency ? ` ${course.currency}` : ""}`;
 }
 
-function formatRating(course: CourseListItem) {
-  if (!course.rating_count) return "No ratings";
+function formatRating(course: CourseListItem, t: Translator) {
+  if (!course.rating_count) return t("noRatings");
   return `${course.rating_avg} (${course.rating_count})`;
 }
 
-function courseStatus(course: CourseListItem, tab: ModeratorCourseTab) {
-  if (tab === "unassigned") return "Unassigned";
+function courseStatus(course: CourseListItem, tab: ModeratorCourseTab, t: Translator) {
+  if (tab === "unassigned") return t("statusUnassigned");
   if (tab === "review") {
-    return course.status === "review" ? "Under review" : "Edit under review";
+    return course.status === "review" ? t("statusUnderReview") : t("statusEditUnderReview");
   }
-  return course.status === "needs_revision" ? "Requires revision" : "Edit requires revision";
+  return course.status === "needs_revision" ? t("statusRequiresRevision") : t("statusEditRequiresRevision");
 }
 
 function CourseStatusBadge({ status, color }: { status: string; color: string }) {
@@ -64,14 +67,14 @@ function CourseStatusBadge({ status, color }: { status: string; color: string })
   );
 }
 
-function CourseIdentity({ course, href }: { course: CourseListItem; href?: string }) {
+function CourseIdentity({ course, href, freeLabel }: { course: CourseListItem; href?: string; freeLabel: string }) {
   const content = (
     <>
       <CourseThumb image={course.image} title={course.title} />
       <div className="min-w-0">
         <p className="truncate font-semibold text-(--color-text-primary)">{course.title}</p>
         <p className="mt-0.5 truncate text-xs text-(--color-text-secondary)">
-          {course.subtitle || `${humanize(course.language)} - ${formatPrice(course)}`}
+          {course.subtitle || `${humanize(course.language)} - ${formatPrice(course, freeLabel)}`}
         </p>
       </div>
     </>
@@ -110,11 +113,15 @@ function TableAction({
 function currentCourseColumns(
   tab: ModeratorCourseTab,
   onAssign: (course: CourseListItem) => void,
+  t: Translator,
+  tLevel: Translator,
+  tModuleCard: Translator,
+  freeLabel: string,
 ): DataTableColumn<CourseListItem>[] {
   return [
     {
       key: "course",
-      label: "Course",
+      label: t("columnCourse"),
       flex: 3,
       render: (course) => (
         <CourseIdentity
@@ -122,35 +129,36 @@ function currentCourseColumns(
           href={
             tab === "unassigned" ? undefined : `/moderator-dashboard/courses/${course.slug}/review`
           }
+          freeLabel={freeLabel}
         />
       ),
     },
     {
       key: "teacher",
-      label: "Teacher",
+      label: t("columnTeacher"),
       flex: 1.7,
       render: (course) => <span className="truncate">{course.teacher_name || "-"}</span>,
     },
     {
       key: "category",
-      label: "Category",
+      label: t("columnCategory"),
       flex: 1.5,
       render: (course) =>
-        course.category?.name || <span className="text-(--color-text-secondary)">No category</span>,
+        course.category?.name || <span className="text-(--color-text-secondary)">{t("noCategory")}</span>,
     },
     {
       key: "level",
-      label: "Level",
+      label: t("columnLevel"),
       flex: 1.1,
       headerAlign: "center",
       cellAlign: "center",
       render: (course) => (
-        <span style={{ color: LEVEL_COLORS[course.level] }}>{humanize(course.level)}</span>
+        <span style={{ color: LEVEL_COLORS[course.level] }}>{tLevel(`level.${course.level}`)}</span>
       ),
     },
     {
       key: "format",
-      label: "Format",
+      label: t("columnFormat"),
       flex: 1.7,
       render: (course) => (
         <span className="block truncate">
@@ -160,21 +168,21 @@ function currentCourseColumns(
     },
     {
       key: "content",
-      label: "Content",
+      label: t("columnContent"),
       flex: 1.15,
       headerAlign: "center",
       cellAlign: "center",
       render: (course) => (
         <span className="block whitespace-nowrap">
-          {course.lessons_count} lessons
+          {tModuleCard("lessonsCount", { count: course.lessons_count })}
           <br />
-          {course.duration_hours} h
+          {t("hoursAbbrev", { count: course.duration_hours })}
         </span>
       ),
     },
     {
       key: "students",
-      label: "Students",
+      label: t("columnStudents"),
       flex: 1,
       headerAlign: "center",
       cellAlign: "center",
@@ -182,36 +190,36 @@ function currentCourseColumns(
     },
     {
       key: "rating",
-      label: "Rating",
+      label: t("columnRating"),
       flex: 1.35,
       headerAlign: "center",
       cellAlign: "center",
       render: (course) => (
         <span className="inline-flex items-center justify-center gap-1 whitespace-nowrap">
           <Star className="h-3.5 w-3.5 fill-(--color-gold) text-(--color-gold)" />
-          {formatRating(course)}
+          {formatRating(course, t)}
         </span>
       ),
     },
     {
       key: "status",
-      label: "Status",
+      label: t("columnStatus"),
       flex: 1.5,
       headerAlign: "center",
       cellAlign: "center",
       render: (course) => (
-        <CourseStatusBadge status={courseStatus(course, tab)} color={STATUS_COLORS[tab]} />
+        <CourseStatusBadge status={courseStatus(course, tab, t)} color={STATUS_COLORS[tab]} />
       ),
     },
     {
       key: "actions",
-      label: "Actions",
+      label: t("columnActions"),
       flex: 1.3,
       headerAlign: "center",
       cellAlign: "center",
       render: (course) =>
         tab === "unassigned" ? (
-          <TableAction label="Assign" onClick={() => onAssign(course)}>
+          <TableAction label={t("assignAction")} onClick={() => onAssign(course)}>
             <ClipboardCheck className="h-3.5 w-3.5" />
           </TableAction>
         ) : (
@@ -220,7 +228,7 @@ function currentCourseColumns(
             className="inline-flex items-center gap-1.5 rounded-full border border-(--color-blue) bg-white px-3 py-1.5 text-xs font-semibold text-(--color-blue) transition hover:bg-(--color-brand-lavender-soft)"
           >
             <Eye className="h-3.5 w-3.5" />
-            Review
+            {t("reviewAction")}
           </Link>
         ),
     },
@@ -238,9 +246,13 @@ export function ModeratorCoursesTable({
   onAssign: (course: CourseListItem) => void;
   emptyMessage: string;
 }) {
+  const t = useTranslations("ModeratorCoursesTable");
+  const tLevel = useTranslations("CourseBasicsForm");
+  const tModuleCard = useTranslations("ModuleCard");
+  const tRejection = useTranslations("RejectionDetailModal");
   return (
     <DataTable<CourseListItem>
-      columns={currentCourseColumns(tab, onAssign)}
+      columns={currentCourseColumns(tab, onAssign, t, tLevel, tModuleCard, tRejection("free"))}
       rows={courses}
       getRowKey={(course) => course.id}
       emptyMessage={emptyMessage}
@@ -268,9 +280,9 @@ function historyDate(record: HistoryRecord, status: ModeratorHistoryStatus) {
     : (record as RejectedCourseRecord).rejected_at;
 }
 
-function historyChanges(record: HistoryRecord) {
-  if (record.changed_fields.length === 0) return "Initial submission";
-  return `${record.changed_fields.length} changed ${record.changed_fields.length === 1 ? "field" : "fields"}`;
+function historyChanges(record: HistoryRecord, t: Translator) {
+  if (record.changed_fields.length === 0) return t("initialSubmission");
+  return t("changedFieldsCount", { count: record.changed_fields.length });
 }
 
 export function ModeratorHistoryTable({
@@ -284,69 +296,75 @@ export function ModeratorHistoryTable({
   onView: (record: HistoryRecord) => void;
   emptyMessage: string;
 }) {
+  const t = useTranslations("ModeratorCoursesTable");
+  const tLevel = useTranslations("CourseBasicsForm");
+  const tRejection = useTranslations("RejectionDetailModal");
+  const locale = useLocale();
+  const statusLabel = status === "approved" ? tRejection("statusApproved") : tRejection("statusRejected");
+
   const columns: DataTableColumn<HistoryRecord>[] = [
     {
       key: "course",
-      label: "Course",
+      label: t("columnCourse"),
       flex: 3.2,
       render: (record) => historyCourseIdentity(record),
     },
     {
       key: "category",
-      label: "Category",
+      label: t("columnCategory"),
       flex: 1.8,
       render: (record) =>
         record.course_category || (
-          <span className="text-(--color-text-secondary)">No category</span>
+          <span className="text-(--color-text-secondary)">{t("noCategory")}</span>
         ),
     },
     {
       key: "level",
-      label: "Level",
+      label: t("columnLevel"),
       flex: 1.2,
       headerAlign: "center",
       cellAlign: "center",
       render: (record) => {
         const level = record.course_level as CourseLevel;
-        return <span style={{ color: LEVEL_COLORS[level] }}>{humanize(record.course_level)}</span>;
+        return <span style={{ color: LEVEL_COLORS[level] }}>{tLevel(`level.${level}`)}</span>;
       },
     },
     {
       key: "changes",
-      label: "Changes",
+      label: t("columnChanges"),
       flex: 2.2,
       render: (record) => (
         <span className="truncate" title={record.changed_fields.join(", ")}>
-          {historyChanges(record)}
+          {historyChanges(record, t)}
         </span>
       ),
     },
     {
       key: "date",
-      label: "Decision date",
+      label: t("columnDecisionDate"),
       flex: 1.6,
       headerAlign: "center",
       cellAlign: "center",
       render: (record) => (
-        <span className="whitespace-nowrap">{formatCourseDate(historyDate(record, status))}</span>
+        <span className="whitespace-nowrap">{formatCourseDate(historyDate(record, status), locale)}</span>
       ),
     },
     {
       key: "status",
-      label: "Status",
+      label: t("columnStatus"),
       flex: 1.4,
       headerAlign: "center",
       cellAlign: "center",
-      render: () => <CourseStatusBadge status={humanize(status)} color={STATUS_COLORS[status]} />,
+      render: () => <CourseStatusBadge status={statusLabel} color={STATUS_COLORS[status]} />,
     },
     {
       key: "actions",
-      label: "Actions",
+      label: t("columnActions"),
       flex: 1.2,
       headerAlign: "center",
       cellAlign: "center",
       render: (record) => (
-        <TableAction label="View" onClick={() => onView(record)}>
+        <TableAction label={t("viewAction")} onClick={() => onView(record)}>
           <Eye className="h-3.5 w-3.5" />
         </TableAction>
       ),

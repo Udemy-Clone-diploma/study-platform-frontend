@@ -1,13 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { TeacherApplicationStatus } from "@/entities/teacher-application";
-
-const TABS: { label: string; value: TeacherApplicationStatus | null }[] = [
-  { label: "All", value: null },
-  { label: "Pending", value: "pending" },
-  { label: "Approved", value: "approved" },
-  { label: "Cancelled", value: "cancelled" },
-];
 
 type Props = {
   active: TeacherApplicationStatus | null;
@@ -16,10 +10,18 @@ type Props = {
 
 /** Status filter tabs for the teacher applications queue, styled like RoleTabs on the admin Users page. */
 export function StatusTabs({ active, onChange }: Props) {
+  const t = useTranslations("TeacherApplicationsAdmin");
+  const tCommon = useTranslations("Common");
+  const TABS: { label: string; value: TeacherApplicationStatus | null }[] = [
+    { label: tCommon("all"), value: null },
+    { label: t("statusPending"), value: "pending" },
+    { label: t("statusApproved"), value: "approved" },
+    { label: t("statusCancelled"), value: "cancelled" },
+  ];
   return (
     <div
       role="tablist"
-      aria-label="Filter applications by status"
+      aria-label={t("filterByStatusAriaLabel")}
       className="flex flex-wrap items-center"
       style={{ gap: "clamp(16px, 2.22vw, 32px)" }}
     >

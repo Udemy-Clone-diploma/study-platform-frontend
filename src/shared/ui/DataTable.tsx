@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { ChevronDown, ChevronUp, ChevronsUpDown } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 /** Column definition for {@link DataTable}. */
 export type DataTableColumn<T> = {
@@ -46,7 +47,7 @@ export function DataTable<T>({
   columns,
   rows,
   getRowKey,
-  emptyMessage = "No data.",
+  emptyMessage,
   indexOffset = 0,
   scrollable = false,
   headerVariant = "gradient",
@@ -56,6 +57,8 @@ export function DataTable<T>({
   currentSort = null,
   onSortChange,
 }: DataTableProps<T>) {
+  const t = useTranslations("Common");
+  const resolvedEmptyMessage = emptyMessage ?? t("noData");
   const headerTextClass =
     headerVariant === "plain"
       ? "font-semibold text-(--color-text-secondary)"
@@ -116,7 +119,7 @@ export function DataTable<T>({
                 onClick={() => onSortChange!(nextSort)}
                 className={`flex min-w-0 cursor-pointer items-center overflow-hidden border-none bg-transparent p-0 transition hover:opacity-70 ${headerTextClass}`}
                 style={{ ...baseStyle, gap: 4, justifyContent }}
-                aria-label={`Sort by ${col.label}`}
+                aria-label={t("sortByColumn", { column: col.label })}
               >
                 <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">
                   {col.label}
@@ -147,7 +150,7 @@ export function DataTable<T>({
           className="py-14 text-center text-(--color-text-secondary)"
           style={{ fontFamily: "var(--font-base)", fontSize: "clamp(13px, 1.11vw, 16px)" }}
         >
-          {emptyMessage}
+          {resolvedEmptyMessage}
         </p>
       ) : (
         <div

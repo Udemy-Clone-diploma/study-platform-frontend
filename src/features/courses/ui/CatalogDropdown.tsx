@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { ChevronDown } from "lucide-react";
 import type { Category } from "@/entities/course";
 
@@ -21,6 +22,7 @@ const itemStyle: React.CSSProperties = {
 export function CatalogDropdown({ categories }: Props) {
     const [open, setOpen] = useState(false);
     const ref = useRef<HTMLDivElement>(null);
+    const t = useTranslations("Common");
 
     useEffect(() => {
         function onOutsideClick(e: MouseEvent) {
@@ -50,7 +52,7 @@ export function CatalogDropdown({ categories }: Props) {
                     padding: 0,
                 }}
             >
-                Catalog
+                {t("catalog")}
                 <ChevronDown
                     aria-hidden="true"
                     className={`h-4 w-4 shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
@@ -81,7 +83,7 @@ export function CatalogDropdown({ categories }: Props) {
                                 className="dropdown-link"
                                 style={itemStyle}
                             >
-                                All Courses
+                                {t("allCourses")}
                             </Link>
                             <div style={{ width: "100%", height: 0, borderTop: "1px solid #FFFFFF" }} />
                         </div>

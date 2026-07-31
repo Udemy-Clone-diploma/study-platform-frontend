@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import { AccentButton } from "@/shared/ui/AccentButton";
 import {
   deleteUserNote,
@@ -12,7 +13,7 @@ import {
 import type { UserData } from "@/entities/user";
 import type { ApiError } from "@/shared/api/base";
 import { formatUserDate } from "../../lib/dates";
-import { LANGUAGE_LABELS, ROLE_LABELS } from "../../model/labels";
+import { LANGUAGE_LABELS, getRoleLabels } from "../../model/labels";
 import { UserAvatar } from "./UserAvatar";
 import { UserStatusBadge } from "./UserStatusBadge";
 
@@ -30,6 +31,11 @@ type Props = {
 
 /** Inline admin panel to the right of the users table: user details, violation history, admin-only note. */
 export function UserDetailPanel({ user, onClose }: Props) {
+  const t = useTranslations("UserDetailPanel");
+  const tCommon = useTranslations("Common");
+  const tRoles = useTranslations("PublicProfile.roles");
+  const locale = useLocale();
+  const roleLabels = getRoleLabels(tRoles);
   const socials = SOCIAL_LABELS.filter(([key]) => Boolean(user[key]));
 
   const [note, setNote] = useState("");
@@ -54,13 +60,13 @@ export function UserDetailPanel({ user, onClose }: Props) {
         if (cancelled) return;
         setNote("");
         setSavedNote("");
-        setNoteError("Failed to load the note.");
+        setNoteError(t("failedToLoadNote"));
         setLoadedNoteUserId(user.id);
       });
     return () => {
       cancelled = true;
     };
-  }, [user.id]);
+  }, [user.id, t]);
 
   const dirty = note.trim() !== savedNote;
 
@@ -77,7 +83,7 @@ export function UserDetailPanel({ user, onClose }: Props) {
       setNote(trimmed);
       setSavedNote(trimmed);
     } catch (err) {
-      setNoteError((err as ApiError).message ?? "Failed to save the note.");
+      setNoteError((err as ApiError).message ?? t("failedToSaveNote"));
     } finally {
       setNoteSaving(false);
     }
@@ -88,7 +94,7 @@ export function UserDetailPanel({ user, onClose }: Props) {
 
   return (
     <aside
-      aria-label="User details"
+      aria-label={t("detailsAriaLabel")}
       className="flex shrink-0 flex-col rounded-[20px] border border-white bg-(--color-white-20) shadow-(--shadow-usp-glass) backdrop-blur-md"
       style={{
         width: "clamp(300px, 24vw, 360px)",
@@ -110,7 +116,7 @@ export function UserDetailPanel({ user, onClose }: Props) {
         <button
           type="button"
           onClick={onClose}
-          aria-label="Close details"
+          aria-label={t("closeAriaLabel")}
           className="flex shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-1 text-(--color-text-secondary) transition hover:bg-(--color-brand-lavender-soft)"
         >
           <X size={18} />
@@ -126,13 +132,13 @@ export function UserDetailPanel({ user, onClose }: Props) {
       </div>
 
       <dl className="flex flex-col" style={{ gap: 10, margin: 0 }}>
-        <DetailRow label="Role">{ROLE_LABELS[user.role]}</DetailRow>
-        <DetailRow label="Email">{user.email}</DetailRow>
-        <DetailRow label="Email status">
-          {user.is_email_verified ? "Verified" : "Unverified"}
+        <DetailRow label={t("role")}>{roleLabels[user.role]}</DetailRow>
+        <DetailRow label={t("email")}>{user.email}</DetailRow>
+        <DetailRow label={t("emailStatus")}>
+          {user.is_email_verified ? t("verified") : t("unverified")}
         </DetailRow>
-        <DetailRow label="Language">{LANGUAGE_LABELS[user.language]}</DetailRow>
-        <DetailRow label="Reg. date">{formatUserDate(user.date_joined)}</DetailRow>
+        <DetailRow label={t("language")}>{LANGUAGE_LABELS[user.language]}</DetailRow>
+        <DetailRow label={t("regDate")}>{formatUserDate(user.date_joined, locale)}</DetailRow>
         {socials.map(([key, label]) => (
           <DetailRow key={key} label={label}>
             <a
@@ -153,7 +159,7 @@ export function UserDetailPanel({ user, onClose }: Props) {
           size="sm"
           className="self-center text-center"
         >
-          View work profile
+          {t("viewWorkProfile")}
         </AccentButton>
       ) : null}
 
@@ -166,7 +172,7 @@ export function UserDetailPanel({ user, onClose }: Props) {
             margin: 0,
           }}
         >
-          User violation history
+          {t("violationHistory")}
         </h3>
         <p
           className="text-(--color-text-secondary)"
@@ -176,7 +182,7 @@ export function UserDetailPanel({ user, onClose }: Props) {
             margin: 0,
           }}
         >
-          In progress
+          {t("inProgress")}
         </p>
       </div>
 
@@ -186,13 +192,13 @@ export function UserDetailPanel({ user, onClose }: Props) {
           className="text-(--color-text-primary)"
           style={{ fontFamily: "var(--font-base)", fontSize: "clamp(13px, 0.97vw, 15px)" }}
         >
-          Notes
+          {t("notes")}
         </label>
         <textarea
           id={noteFieldId}
           value={noteLoading ? "" : note}
           onChange={(e) => setNote(e.target.value)}
-          placeholder="Take a note"
+          placeholder={t("notePlaceholder")}
           disabled={noteLoading || noteSaving}
           rows={3}
           className="w-full resize-y rounded-xl border border-(--color-pink-dark) bg-white outline-none focus:border-(--color-blue) disabled:opacity-60"
@@ -221,7 +227,7 @@ export function UserDetailPanel({ user, onClose }: Props) {
           onClick={handleSaveNote}
           disabled={!dirty || noteLoading || noteSaving}
         >
-          {noteSaving ? "Saving…" : "Save"}
+          {noteSaving ? tCommon("saving") : tCommon("save")}
         </AccentButton>
       </div>
     </aside>

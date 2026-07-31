@@ -1061,6 +1061,9 @@
     "submittedBy": "Подано студентом {name}",
     "correctCount": "Правильно: {correct} / {total}"
   },
+  "StudentCourseCard": {
+    "paymentOverdue": "Прострочено оплату"
+  },
   "StudentCoursesPage": {
     "courseFilterAriaLabel": "Фільтр курсів",
     "tabCurrent": "Поточні",
@@ -3148,7 +3151,9 @@
     "processing": "Обробка...",
     "enrollFree": "Записатися безкоштовно",
     "choosePlan": "Обрати план",
-    "genericError": "Не вдалося обробити запит."
+    "genericError": "Не вдалося обробити запит.",
+    "accessSuspended": "Доступ призупинено — прострочено оплату частини курсу. Сплатіть заборгованість, щоб відновити доступ; весь прогрес збережено.",
+    "payOverdueInstallment": "Сплатити прострочену частину"
   },
   "CourseTeacher": {
     "yearsExperience": "років у реальних проєктах",

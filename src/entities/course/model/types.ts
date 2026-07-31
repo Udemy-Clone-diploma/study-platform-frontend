@@ -1,6 +1,7 @@
 import type { Category } from "./category";
 import type { CourseCohort } from "./cohort";
 import type { CourseDeliveryFormat } from "./delivery-format";
+import type { EnrollmentStatus } from "./enrollment";
 import type { CourseModule } from "./module";
 import type { PricingPlan } from "./pricing";
 import type { CourseTag } from "./tag";
@@ -59,6 +60,10 @@ export type CourseListItem = {
   updated_at?: string;
   /** Date the current student was granted access. Null for non-enrolled contexts (teacher, catalog). */
   enrolled_at: string | null;
+  /** The current student's enrollment status for this course. Null when never enrolled.
+   *  "suspended" means an installment payment is overdue — access is paused, not lost;
+   *  paying restores it automatically. Present on enrolled-courses endpoints. */
+  enrollment_access_status: EnrollmentStatus | null;
   /** Present on enrolled-courses endpoints. 0-100, integer. */
   progress_percent?: number;
   tags: CourseTag[];

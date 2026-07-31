@@ -1061,6 +1061,9 @@
     "submittedBy": "Submitted by {name}",
     "correctCount": "Correct: {correct} / {total}"
   },
+  "StudentCourseCard": {
+    "paymentOverdue": "Payment overdue"
+  },
   "StudentCoursesPage": {
     "courseFilterAriaLabel": "Course filter",
     "tabCurrent": "Current",
@@ -3148,7 +3151,9 @@
     "processing": "Processing...",
     "enrollFree": "Enroll for free",
     "choosePlan": "Choose a plan",
-    "genericError": "Could not process your request."
+    "genericError": "Could not process your request.",
+    "accessSuspended": "Access is paused — an installment payment is overdue. Pay the outstanding amount to restore access; your progress is kept.",
+    "payOverdueInstallment": "Pay overdue installment"
   },
   "CourseTeacher": {
     "yearsExperience": "years in real-world projects",

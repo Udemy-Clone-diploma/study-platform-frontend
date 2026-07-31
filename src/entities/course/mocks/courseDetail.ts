@@ -54,6 +54,7 @@ export const mockCourseDetail: CourseDetail = {
   rating_count: 1850,
   students_count: 1850,
   is_enrolled: true,
+  enrollment_access_status: "active",
   group_chat_url: "https://t.me/ux-ui-design-mastery",
   status: "published",
   published_at: "2026-01-10T00:00:00Z",

@@ -1,4 +1,4 @@
-export type EnrollmentStatus = "active" | "pending" | "expired" | "revoked";
+export type EnrollmentStatus = "active" | "pending" | "expired" | "revoked" | "suspended";
 
 export type Enrollment = {
   id: number;

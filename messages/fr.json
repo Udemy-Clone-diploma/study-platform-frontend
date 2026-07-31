@@ -1061,6 +1061,9 @@
     "submittedBy": "Soumis par {name}",
     "correctCount": "Correctes : {correct} / {total}"
   },
+  "StudentCourseCard": {
+    "paymentOverdue": "Paiement en retard"
+  },
   "StudentCoursesPage": {
     "courseFilterAriaLabel": "Filtre de cours",
     "tabCurrent": "En cours",
@@ -3148,7 +3151,9 @@
     "processing": "Traitement en cours...",
     "enrollFree": "S'inscrire gratuitement",
     "choosePlan": "Choisir une formule",
-    "genericError": "Impossible de traiter votre demande."
+    "genericError": "Impossible de traiter votre demande.",
+    "accessSuspended": "L'accès est suspendu — un paiement échelonné est en retard. Réglez le montant dû pour restaurer l'accès ; votre progression est conservée.",
+    "payOverdueInstallment": "Payer l'échéance en retard"
   },
   "CourseTeacher": {
     "yearsExperience": "ans sur des projets concrets",

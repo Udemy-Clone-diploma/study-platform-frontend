@@ -1061,6 +1061,9 @@
     "submittedBy": "Enviado por {name}",
     "correctCount": "Correctas: {correct} / {total}"
   },
+  "StudentCourseCard": {
+    "paymentOverdue": "Pago atrasado"
+  },
   "StudentCoursesPage": {
     "courseFilterAriaLabel": "Filtro de cursos",
     "tabCurrent": "Actuales",
@@ -3148,7 +3151,9 @@
     "processing": "Procesando...",
     "enrollFree": "Inscribirse gratis",
     "choosePlan": "Elegir un plan",
-    "genericError": "No se pudo procesar tu solicitud."
+    "genericError": "No se pudo procesar tu solicitud.",
+    "accessSuspended": "El acceso está pausado: un pago a plazos está atrasado. Paga el importe pendiente para restaurar el acceso; tu progreso se conserva.",
+    "payOverdueInstallment": "Pagar cuota atrasada"
   },
   "CourseTeacher": {
     "yearsExperience": "años en proyectos reales",

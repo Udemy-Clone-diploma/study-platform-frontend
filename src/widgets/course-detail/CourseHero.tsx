@@ -96,6 +96,7 @@ export async function CourseHero({ course }: Props) {
           courseId={course.id}
           slug={course.slug}
           isEnrolled={course.is_enrolled}
+          accessStatus={course.enrollment_access_status}
           defaultFormat={course.delivery_formats.find((format) => format.pricing) ?? null}
         />
       </div>

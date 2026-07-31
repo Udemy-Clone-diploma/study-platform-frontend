@@ -1061,6 +1061,9 @@
     "submittedBy": "Soumis par {name}",
     "correctCount": "Correctes : {correct} / {total}"
   },
+  "StudentCourseCard": {
+    "paymentOverdue": "Paiement en retard"
+  },
   "StudentCoursesPage": {
     "courseFilterAriaLabel": "Filtre de cours",
     "tabCurrent": "En cours",
@@ -1881,6 +1884,7 @@
     "previous": "Précédent",
     "next": "Suivant",
     "noContentYet": "Aucun contenu disponible pour cette leçon pour le moment.",
+    "videoTitle": "Vidéo de la leçon",
     "liveSessions": "Sessions en direct",
     "joinLiveSession": "Rejoindre la session en direct",
     "meetingLinkNotShared": "Le lien de la réunion n'a pas encore été partagé",
@@ -2770,6 +2774,8 @@
     },
     "certificate": "Certificat",
     "onSale": "En promotion",
+    "discountPercent": "Réduction (%)",
+    "discountPercentHint": "S'applique à tous les plans tarifaires de ce cours.",
     "yes": "Oui",
     "no": "Non",
     "generating": "Génération…",
@@ -2782,7 +2788,8 @@
     "subtitlePlaceholder": "Un court slogan affiché sous le titre du cours…",
     "subtitleFieldHint": "Différent de la description courte — un accroche marketing facultative sous le titre.",
     "errorSave": "Échec de l'enregistrement. Veuillez réessayer.",
-    "errorPreview": "Impossible de générer l'aperçu du certificat."
+    "errorPreview": "Impossible de générer l'aperçu du certificat.",
+    "errorDiscountRequired": "Saisissez un pourcentage de réduction (1-99) pour activer la promotion."
   },
   "CourseManagementPage": {
     "errorLoad": "Impossible de charger le cours.",
@@ -3145,7 +3152,9 @@
     "processing": "Traitement en cours...",
     "enrollFree": "S'inscrire gratuitement",
     "choosePlan": "Choisir une formule",
-    "genericError": "Impossible de traiter votre demande."
+    "genericError": "Impossible de traiter votre demande.",
+    "accessSuspended": "L'accès est suspendu — un paiement échelonné est en retard. Réglez le montant dû pour restaurer l'accès ; votre progression est conservée.",
+    "payOverdueInstallment": "Payer l'échéance en retard"
   },
   "CourseTeacher": {
     "yearsExperience": "ans sur des projets concrets",

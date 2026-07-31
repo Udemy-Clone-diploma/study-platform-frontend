@@ -168,6 +168,7 @@ type Form = {
   with_certificate:         boolean;
   certificate_description:  string;
   is_on_sale:               boolean;
+  discount_percent:         string;
   passing_score:            string;
 };
 
@@ -193,6 +194,7 @@ export function CourseManagementInfoTab({ course, slug, onCourseUpdated }: Props
     with_certificate:        course.with_certificate,
     certificate_description: course.certificate_description ?? "",
     is_on_sale:               course.is_on_sale,
+    discount_percent:         course.discount_percent != null ? String(course.discount_percent) : "",
     passing_score:            String(course.passing_score),
   });
 
@@ -210,8 +212,22 @@ export function CourseManagementInfoTab({ course, slug, onCourseUpdated }: Props
     setSaving(true);
     setSaveErr(null);
     const passingScore = Math.min(100, Math.max(1, parseInt(form.passing_score, 10) || 80));
+    const discountPercent = form.is_on_sale
+      ? Math.min(99, Math.max(1, parseInt(form.discount_percent, 10) || 0)) || null
+      : null;
+
+    if (form.is_on_sale && !discountPercent) {
+      setSaveErr(t("errorDiscountRequired"));
+      setSaving(false);
+      return;
+    }
+
     try {
-      await updateCourse(slug, { ...form, passing_score: passingScore });
+      await updateCourse(slug, {
+        ...form,
+        passing_score: passingScore,
+        discount_percent: discountPercent,
+      });
       onCourseUpdated({
         subtitle:                form.subtitle,
         language:                form.language as CourseLanguage,
@@ -219,12 +235,14 @@ export function CourseManagementInfoTab({ course, slug, onCourseUpdated }: Props
         with_certificate:        form.with_certificate,
         certificate_description: form.certificate_description,
         is_on_sale:              form.is_on_sale,
+        discount_percent:        discountPercent,
         passing_score:           passingScore,
       });
       setEditing(false);
     } catch (err) {
       const apiError = err as ApiError;
-      const certificateField = apiError.fields?.with_certificate ?? apiError.fields?.certificate_description;
+      const certificateField =
+        apiError.fields?.with_certificate ?? apiError.fields?.certificate_description ?? apiError.fields?.discount_percent;
       const certificateMsg = Array.isArray(certificateField) ? certificateField[0] : certificateField;
       setSaveErr(certificateMsg ?? apiError.message ?? t("errorSave"));
     } finally {
@@ -322,6 +340,29 @@ export function CourseManagementInfoTab({ course, slug, onCourseUpdated }: Props
             : <span style={VALUE}>{course.is_on_sale ? t("yes") : t("no")}</span>
           }
         </Field>
+
+        {(editing ? form.is_on_sale : course.is_on_sale) && (
+          <div style={{ gridColumn: "1 / -1" }}>
+            <Field label={t("discountPercent")}>
+              {editing
+                ? <input
+                    type="number"
+                    min={1}
+                    max={99}
+                    value={form.discount_percent}
+                    onChange={e => set("discount_percent", e.target.value)}
+                    style={INPUT}
+                  />
+                : <span style={VALUE}>{course.discount_percent}%</span>
+              }
+              {!editing && (
+                <p style={{ ...HINT, marginTop: 4 }}>
+                  {t("discountPercentHint")}
+                </p>
+              )}
+            </Field>
+          </div>
+        )}
 
         {(editing ? form.with_certificate : course.with_certificate) && (
           <div style={{ gridColumn: "1 / -1" }}>

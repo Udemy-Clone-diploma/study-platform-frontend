@@ -1061,6 +1061,9 @@
     "submittedBy": "Подано студентом {name}",
     "correctCount": "Правильно: {correct} / {total}"
   },
+  "StudentCourseCard": {
+    "paymentOverdue": "Прострочено оплату"
+  },
   "StudentCoursesPage": {
     "courseFilterAriaLabel": "Фільтр курсів",
     "tabCurrent": "Поточні",
@@ -1881,6 +1884,7 @@
     "previous": "Назад",
     "next": "Далі",
     "noContentYet": "Для цього уроку ще немає доступного контенту.",
+    "videoTitle": "Відео уроку",
     "liveSessions": "Живі заняття",
     "joinLiveSession": "Приєднатися до заняття",
     "meetingLinkNotShared": "Посилання на зустріч ще не надано",
@@ -2770,6 +2774,8 @@
     },
     "certificate": "Сертифікат",
     "onSale": "Знижка",
+    "discountPercent": "Розмір знижки (%)",
+    "discountPercentHint": "Застосовується до всіх тарифних планів цього курсу.",
     "yes": "Так",
     "no": "Ні",
     "generating": "Створення…",
@@ -2782,7 +2788,8 @@
     "subtitlePlaceholder": "Короткий слоган під назвою курсу…",
     "subtitleFieldHint": "Не те саме, що короткий опис, — це необов'язковий рекламний гачок під назвою.",
     "errorSave": "Не вдалося зберегти. Спробуйте ще раз.",
-    "errorPreview": "Не вдалося створити попередній перегляд сертифіката."
+    "errorPreview": "Не вдалося створити попередній перегляд сертифіката.",
+    "errorDiscountRequired": "Вкажіть розмір знижки (1-99%), щоб увімкнути акцію."
   },
   "CourseManagementPage": {
     "errorLoad": "Не вдалося завантажити курс.",
@@ -3145,7 +3152,9 @@
     "processing": "Обробка...",
     "enrollFree": "Записатися безкоштовно",
     "choosePlan": "Обрати план",
-    "genericError": "Не вдалося обробити запит."
+    "genericError": "Не вдалося обробити запит.",
+    "accessSuspended": "Доступ призупинено — прострочено оплату частини курсу. Сплатіть заборгованість, щоб відновити доступ; весь прогрес збережено.",
+    "payOverdueInstallment": "Сплатити прострочену частину"
   },
   "CourseTeacher": {
     "yearsExperience": "років у реальних проєктах",

@@ -33,6 +33,8 @@ export type CartItem = {
   installment_amount: string | null;
   currency: PricingPlan["currency"] | null;
   unit_price: string;
+  /** Pre-discount unit price. Present only when the course's sale actually lowers this item's price. */
+  original_unit_price: string | null;
   subtotal: string;
   schedule_slots: CartScheduleSlot[];
   cohort: CartCohort | null;

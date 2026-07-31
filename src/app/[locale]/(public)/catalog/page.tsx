@@ -4,7 +4,7 @@ import { Link } from "@/i18n/navigation";
 import { SlidersHorizontal } from "lucide-react";
 import {
   getCategories,
-  getCourses,
+  getPublicCourses,
   type Category,
   type CourseLanguage,
   type CourseLevel,
@@ -57,9 +57,10 @@ async function loadCourses(
   page: number,
   ordering: string | undefined,
   fallbackErrorMessage: string,
+  locale: string,
 ) {
   try {
-    const data = await getCourses({
+    const data = await getPublicCourses({
       category: state.category,
       course_type: splitFilter<CourseType>(state.course_type),
       is_on_sale: state.is_on_sale,
@@ -74,6 +75,7 @@ async function loadCourses(
       with_certificate: state.with_certificate,
       page,
       page_size: PAGE_SIZE,
+      lang: locale,
     });
 
     return {
@@ -119,9 +121,10 @@ async function CatalogResults({
   ordering: string | undefined;
 }) {
   const t = await getTranslations("Catalog");
+  const locale = await getLocale();
 
   const [{ courses, count, error }, wishlistedSlugs] = await Promise.all([
-    loadCourses(state, page, ordering, t("errorLoadCourses")),
+    loadCourses(state, page, ordering, t("errorLoadCourses"), locale),
     getWishlistSlugs().catch(() => []),
   ]);
   const wishlistSet = new Set(wishlistedSlugs);
@@ -132,9 +135,7 @@ async function CatalogResults({
   return (
     <>
       <div className={`relative grid gap-5 ${state.filtersOpen ? "lg:grid-cols-[460px_1fr]" : ""}`}>
-        {state.filtersOpen ? (
-          <CatalogFiltersSidebar categories={categories} state={state} />
-        ) : null}
+        {state.filtersOpen ? <CatalogFiltersSidebar categories={categories} state={state} /> : null}
 
         <section>
           {error ? (
@@ -157,7 +158,11 @@ async function CatalogResults({
           ) : (
             <div className="flex flex-wrap justify-center gap-4">
               {courses.map((course) => (
-                <CourseCard key={course.id} course={course} isWishlisted={wishlistSet.has(course.slug)} />
+                <CourseCard
+                  key={course.id}
+                  course={course}
+                  isWishlisted={wishlistSet.has(course.slug)}
+                />
               ))}
             </div>
           )}
@@ -235,7 +240,12 @@ export default async function CatalogPage({
           </div>
 
           <Suspense fallback={<CatalogResultsSkeleton />}>
-            <CatalogResults categories={categories} state={state} page={currentPage} ordering={ordering} />
+            <CatalogResults
+              categories={categories}
+              state={state}
+              page={currentPage}
+              ordering={ordering}
+            />
           </Suspense>
         </div>
       </div>

@@ -242,7 +242,7 @@ export function GroupInfoModal({
                         {name}
                       </span>
                       <span className="mt-1 block truncate text-xs text-[#6B7280]">
-                        {user.email}
+                        {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                       </span>
                     </span>
                     <span className="rounded-full bg-[#FFF4DA] px-2.5 py-1 text-[11px] font-semibold text-[#8A6201]">

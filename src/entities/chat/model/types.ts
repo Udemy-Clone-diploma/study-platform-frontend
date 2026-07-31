@@ -24,9 +24,12 @@ export type ChatUser = {
   name: string;
   first_name: string;
   last_name: string;
-  email: string;
   role: UserRole;
   avatar: string | null;
+};
+
+export type ModerationChatUser = ChatUser & {
+  email: string;
 };
 
 export type UserSearchResult = {
@@ -107,8 +110,8 @@ export type MessageReport = {
   created_at: string;
   message: number;
   message_created_at: string;
-  sender: ChatUser | null;
-  reporter: ChatUser;
+  sender: ModerationChatUser | null;
+  reporter: ModerationChatUser;
   chat: Pick<ChatRoom, "id" | "type" | "title">;
   attachments: ChatAttachment[];
 };
@@ -121,7 +124,7 @@ export type ChatModerationAction = {
   action_label: string;
   note: string;
   report: number | null;
-  moderator: ChatUser | null;
+  moderator: ModerationChatUser | null;
   created_at: string;
 };
 

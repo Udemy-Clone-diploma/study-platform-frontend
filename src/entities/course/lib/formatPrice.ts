@@ -1,8 +1,8 @@
-import type { CourseListItem } from "../model/types";
+import type { PublicCourseListItem } from "../model/public";
 
-/** Format the headline (cheapest plan) price for a course card. Returns `freeLabel` when the course has no priced plan. */
+/** Format the headline price for a public course card. */
 export function formatPrice(
-  course: Pick<CourseListItem, "price" | "currency">,
+  course: Pick<PublicCourseListItem, "price" | "currency">,
   freeLabel = "Free",
   locale = "en-US",
 ): string {
@@ -20,7 +20,7 @@ export function formatPrice(
 /** Format the pre-discount price for strikethrough display. Null when there's nothing to strike through
  *  (course is free, or is_on_sale doesn't actually lower the price). */
 export function formatOriginalPrice(
-  course: Pick<CourseListItem, "original_price" | "currency">,
+  course: Pick<PublicCourseListItem, "original_price" | "currency">,
   locale = "en-US",
 ): string | null {
   if (course.original_price == null || Number(course.original_price) === 0) {

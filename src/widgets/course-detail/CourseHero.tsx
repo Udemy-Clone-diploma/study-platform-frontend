@@ -1,13 +1,13 @@
 import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { Star } from "lucide-react";
-import type { CourseDetail } from "@/entities/course";
+import type { PublicCourseDetailView } from "@/entities/course";
 import { CourseDescription } from "./CourseDescription";
 import { CourseHeroCTA } from "./CourseHeroCTA";
 
-type Props = { course: CourseDetail };
+type Props = { course: PublicCourseDetailView };
 
-const LEVEL_BADGE: Record<CourseDetail["level"], string> = {
+const LEVEL_BADGE: Record<PublicCourseDetailView["level"], string> = {
   beginner: "bg-(--color-brand-yellow) text-(--color-yellow-dark)",
   intermediate: "bg-(--color-brand-lavender) text-(--color-blue-dark)",
   advanced: "bg-(--color-brand-pink) text-(--color-pink-dark)",
@@ -85,7 +85,9 @@ export async function CourseHero({ course }: Props) {
             </div>
 
             <ul className="flex flex-wrap items-center gap-2 sm:gap-3">
-              <MetaPill>{t("languageLabel", { language: LANGUAGE_LABEL[course.language] })}</MetaPill>
+              <MetaPill>
+                {t("languageLabel", { language: LANGUAGE_LABEL[course.language] })}
+              </MetaPill>
               <MetaPill>{MODE_LABEL[course.mode]}</MetaPill>
               <MetaPill>{LEVEL_META_LABEL[course.level]}</MetaPill>
             </ul>

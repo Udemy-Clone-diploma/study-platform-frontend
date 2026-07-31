@@ -33,6 +33,7 @@ export * from "./model/attempt";
 export * from "./model/pending-edit";
 export * from "./model/pricing";
 export * from "./model/progress";
+export * from "./model/public";
 export * from "./model/review";
 export * from "./model/schedule";
 export * from "./model/calendar";

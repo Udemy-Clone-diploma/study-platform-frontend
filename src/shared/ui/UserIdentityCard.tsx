@@ -19,6 +19,7 @@ type Props = {
   topLeftAction?: ReactNode;
   topRightAction?: ReactNode;
   className?: string;
+  compact?: boolean;
 };
 
 function initials(name: string) {
@@ -98,17 +99,26 @@ export function UserIdentityCard({
   topLeftAction,
   topRightAction,
   className = "",
+  compact = false,
 }: Props) {
   const { nameRef, measureRef, fontSize } = useFittedNameSize(name);
 
   return (
     <article
-      className={`relative flex h-138 w-full flex-col items-center overflow-hidden rounded-2xl bg-(--color-bg) px-6 pb-(--profile-card-button-bottom) pt-12 text-center shadow-(--shadow-dashboard-card) ${className}`.trim()}
+      className={`relative flex w-full flex-col items-center overflow-hidden rounded-2xl bg-(--color-bg) text-center shadow-(--shadow-dashboard-card) ${
+        compact
+          ? "min-h-[392px] px-4 pb-6 pt-8 sm:h-138 sm:px-6 sm:pb-(--profile-card-button-bottom) sm:pt-12"
+          : "h-138 px-6 pb-(--profile-card-button-bottom) pt-12"
+      } ${className}`.trim()}
     >
       {topLeftAction ? <div className="absolute left-4 top-4 z-10">{topLeftAction}</div> : null}
       {topRightAction ? <div className="absolute right-4 top-4 z-10">{topRightAction}</div> : null}
 
-      <div className="relative h-60 w-60 shrink-0 overflow-hidden rounded-full bg-(--color-surface)">
+      <div
+        className={`relative shrink-0 overflow-hidden rounded-full bg-(--color-surface) ${
+          compact ? "h-36 w-36 sm:h-60 sm:w-60" : "h-60 w-60"
+        }`}
+      >
         {avatar ? (
           <Image src={avatar} alt={name} fill unoptimized sizes="240px" className="object-cover" />
         ) : (
@@ -118,7 +128,7 @@ export function UserIdentityCard({
         )}
       </div>
 
-      <div className="relative mt-6 w-full min-w-0">
+      <div className={`relative w-full min-w-0 ${compact ? "mt-4 sm:mt-6" : "mt-6"}`}>
         {/* Невидимый текст всегда измеряется с базовым размером 40px */}
         <span
           ref={measureRef}
@@ -139,7 +149,11 @@ export function UserIdentityCard({
         </h1>
       </div>
 
-      <div className="mt-6 flex min-h-10 items-center justify-center gap-9">
+      <div
+        className={`flex min-h-10 items-center justify-center ${
+          compact ? "mt-4 gap-5 sm:mt-6 sm:gap-9" : "mt-6 gap-9"
+        }`}
+      >
         {socials.map((social) => (
           <a
             key={social.key}
@@ -159,14 +173,21 @@ export function UserIdentityCard({
           type="button"
           onClick={onMessage}
           disabled={messaging}
-          className="mt-auto inline-flex h-13 w-60 items-center justify-center gap-2.5 rounded-full bg-(--color-text-primary) px-7 font-(family-name:--font-accent) text-xl font-medium uppercase text-(--color-bg) transition hover:opacity-85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-blue) disabled:cursor-not-allowed disabled:opacity-60"
+          className={`inline-flex items-center justify-center gap-2.5 rounded-full bg-(--color-text-primary) font-(family-name:--font-accent) font-medium uppercase text-(--color-bg) transition hover:opacity-85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-blue) disabled:cursor-not-allowed disabled:opacity-60 ${
+            compact
+              ? "mt-6 h-12 w-full max-w-[220px] px-5 text-base sm:mt-auto sm:h-13 sm:w-60 sm:px-7 sm:text-xl"
+              : "mt-auto h-13 w-60 px-7 text-xl"
+          }`}
         >
           {messaging ? (
             <Loader2 aria-label="Opening conversation" className="h-6 w-6 animate-spin" />
           ) : (
             <>
               {messageLabel}
-              <ArrowUpRight aria-hidden="true" className="h-7 w-7" />
+              <ArrowUpRight
+                aria-hidden="true"
+                className={compact ? "h-5 w-5 sm:h-7 sm:w-7" : "h-7 w-7"}
+              />
             </>
           )}
         </button>

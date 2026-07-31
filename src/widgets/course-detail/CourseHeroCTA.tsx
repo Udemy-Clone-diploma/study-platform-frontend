@@ -3,7 +3,11 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
-import { enrollInFreeCourse, type CourseDeliveryFormat, type EnrollmentStatus } from "@/entities/course";
+import {
+  enrollInFreeCourse,
+  type EnrollmentStatus,
+  type PublicCourseDeliveryFormat,
+} from "@/entities/course";
 import type { ApiError } from "@/shared/api/base";
 import { AUTH_COOKIE_NAMES } from "@/shared/api/config/authCookies";
 import { getClientCookie } from "@/shared/lib/cookies";
@@ -24,11 +28,13 @@ type Props = {
   slug: string;
   isEnrolled: boolean;
   accessStatus: EnrollmentStatus | null;
-  defaultFormat: CourseDeliveryFormat | null;
+  defaultFormat: PublicCourseDeliveryFormat | null;
 };
 
 function scrollToPricing() {
-  document.getElementById(PRICING_ANCHOR_ID)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  document
+    .getElementById(PRICING_ANCHOR_ID)
+    ?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 /**
@@ -45,7 +51,8 @@ export function CourseHeroCTA({ slug, isEnrolled, accessStatus, defaultFormat }:
 
   const defaultPricingPlan = defaultFormat?.pricing ?? null;
   const isFreeCourse = defaultPricingPlan !== null && Number(defaultPricingPlan.price) === 0;
-  const needsSelection = defaultFormat?.format_type === "group" || defaultFormat?.format_type === "individual";
+  const needsSelection =
+    defaultFormat?.format_type === "group" || defaultFormat?.format_type === "individual";
 
   if (accessStatus === "suspended") {
     return (
@@ -67,7 +74,12 @@ export function CourseHeroCTA({ slug, isEnrolled, accessStatus, defaultFormat }:
 
   if (enrolled) {
     return (
-      <AccentButton size="md" className="self-center lg:self-start" style={heroCtaStyle} href={`/learn/${slug}`}>
+      <AccentButton
+        size="md"
+        className="self-center lg:self-start"
+        style={heroCtaStyle}
+        href={`/learn/${slug}`}
+      >
         {t("continueLearning")}
       </AccentButton>
     );
@@ -119,7 +131,13 @@ export function CourseHeroCTA({ slug, isEnrolled, accessStatus, defaultFormat }:
 
   return (
     <div className="flex flex-col gap-2">
-      <AccentButton size="md" className="self-center lg:self-start" style={heroCtaStyle} onClick={handleClick} disabled={pending}>
+      <AccentButton
+        size="md"
+        className="self-center lg:self-start"
+        style={heroCtaStyle}
+        onClick={handleClick}
+        disabled={pending}
+      >
         {pending ? t("processing") : isFreeCourse ? t("enrollFree") : t("choosePlan")}
       </AccentButton>
       {notice && (

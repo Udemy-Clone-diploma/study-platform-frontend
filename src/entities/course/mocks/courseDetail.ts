@@ -1,5 +1,6 @@
 import type { CourseLesson, CourseTest, LessonDocument, LessonItem } from "../model/module";
 import type { CourseProgress } from "../model/progress";
+import type { PublicCourseDetailView } from "../model/public";
 import type { CourseReview } from "../model/review";
 import type { CourseDetail } from "../model/types";
 
@@ -252,6 +253,51 @@ export const mockCourseDetail: CourseDetail = {
   updated_at: "2026-01-10T00:00:00Z",
 };
 
+export const mockPublicCourseDetail: PublicCourseDetailView = {
+  ...mockCourseDetail,
+  modules: mockCourseDetail.modules.map((module) => ({
+    id: module.id,
+    title: module.title,
+    description: module.description,
+    order: module.order,
+    lessons: module.lessons.map((lesson) => ({
+      id: lesson.id,
+      title: lesson.title,
+      order: lesson.order,
+      duration_minutes: lesson.duration_minutes,
+      is_preview: lesson.is_preview,
+      unlock_after_days: lesson.unlock_after_days ?? null,
+      requires_previous: lesson.requires_previous ?? false,
+      is_mandatory: lesson.is_mandatory ?? false,
+    })),
+  })),
+  delivery_formats: mockCourseDetail.delivery_formats.map((format) => ({
+    id: format.id,
+    format_type: format.format_type,
+    start_type: format.start_type,
+    course_start_date: format.course_start_date,
+    access_duration_days: format.access_duration_days,
+    start_date: format.start_date,
+    enrollment_deadline: format.enrollment_deadline,
+    unlock_mode: format.unlock_mode,
+    max_students: format.max_students,
+    enrolled_count: format.enrolled_count,
+    pricing: format.pricing,
+  })),
+  cohorts: mockCourseDetail.cohorts.map((cohort) => ({
+    id: cohort.id,
+    delivery_format: cohort.delivery_format,
+    name: cohort.name,
+    duration_months: cohort.duration_months,
+    hours_per_week: cohort.hours_per_week,
+    group_size: cohort.group_size,
+    start_date: cohort.start_date,
+    enrollment_deadline: cohort.enrollment_deadline,
+    is_enrollment_open: cohort.is_enrollment_open,
+    members_count: cohort.members_count,
+  })),
+};
+
 export const mockCourseReviews: CourseReview[] = [
   {
     id: 1,
@@ -381,12 +427,7 @@ const SAMPLE_TEST: CourseTest = {
       id: 9002,
       question_type: "multiple_choice",
       text: "Which of the following are qualitative research methods? (select all that apply)",
-      options: [
-        "User interviews",
-        "A/B testing",
-        "Contextual inquiry",
-        "Server log analysis",
-      ],
+      options: ["User interviews", "A/B testing", "Contextual inquiry", "Server log analysis"],
       correct_indices: [0, 2],
       exact_set_match: true,
       correct_bool: null,

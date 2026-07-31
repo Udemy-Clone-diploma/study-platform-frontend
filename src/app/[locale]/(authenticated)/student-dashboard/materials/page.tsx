@@ -7,7 +7,7 @@ import { Search } from "lucide-react";
 import { getMaterials } from "@/entities/materials";
 import type { MaterialDocument, MaterialLessonCard } from "@/entities/materials";
 import { getEnrolledCourses } from "@/entities/course";
-import type { CourseListItem } from "@/entities/course";
+import type { EnrolledCourseListItem } from "@/entities/course";
 import type { ApiError } from "@/shared/api/base";
 import { formatDate } from "@/shared/lib/time";
 import { PageShell } from "@/shared/ui/PageShell";
@@ -39,7 +39,7 @@ export default function MaterialsPage() {
   const tSidebar = useTranslations("AppSidebar");
   const locale = useLocale();
   const [cards, setCards] = useState<MaterialLessonCard[]>([]);
-  const [courses, setCourses] = useState<CourseListItem[]>([]);
+  const [courses, setCourses] = useState<EnrolledCourseListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
@@ -80,7 +80,8 @@ export default function MaterialsPage() {
         query &&
         !card.lesson_title.toLowerCase().includes(query) &&
         !card.course_title.toLowerCase().includes(query)
-      ) return false;
+      )
+        return false;
       return true;
     });
   }, [cards, courseFilter, search]);
@@ -149,13 +150,23 @@ export default function MaterialsPage() {
             <section key={group.key}>
               <h2
                 className="font-normal text-(--color-text-primary)"
-                style={{ fontSize: "clamp(16px, 1.67vw, 24px)", marginBottom: "clamp(8px, 1.11vw, 16px)" }}
+                style={{
+                  fontSize: "clamp(16px, 1.67vw, 24px)",
+                  marginBottom: "clamp(8px, 1.11vw, 16px)",
+                }}
               >
                 {group.label}
               </h2>
-              <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(420px, 1fr))" }}>
+              <div
+                className="grid gap-4"
+                style={{ gridTemplateColumns: "repeat(auto-fill, minmax(420px, 1fr))" }}
+              >
                 {group.items.map((card) => (
-                  <MaterialCard key={card.lesson_id} card={card} onClick={() => setSelected(card)} />
+                  <MaterialCard
+                    key={card.lesson_id}
+                    card={card}
+                    onClick={() => setSelected(card)}
+                  />
                 ))}
               </div>
             </section>
@@ -189,7 +200,9 @@ export default function MaterialsPage() {
             <div>
               <p className="mb-5 text-[13px] leading-4 font-semibold">{tSidebar("materials")}</p>
               {selected.materials.length === 0 ? (
-                <p className="text-[12px] text-(--color-text-secondary)">{t("noMaterialsAttached")}</p>
+                <p className="text-[12px] text-(--color-text-secondary)">
+                  {t("noMaterialsAttached")}
+                </p>
               ) : (
                 <div className="flex flex-col gap-5">
                   {selected.materials.map((material) => (
@@ -200,13 +213,21 @@ export default function MaterialsPage() {
                       className="-mx-1 flex items-center gap-4 rounded-md px-1 py-0.5 text-left transition hover:bg-[#FAFAFA]"
                     >
                       <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-[linear-gradient(135deg,#FCC4C3_0%,#A7BAFA_100%)]">
-                        <Image src="/icons/book.svg" alt="" width={22} height={22} className="h-5 w-5" />
+                        <Image
+                          src="/icons/book.svg"
+                          alt=""
+                          width={22}
+                          height={22}
+                          className="h-5 w-5"
+                        />
                       </span>
                       <span className="min-w-0">
                         <span className="block truncate text-[13px] leading-4 font-medium">
                           {material.title}
                         </span>
-                        <span className="mt-0.5 block text-[10px] leading-3 text-(--color-text-secondary)">{t("materialLabel")}</span>
+                        <span className="mt-0.5 block text-[10px] leading-3 text-(--color-text-secondary)">
+                          {t("materialLabel")}
+                        </span>
                       </span>
                     </button>
                   ))}

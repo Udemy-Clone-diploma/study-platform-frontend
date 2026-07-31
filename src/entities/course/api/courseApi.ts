@@ -13,6 +13,11 @@ import type { Enrollment } from "../model/enrollment";
 import type { EnrollmentGrowthData, GrowthPeriod } from "../model/growth";
 import type { TeacherStudentDashboard } from "../model/studentDashboard";
 import type {
+  EnrolledCourseListItem,
+  PublicCourseDetail,
+  PublicCourseListItem,
+} from "../model/public";
+import type {
   ApprovedCourseRecord,
   CourseDetail,
   CourseLanguage,
@@ -61,6 +66,7 @@ export type CourseListParams = {
   with_certificate?: boolean;
   page?: number;
   page_size?: number;
+  lang?: string;
 };
 
 export async function getCategories(locale?: string): Promise<Category[]> {
@@ -133,10 +139,8 @@ export async function deleteCategory(id: number): Promise<void> {
   await api.delete(`${CATEGORIES}${id}/`);
 }
 
-export async function getCourses(
-  filters: CourseListParams = {},
-): Promise<Paginated<CourseListItem>> {
-  const params = {
+function buildCourseListParams(filters: CourseListParams) {
+  return {
     ...(filters.category ? { category: filters.category } : {}),
     ...(filters.course_type?.length ? { course_type: filters.course_type.join(",") } : {}),
     ...(filters.is_on_sale !== undefined ? { is_on_sale: filters.is_on_sale } : {}),
@@ -156,16 +160,31 @@ export async function getCourses(
       : {}),
     ...(filters.page ? { page: filters.page } : {}),
     ...(filters.page_size ? { page_size: filters.page_size } : {}),
+    ...(filters.lang ? { lang: filters.lang } : {}),
   };
-  const { data } = await api.get<Paginated<CourseListItem>>(COURSES, { params });
+}
+
+async function getCoursePage<T>(filters: CourseListParams): Promise<Paginated<T>> {
+  const { data } = await api.get<Paginated<T>>(COURSES, {
+    params: buildCourseListParams(filters),
+  });
   return data;
 }
 
+export function getCourses(filters: CourseListParams = {}): Promise<Paginated<CourseListItem>> {
+  return getCoursePage<CourseListItem>(filters);
+}
+
+export function getPublicCourses(
+  filters: CourseListParams = {},
+): Promise<Paginated<PublicCourseListItem>> {
+  return getCoursePage<PublicCourseListItem>(filters);
+}
+
 /**
- * Public course detail. Pass `accessToken` from a Server Action when the call
- * runs on the server (e.g. an authenticated route) so the backend can return
- * the enrolled-user view (`is_enrolled: true`). On the client the request
- * interceptor reads the token from `document.cookie` automatically.
+ * Full authenticated course detail used by course management and learning.
+ * On the client the axios interceptor supplies the JWT automatically. Server
+ * callers must pass the access token explicitly.
  */
 export async function getCourseBySlug(slug: string, accessToken?: string): Promise<CourseDetail> {
   const { data } = await api.get<CourseDetail>(`${COURSES}${slug}/`, {
@@ -174,13 +193,27 @@ export async function getCourseBySlug(slug: string, accessToken?: string): Promi
   return data;
 }
 
-export async function getNewCourses(): Promise<CourseListItem[]> {
-  const { data } = await api.get<CourseListItem[]>(`${COURSES}new-courses/`);
+export async function getPublicCourseBySlug(
+  slug: string,
+  locale?: string,
+): Promise<PublicCourseDetail> {
+  const { data } = await api.get<PublicCourseDetail>(`${COURSES}${slug}/public/`, {
+    params: locale ? { lang: locale } : undefined,
+  });
   return data;
 }
 
-export async function getPopularCourses(): Promise<CourseListItem[]> {
-  const { data } = await api.get<CourseListItem[]>(`${COURSES}popular-courses/`);
+export async function getNewCourses(locale?: string): Promise<PublicCourseListItem[]> {
+  const { data } = await api.get<PublicCourseListItem[]>(`${COURSES}new-courses/`, {
+    params: locale ? { lang: locale } : undefined,
+  });
+  return data;
+}
+
+export async function getPopularCourses(locale?: string): Promise<PublicCourseListItem[]> {
+  const { data } = await api.get<PublicCourseListItem[]>(`${COURSES}popular-courses/`, {
+    params: locale ? { lang: locale } : undefined,
+  });
   return data;
 }
 
@@ -404,8 +437,8 @@ export async function enrollInFreeCourse(
 export async function getEnrolledCourses(
   page = 1,
   accessToken?: string,
-): Promise<Paginated<CourseListItem>> {
-  const { data } = await api.get<Paginated<CourseListItem>>(`${COURSES}enrolled/`, {
+): Promise<Paginated<EnrolledCourseListItem>> {
+  const { data } = await api.get<Paginated<EnrolledCourseListItem>>(`${COURSES}enrolled/`, {
     params: { page, page_size: 100 },
     headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
   });
@@ -520,8 +553,8 @@ export async function assignModeratorSelf(slug: string): Promise<void> {
   await api.post(`${COURSES}${slug}/assign-moderator/`);
 }
 
-export async function getWishlist(page = 1): Promise<Paginated<CourseListItem>> {
-  const { data } = await api.get<Paginated<CourseListItem>>(`${COURSES}wishlist/`, {
+export async function getWishlist(page = 1): Promise<Paginated<PublicCourseListItem>> {
+  const { data } = await api.get<Paginated<PublicCourseListItem>>(`${COURSES}wishlist/`, {
     params: { page, page_size: 100 },
   });
   return data;

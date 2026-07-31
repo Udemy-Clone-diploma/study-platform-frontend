@@ -90,7 +90,7 @@ export function MessageList({
       <div
         ref={viewportRef}
         onScroll={onScroll}
-        className="chat-scrollbar-hidden h-full overflow-y-auto rounded-none border-0 bg-transparent px-0 py-1 shadow-none lg:rounded-[18px] lg:border lg:border-white/70 lg:bg-[#D6E0FF]/45 lg:px-5 lg:py-6 lg:shadow-[inset_0_2px_4px_rgba(255,255,255,0.65)]"
+        className="chat-scrollbar-hidden relative flex h-full flex-col overflow-y-auto rounded-none border-0 bg-transparent px-0 pb-[72px] pt-1 shadow-none lg:rounded-[18px] lg:border lg:border-white/70 lg:bg-[#D6E0FF]/45 lg:px-5 lg:py-6 lg:shadow-[inset_0_2px_4px_rgba(255,255,255,0.65)]"
       >
         {hasMore ? (
           <div className="mb-5 flex justify-center">
@@ -106,13 +106,13 @@ export function MessageList({
           </div>
         ) : null}
 
-        {loading ? (
-          <div className="flex h-full items-center justify-center text-sm text-[#4B5563]">
+        {loading && messages.length === 0 ? (
+          <div className="flex min-h-0 flex-1 items-center justify-center text-sm text-[#4B5563]">
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             Loading messages
           </div>
         ) : messages.length > 0 ? (
-          <div className="space-y-2 lg:space-y-4">
+          <div className="mt-auto flex flex-col gap-2 lg:gap-4">
             {messages.map((message) => {
               const mine = message.sender?.id === meId;
               const actionSelected = selectedActionMessageId === message.id;
@@ -304,7 +304,7 @@ export function MessageList({
             <div ref={endRef} />
           </div>
         ) : (
-          <div className="flex h-full flex-col items-center justify-center text-center text-sm text-[#4B5563]">
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-sm text-[#4B5563]">
             <Send className="mb-3 h-8 w-8 text-[#A7BAFA]" />
             No messages
           </div>

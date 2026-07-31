@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { StudentCourseCard, CompletedCourseCard, CompletionResultModal } from "@/features/courses";
 import { getEnrolledCourses, getStudentCompletions } from "@/entities/course";
-import type { CourseListItem, CourseLevel, CourseCompletion } from "@/entities/course";
+import type { CourseCompletion, CourseLevel, EnrolledCourseListItem } from "@/entities/course";
 import type { ApiError } from "@/shared/api/base";
 import { PageShell } from "@/shared/ui/PageShell";
 
@@ -25,7 +25,7 @@ function getMonthLabel(iso: string): string {
 }
 
 type AllItem =
-  | { kind: "active"; item: CourseListItem }
+  | { kind: "active"; item: EnrolledCourseListItem }
   | { kind: "completed"; item: CourseCompletion };
 
 function itemDate(entry: AllItem): number {
@@ -41,7 +41,7 @@ function itemMonthLabel(entry: AllItem): string {
 }
 
 export default function StudentCoursesPage() {
-  const [courses, setCourses] = useState<CourseListItem[]>([]);
+  const [courses, setCourses] = useState<EnrolledCourseListItem[]>([]);
   const [completions, setCompletions] = useState<CourseCompletion[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -74,21 +74,21 @@ export default function StudentCoursesPage() {
   const displayItems: AllItem[] =
     activeTab === "Current"
       ? activeCourses
-          .sort((a, b) =>
-            new Date(b.enrolled_at ?? b.created_at).getTime() -
-            new Date(a.enrolled_at ?? a.created_at).getTime(),
+          .sort(
+            (a, b) =>
+              new Date(b.enrolled_at ?? b.created_at).getTime() -
+              new Date(a.enrolled_at ?? a.created_at).getTime(),
           )
           .map((item): AllItem => ({ kind: "active", item }))
       : activeTab === "Completed"
-      ? completions
-          .sort((a, b) => new Date(b.completed_at).getTime() - new Date(a.completed_at).getTime())
-          .map((item): AllItem => ({ kind: "completed", item }))
-      : allItems;
+        ? completions
+            .sort((a, b) => new Date(b.completed_at).getTime() - new Date(a.completed_at).getTime())
+            .map((item): AllItem => ({ kind: "completed", item }))
+        : allItems;
 
   const months = [...new Set(displayItems.map(itemMonthLabel))];
 
-  const emptyLabel =
-    activeTab === "Completed" ? "No completed courses yet." : "No courses found.";
+  const emptyLabel = activeTab === "Completed" ? "No completed courses yet." : "No courses found.";
 
   function handleTabChange(tab: Tab) {
     setActiveTab(tab);
@@ -132,7 +132,10 @@ export default function StudentCoursesPage() {
             <section key={month} style={{ marginBottom: "clamp(16px, 2.22vw, 32px)" }}>
               <h2
                 className="font-normal text-(--color-text-primary)"
-                style={{ fontSize: "clamp(16px, 1.67vw, 24px)", marginBottom: "clamp(8px, 1.11vw, 16px)" }}
+                style={{
+                  fontSize: "clamp(16px, 1.67vw, 24px)",
+                  marginBottom: "clamp(8px, 1.11vw, 16px)",
+                }}
               >
                 {month}
               </h2>

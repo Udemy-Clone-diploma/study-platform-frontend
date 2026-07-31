@@ -1,7 +1,7 @@
-import type { CourseListItem } from "../model/types";
+import type { PublicCourseListItem } from "../model/public";
 
 /** Format the headline (cheapest plan) price for a course card. Returns "Free" when the course has no priced plan. */
-export function formatPrice(course: Pick<CourseListItem, "price" | "currency">): string {
+export function formatPrice(course: Pick<PublicCourseListItem, "price" | "currency">): string {
   if (course.price == null || Number(course.price) === 0) {
     return "Free";
   }

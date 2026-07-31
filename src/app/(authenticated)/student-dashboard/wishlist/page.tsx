@@ -5,13 +5,13 @@ import { CourseCard } from "@/features/courses";
 import { Pagination } from "@/shared/ui/Pagination";
 import { PageShell } from "@/shared/ui/PageShell";
 import { getWishlist } from "@/entities/course";
-import type { CourseListItem } from "@/entities/course";
+import type { PublicCourseListItem } from "@/entities/course";
 import type { ApiError } from "@/shared/api/base";
 
 const PAGE_SIZE = 6;
 
 export default function WishlistPage() {
-  const [courses, setCourses] = useState<CourseListItem[]>([]);
+  const [courses, setCourses] = useState<PublicCourseListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [page, setPage] = useState(1);
@@ -36,7 +36,11 @@ export default function WishlistPage() {
     <PageShell className="bg-wishlist" style={{ display: "flex", flexDirection: "column" }}>
       <h1
         className="font-normal text-(--color-text-primary)"
-        style={{ fontSize: "clamp(20px, 2.22vw, 32px)", marginBottom: "clamp(16px, 1.67vw, 32px)", flexShrink: 0 }}
+        style={{
+          fontSize: "clamp(20px, 2.22vw, 32px)",
+          marginBottom: "clamp(16px, 1.67vw, 32px)",
+          flexShrink: 0,
+        }}
       >
         Wishlist
       </h1>
@@ -60,7 +64,14 @@ export default function WishlistPage() {
       </div>
 
       {!loading && !error && courses.length > 0 && totalPages > 1 && (
-        <div style={{ display: "flex", justifyContent: "center", paddingTop: "clamp(16px, 2.22vw, 32px)", flexShrink: 0 }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            paddingTop: "clamp(16px, 2.22vw, 32px)",
+            flexShrink: 0,
+          }}
+        >
           <Pagination
             currentPage={safePage}
             totalPages={totalPages}

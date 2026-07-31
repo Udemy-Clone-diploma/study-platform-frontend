@@ -1,50 +1,56 @@
 "use client";
 
-import type { CourseListItem } from "@/entities/course";
+import type { PublicCourseListItem } from "@/entities/course";
 import { CourseCard } from "@/features/courses";
 import { SectionContainer } from "@/shared/ui/SectionContainer";
 import { useState } from "react";
 
-type Props = { courses: CourseListItem[]; wishlistedSlugs: string[] };
+type Props = { courses: PublicCourseListItem[]; wishlistedSlugs: string[] };
 
 export function PopularCoursesSection({ courses, wishlistedSlugs }: Props) {
-    const wishlistSet = new Set(wishlistedSlugs);
-    const doubled = [...courses, ...courses];
-    const [paused, setPaused] = useState(false);
+  const wishlistSet = new Set(wishlistedSlugs);
+  const doubled = [...courses, ...courses];
+  const [paused, setPaused] = useState(false);
 
-    return (
-        <section>
-            <SectionContainer>
-                <h2 style={{
-                    fontFamily: "var(--font-base)",
-                    fontWeight: 400,
-                    fontSize: "2.5vw",
-                    lineHeight: 1.25,
-                    textAlign: "center",
-                    margin: "3%",
-                    color: "var(--color-text-primary)",
-                }}>
-                    Popular courses
-                </h2>
-            </SectionContainer>
-            <div style={{ overflow: "hidden", padding:  "16px 0", marginBottom: "3%" }}>
-                <div
-                    onMouseEnter={() => setPaused(true)}
-                    onMouseLeave={() => setPaused(false)}
-                    style={{
-                        display: "flex",
-                        gap: "3.65vw",
-                        width: "max-content",
-                        animation: "carousel-right 60s linear infinite",
-                        animationDirection: "reverse",
-                        animationPlayState: paused ? "paused" : "running",
-                    }}
-                >
-                    {doubled.map((course, i) => (
-                        <CourseCard key={`${course.id}-${i}`} course={course} isWishlisted={wishlistSet.has(course.slug)} />
-                    ))}
-                </div>
-            </div>
-        </section>
-    );
+  return (
+    <section>
+      <SectionContainer>
+        <h2
+          style={{
+            fontFamily: "var(--font-base)",
+            fontWeight: 400,
+            fontSize: "2.5vw",
+            lineHeight: 1.25,
+            textAlign: "center",
+            margin: "3%",
+            color: "var(--color-text-primary)",
+          }}
+        >
+          Popular courses
+        </h2>
+      </SectionContainer>
+      <div style={{ overflow: "hidden", padding: "16px 0", marginBottom: "3%" }}>
+        <div
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
+          style={{
+            display: "flex",
+            gap: "3.65vw",
+            width: "max-content",
+            animation: "carousel-right 60s linear infinite",
+            animationDirection: "reverse",
+            animationPlayState: paused ? "paused" : "running",
+          }}
+        >
+          {doubled.map((course, i) => (
+            <CourseCard
+              key={`${course.id}-${i}`}
+              course={course}
+              isWishlisted={wishlistSet.has(course.slug)}
+            />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
 }

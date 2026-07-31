@@ -18,18 +18,18 @@ import {
   getMessageReports,
   getChatModerationStatus,
   moderateChatUser,
-  type ChatUser,
   type ChatModerationActionKind,
   type ChatModerationStatus,
   type MessageReport,
   type MessageReportReason,
+  type ModerationChatUser,
 } from "@/entities/chat";
 import type { ApiError } from "@/shared/api/base";
 import { resolveMediaUrl } from "@/shared/api/lib/mediaUrl";
 
 type ReportedUserGroup = {
   key: string;
-  user: ChatUser | null;
+  user: ModerationChatUser | null;
   reports: MessageReport[];
 };
 
@@ -44,7 +44,7 @@ const REASON_OPTIONS: Array<{ value: MessageReportReason | "all"; label: string 
   { value: "other", label: "Other" },
 ];
 
-function fullName(user: ChatUser | null) {
+function fullName(user: ModerationChatUser | null) {
   if (!user) return "Deleted user";
   return user.name || `${user.first_name} ${user.last_name}`.trim() || user.email;
 }
@@ -71,7 +71,13 @@ function reportMessagePreview(report: MessageReport) {
   return report.message_text.trim() || "Message contained attachments only.";
 }
 
-function Avatar({ user, size = "md" }: { user: ChatUser | null; size?: "sm" | "md" | "lg" }) {
+function Avatar({
+  user,
+  size = "md",
+}: {
+  user: ModerationChatUser | null;
+  size?: "sm" | "md" | "lg";
+}) {
   const dimensions = {
     sm: "h-8 w-8 text-xs",
     md: "h-11 w-11 text-sm",
@@ -128,7 +134,13 @@ function DetailRow({ label, children }: { label: string; children: React.ReactNo
   );
 }
 
-function ModeratorActionsPanel({ user, reportId }: { user: ChatUser; reportId: number }) {
+function ModeratorActionsPanel({
+  user,
+  reportId,
+}: {
+  user: ModerationChatUser;
+  reportId: number;
+}) {
   const [status, setStatus] = useState<ChatModerationStatus | null>(null);
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(true);

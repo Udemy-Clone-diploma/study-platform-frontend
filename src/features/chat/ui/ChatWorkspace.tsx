@@ -92,6 +92,12 @@ type ChatWorkspaceProps = {
   onViewProfile?: (user: ChatUser) => void;
 };
 
+type MessageCacheEntry = {
+  messages: ChatMessage[];
+  page: number;
+  hasMore: boolean;
+};
+
 /** Full chat workspace with an optional profile-view override for composed experiences. */
 export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
   const router = useRouter();
@@ -154,6 +160,7 @@ export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
   const messagesViewportRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const lastReadSentRef = useRef<string | null>(null);
+  const messageCacheRef = useRef<Map<number, MessageCacheEntry>>(new Map());
 
   const meChatUser = useMemo(() => (me ? toChatUser(me) : null), [me]);
   const selectedChat = chats.find((chat) => chat.id === selectedChatId) ?? null;
@@ -219,20 +226,39 @@ export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
   }, [requestedChatId]);
 
   const loadMessages = useCallback(async (chatId: number) => {
-    setLoadingMessages(true);
+    const cached = messageCacheRef.current.get(chatId);
+    if (cached) {
+      setMessages(cached.messages);
+      setMessagePage(cached.page);
+      setHasMoreMessages(cached.hasMore);
+      setLoadingMessages(false);
+    } else {
+      setMessages([]);
+      setHasMoreMessages(false);
+      setLoadingMessages(true);
+    }
     setError("");
     try {
       const data = await getMessages(chatId, 1);
+      const nextMessages = [...data.results].reverse();
+      const nextEntry = {
+        messages: nextMessages,
+        page: 1,
+        hasMore: Boolean(data.next),
+      };
+      messageCacheRef.current.set(chatId, nextEntry);
       if (selectedChatIdRef.current !== chatId) return;
-      setMessages([...data.results].reverse());
-      setMessagePage(1);
-      setHasMoreMessages(Boolean(data.next));
+      setMessages(nextMessages);
+      setMessagePage(nextEntry.page);
+      setHasMoreMessages(nextEntry.hasMore);
     } catch (requestError) {
       if (selectedChatIdRef.current !== chatId) return;
       const apiError = requestError as Partial<ApiError>;
-      setError(apiError.detail || apiError.message || "Could not load messages.");
-      setMessages([]);
-      setHasMoreMessages(false);
+      if (!cached) {
+        setError(apiError.detail || apiError.message || "Could not load messages.");
+        setMessages([]);
+        setHasMoreMessages(false);
+      }
     } finally {
       if (selectedChatIdRef.current === chatId) {
         setLoadingMessages(false);
@@ -747,9 +773,20 @@ export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
   }
 
   function selectChat(chatId: number) {
+    const currentChatId = selectedChatIdRef.current;
+    if (currentChatId && currentChatId !== chatId) {
+      messageCacheRef.current.set(currentChatId, {
+        messages,
+        page: messagePage,
+        hasMore: hasMoreMessages,
+      });
+    }
     setSelectedChatId(chatId);
     setMobileChatOpen(true);
-    router.push(`${pathname}?chat=${chatId}`);
+
+    const params = new URLSearchParams(window.location.search);
+    params.set("chat", String(chatId));
+    window.history.pushState(window.history.state, "", `${pathname}?${params.toString()}`);
   }
 
   function clearVisibleHistory() {
@@ -1144,7 +1181,7 @@ export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
   }
 
   return (
-    <main className="-mt-16 flex min-h-[100dvh] flex-1 flex-col overflow-hidden bg-[#D6E0FF] px-4 pb-[calc(103px+env(safe-area-inset-bottom))] pt-[123px] text-[#111827] lg:m-0 lg:h-[calc(100vh-76px)] lg:min-h-[640px] lg:flex-row lg:gap-[clamp(28px,4vw,76px)] lg:overflow-visible lg:px-[clamp(28px,4vw,78px)] lg:py-[clamp(24px,3vw,40px)]">
+    <main className="-mt-16 -mb-[calc(103px+env(safe-area-inset-bottom))] flex h-[100dvh] min-h-0 flex-none flex-col overflow-hidden bg-[#D6E0FF] px-4 pb-[calc(103px+env(safe-area-inset-bottom))] pt-[123px] text-[#111827] lg:m-0 lg:h-[calc(100vh-76px)] lg:min-h-[640px] lg:flex-1 lg:flex-row lg:gap-[clamp(28px,4vw,76px)] lg:overflow-visible lg:px-[clamp(28px,4vw,78px)] lg:py-[clamp(24px,3vw,40px)]">
       <ChatSidebar
         search={chatSearch}
         typeFilter={chatTypeFilter}

@@ -92,9 +92,9 @@ export function PublicProfileLoader({ userId, modal = false, onClose }: Props) {
         ariaLabel={
           profile ? `Profile of ${profile.first_name} ${profile.last_name}`.trim() : "User profile"
         }
-        width="min(420px, calc(100vw - 32px))"
+        width="min(360px, calc(100vw - 32px))"
         padding="0"
-        maxHeight="min(90dvh, 552px)"
+        maxHeight="min(82dvh, 480px)"
         shadow="var(--shadow-dashboard-card)"
       >
         {content}

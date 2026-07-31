@@ -3,10 +3,10 @@
 import { useId, useState } from "react";
 import Link from "next/link";
 import { Astroid, ChevronDown } from "lucide-react";
-import type { CourseModule } from "@/entities/course";
+import type { PublicCourseModule } from "@/entities/course";
 import { PRICING_ANCHOR_ID } from "./pricingAnchor";
 
-type Props = { courseModule: CourseModule; slug: string; hasPricing: boolean };
+type Props = { courseModule: PublicCourseModule; slug: string; hasPricing: boolean };
 
 /** Accordion row for a course module. Module pill + title on the left, chevron on the right; expands to a list of lessons. */
 export function CourseModuleItem({ courseModule, slug, hasPricing }: Props) {

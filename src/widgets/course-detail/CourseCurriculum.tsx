@@ -1,8 +1,8 @@
-import type { CourseDetail } from "@/entities/course";
+import type { PublicCourseDetail } from "@/entities/course";
 import { CourseModuleItem } from "./CourseModuleItem";
 
 type Props = {
-  course: Pick<CourseDetail, "modules" | "lessons_count">;
+  course: Pick<PublicCourseDetail, "modules" | "lessons_count">;
   slug: string;
   hasPricing?: boolean;
   hideHeading?: boolean;

@@ -29,8 +29,8 @@ export function ChatHeader({
   const canOpenAvatar = chat.type === "group" || Boolean(peer);
 
   return (
-    <header className="relative z-0 flex h-[60px] min-h-[60px] shrink-0 items-center justify-between rounded-[18px] border border-white/70 bg-[#D6E0FF]/60 px-3 py-2 shadow-[inset_0_2px_4px_rgba(255,255,255,0.65)] lg:h-auto lg:min-h-[90px] lg:px-10 lg:py-4">
-      <div className="flex min-w-0 items-center gap-4">
+    <header className="relative z-0 mx-auto flex h-[61px] min-h-[61px] w-full max-w-[335px] shrink-0 items-center justify-between gap-2 rounded-[20px] border border-white bg-(--color-white-20) p-2 shadow-(--shadow-usp-glass) backdrop-blur-md lg:mx-0 lg:h-auto lg:min-h-[90px] lg:max-w-none lg:gap-0 lg:rounded-[18px] lg:border-white/70 lg:bg-[#D6E0FF]/60 lg:px-10 lg:py-4 lg:shadow-[inset_0_2px_4px_rgba(255,255,255,0.65)] lg:backdrop-blur-none">
+      <div className="flex min-w-0 items-center gap-2 lg:gap-4">
         {canOpenAvatar ? (
           <button
             type="button"

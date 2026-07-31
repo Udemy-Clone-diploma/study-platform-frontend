@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { enrollInFreeCourse, type CourseDeliveryFormat } from "@/entities/course";
+import { enrollInFreeCourse, type PublicCourseDeliveryFormat } from "@/entities/course";
 import type { ApiError } from "@/shared/api/base";
 import { AUTH_COOKIE_NAMES } from "@/shared/api/config/authCookies";
 import { getClientCookie } from "@/shared/lib/cookies";
@@ -13,7 +13,7 @@ type Props = {
   courseId: number;
   slug: string;
   isEnrolled: boolean;
-  defaultFormat: CourseDeliveryFormat | null;
+  defaultFormat: PublicCourseDeliveryFormat | null;
 };
 
 const COURSE_AVAILABLE_NOTICE = "The course is already available in My Courses.";
@@ -22,7 +22,9 @@ const STUDENT_ONLY_MESSAGE = "Enrollment is available only for students.";
 const NO_PRICING_PLAN_NOTICE = "This course does not have an available pricing plan.";
 
 function scrollToPricing() {
-  document.getElementById(PRICING_ANCHOR_ID)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  document
+    .getElementById(PRICING_ANCHOR_ID)
+    ?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 /**
@@ -39,7 +41,8 @@ export function CourseHeroCTA({ slug, isEnrolled, defaultFormat }: Props) {
   const buttonStyle = { minWidth: 200, height: 52, whiteSpace: "nowrap" } as const;
   const defaultPricingPlan = defaultFormat?.pricing ?? null;
   const isFreeCourse = defaultPricingPlan !== null && Number(defaultPricingPlan.price) === 0;
-  const needsSelection = defaultFormat?.format_type === "group" || defaultFormat?.format_type === "individual";
+  const needsSelection =
+    defaultFormat?.format_type === "group" || defaultFormat?.format_type === "individual";
 
   if (enrolled) {
     return (
@@ -95,7 +98,13 @@ export function CourseHeroCTA({ slug, isEnrolled, defaultFormat }: Props) {
 
   return (
     <div className="flex flex-col gap-2">
-      <AccentButton size="md" className="self-start" style={buttonStyle} onClick={handleClick} disabled={pending}>
+      <AccentButton
+        size="md"
+        className="self-start"
+        style={buttonStyle}
+        onClick={handleClick}
+        disabled={pending}
+      >
         {pending ? "Processing..." : isFreeCourse ? "Enroll for free" : "Choose a plan"}
       </AccentButton>
       {notice && (

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { formatPrice, type CourseListItem } from "@/entities/course";
+import { formatPrice, type PublicCourseListItem } from "@/entities/course";
 import { Stars } from "./Stars";
 import { WishlistButton } from "./WishlistButton";
 
@@ -26,7 +26,7 @@ const LEVEL_THEME = {
 } as const;
 
 type Props = {
-  course: CourseListItem;
+  course: PublicCourseListItem;
   isWishlisted?: boolean;
   /** Override destination link (default: /courses/:slug). */
   href?: string;
@@ -96,7 +96,12 @@ export function CourseCard({ course, isWishlisted = false, href, onClick }: Prop
   return (
     <div className="relative h-[362px] w-[456px] shrink-0">
       {onClick ? (
-        <button type="button" onClick={onClick} className={`${sharedClass} text-left`} style={sharedStyle}>
+        <button
+          type="button"
+          onClick={onClick}
+          className={`${sharedClass} text-left`}
+          style={sharedStyle}
+        >
           {body}
         </button>
       ) : (

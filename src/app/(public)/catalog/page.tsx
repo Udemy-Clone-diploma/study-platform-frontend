@@ -3,7 +3,7 @@ import Link from "next/link";
 import { SlidersHorizontal } from "lucide-react";
 import {
   getCategories,
-  getCourses,
+  getPublicCourses,
   type Category,
   type CourseDeliveryType,
   type CourseLanguage,
@@ -55,7 +55,7 @@ function splitFilter<T extends string>(value: string | undefined): Array<T> | un
 
 async function loadCourses(state: CatalogFilterState, page: number, ordering: string | undefined) {
   try {
-    const data = await getCourses({
+    const data = await getPublicCourses({
       category: state.category,
       course_type: splitFilter<CourseType>(state.course_type),
       delivery_type: splitFilter<CourseDeliveryType>(state.delivery_type),
@@ -182,7 +182,11 @@ export default async function CatalogPage({
                   style={{ gridTemplateColumns: "repeat(auto-fit, 456px)" }}
                 >
                   {courses.map((course) => (
-                    <CourseCard key={course.id} course={course} isWishlisted={wishlistSet.has(course.slug)} />
+                    <CourseCard
+                      key={course.id}
+                      course={course}
+                      isWishlisted={wishlistSet.has(course.slug)}
+                    />
                   ))}
                 </div>
               )}

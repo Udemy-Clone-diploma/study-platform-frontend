@@ -1,36 +1,36 @@
 import Image from "next/image";
 import { Star } from "lucide-react";
-import type { CourseDetail } from "@/entities/course";
+import type { PublicCourseDetailView } from "@/entities/course";
 import { CourseDescription } from "./CourseDescription";
 import { CourseHeroCTA } from "./CourseHeroCTA";
 
-type Props = { course: CourseDetail };
+type Props = { course: PublicCourseDetailView };
 
-const LEVEL_LABEL: Record<CourseDetail["level"], string> = {
+const LEVEL_LABEL: Record<PublicCourseDetailView["level"], string> = {
   beginner: "Beginner",
   intermediate: "Intermediate",
   advanced: "Advanced",
 };
 
-const LEVEL_BADGE: Record<CourseDetail["level"], string> = {
+const LEVEL_BADGE: Record<PublicCourseDetailView["level"], string> = {
   beginner: "bg-(--color-brand-yellow) text-(--color-yellow-dark)",
   intermediate: "bg-(--color-brand-lavender) text-(--color-blue-dark)",
   advanced: "bg-(--color-brand-pink) text-(--color-pink-dark)",
 };
 
-const LEVEL_META_LABEL: Record<CourseDetail["level"], string> = {
+const LEVEL_META_LABEL: Record<PublicCourseDetailView["level"], string> = {
   beginner: "Foundational training",
   intermediate: "Intermediate training",
   advanced: "Advanced training",
 };
 
-const LANGUAGE_LABEL: Record<CourseDetail["language"], string> = {
+const LANGUAGE_LABEL: Record<PublicCourseDetailView["language"], string> = {
   english: "English",
   ukrainian: "Ukrainian",
   spanish: "Spanish",
 };
 
-const MODE_LABEL: Record<CourseDetail["mode"], string> = {
+const MODE_LABEL: Record<PublicCourseDetailView["mode"], string> = {
   with_teacher: "With a teacher",
   self_learning: "Self-paced",
 };

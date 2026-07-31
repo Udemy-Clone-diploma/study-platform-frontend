@@ -79,12 +79,12 @@ function RoleSpecificDetails({ profile }: { profile: PublicUserProfile }) {
     const rating = Number(profile.profile.rating);
     return (
       <div className="space-y-7">
-        <dl className="grid gap-5 sm:grid-cols-2">
+        <dl className="grid grid-cols-1 gap-5 lg:grid-cols-2">
           <ProfileValue label="Specialization" value={profile.profile.specialization} />
           <ProfileValue label="Professional experience" value={profile.profile.experience} />
         </dl>
 
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
           <div className="rounded-xl bg-(--color-white-50) p-4 shadow-(--shadow-usp-glass)">
             <div className="flex items-center gap-2 text-sm font-semibold text-(--color-text-secondary)">
               <Star
@@ -121,7 +121,7 @@ function RoleSpecificDetails({ profile }: { profile: PublicUserProfile }) {
   if (profile.role === "student") {
     return (
       <div className="space-y-7">
-        <dl className="grid gap-5 sm:grid-cols-2">
+        <dl className="grid grid-cols-1 gap-5 lg:grid-cols-2">
           <ProfileValue label="Education level" value={profile.profile.education_level} />
         </dl>
         <ProfileText label="Learning goals" value={profile.profile.learning_goals} />
@@ -131,7 +131,7 @@ function RoleSpecificDetails({ profile }: { profile: PublicUserProfile }) {
 
   if (profile.role === "moderator") {
     return (
-      <dl className="grid gap-5 sm:grid-cols-2">
+      <dl className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         <ProfileValue label="Moderator level" value={profile.profile.level} />
       </dl>
     );
@@ -190,6 +190,7 @@ export function PublicProfileView({
           onMessage={() => void sendMessage()}
           messaging={messaging}
           messageLabel={messageError ? "Try again" : "Send message"}
+          compact
           topLeftAction={
             onClose ? (
               <button
@@ -231,7 +232,7 @@ export function PublicProfileView({
         <span className="absolute -right-20 bottom-0 h-80 w-80 rounded-full bg-(--color-brand-cream) opacity-70 blur-3xl" />
       </div>
 
-      <div className="mx-auto grid w-full max-w-6xl overflow-hidden rounded-3xl border border-(--color-white-60) bg-(--color-white-60) shadow-(--shadow-card) backdrop-blur-xl lg:grid-cols-[minmax(16rem,0.8fr)_0.25rem_minmax(0,1.7fr)]">
+      <div className="mx-auto grid w-full max-w-6xl grid-cols-1 overflow-hidden rounded-3xl border border-(--color-white-60) bg-(--color-white-60) shadow-(--shadow-card) backdrop-blur-xl lg:grid-cols-[minmax(16rem,0.8fr)_0.25rem_minmax(0,1.7fr)]">
         <aside className="flex flex-col items-center px-6 py-8 text-center sm:px-8 lg:py-12">
           <div className="relative h-40 w-40 overflow-hidden rounded-full bg-(--color-surface) shadow-(--shadow-card) sm:h-48 sm:w-48">
             {profile.avatar ? (
@@ -307,7 +308,7 @@ export function PublicProfileView({
             <h2 className="mt-2 text-3xl font-bold text-(--color-text-primary)">About the user</h2>
           </div>
 
-          <dl className="mt-8 grid gap-5 border-b border-(--color-border-light) pb-7 sm:grid-cols-2">
+          <dl className="mt-8 grid grid-cols-1 gap-5 border-b border-(--color-border-light) pb-7 lg:grid-cols-2">
             <ProfileValue label="Role" value={ROLE_LABELS[profile.role]} />
             <ProfileValue label="Member since" value={formatMemberSince(profile.date_joined)} />
             {profile.role === "administrator" && profile.email ? (

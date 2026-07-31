@@ -81,7 +81,7 @@ export function MessageComposer({
 }: Props) {
   if (chat.is_read_only) {
     return (
-      <div className="mt-4 flex min-h-14 shrink-0 items-center justify-center gap-3 rounded-[18px] border border-white/70 bg-white/45 px-5 text-center text-sm font-medium text-[#4B5563]">
+      <div className="fixed inset-x-4 bottom-[calc(103px+12px+env(safe-area-inset-bottom))] z-30 flex min-h-14 shrink-0 items-center justify-center gap-3 rounded-[18px] border border-white/70 bg-white/45 px-5 text-center text-sm font-medium text-[#4B5563] lg:relative lg:inset-auto lg:bottom-auto lg:z-auto lg:mt-4">
         <LockKeyhole className="h-5 w-5 shrink-0 text-[#0B257C]" />
         This is an official message from the School Administration. Replies are disabled.
       </div>
@@ -89,7 +89,7 @@ export function MessageComposer({
   }
 
   return (
-    <div className="mt-2 shrink-0 lg:mt-4">
+    <div className="fixed inset-x-4 bottom-[calc(103px+12px+env(safe-area-inset-bottom))] z-30 shrink-0 lg:relative lg:inset-auto lg:bottom-auto lg:z-auto lg:mt-4">
       <div className="mb-2 hidden min-h-5 text-xs text-[#4B5563] lg:block">
         {typingLabel ? `${typingLabel} typing...` : ""}
         {peerBlocked ? "User is blocked. Unblock them from the menu to write." : ""}

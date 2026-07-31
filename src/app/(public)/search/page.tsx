@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { getCourses, getWishlistSlugs, type CourseListItem } from "@/entities/course";
+import { getPublicCourses, getWishlistSlugs, type PublicCourseListItem } from "@/entities/course";
 import { getArticles } from "@/entities/blog";
 import { CourseCard } from "@/features/courses";
 import { ArticleCard } from "@/features/blog";
@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 const RESULT_LIMIT = 6;
 
-const EMPTY_COURSES: CourseListItem[] = [];
+const EMPTY_COURSES: PublicCourseListItem[] = [];
 
 export default async function SiteSearchPage({
   searchParams,
@@ -22,7 +22,9 @@ export default async function SiteSearchPage({
   const searchQS = query ? `?search=${encodeURIComponent(query)}` : "";
 
   const [coursesPage, articles, wishlistedSlugs] = await Promise.all([
-    query ? getCourses({ search: query, page_size: RESULT_LIMIT }) : Promise.resolve({ count: 0, next: null, previous: null, results: EMPTY_COURSES }),
+    query
+      ? getPublicCourses({ search: query, page_size: RESULT_LIMIT })
+      : Promise.resolve({ count: 0, next: null, previous: null, results: EMPTY_COURSES }),
     query ? getArticles({ search: query }) : Promise.resolve([]),
     getWishlistSlugs().catch(() => []),
   ]);
@@ -89,7 +91,9 @@ export default async function SiteSearchPage({
         </div>
 
         {!query ? (
-          <p className="text-lg text-(--color-text-secondary)">Enter a search term to get started.</p>
+          <p className="text-lg text-(--color-text-secondary)">
+            Enter a search term to get started.
+          </p>
         ) : (
           <>
             <ResultSection
@@ -101,9 +105,16 @@ export default async function SiteSearchPage({
               {courses.length === 0 ? (
                 <p className="text-(--color-text-secondary)">No courses found.</p>
               ) : (
-                <div className="grid justify-center gap-6" style={{ gridTemplateColumns: "repeat(auto-fit, 456px)" }}>
+                <div
+                  className="grid justify-center gap-6"
+                  style={{ gridTemplateColumns: "repeat(auto-fit, 456px)" }}
+                >
                   {courses.map((course) => (
-                    <CourseCard key={course.id} course={course} isWishlisted={wishlistSet.has(course.slug)} />
+                    <CourseCard
+                      key={course.id}
+                      course={course}
+                      isWishlisted={wishlistSet.has(course.slug)}
+                    />
                   ))}
                 </div>
               )}
@@ -147,7 +158,10 @@ function ResultSection({
 }) {
   return (
     <section style={{ marginBottom: "3.5vw" }}>
-      <div className="flex flex-wrap items-center justify-between" style={{ marginBottom: "1.5vw", gap: 12 }}>
+      <div
+        className="flex flex-wrap items-center justify-between"
+        style={{ marginBottom: "1.5vw", gap: 12 }}
+      >
         <div className="flex items-baseline" style={{ gap: 10 }}>
           <h2
             style={{
@@ -160,7 +174,13 @@ function ResultSection({
           >
             {title}
           </h2>
-          <span style={{ fontFamily: "var(--font-base)", fontSize: "0.9vw", color: "var(--color-text-secondary)" }}>
+          <span
+            style={{
+              fontFamily: "var(--font-base)",
+              fontSize: "0.9vw",
+              color: "var(--color-text-secondary)",
+            }}
+          >
             {count} found
           </span>
         </div>

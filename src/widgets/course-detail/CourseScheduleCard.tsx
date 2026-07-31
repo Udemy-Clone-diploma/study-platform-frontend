@@ -1,8 +1,8 @@
 import { Calendar, Layers, Users } from "lucide-react";
-import type { CourseCohort } from "@/entities/course";
+import type { PublicCourseCohort } from "@/entities/course";
 
 type Props = {
-  cohorts: CourseCohort[];
+  cohorts: PublicCourseCohort[];
   modules_count: number;
   lessons_count: number;
 };
@@ -18,7 +18,7 @@ export function CourseScheduleCard({ cohorts, modules_count, lessons_count }: Pr
     : null;
 
   // Compute h/week range across all cohorts
-  const hours = cohorts.map(c => c.hours_per_week).filter(h => h > 0);
+  const hours = cohorts.map((c) => c.hours_per_week).filter((h) => h > 0);
   const minH = hours.length ? Math.min(...hours) : 0;
   const maxH = hours.length ? Math.max(...hours) : 0;
   const hoursLabel =
@@ -28,9 +28,7 @@ export function CourseScheduleCard({ cohorts, modules_count, lessons_count }: Pr
         ? `${minH} hours per week`
         : `${minH}–${maxH} hours per week`;
 
-  const formatLabel = first?.group_size
-    ? `Group of ${first.group_size} people`
-    : "Group";
+  const formatLabel = first?.group_size ? `Group of ${first.group_size} people` : "Group";
 
   return (
     <aside className="flex flex-col gap-8 rounded-xl bg-(--color-white-50) px-4 py-6 shadow-(--shadow-usp-glass) backdrop-blur-md sm:gap-10 sm:py-8">

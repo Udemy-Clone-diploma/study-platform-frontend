@@ -6,20 +6,13 @@ import { Astroid, ChevronDown, FileText, Upload, X } from "lucide-react";
 import type {
   CourseDetail, CourseLesson, CourseModule, CourseTest, LessonDocument, LessonItem,
 } from "@/entities/course";
-import { deleteLessonDocument, getLessonDetail, updateLesson, uploadLessonDocument } from "@/entities/course";
+import { deleteLessonDocument, getLessonDetail, updateLesson, uploadLessonDocument, youtubeEmbed } from "@/entities/course";
 import { SectionCard } from "@/shared/ui/SectionCard";
 import { GradientButton } from "@/shared/ui/GradientButton";
 import { MaterialPreviewModal } from "@/shared/ui/MaterialPreviewModal";
 
 const F  = "var(--font-base)";
 const FA = "var(--font-accent)";
-
-// ── YouTube embed helper ──────────────────────────────────────────────────────
-
-function youtubeEmbed(url: string): string | null {
-  const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
-  return m ? `https://www.youtube.com/embed/${m[1]}` : null;
-}
 
 // ── Modal scaffold ────────────────────────────────────────────────────────────
 

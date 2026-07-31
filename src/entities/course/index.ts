@@ -18,6 +18,7 @@ export * from "./lib/mockProgress";
 export * from "./lib/mockAttempt";
 export * from "./lib/formatDuration";
 export * from "./lib/formatPrice";
+export * from "./lib/youtubeEmbed";
 export * from "./model/types";
 export * from "./model/category";
 export * from "./model/completion";

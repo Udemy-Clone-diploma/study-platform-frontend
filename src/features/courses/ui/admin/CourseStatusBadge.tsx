@@ -1,6 +1,5 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import {
   courseStateColor,
   deriveCourseState,
@@ -16,11 +15,9 @@ type Props = {
 
 /** Status pill for a course, with a hover hint explaining who the course is waiting on. */
 export function CourseStatusBadge({ status, pendingEditStatus }: Props) {
-  const t = useTranslations("CourseStatusBadge");
   const state = deriveCourseState({ status, pending_edit_status: pendingEditStatus });
   const color = courseStateColor(state);
   const filled = state.key === "hidden";
-  const label = state.key === status ? t(status) : state.label;
 
   return (
     <Tooltip content={state.description}>
@@ -34,7 +31,7 @@ export function CourseStatusBadge({ status, pendingEditStatus }: Props) {
           background: filled ? color : "white",
         }}
       >
-        {label}
+        {state.label}
       </span>
     </Tooltip>
   );

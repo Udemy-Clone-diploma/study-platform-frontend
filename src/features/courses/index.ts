@@ -2,6 +2,7 @@ export * from "./model/catalogFilters";
 export * from "./model/moderatorReview";
 export * from "./ui/admin/CategoriesAdminView";
 export * from "./ui/admin/CoursesAdminView";
+export * from "./ui/admin/CourseStatusBadge";
 export * from "./ui/CourseManagementInfoTab";
 export * from "./ui/CourseManagementContentTab";
 export * from "./ui/CourseManagementPricingTab";

@@ -3,13 +3,17 @@
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { ClipboardCheck, Eye, Star } from "lucide-react";
-import type {
-  ApprovedCourseRecord,
-  CourseLevel,
-  CourseListItem,
-  RejectedCourseRecord,
+import {
+  courseStateColor,
+  deriveCourseState,
+  type ApprovedCourseRecord,
+  type CourseLevel,
+  type CourseListItem,
+  type CourseState,
+  type RejectedCourseRecord,
 } from "@/entities/course";
 import { DataTable, type DataTableColumn } from "@/shared/ui/DataTable";
+import { Tooltip } from "@/shared/ui/Tooltip";
 import { CourseThumb, formatCourseDate } from "./admin/CoursesTable";
 
 export type ModeratorCourseTab = "unassigned" | "review" | "needs_revision";
@@ -23,13 +27,22 @@ const LEVEL_COLORS: Record<CourseLevel, string> = {
   advanced: "var(--color-pink-dark)",
 };
 
-const STATUS_COLORS = {
-  unassigned: "var(--color-text-secondary)",
-  review: "var(--color-blue)",
-  needs_revision: "var(--color-warning)",
-  approved: "var(--color-success)",
-  rejected: "var(--color-rejected)",
-} as const;
+const HISTORY_STATE: Record<ModeratorHistoryStatus, CourseState> = {
+  approved: {
+    key: "published",
+    label: "Approved",
+    description: "You approved this course and it went live.",
+    tone: "success",
+    waitingOn: "nobody",
+  },
+  rejected: {
+    key: "rejected",
+    label: "Rejected",
+    description: "You rejected this course. The decision is recorded and final.",
+    tone: "danger",
+    waitingOn: "nobody",
+  },
+};
 
 type HistoryRecord = ApprovedCourseRecord | RejectedCourseRecord;
 
@@ -48,22 +61,43 @@ function formatRating(course: CourseListItem, t: Translator) {
   return `${course.rating_avg} (${course.rating_count})`;
 }
 
-function courseStatus(course: CourseListItem, tab: ModeratorCourseTab, t: Translator) {
-  if (tab === "unassigned") return t("statusUnassigned");
-  if (tab === "review") {
-    return course.status === "review" ? t("statusUnderReview") : t("statusEditUnderReview");
+function courseStatus(course: CourseListItem, tab: ModeratorCourseTab, t: Translator): CourseState {
+  if (tab === "unassigned") {
+    return {
+      key: "review",
+      label: t("statusUnassigned"),
+      description: "Waiting for a moderator to claim it. Nobody is reviewing it yet.",
+      tone: "neutral",
+      waitingOn: "moderator",
+    };
   }
-  return course.status === "needs_revision" ? t("statusRequiresRevision") : t("statusEditRequiresRevision");
+  if (tab === "review") {
+    return course.status === "review"
+      ? { ...deriveCourseState({ status: "review" }), label: t("statusUnderReview") }
+      : {
+          ...deriveCourseState({ status: "published", pending_edit_status: "pending" }),
+          label: t("statusEditUnderReview"),
+        };
+  }
+  return course.status === "needs_revision"
+    ? { ...deriveCourseState({ status: "needs_revision" }), label: t("statusRequiresRevision") }
+    : {
+        ...deriveCourseState({ status: "published", pending_edit_status: "needs_revision" }),
+        label: t("statusEditRequiresRevision"),
+      };
 }
 
-function CourseStatusBadge({ status, color }: { status: string; color: string }) {
+function CourseStatusBadge({ state }: { state: CourseState }) {
+  const color = courseStateColor(state);
   return (
-    <span
-      className="inline-flex max-w-full items-center justify-center rounded-full border px-3 py-1 text-center font-(family-name:--font-accent) text-xs font-medium leading-4 whitespace-nowrap"
-      style={{ color, borderColor: color, background: "white" }}
-    >
-      {status}
-    </span>
+    <Tooltip content={state.description}>
+      <span
+        className="inline-flex max-w-full items-center justify-center rounded-full border px-3 py-1 text-center font-(family-name:--font-accent) text-xs font-medium leading-4 whitespace-nowrap"
+        style={{ color, borderColor: color, background: "white" }}
+      >
+        {state.label}
+      </span>
+    </Tooltip>
   );
 }
 
@@ -208,7 +242,7 @@ function currentCourseColumns(
       headerAlign: "center",
       cellAlign: "center",
       render: (course) => (
-        <CourseStatusBadge status={courseStatus(course, tab, t)} color={STATUS_COLORS[tab]} />
+        <CourseStatusBadge state={courseStatus(course, tab, t)} />
       ),
     },
     {
@@ -355,7 +389,7 @@ export function ModeratorHistoryTable({
       flex: 1.4,
       headerAlign: "center",
       cellAlign: "center",
-      render: () => <CourseStatusBadge status={statusLabel} color={STATUS_COLORS[status]} />,
+      render: () => <CourseStatusBadge state={{ ...HISTORY_STATE[status], label: statusLabel }} />,
     },
     {
       key: "actions",

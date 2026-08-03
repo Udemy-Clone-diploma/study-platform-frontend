@@ -18,6 +18,7 @@ export * from "./lib/mockProgress";
 export * from "./lib/mockAttempt";
 export * from "./lib/formatDuration";
 export * from "./lib/formatPrice";
+export * from "./lib/youtubeEmbed";
 export * from "./model/types";
 export * from "./model/category";
 export * from "./model/completion";
@@ -30,6 +31,7 @@ export type { TeacherStudentDashboard, StudentDashboardActivity } from "./model/
 export * from "./model/module";
 export * from "./model/attempt";
 export * from "./model/pending-edit";
+export * from "./model/course-state";
 export * from "./model/pricing";
 export * from "./model/progress";
 export * from "./model/public";

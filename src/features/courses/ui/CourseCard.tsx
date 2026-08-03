@@ -4,7 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { formatPrice, type PublicCourseListItem } from "@/entities/course";
+import { formatOriginalPrice, formatPrice, type PublicCourseListItem } from "@/entities/course";
 import { Stars } from "./Stars";
 import { WishlistButton } from "./WishlistButton";
 
@@ -50,12 +50,26 @@ export function CourseCard({ course, isWishlisted = false, href, onClick }: Prop
   const sharedClass =
     "course-card flex h-full w-full flex-col rounded-[20px] p-5 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-blue)";
 
+  const originalPrice = formatOriginalPrice(course, locale);
+
   const body = (
     <>
-      <div className="flex shrink-0 items-start justify-between pr-10">
-        <span className="text-[clamp(18px,calc(16.54px+0.39vw),24px)] font-medium leading-tight text-(--color-text-primary)">
-          {formatPrice(course, t("free"), locale)}
-        </span>
+      <div className="flex shrink-0 items-start justify-between gap-2 pr-10">
+        <div className="flex flex-wrap items-baseline gap-x-2">
+          <span className="text-[clamp(18px,calc(16.54px+0.39vw),24px)] font-medium leading-tight text-(--color-text-primary)">
+            {formatPrice(course, t("free"), locale)}
+          </span>
+          {originalPrice ? (
+            <span className="text-[clamp(13px,calc(12.03px+0.26vw),16px)] leading-tight text-(--color-text-secondary) line-through">
+              {originalPrice}
+            </span>
+          ) : null}
+        </div>
+        {originalPrice && course.discount_percent ? (
+          <span className="shrink-0 rounded-md bg-(--color-brand-pink) px-2 py-px font-(family-name:--font-accent) text-[clamp(11px,calc(10.51px+0.13vw),13px)] text-(--color-pink-dark)">
+            -{course.discount_percent}%
+          </span>
+        ) : null}
       </div>
 
       <div className="relative my-3 h-[clamp(100px,calc(91.26px+2.33vw),136px)] w-full shrink-0 overflow-hidden rounded-xl">

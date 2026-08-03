@@ -1062,6 +1062,9 @@
     "submittedBy": "Submitted by {name}",
     "correctCount": "Correct: {correct} / {total}"
   },
+  "StudentCourseCard": {
+    "paymentOverdue": "Payment overdue"
+  },
   "StudentCoursesPage": {
     "courseFilterAriaLabel": "Course filter",
     "tabCurrent": "Current",
@@ -1882,6 +1885,7 @@
     "previous": "Previous",
     "next": "Next",
     "noContentYet": "No content available for this lesson yet.",
+    "videoTitle": "Lesson video",
     "liveSessions": "Live sessions",
     "joinLiveSession": "Join live session",
     "meetingLinkNotShared": "Meeting link not shared yet",
@@ -2771,6 +2775,8 @@
     },
     "certificate": "Certificate",
     "onSale": "On Sale",
+    "discountPercent": "Discount (%)",
+    "discountPercentHint": "Applied to all pricing plans of this course.",
     "yes": "Yes",
     "no": "No",
     "generating": "Generating…",
@@ -2783,7 +2789,8 @@
     "subtitlePlaceholder": "A short tagline shown under the course title…",
     "subtitleFieldHint": "Not the same as the short description — this is an optional marketing hook under the title.",
     "errorSave": "Failed to save. Try again.",
-    "errorPreview": "Could not generate certificate preview."
+    "errorPreview": "Could not generate certificate preview.",
+    "errorDiscountRequired": "Enter a discount percentage (1-99) to enable the sale."
   },
   "CourseManagementPage": {
     "errorLoad": "Failed to load course.",
@@ -3146,7 +3153,9 @@
     "processing": "Processing...",
     "enrollFree": "Enroll for free",
     "choosePlan": "Choose a plan",
-    "genericError": "Could not process your request."
+    "genericError": "Could not process your request.",
+    "accessSuspended": "Access is paused — an installment payment is overdue. Pay the outstanding amount to restore access; your progress is kept.",
+    "payOverdueInstallment": "Pay overdue installment"
   },
   "CourseTeacher": {
     "yearsExperience": "years in real-world projects",

@@ -1062,6 +1062,9 @@
     "submittedBy": "Eingereicht von {name}",
     "correctCount": "Richtig: {correct} / {total}"
   },
+  "StudentCourseCard": {
+    "paymentOverdue": "Zahlung überfällig"
+  },
   "StudentCoursesPage": {
     "courseFilterAriaLabel": "Kursfilter",
     "tabCurrent": "Aktuell",
@@ -1882,6 +1885,7 @@
     "previous": "Zurück",
     "next": "Weiter",
     "noContentYet": "Für diese Lektion ist noch kein Inhalt verfügbar.",
+    "videoTitle": "Lektionsvideo",
     "liveSessions": "Live-Sitzungen",
     "joinLiveSession": "Live-Sitzung beitreten",
     "meetingLinkNotShared": "Meeting-Link noch nicht geteilt",
@@ -2771,6 +2775,8 @@
     },
     "certificate": "Zertifikat",
     "onSale": "Im Angebot",
+    "discountPercent": "Rabatt (%)",
+    "discountPercentHint": "Gilt für alle Preispläne dieses Kurses.",
     "yes": "Ja",
     "no": "Nein",
     "generating": "Wird erstellt…",
@@ -2783,7 +2789,8 @@
     "subtitlePlaceholder": "Ein kurzer Slogan unter dem Kurstitel…",
     "subtitleFieldHint": "Nicht dasselbe wie die Kurzbeschreibung — ein optionaler Marketing-Aufhänger unter dem Titel.",
     "errorSave": "Speichern fehlgeschlagen. Bitte erneut versuchen.",
-    "errorPreview": "Zertifikat-Vorschau konnte nicht erstellt werden."
+    "errorPreview": "Zertifikat-Vorschau konnte nicht erstellt werden.",
+    "errorDiscountRequired": "Geben Sie einen Rabatt in Prozent (1-99) ein, um das Angebot zu aktivieren."
   },
   "CourseManagementPage": {
     "errorLoad": "Kurs konnte nicht geladen werden.",
@@ -3146,7 +3153,9 @@
     "processing": "Wird verarbeitet...",
     "enrollFree": "Kostenlos anmelden",
     "choosePlan": "Plan auswählen",
-    "genericError": "Deine Anfrage konnte nicht verarbeitet werden."
+    "genericError": "Deine Anfrage konnte nicht verarbeitet werden.",
+    "accessSuspended": "Der Zugang ist pausiert — eine Ratenzahlung ist überfällig. Begleiche den ausstehenden Betrag, um den Zugang wiederherzustellen; dein Fortschritt bleibt erhalten.",
+    "payOverdueInstallment": "Überfällige Rate bezahlen"
   },
   "CourseTeacher": {
     "yearsExperience": "Jahre in realen Projekten",

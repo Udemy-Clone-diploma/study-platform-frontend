@@ -170,6 +170,7 @@ export default function StudentCoursesPage() {
                         iconSrc={LEVEL_ICON[entry.item.level] ?? "/icons/curses.svg"}
                         level={entry.item.level}
                         slug={entry.item.slug}
+                        suspended={entry.item.enrollment_access_status === "suspended"}
                       />
                     ) : (
                       <CompletedCourseCard

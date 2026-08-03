@@ -135,6 +135,7 @@ export async function CourseDetailView({ course, reviews }: Props) {
               formats={course.delivery_formats}
               slug={course.slug}
               cohorts={course.cohorts}
+              discountPercent={course.is_on_sale ? course.discount_percent : null}
             />
           </section>
         </SectionContainer>

@@ -1,6 +1,7 @@
 import type { Category } from "./category";
 import type { CourseCohort } from "./cohort";
 import type { CourseDeliveryFormat } from "./delivery-format";
+import type { EnrollmentStatus } from "./enrollment";
 import type { CourseModule } from "./module";
 import type { PricingPlan } from "./pricing";
 import type { CourseTag } from "./tag";
@@ -36,14 +37,18 @@ export type CourseListItem = {
   mode: CourseMode;
   delivery_type: CourseDeliveryType;
   course_type: CourseType;
-  /** Cheapest pricing plan's price, computed by the backend. Null when the course is free. */
+  /** Cheapest pricing plan's price (after discount, if any), computed by the backend. Null when the course is free. */
   price: string | null;
+  /** Cheapest pricing plan's pre-discount price. Null unless is_on_sale actually lowers the price. */
+  original_price: string | null;
   /** Cheapest pricing plan's currency. Null when the course is free. */
   currency: PricingPlan["currency"] | null;
   duration_hours: number;
   lessons_count: number;
   with_certificate: boolean;
   is_on_sale: boolean;
+  /** 1-99. Set only when is_on_sale is true. */
+  discount_percent: number | null;
   rating_avg: string;
   /** Count of reviews. Kept in sync by a backend signal on Review save/delete. */
   rating_count: number;
@@ -55,6 +60,10 @@ export type CourseListItem = {
   updated_at?: string;
   /** Date the current student was granted access. Null for non-enrolled contexts (teacher, catalog). */
   enrolled_at: string | null;
+  /** The current student's enrollment status for this course. Null when never enrolled.
+   *  "suspended" means an installment payment is overdue — access is paused, not lost;
+   *  paying restores it automatically. Present on enrolled-courses endpoints. */
+  enrollment_access_status: EnrollmentStatus | null;
   /** Present on enrolled-courses endpoints. 0-100, integer. */
   progress_percent?: number;
   tags: CourseTag[];
@@ -127,7 +136,10 @@ export type RejectedCourseItem = CourseListItem & {
   moderation_review: ModerationReview | null;
 };
 
-export type CourseDetail = Omit<CourseListItem, "teacher_name" | "price" | "currency"> & {
+export type CourseDetail = Omit<
+  CourseListItem,
+  "teacher_name" | "price" | "original_price" | "currency"
+> & {
   /** Course-specific pull-quote. Belongs on the course, not the teacher (one teacher, many courses). */
   quote: string | null;
   full_description: string;

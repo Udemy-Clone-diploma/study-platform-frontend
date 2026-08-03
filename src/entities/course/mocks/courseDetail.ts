@@ -49,11 +49,13 @@ export const mockCourseDetail: CourseDetail = {
   certificate_description:
     "The student mastered end-to-end UX/UI design: research, wireframes, prototyping, and usability testing.",
   is_on_sale: false,
+  discount_percent: null,
   passing_score: 80,
   rating_avg: "4.9",
   rating_count: 1850,
   students_count: 1850,
   is_enrolled: true,
+  enrollment_access_status: "active",
   group_chat_url: "https://t.me/ux-ui-design-mastery",
   status: "published",
   published_at: "2026-01-10T00:00:00Z",
@@ -92,9 +94,11 @@ export const mockCourseDetail: CourseDetail = {
       pricing: {
         id: 1,
         price: "599.00",
+        final_price: "599.00",
         currency: "EUR",
         installment_count: 4,
         installment_amount: "160.00",
+        final_installment_amount: "160.00",
       },
     },
     {
@@ -112,9 +116,11 @@ export const mockCourseDetail: CourseDetail = {
       pricing: {
         id: 2,
         price: "899.00",
+        final_price: "899.00",
         currency: "EUR",
         installment_count: 4,
         installment_amount: "240.00",
+        final_installment_amount: "240.00",
       },
     },
   ],

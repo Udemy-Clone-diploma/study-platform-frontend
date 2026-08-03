@@ -5,6 +5,7 @@ import type {
   DeliveryStartType,
   DeliveryUnlockMode,
 } from "./delivery-format";
+import type { EnrollmentStatus } from "./enrollment";
 import type {
   CourseDeliveryType,
   CourseLanguage,
@@ -29,12 +30,17 @@ export type PublicCourseListItem = {
   mode: CourseMode;
   delivery_type: CourseDeliveryType;
   course_type: CourseType;
+  /** Cheapest pricing plan's price (after discount, if any). Null when the course is free. */
   price: string | null;
+  /** Cheapest pricing plan's pre-discount price. Null unless is_on_sale actually lowers the price. */
+  original_price: string | null;
   currency: DeliveryFormatPricing["currency"] | null;
   duration_hours: number | null;
   lessons_count: number;
   with_certificate: boolean;
   is_on_sale: boolean;
+  /** 1-99. Set only when is_on_sale is true. */
+  discount_percent: number | null;
   rating_avg: string;
   rating_count: number;
   students_count: number;
@@ -111,6 +117,8 @@ export type PublicCourseDetail = {
   with_certificate: boolean;
   certificate_description: string;
   is_on_sale: boolean;
+  /** 1-99. Set only when is_on_sale is true. */
+  discount_percent: number | null;
   passing_score: number;
   rating_avg: string;
   rating_count: number;
@@ -126,9 +134,14 @@ export type PublicCourseDetail = {
 
 export type PublicCourseDetailView = PublicCourseDetail & {
   is_enrolled: boolean;
+  /** The current student's enrollment status for this course. Null when never enrolled.
+   *  "suspended" means an installment payment is overdue — access is paused, not lost;
+   *  paying restores it automatically. */
+  enrollment_access_status: EnrollmentStatus | null;
 };
 
 export type EnrolledCourseListItem = PublicCourseListItem & {
   enrolled_at: string | null;
   progress_percent: number;
+  enrollment_access_status: EnrollmentStatus | null;
 };

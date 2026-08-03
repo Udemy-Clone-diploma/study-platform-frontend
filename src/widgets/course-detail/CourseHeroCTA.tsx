@@ -3,7 +3,11 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
-import { enrollInFreeCourse, type PublicCourseDeliveryFormat } from "@/entities/course";
+import {
+  enrollInFreeCourse,
+  type EnrollmentStatus,
+  type PublicCourseDeliveryFormat,
+} from "@/entities/course";
 import type { ApiError } from "@/shared/api/base";
 import { AUTH_COOKIE_NAMES } from "@/shared/api/config/authCookies";
 import { getClientCookie } from "@/shared/lib/cookies";
@@ -23,6 +27,7 @@ type Props = {
   courseId: number;
   slug: string;
   isEnrolled: boolean;
+  accessStatus: EnrollmentStatus | null;
   defaultFormat: PublicCourseDeliveryFormat | null;
 };
 
@@ -37,7 +42,7 @@ function scrollToPricing() {
  * group/individual format, which still needs a cohort/session pick, so that
  * case scrolls to the pricing block instead, same as any paid plan.
  */
-export function CourseHeroCTA({ slug, isEnrolled, defaultFormat }: Props) {
+export function CourseHeroCTA({ slug, isEnrolled, accessStatus, defaultFormat }: Props) {
   const router = useRouter();
   const [enrolled, setEnrolled] = useState(isEnrolled);
   const [pending, setPending] = useState(false);
@@ -48,6 +53,24 @@ export function CourseHeroCTA({ slug, isEnrolled, defaultFormat }: Props) {
   const isFreeCourse = defaultPricingPlan !== null && Number(defaultPricingPlan.price) === 0;
   const needsSelection =
     defaultFormat?.format_type === "group" || defaultFormat?.format_type === "individual";
+
+  if (accessStatus === "suspended") {
+    return (
+      <div className="flex flex-col items-center gap-2 lg:items-start">
+        <p className="max-w-[460px] text-center text-base text-(--color-pink-dark) lg:text-left">
+          {t("accessSuspended")}
+        </p>
+        <AccentButton
+          size="md"
+          className="self-center lg:self-start"
+          style={heroCtaStyle}
+          href="/student-dashboard/payment?tab=plans"
+        >
+          {t("payOverdueInstallment")}
+        </AccentButton>
+      </div>
+    );
+  }
 
   if (enrolled) {
     return (

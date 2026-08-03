@@ -6,8 +6,8 @@ import { useParams } from "next/navigation";
 import { useRouter } from "@/i18n/navigation";
 import Image from "next/image";
 import { BookOpen, ChevronDown, Clock, Play, SquareCheck, Star, Users } from "lucide-react";
-import { getCourseBySlug } from "@/entities/course";
-import type { CourseDeliveryFormat, CourseDetail, CourseStatus } from "@/entities/course";
+import { courseStateColor, deriveCourseState, getCourseBySlug } from "@/entities/course";
+import type { CourseDeliveryFormat, CourseDetail } from "@/entities/course";
 import {
   CourseManagementContentTab,
   CourseManagementGroupTab,
@@ -22,15 +22,9 @@ import {
 import { CourseManagementReviewsTab } from "@/widgets/course-detail";
 import { AccentButton } from "@/shared/ui/AccentButton";
 import { PageShell } from "@/shared/ui/PageShell";
+import { Tooltip } from "@/shared/ui/Tooltip";
 import { WhiteButton } from "@/shared/ui/WhiteButton";
 import { usePageLoadingOverlay } from "@/shared/lib/pageLoadingSignal";
-
-// ── Lookups ────────────────────────────────────────────────────────────────────
-const STATUS_BG: Record<CourseStatus, string> = {
-  draft: "var(--color-draft)", review: "var(--color-warning)", needs_revision: "var(--color-warning)",
-  rejected: "var(--color-rejected)", published: "var(--color-success)",
-  hidden: "var(--color-text-secondary)", archived: "var(--color-text-muted)",
-};
 
 // ── Tab types ──────────────────────────────────────────────────────────────────
 type MainTab   = "info" | "content" | "reviews" | "pricing";
@@ -275,8 +269,10 @@ export default function CourseManagementPage() {
   }
 
   // ── Derived values ───────────────────────────────────────────────────────────
-  const statusBg    = STATUS_BG[course.status]    ?? "var(--color-draft)";
-  const statusLabel = t(`status.${course.status}`);
+  const courseState = deriveCourseState(course);
+  const statusBg    = courseStateColor(courseState);
+  const statusLabel =
+    courseState.key === course.status ? t(`status.${course.status}`) : courseState.label;
   const modulesCount = course.modules.length;
   const testsCount   = course.modules.reduce((s, m) => s + m.tests.length, 0);
   const DESC_LIMIT   = 260;
@@ -326,9 +322,11 @@ export default function CourseManagementPage() {
               <h1 style={{ fontFamily: "var(--font-base)", fontWeight: 700, fontSize: "clamp(22px, 1.88vw, 34px)", lineHeight: 1.2, color: "var(--color-text-primary)", margin: 0 }}>
                 {course.title}
               </h1>
-              <span style={{ background: statusBg, color: "white", borderRadius: 999, padding: "clamp(3px, 0.26vw, 5px) clamp(10px, 0.83vw, 14px)", fontFamily: "var(--font-accent)", fontWeight: 600, fontSize: "clamp(9px, 0.63vw, 12px)", letterSpacing: "0.04em", alignSelf: "center", flexShrink: 0 }}>
-                {statusLabel}
-              </span>
+              <Tooltip content={courseState.description} className="self-center">
+                <span style={{ background: statusBg, color: "white", borderRadius: 999, padding: "clamp(3px, 0.26vw, 5px) clamp(10px, 0.83vw, 14px)", fontFamily: "var(--font-accent)", fontWeight: 600, fontSize: "clamp(9px, 0.63vw, 12px)", letterSpacing: "0.04em", flexShrink: 0 }}>
+                  {statusLabel}
+                </span>
+              </Tooltip>
             </div>
 
             {/* Category + Level */}

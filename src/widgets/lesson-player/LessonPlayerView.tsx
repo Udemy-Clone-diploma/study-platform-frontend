@@ -17,6 +17,7 @@ import {
   recordMockOpen,
   toggleMockLessonComplete,
   unmarkLessonComplete,
+  youtubeEmbed,
 } from "@/entities/course";
 import type {
   CourseDetail,
@@ -396,9 +397,20 @@ function LessonNavLink({ href, direction }: { href?: string; direction: "prev" |
 function LessonContent({ item }: { item: LessonItem | null }) {
   const t = useTranslations("LessonPlayer");
   if (item?.item_type === "video" && item.video_url) {
+    const embed = youtubeEmbed(item.video_url);
     return (
       <div className="overflow-hidden rounded-2xl bg-black">
-        <video controls src={item.video_url} className="aspect-video w-full" preload="metadata" />
+        {embed ? (
+          <iframe
+            src={embed}
+            title={item.original_video_name ?? t("videoTitle")}
+            allow="accelerated-2d-canvas; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            className="aspect-video w-full"
+          />
+        ) : (
+          <video controls src={item.video_url} className="aspect-video w-full" preload="metadata" />
+        )}
       </div>
     );
   }

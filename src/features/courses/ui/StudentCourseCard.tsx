@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import type { CourseLevel } from "@/entities/course";
 
@@ -30,6 +31,9 @@ type Props = {
   iconSrc: string;
   level?: CourseLevel;
   slug: string;
+  /** True when an installment payment is overdue: access is paused, progress kept.
+   *  Links to the course page (which shows the debt CTA) instead of the materials page. */
+  suspended?: boolean;
 };
 
 /** Course card for the student My Courses page (active / in-progress courses). */
@@ -41,7 +45,9 @@ export function StudentCourseCard({
   iconSrc,
   level = "beginner",
   slug,
+  suspended = false,
 }: Props) {
+  const t = useTranslations("StudentCourseCard");
   const theme = LEVEL_THEME[level] ?? LEVEL_THEME.beginner;
   const clamped =
     progressPercent !== undefined
@@ -52,7 +58,7 @@ export function StudentCourseCard({
 
   return (
     <Link
-      href={`/learn/${slug}`}
+      href={suspended ? `/courses/${slug}` : `/learn/${slug}`}
       className="flex items-center justify-center shadow-(--shadow-my-courses-card) transition-[box-shadow,filter] hover:shadow-[0px_0px_40px_rgba(0,0,0,0.22)] focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-blue)"
       style={{
         background: theme.gradient,
@@ -94,23 +100,32 @@ export function StudentCourseCard({
           </div>
         </div>
 
-        {clamped !== undefined && (
-          <>
-            <div className="flex justify-end">
-              <span
-                className="font-(family-name:--font-accent) font-semibold uppercase text-(--color-text-primary)"
-                style={{ fontSize: "clamp(10px, 1.11vw, 16px)" }}
-              >
-                {clamped}%
-              </span>
-            </div>
-            <div className="h-0.5 overflow-hidden rounded-full bg-(--color-brand-lavender)">
-              <div
-                className="h-full rounded-full bg-(--color-blue)"
-                style={{ width: `${clamped}%` }}
-              />
-            </div>
-          </>
+        {suspended ? (
+          <span
+            className="self-start inline-block max-w-full truncate rounded-md bg-(--color-brand-pink) font-(family-name:--font-accent) uppercase leading-none text-(--color-pink-dark)"
+            style={{ fontSize: "clamp(7px, 0.69vw, 10px)", padding: "2px clamp(4px, 0.42vw, 6px)" }}
+          >
+            {t("paymentOverdue")}
+          </span>
+        ) : (
+          clamped !== undefined && (
+            <>
+              <div className="flex justify-end">
+                <span
+                  className="font-(family-name:--font-accent) font-semibold uppercase text-(--color-text-primary)"
+                  style={{ fontSize: "clamp(10px, 1.11vw, 16px)" }}
+                >
+                  {clamped}%
+                </span>
+              </div>
+              <div className="h-0.5 overflow-hidden rounded-full bg-(--color-brand-lavender)">
+                <div
+                  className="h-full rounded-full bg-(--color-blue)"
+                  style={{ width: `${clamped}%` }}
+                />
+              </div>
+            </>
+          )
         )}
       </div>
     </Link>

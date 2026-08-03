@@ -260,7 +260,7 @@ export function PublicProfileView({
   }
 
   return (
-    <section className="relative isolate min-h-full overflow-hidden px-(--page-padding-x) py-(--page-padding-y) font-(family-name:--font-base)">
+    <section className="relative isolate min-h-full min-w-0 overflow-hidden px-4 py-(--page-padding-y) font-(family-name:--font-base) lg:px-(--page-padding-x)">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
@@ -270,7 +270,7 @@ export function PublicProfileView({
         <span className="absolute -right-20 bottom-0 h-80 w-80 rounded-full bg-(--color-brand-cream) opacity-70 blur-3xl" />
       </div>
 
-      <div className="mx-auto grid w-full max-w-6xl grid-cols-1 overflow-hidden rounded-3xl border border-(--color-white-60) bg-(--color-white-60) shadow-(--shadow-card) backdrop-blur-xl lg:grid-cols-[minmax(16rem,0.8fr)_0.25rem_minmax(0,1.7fr)]">
+      <div className="mx-auto grid min-w-0 w-full max-w-6xl grid-cols-1 overflow-hidden rounded-3xl border border-(--color-white-60) bg-(--color-white-60) shadow-(--shadow-card) backdrop-blur-xl lg:grid-cols-[minmax(16rem,0.8fr)_0.25rem_minmax(0,1.7fr)]">
         <aside className="flex flex-col items-center px-6 py-8 text-center sm:px-8 lg:py-12">
           <div className="relative h-40 w-40 overflow-hidden rounded-full bg-(--color-surface) shadow-(--shadow-card) sm:h-48 sm:w-48">
             {profile.avatar ? (

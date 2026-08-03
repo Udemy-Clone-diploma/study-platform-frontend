@@ -1,4 +1,5 @@
 import type { UserData, UserProfile } from "./types";
+import type { PublicUserProfile } from "./publicProfile";
 import type { ModeratedUserReport } from "./userReport";
 
 export type AdminProfileUser = Omit<UserData, "profile"> & {
@@ -154,3 +155,6 @@ export type AdminUserProfile = {
     received: ReportStats;
   };
 };
+
+/** Staff profile requests return a public profile when a moderator opens an administrator. */
+export type StaffUserProfile = AdminUserProfile | PublicUserProfile;

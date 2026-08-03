@@ -20,7 +20,7 @@ export async function CourseDetailView({ course, reviews }: Props) {
   return (
     <div className="relative isolate overflow-x-clip bg-(--color-bg)">
       <SectionContainer>
-        <article className="flex flex-col gap-16 pt-12 sm:gap-20 sm:pt-16 lg:gap-32 lg:pt-24">
+        <article className="flex flex-col gap-12 pt-5 sm:gap-20 sm:pt-16 lg:gap-32 lg:pt-24">
           <section>
             <CourseHero course={course} />
           </section>
@@ -58,13 +58,13 @@ export async function CourseDetailView({ course, reviews }: Props) {
             <CourseTeacher teacher={course.teacher} quote={course.short_description} />
           </section>
 
-          <section className="grid grid-cols-1 gap-x-8 gap-y-8 sm:gap-x-12 lg:grid-cols-[minmax(0,1fr)_369px] lg:gap-x-[111px] lg:gap-y-10">
+          <section className="grid grid-cols-1 gap-x-8 gap-y-5 sm:gap-x-12 sm:gap-y-8 lg:grid-cols-[minmax(0,1fr)_369px] lg:gap-x-[111px] lg:gap-y-10">
             <div className="lg:col-span-2">
               <div className="flex flex-col gap-2">
-                <h2 className="text-3xl text-(--color-text-primary) sm:text-4xl lg:text-6xl">
+                <h2 className="text-2xl leading-tight text-(--color-text-primary) sm:text-4xl lg:text-6xl">
                   {t("heading")}
                 </h2>
-                <p className="text-xl text-(--color-text-secondary) sm:text-2xl lg:text-3xl">
+                <p className="text-sm text-(--color-text-secondary) sm:text-2xl lg:text-3xl">
                   {t("summary", { lessons: course.lessons_count, modules: course.modules.length })}
                 </p>
               </div>
@@ -99,7 +99,7 @@ export async function CourseDetailView({ course, reviews }: Props) {
         </article>
       </SectionContainer>
 
-      <div className="my-12 sm:my-16 lg:my-28">
+      <div className="my-10 sm:my-16 lg:my-28">
         <CourseFeedback reviews={reviews} reviewsHref={`/courses/${course.slug}/reviews`} />
       </div>
 
@@ -107,7 +107,7 @@ export async function CourseDetailView({ course, reviews }: Props) {
         <SectionContainer>
           <section
             id={PRICING_ANCHOR_ID}
-            className="relative mb-20 scroll-mt-24 pb-12 sm:mb-32 sm:pb-16 lg:mb-[260px] lg:pb-24"
+            className="relative mb-16 scroll-mt-24 pb-8 sm:mb-32 sm:pb-16 lg:mb-[260px] lg:pb-24"
           >
             <DecorBlob
               className="top-1/2 left-1/2 aspect-[3/2] h-[140%] w-auto -translate-x-1/2 -translate-y-1/2"

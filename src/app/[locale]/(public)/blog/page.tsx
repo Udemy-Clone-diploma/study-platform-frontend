@@ -16,15 +16,13 @@ export default async function BlogPage() {
 
   return (
     <div className="relative isolate overflow-x-clip bg-(--color-bg)">
-      {/* Blog_Background.svg is a tall pre-composited image with its own white-fade gradient
-          baked in -- sized to the page width and painted at the top; the rest of the (much
-          taller) page below it just shows the plain white page background. */}
+      {/* On phones the background covers the full long page and is cropped horizontally;
+          desktop keeps the original artwork sized to the page width. */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10"
+        className="pointer-events-none absolute inset-0 -z-10 bg-cover lg:bg-[length:100%_auto]"
         style={{
           backgroundImage: "url('/backgrounds/Blog_Background.svg')",
-          backgroundSize: "100% auto",
           backgroundPosition: "top center",
           backgroundRepeat: "no-repeat",
         }}

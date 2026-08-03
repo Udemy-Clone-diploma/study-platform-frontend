@@ -5,11 +5,16 @@ import { getUserRoleCookie } from "@/shared/api/authCookies";
 
 const DETAILED_PROFILE_ROLES = new Set(["administrator", "moderator", "teacher"]);
 
-function detailedProfileReturnPath(source: string | undefined): string {
+function detailedProfileReturnPath(
+  source: string | undefined,
+  viewerRole: string | undefined,
+): string {
   switch (source) {
     case "moderator-reports":
       return "/moderator-dashboard/reports";
     case "moderator-chats":
+      return "/moderator-dashboard/chats/reports";
+    case "moderator-chat":
       return "/moderator-dashboard/chats";
     case "moderator-reviews":
       return "/moderator-dashboard/reviews";
@@ -18,7 +23,7 @@ function detailedProfileReturnPath(source: string | undefined): string {
     case "teacher-reviews":
       return "/teacher-dashboard/courses";
     default:
-      return "/student-dashboard";
+      return viewerRole === "moderator" ? "/moderator-dashboard" : "/student-dashboard";
   }
 }
 
@@ -39,14 +44,18 @@ export default async function PublicUserProfilePage({
   const viewerRole = await getUserRoleCookie();
   const { view, from } = await searchParams;
 
-  if (view === "review" && viewerRole && DETAILED_PROFILE_ROLES.has(viewerRole)) {
+  const showDetailedProfile =
+    viewerRole === "moderator" ||
+    (view === "review" && viewerRole && DETAILED_PROFILE_ROLES.has(viewerRole));
+
+  if (showDetailedProfile) {
     const { AdminProfileLoader } = await import("@/features/profile");
     const t = await getTranslations("PublicProfile");
     return (
       <AdminProfileLoader
         key={numericUserId}
         userId={numericUserId}
-        backHref={detailedProfileReturnPath(from)}
+        backHref={detailedProfileReturnPath(from, viewerRole)}
         backLabel={t("backToComplaints")}
       />
     );

@@ -9,7 +9,7 @@ import type {
   UserStatus,
 } from "../model/types";
 import type { PublicUserProfile } from "../model/publicProfile";
-import type { AdminUserProfile } from "../model/adminProfile";
+import type { StaffUserProfile } from "../model/adminProfile";
 
 export async function getMe(accessToken?: string): Promise<UserData> {
   const { data } = await api.get<UserData>("auth/me/", {
@@ -69,8 +69,8 @@ export async function getPublicUserProfile(
   return data;
 }
 
-export async function getAdminUserProfile(id: number): Promise<AdminUserProfile> {
-  const { data } = await api.get<AdminUserProfile>(`users/${id}/admin-profile/`);
+export async function getAdminUserProfile(id: number): Promise<StaffUserProfile> {
+  const { data } = await api.get<StaffUserProfile>(`users/${id}/admin-profile/`);
   return data;
 }
 

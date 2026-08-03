@@ -12,8 +12,6 @@ export const articleFormLabelSt: React.CSSProperties = {
   display: "block",
   fontFamily: "var(--font-base)",
   fontWeight: 700,
-  fontSize: "clamp(14px, 1.39vw, 20px)",
-  lineHeight: "25px",
   color: "var(--color-text-primary)",
   marginBottom: "clamp(8px, 0.83vw, 12px)",
 };
@@ -23,16 +21,17 @@ export const articleFormInputSt: React.CSSProperties = {
   width: "100%",
   backgroundColor: "var(--color-input-bg)",
   border: "none",
-  borderRadius: 12,
-  padding: "clamp(12px, 1.39vw, 20px)",
   fontFamily: "var(--font-base)",
   fontWeight: 400,
-  fontSize: "clamp(14px, 1.39vw, 20px)",
-  lineHeight: "25px",
   color: "var(--color-text-primary)",
   outline: "none",
   boxSizing: "border-box",
 };
+
+const labelClassName = "text-[16px] leading-5 lg:text-[clamp(14px,1.39vw,20px)] lg:leading-[25px]";
+const inputClassName =
+  "rounded-xl px-4 py-3 text-[16px] leading-6 lg:p-[clamp(12px,1.39vw,20px)] " +
+  "lg:text-[clamp(14px,1.39vw,20px)] lg:leading-[25px]";
 
 type Props = {
   values: ArticleFormValues;
@@ -55,9 +54,11 @@ export function ArticleFormFields({ values, onChange, categories, existingCoverI
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "clamp(16px, 1.39vw, 20px)" }}>
+    <div className="flex flex-col gap-6 lg:gap-[clamp(16px,1.39vw,20px)]">
       <div>
-        <label htmlFor="article-title" style={articleFormLabelSt}>{t("titleLabel")}</label>
+        <label htmlFor="article-title" className={labelClassName} style={articleFormLabelSt}>
+          {t("titleLabel")}
+        </label>
         <input
           id="article-title"
           type="text"
@@ -65,12 +66,15 @@ export function ArticleFormFields({ values, onChange, categories, existingCoverI
           onChange={(e) => onChange({ ...values, title: e.target.value })}
           placeholder={t("textPlaceholder")}
           required
+          className={inputClassName}
           style={articleFormInputSt}
         />
       </div>
 
       <div>
-        <label htmlFor="article-subtitle" style={articleFormLabelSt}>{t("shortInfoLabel")}</label>
+        <label htmlFor="article-subtitle" className={labelClassName} style={articleFormLabelSt}>
+          {t("shortInfoLabel")}
+        </label>
         <input
           id="article-subtitle"
           type="text"
@@ -78,32 +82,42 @@ export function ArticleFormFields({ values, onChange, categories, existingCoverI
           onChange={(e) => onChange({ ...values, subtitle: e.target.value })}
           placeholder={t("textPlaceholder")}
           required
+          className={inputClassName}
           style={articleFormInputSt}
         />
       </div>
 
-      <div>
-        <label htmlFor="article-category" style={articleFormLabelSt}>{t("categoryLabel")}</label>
+      <div className="hidden lg:block">
+        <label htmlFor="article-category" className={labelClassName} style={articleFormLabelSt}>
+          {t("categoryLabel")}
+        </label>
         <select
           id="article-category"
           value={values.category ?? ""}
-          onChange={(e) => onChange({ ...values, category: e.target.value ? Number(e.target.value) : null })}
+          onChange={(e) =>
+            onChange({ ...values, category: e.target.value ? Number(e.target.value) : null })
+          }
+          className={inputClassName}
           style={{ ...articleFormInputSt, appearance: "auto" as const }}
         >
           <option value="">{t("noCategoryOption")}</option>
           {categories.map((cat) => (
-            <option key={cat.id} value={cat.id}>{cat.name}</option>
+            <option key={cat.id} value={cat.id}>
+              {cat.name}
+            </option>
           ))}
         </select>
       </div>
 
       <div>
-        <label style={articleFormLabelSt}>{t("coverLabel")}</label>
+        <label className={labelClassName} style={articleFormLabelSt}>
+          {t("coverLabel")}
+        </label>
         <div
+          className="min-h-[300px] lg:min-h-[140px]"
           style={{
             border: "2px dashed var(--color-draft)",
             borderRadius: 16,
-            minHeight: 140,
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
@@ -115,16 +129,48 @@ export function ArticleFormFields({ values, onChange, categories, existingCoverI
           }}
         >
           {coverPreview && (
-            <Image src={coverPreview} alt="" fill unoptimized style={{ objectFit: "cover", zIndex: 0 }} />
+            <Image
+              src={coverPreview}
+              alt=""
+              fill
+              unoptimized
+              style={{ objectFit: "cover", zIndex: 0 }}
+            />
           )}
-          <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
+          <div
+            style={{
+              position: "relative",
+              zIndex: 1,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 10,
+            }}
+          >
             {!coverPreview && (
               <>
-                <Upload size={24} style={{ color: "var(--color-text-secondary)" }} />
-                <p style={{ fontFamily: "var(--font-base)", fontSize: 13, color: "var(--color-text-secondary)", margin: 0 }}>
+                <Upload
+                  className="h-8 w-8 lg:h-6 lg:w-6"
+                  style={{ color: "var(--color-text-secondary)" }}
+                />
+                <p
+                  className="text-center text-[16px] lg:text-[13px]"
+                  style={{
+                    fontFamily: "var(--font-base)",
+                    color: "var(--color-text-secondary)",
+                    margin: 0,
+                  }}
+                >
                   {t("uploadImageHint")}
                 </p>
-                <p style={{ fontFamily: "var(--font-base)", fontSize: 12, color: "var(--color-text-secondary)", margin: 0 }}>
+                <p
+                  className="text-center text-[13px] lg:text-xs"
+                  style={{
+                    fontFamily: "var(--font-base)",
+                    color: "var(--color-text-secondary)",
+                    margin: 0,
+                  }}
+                >
                   {t("uploadFormatsHint")}
                 </p>
               </>
@@ -132,22 +178,32 @@ export function ArticleFormFields({ values, onChange, categories, existingCoverI
             <WhiteButton
               icon={<Upload size={16} />}
               onClick={() => coverInputRef.current?.click()}
-              style={{ minWidth: 200, height: 44 }}
+              style={{ width: "min(220px, 100%)", minWidth: 0, height: 48 }}
             >
               {t("chooseFileLabel")}
             </WhiteButton>
           </div>
-          <input ref={coverInputRef} type="file" accept="image/*,.jfif" style={{ display: "none" }} onChange={handleCoverChange} />
+          <input
+            ref={coverInputRef}
+            type="file"
+            accept="image/*,.jfif"
+            style={{ display: "none" }}
+            onChange={handleCoverChange}
+          />
         </div>
       </div>
 
       <div>
-        <label style={articleFormLabelSt}>{t("summaryLabel")}</label>
+        <label className={labelClassName} style={articleFormLabelSt}>
+          {t("summaryLabel")}
+        </label>
         <RichTextEditor
           value={values.body_html}
           onChange={(html) => onChange({ ...values, body_html: html })}
           placeholder={t("summaryPlaceholder")}
           minHeight={200}
+          hideToolbarOnMobile
+          className="[&_.ProseMirror]:!min-h-[320px] lg:[&_.ProseMirror]:!min-h-[200px]"
         />
       </div>
     </div>

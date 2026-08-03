@@ -33,12 +33,12 @@ export async function CourseScheduleCard({ cohorts, modules_count, lessons_count
   const formatLabel = first?.group_size ? t("groupOf", { count: first.group_size }) : t("group");
 
   return (
-    <aside className="flex flex-col gap-8 rounded-xl bg-(--color-white-50) px-4 py-6 shadow-(--shadow-usp-glass) backdrop-blur-md sm:gap-10 sm:py-8">
-      <h3 className="text-xl font-semibold text-(--color-text-primary) sm:text-2xl">
+    <aside className="flex flex-col gap-4 rounded-xl bg-(--color-white-50) px-3 py-4 shadow-(--shadow-usp-glass) backdrop-blur-md sm:gap-10 sm:px-4 sm:py-8">
+      <h3 className="text-base font-semibold text-(--color-text-primary) sm:text-2xl">
         {t("schedule")}
       </h3>
 
-      <ul className="flex flex-col gap-3">
+      <ul className="flex flex-col gap-2 sm:gap-3">
         {first && (
           <ScheduleRow icon={<Calendar />}>
             {t("monthsCount", { count: first.duration_months })}
@@ -52,7 +52,7 @@ export async function CourseScheduleCard({ cohorts, modules_count, lessons_count
       </ul>
 
       {startDate && (
-        <div className="flex flex-wrap items-baseline gap-3 text-base text-(--color-text-primary) sm:text-xl">
+        <div className="flex flex-wrap items-baseline gap-2 text-xs text-(--color-text-primary) sm:gap-3 sm:text-xl">
           <span className="font-semibold">{t("startDate")}</span>
           <span>{startDate}</span>
         </div>
@@ -63,9 +63,9 @@ export async function CourseScheduleCard({ cohorts, modules_count, lessons_count
 
 function ScheduleRow({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <li className="flex items-center gap-2 text-base text-(--color-text-primary) sm:text-xl">
+    <li className="flex items-center gap-2 text-xs text-(--color-text-primary) sm:text-xl">
       <span
-        className="flex h-7 w-7 flex-shrink-0 items-center justify-center text-(--color-text-primary) sm:h-8 sm:w-8 [&>svg]:h-7 [&>svg]:w-7 sm:[&>svg]:h-8 sm:[&>svg]:w-8"
+        className="flex h-4 w-4 flex-shrink-0 items-center justify-center text-(--color-text-primary) sm:h-8 sm:w-8 [&>svg]:h-4 [&>svg]:w-4 sm:[&>svg]:h-8 sm:[&>svg]:w-8"
         aria-hidden="true"
       >
         {icon}

@@ -21,12 +21,14 @@ export async function CourseCurriculum({
   const t = await getTranslations("CourseCurriculum");
 
   return (
-    <section className="flex flex-col gap-6">
+    <section className="flex flex-col gap-3 sm:gap-6">
       {!hideHeading && (
         <div className="flex flex-col gap-2">
-          <h2 className="text-4xl text-(--color-text-primary) lg:text-5xl">{t("heading")}</h2>
+          <h2 className="text-2xl text-(--color-text-primary) sm:text-4xl lg:text-5xl">
+            {t("heading")}
+          </h2>
           {hasModules && (
-            <p className="text-lg text-(--color-text-secondary)">
+            <p className="text-sm text-(--color-text-secondary) sm:text-lg">
               {t("summary", { lessons: course.lessons_count, modules: sorted.length })}
             </p>
           )}
@@ -40,7 +42,7 @@ export async function CourseCurriculum({
           ))}
         </div>
       ) : (
-        <p className="text-lg text-(--color-text-secondary)">{t("noCurriculum")}</p>
+        <p className="text-sm text-(--color-text-secondary) sm:text-lg">{t("noCurriculum")}</p>
       )}
     </section>
   );

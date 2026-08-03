@@ -22,7 +22,7 @@ export async function CourseReviewsView({ courseTitle, reviews }: Props) {
         width={1200}
         height={1200}
         sizes="80vw"
-        className="pointer-events-none absolute -left-[14%] bottom-[10%] -z-10 w-[45vw] min-w-[160px] max-w-[280px] select-none sm:min-w-[240px] sm:max-w-[420px] lg:w-[60vw] lg:min-w-[420px] lg:max-w-[820px]"
+        className="pointer-events-none absolute -left-[35%] bottom-[3%] -z-10 w-[85vw] select-none sm:-left-[14%] sm:bottom-[10%] sm:w-[45vw] sm:min-w-[240px] sm:max-w-[420px] lg:w-[60vw] lg:min-w-[420px] lg:max-w-[820px]"
       />
       <Image
         src="/backgrounds/crystal.png"
@@ -31,23 +31,23 @@ export async function CourseReviewsView({ courseTitle, reviews }: Props) {
         width={1000}
         height={1000}
         sizes="50vw"
-        className="pointer-events-none absolute -right-[8%] top-[18%] -z-10 w-[32vw] min-w-[120px] max-w-[200px] select-none sm:min-w-[180px] sm:max-w-[320px] lg:w-[44vw] lg:min-w-[320px] lg:max-w-[620px]"
+        className="pointer-events-none absolute -right-[24%] top-[8%] -z-10 w-[72vw] select-none sm:-right-[8%] sm:top-[18%] sm:w-[32vw] sm:min-w-[180px] sm:max-w-[320px] lg:w-[44vw] lg:min-w-[320px] lg:max-w-[620px]"
       />
 
       <SectionContainer>
-        <article className="flex flex-col gap-8 py-12 sm:gap-12 sm:py-16 lg:gap-16 lg:py-28">
-          <h1 className="text-2xl text-(--color-text-primary) sm:text-3xl lg:text-5xl">
+        <article className="flex flex-col gap-8 py-10 sm:gap-12 sm:py-16 lg:gap-16 lg:py-28">
+          <h1 className="max-w-[560px] text-[34px] leading-[1.28] text-(--color-text-primary) sm:text-3xl lg:text-5xl">
             {t("title", { course: courseTitle })}
           </h1>
 
           {reviews.length > 0 ? (
-            <ul className="flex flex-col gap-4">
+            <ul className="flex flex-col gap-6 sm:gap-4">
               {reviews.map((review, i) => (
                 <li
                   key={review.id}
                   className={`w-full max-w-[1180px] ${i % 2 === 0 ? "self-start" : "lg:self-end"}`}
                 >
-                  <CourseReviewCard review={review} showRating={false} />
+                  <CourseReviewCard review={review} variant="full" />
                 </li>
               ))}
             </ul>

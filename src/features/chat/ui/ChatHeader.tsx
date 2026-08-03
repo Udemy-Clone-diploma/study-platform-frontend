@@ -31,7 +31,7 @@ export function ChatHeader({
   const canOpenAvatar = chat.type === "group" || Boolean(peer);
 
   return (
-    <header className="relative z-0 mx-auto flex h-[61px] min-h-[61px] w-full max-w-[335px] shrink-0 items-center justify-between gap-2 rounded-[20px] border border-white bg-(--color-white-20) p-2 shadow-(--shadow-usp-glass) backdrop-blur-md lg:mx-0 lg:h-auto lg:min-h-[90px] lg:max-w-none lg:gap-0 lg:rounded-[18px] lg:border-white/70 lg:bg-[#D6E0FF]/60 lg:px-10 lg:py-4 lg:shadow-[inset_0_2px_4px_rgba(255,255,255,0.65)] lg:backdrop-blur-none">
+    <header className="absolute inset-x-0 top-0 z-30 mx-auto flex h-[61px] min-h-[61px] w-full max-w-[335px] shrink-0 items-center justify-between gap-2 rounded-[20px] border border-white/80 bg-white/35 p-2 shadow-(--shadow-usp-glass) backdrop-blur-[12px] lg:relative lg:inset-auto lg:mx-0 lg:h-auto lg:min-h-[90px] lg:max-w-none lg:gap-0 lg:rounded-[18px] lg:border-white/70 lg:bg-[#D6E0FF]/60 lg:px-10 lg:py-4 lg:shadow-[inset_0_2px_4px_rgba(255,255,255,0.65)] lg:backdrop-blur-none">
       <div className="flex min-w-0 items-center gap-2 lg:gap-4">
         {canOpenAvatar ? (
           <button

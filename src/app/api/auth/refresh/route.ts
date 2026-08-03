@@ -119,14 +119,15 @@ export async function GET(request: NextRequest) {
   const next = request.nextUrl.searchParams.get("next") || "/";
   const redirectTarget = next.startsWith("/") ? next : "/";
   const refreshed = await refreshSession(request);
+  const baseUrl = process.env.APP_URL || request.url;
 
   if (!refreshed) {
-    const response = NextResponse.redirect(new URL("/login", request.url));
+    const response = NextResponse.redirect(new URL("/login", baseUrl));
     clearSession(response);
     return response;
   }
 
-  const response = NextResponse.redirect(new URL(redirectTarget, request.url));
+  const response = NextResponse.redirect(new URL(redirectTarget, baseUrl));
   setSessionCookies(response, {
     access: refreshed.access,
     refresh: refreshed.refresh,

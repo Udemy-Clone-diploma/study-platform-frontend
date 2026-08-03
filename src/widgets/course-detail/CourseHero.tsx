@@ -43,22 +43,22 @@ export async function CourseHero({ course }: Props) {
   };
 
   return (
-    <section className="grid grid-cols-1 items-center gap-8 sm:gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,600px)] lg:gap-12">
-      <div className="order-2 flex flex-col gap-10 lg:order-none lg:gap-[60px]">
-        <div className="flex flex-col gap-6 sm:gap-10">
-          <div className="flex flex-col gap-4 sm:gap-5">
+    <section className="grid grid-cols-1 items-center gap-5 sm:gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,600px)] lg:gap-12">
+      <div className="order-2 flex flex-col gap-5 sm:gap-10 lg:order-none lg:gap-[60px]">
+        <div className="flex flex-col gap-4 sm:gap-10">
+          <div className="flex flex-col gap-3 sm:gap-5">
             <span
-              className={`inline-flex w-fit items-center rounded-md px-3 py-0.5 font-(family-name:--font-accent) text-sm uppercase ${LEVEL_BADGE[course.level]}`}
+              className={`inline-flex w-fit items-center rounded px-2 py-0.5 font-(family-name:--font-accent) text-[9px] leading-3 uppercase sm:rounded-md sm:px-3 sm:text-sm sm:leading-normal ${LEVEL_BADGE[course.level]}`}
             >
               {LEVEL_LABEL[course.level]}
             </span>
 
             <div className="flex flex-col gap-1">
-              <h1 className="text-3xl leading-tight text-(--color-text-primary) sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl">
+              <h1 className="text-[28px] leading-[1.05] text-(--color-text-primary) sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl">
                 {course.title}
               </h1>
               {course.subtitle && (
-                <p className="text-xl text-(--color-text-secondary) sm:text-2xl md:text-3xl lg:text-4xl">
+                <p className="text-base leading-tight text-(--color-text-secondary) sm:text-2xl md:text-3xl lg:text-4xl">
                   {course.subtitle}
                 </p>
               )}
@@ -69,11 +69,11 @@ export async function CourseHero({ course }: Props) {
             </div>
           </div>
 
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-1 text-base text-(--color-text-primary) sm:text-xl">
+          <div className="flex flex-col gap-2 sm:gap-4">
+            <div className="flex items-center gap-1 text-xs text-(--color-text-primary) sm:text-xl">
               <Star
                 aria-hidden="true"
-                className="h-6 w-6 flex-shrink-0 sm:h-9 sm:w-9"
+                className="h-4 w-4 flex-shrink-0 sm:h-9 sm:w-9"
                 fill={hasReviews ? "var(--color-gold)" : "transparent"}
                 stroke="var(--color-gold)"
               />
@@ -84,7 +84,7 @@ export async function CourseHero({ course }: Props) {
               )}
             </div>
 
-            <ul className="flex flex-wrap items-center gap-2 sm:gap-3">
+            <ul className="flex flex-wrap items-center gap-1.5 sm:gap-3">
               <MetaPill>
                 {t("languageLabel", { language: LANGUAGE_LABEL[course.language] })}
               </MetaPill>
@@ -103,7 +103,7 @@ export async function CourseHero({ course }: Props) {
         />
       </div>
 
-      <div className="order-1 relative mx-auto w-full max-w-[280px] sm:max-w-[380px] md:max-w-[460px] lg:order-none lg:max-w-[560px] lg:mx-0">
+      <div className="relative order-1 mx-auto w-full max-w-[280px] sm:max-w-[380px] md:max-w-[460px] lg:order-none lg:mx-0 lg:max-w-[560px]">
         {/* Decorative blobs behind the image — same recipe as the homepage hero
             (gradient-blob + blur(90px)). Resize with w-/h-, reposition with top-/left-/right-. */}
         <HeroEllipse className="top-[-25%] right-[-35%] h-[650px] w-[650px]" />
@@ -149,9 +149,9 @@ export async function CourseHero({ course }: Props) {
         )}
         <div
           aria-hidden="true"
-          className="absolute bottom-[12%] left-[6%] inline-flex items-center rounded-[20px] border border-(--color-blue) bg-(--color-brand-lavender) px-4 py-2 shadow-(--shadow-card) sm:px-8"
+          className="absolute bottom-[12%] left-[6%] inline-flex items-center rounded-[20px] border border-(--color-blue) bg-(--color-brand-lavender) px-3 py-1 shadow-(--shadow-card) sm:px-8 sm:py-2"
         >
-          <span className="text-base font-semibold text-(--color-blue) sm:text-2xl">
+          <span className="text-xs font-semibold text-(--color-blue) sm:text-2xl">
             {course.teacher.name}
           </span>
         </div>
@@ -162,7 +162,7 @@ export async function CourseHero({ course }: Props) {
 
 function MetaPill({ children }: { children: React.ReactNode }) {
   return (
-    <li className="rounded-full border border-(--color-brand-pink) bg-(--color-bg-surface) px-3 py-1 text-base text-(--color-text-primary) sm:text-xl">
+    <li className="rounded-full border border-(--color-brand-pink) bg-(--color-bg-surface) px-2 py-0.5 text-[10px] leading-3 text-(--color-text-primary) sm:px-3 sm:py-1 sm:text-xl sm:leading-normal">
       {children}
     </li>
   );

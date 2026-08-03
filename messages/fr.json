@@ -612,7 +612,8 @@
     "loadingChats": "Chargement des discussions…",
     "newChatAriaLabel": "Nouvelle discussion",
     "noChats": "Aucune discussion pour l'instant",
-    "searchPlaceholder": "Rechercher des discussions"
+    "searchPlaceholder": "Rechercher des discussions",
+    "messageReports": "Messages signalés"
   },
   "ChatWorkspace": {
     "couldNotLoadMessages": "Impossible de charger les messages.",

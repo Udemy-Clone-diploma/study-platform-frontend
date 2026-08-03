@@ -19,25 +19,25 @@ export async function CourseFeedback({ reviews, reviewsHref }: Props) {
   return (
     <section className="w-full" style={{ background: "var(--gradient-feedback)" }}>
       <div
-        className="flex flex-col gap-7 py-12 sm:py-16 lg:py-[100px]"
+        className="flex flex-col gap-5 py-8 sm:gap-7 sm:py-16 lg:py-[100px]"
         style={{ width: "min(1420px, 100% - max(32px, 7vw))", marginInline: "auto" }}
       >
-        <div className="flex flex-wrap items-start justify-between gap-4 sm:gap-7">
+        <div className="flex flex-wrap items-center justify-between gap-3 sm:items-start sm:gap-7">
           <SectionBadge>{t("badge")}</SectionBadge>
 
           {hasReviews && (
             <Link
               href={reviewsHref}
-              className="inline-flex items-center gap-2 font-(family-name:--font-accent) text-base font-medium uppercase text-(--color-text-primary) transition hover:text-(--color-blue) sm:gap-3 sm:text-xl"
+              className="inline-flex items-center gap-1.5 font-(family-name:--font-accent) text-[9px] font-medium uppercase text-(--color-text-primary) transition hover:text-(--color-blue) sm:gap-3 sm:text-xl"
             >
               {t("viewMore")}
-              <ArrowUpRight aria-hidden="true" className="h-5 w-5 sm:h-7 sm:w-7" />
+              <ArrowUpRight aria-hidden="true" className="h-3.5 w-3.5 sm:h-7 sm:w-7" />
             </Link>
           )}
         </div>
 
         {hasReviews ? (
-          <div className="flex flex-col gap-5 lg:flex-row">
+          <div className="flex flex-col gap-3 sm:gap-5 lg:flex-row">
             <div className="lg:w-[580px] lg:flex-shrink-0">
               <CourseReviewCard review={featured[0]} />
             </div>
@@ -48,9 +48,7 @@ export async function CourseFeedback({ reviews, reviewsHref }: Props) {
             )}
           </div>
         ) : (
-          <p className="text-base text-(--color-text-secondary) sm:text-xl">
-            {t("noReviewsFull")}
-          </p>
+          <p className="text-xs text-(--color-text-secondary) sm:text-xl">{t("noReviewsFull")}</p>
         )}
       </div>
     </section>

@@ -612,7 +612,8 @@
     "loadingChats": "Завантаження чатів…",
     "newChatAriaLabel": "Новий чат",
     "noChats": "Чатів ще немає",
-    "searchPlaceholder": "Пошук чатів"
+    "searchPlaceholder": "Пошук чатів",
+    "messageReports": "Скарги на повідомлення"
   },
   "ChatWorkspace": {
     "couldNotLoadMessages": "Не вдалося завантажити повідомлення.",

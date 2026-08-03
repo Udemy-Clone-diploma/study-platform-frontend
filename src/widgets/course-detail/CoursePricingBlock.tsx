@@ -380,15 +380,15 @@ export function CoursePricingBlock({ courseId, formats, slug, cohorts = [], disc
   };
 
   return (
-    <section className="flex flex-col gap-8 sm:gap-10">
-      <div className="flex flex-col gap-4">
+    <section className="flex flex-col gap-5 sm:gap-10">
+      <div className="flex flex-col gap-2 sm:gap-4">
         <SectionBadge>{t("tuitionBadge")}</SectionBadge>
-        <p className="max-w-[1180px] text-lg text-(--color-text-primary) sm:text-xl lg:text-2xl">
+        <p className="max-w-[1180px] text-sm leading-snug text-(--color-text-primary) sm:text-xl sm:leading-normal lg:text-2xl">
           {t("tuitionIntro")}
         </p>
       </div>
 
-      <div className="flex flex-wrap items-start justify-center gap-x-8 gap-y-8 sm:gap-y-12 xl:gap-x-62">
+      <div className="flex flex-wrap items-start justify-center gap-x-8 gap-y-4 sm:gap-y-12 xl:gap-x-62">
         {pricedFormats.map((fmt) => {
           const plan = fmt.pricing!;
           const Icon = FORMAT_ICON[fmt.format_type];
@@ -409,25 +409,25 @@ export function CoursePricingBlock({ courseId, formats, slug, cohorts = [], disc
           return (
             <article
               key={fmt.id}
-              className="flex w-full max-w-[460px] flex-col items-center justify-between gap-8 rounded-[20px] border border-(--color-bg) bg-(--color-white-20) px-6 py-8 backdrop-blur-md sm:gap-10 sm:py-11 lg:w-[460px]"
+              className="flex w-full max-w-[460px] flex-col items-center justify-between gap-5 rounded-[16px] border border-(--color-bg) bg-(--color-white-20) px-4 py-5 backdrop-blur-md sm:gap-10 sm:rounded-[20px] sm:px-6 sm:py-11 lg:w-[460px]"
             >
-              <div className="flex flex-col items-center gap-8 w-full sm:gap-10">
+              <div className="flex w-full flex-col items-center gap-5 sm:gap-10">
                 <div className="flex flex-col items-center gap-2">
                   <div className="flex items-center gap-2">
                     <Icon
-                      className="h-6 w-6 text-(--color-text-primary) sm:h-8 sm:w-8"
+                      className="h-5 w-5 text-(--color-text-primary) sm:h-8 sm:w-8"
                       aria-hidden="true"
                     />
-                    <h3 className="text-2xl text-(--color-text-primary) sm:text-3xl lg:text-4xl">
+                    <h3 className="text-lg text-(--color-text-primary) sm:text-3xl lg:text-4xl">
                       {t(`formatLabel.${fmt.format_type}`)}
                     </h3>
                   </div>
-                  <p className="max-w-[260px] text-center text-base text-(--color-text-primary)">
+                  <p className="max-w-[260px] text-center text-xs leading-snug text-(--color-text-primary) sm:text-base sm:leading-normal">
                     {t(`formatBlurb.${fmt.format_type}`)}
                   </p>
                 </div>
 
-                <div className="flex flex-col items-center gap-6 sm:gap-7">
+                <div className="flex flex-col items-center gap-4 sm:gap-7">
                   <PriceRow label={t("fullPrice")}>
                     {discountPercent && plan.final_price !== plan.price ? (
                       <span className="text-base text-(--color-text-secondary) line-through">
@@ -455,7 +455,7 @@ export function CoursePricingBlock({ courseId, formats, slug, cohorts = [], disc
                       <span className="font-(family-name:--font-accent) text-xl font-bold uppercase sm:text-2xl">
                         {formatPrice(plan.final_installment_amount ?? plan.installment_amount, plan.currency, locale)}
                       </span>
-                      <span className="text-base">
+                      <span className="text-[11px] sm:text-base">
                         {t("monthlyPayments", { count: plan.installment_count })}
                       </span>
                     </PriceRow>
@@ -491,7 +491,7 @@ export function CoursePricingBlock({ courseId, formats, slug, cohorts = [], disc
               <GradientButton
                 onClick={() => handleBuy(plan.id, fmt.id, fmt.format_type)}
                 disabled={pendingPlanId !== null || (isGroup && availableCohorts.length === 0)}
-                style={{ boxShadow: "0 10px 30px rgba(0, 58, 255, 0.22)" }}
+                style={{ boxShadow: "0 10px 30px rgba(0, 58, 255, 0.22)", fontSize: 12 }}
               >
                 {pendingPlanId === plan.id
                   ? tHeroCta("processing")
@@ -513,7 +513,7 @@ export function CoursePricingBlock({ courseId, formats, slug, cohorts = [], disc
 function PriceRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col items-center gap-1 text-(--color-text-primary)">
-      <span className="font-(family-name:--font-accent) text-xl uppercase sm:text-2xl">
+      <span className="font-(family-name:--font-accent) text-xs uppercase sm:text-2xl">
         {label}
       </span>
       <div className="flex flex-wrap items-center justify-center gap-x-1">{children}</div>

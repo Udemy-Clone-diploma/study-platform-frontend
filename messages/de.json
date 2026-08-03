@@ -612,7 +612,8 @@
     "loadingChats": "Chats werden geladen…",
     "newChatAriaLabel": "Neuer Chat",
     "noChats": "Noch keine Chats",
-    "searchPlaceholder": "Chats durchsuchen"
+    "searchPlaceholder": "Chats durchsuchen",
+    "messageReports": "Gemeldete Nachrichten"
   },
   "ChatWorkspace": {
     "couldNotLoadMessages": "Nachrichten konnten nicht geladen werden.",

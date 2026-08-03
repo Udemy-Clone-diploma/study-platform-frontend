@@ -118,7 +118,7 @@ export function CourseHeroCTA({ slug, isEnrolled, defaultFormat }: Props) {
         {pending ? t("processing") : isFreeCourse ? t("enrollFree") : t("choosePlan")}
       </AccentButton>
       {notice && (
-        <p role="status" className="max-w-[460px] text-base text-(--color-pink-dark)">
+        <p role="status" className="max-w-[460px] text-xs text-(--color-pink-dark) sm:text-base">
           {notice}
         </p>
       )}

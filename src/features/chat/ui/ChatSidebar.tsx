@@ -1,6 +1,7 @@
 import Image from "next/image";
+import { Link } from "@/i18n/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { Loader2, LockKeyhole, MessageSquarePlus, Plus, Users } from "lucide-react";
+import { Loader2, LockKeyhole, MessageSquarePlus, Plus, ShieldAlert, Users } from "lucide-react";
 import type { ChatRoom, ChatType } from "@/entities/chat";
 import { compactTime } from "../lib/chatFormatters";
 import { chatAvatar, chatTitle, lastMessagePreview } from "../lib/chatSelectors";
@@ -18,6 +19,7 @@ type Props = {
   onTypeFilterChange: (filter: ChatType) => void;
   onSelectChat: (chatId: number) => void;
   onNewChat: () => void;
+  moderationHref?: string;
 };
 
 /** Displays chat search, type filters, and the selectable chat list. */
@@ -33,6 +35,7 @@ export function ChatSidebar({
   onTypeFilterChange,
   onSelectChat,
   onNewChat,
+  moderationHref,
 }: Props) {
   const t = useTranslations("ChatSidebar");
   const tCommon = useTranslations("ChatCommon");
@@ -64,7 +67,21 @@ export function ChatSidebar({
         />
       </label>
 
-      <div className="mt-[18px] flex items-center justify-center lg:mt-7 lg:justify-between lg:px-[clamp(26px,3vw,64px)]">
+      {moderationHref ? (
+        <div className="mt-2 flex justify-end">
+          <Link
+            href={moderationHref}
+            className="inline-flex min-h-9 items-center gap-2 rounded-full bg-white/70 px-4 py-2 text-xs font-semibold text-[#0B257C] shadow-sm transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#003AFF]"
+          >
+            <ShieldAlert className="h-4 w-4" aria-hidden="true" />
+            {t("messageReports")}
+          </Link>
+        </div>
+      ) : null}
+
+      <div
+        className={`${moderationHref ? "mt-2" : "mt-[18px]"} flex items-center justify-center lg:mt-7 lg:justify-between lg:px-[clamp(26px,3vw,64px)]`}
+      >
         <div className="relative inline-flex h-[46px] w-[150px] gap-1.5 rounded-[40px] bg-[#D9D9D9]/20 px-1.5 py-1 shadow-[0_2px_4px_0_rgba(255,255,255,1)] lg:h-16 lg:w-[212px] lg:gap-2.5 lg:px-2">
           <span
             aria-hidden="true"

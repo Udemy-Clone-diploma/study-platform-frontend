@@ -23,6 +23,7 @@ import {
   type AdminProfileCourse,
   type AdminProfileUser,
   type AdminUserProfile,
+  type StaffUserProfile,
   type CourseModerationRecord,
   type ModeratedUserReport,
   type PlatformStats,
@@ -36,6 +37,7 @@ import { ModalShell } from "@/shared/ui/ModalShell";
 import { PageShell } from "@/shared/ui/PageShell";
 import { ReportReviewModal } from "@/features/users/ui/moderation/UserReportsWorkspace";
 import { getRoleLabels } from "@/features/users/model/labels";
+import { PublicProfileView } from "./PublicProfileView";
 
 function formatDate(value: string | null | undefined) {
   if (!value) return "Not specified";
@@ -59,7 +61,9 @@ function displayValue(value: unknown) {
 
 function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
-    <section className={`rounded-2xl bg-white p-5 shadow-(--shadow-dashboard-card) ${className}`}>
+    <section
+      className={`min-w-0 overflow-hidden rounded-2xl bg-white p-4 shadow-(--shadow-dashboard-card) sm:p-5 ${className}`}
+    >
       {children}
     </section>
   );
@@ -162,7 +166,7 @@ function AttendanceChart({ course }: { course: AdminProfileCourse }) {
   const attendance = course.enrollment?.attendance;
   if (!attendance) return null;
   return (
-    <div className="mt-4 rounded-xl bg-(--color-brand-lavender-soft) p-4">
+    <div className="mt-4 w-full max-w-full overflow-hidden rounded-xl bg-(--color-brand-lavender-soft) p-3 sm:p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm font-semibold text-(--color-text-primary)">Attendance</p>
         <p className="text-sm font-bold text-(--color-blue)">
@@ -171,7 +175,7 @@ function AttendanceChart({ course }: { course: AdminProfileCourse }) {
       </div>
       {attendance.points.length ? (
         <div
-          className="mt-4 flex h-24 items-end gap-2"
+          className="mt-4 flex h-24 w-full max-w-full items-end gap-1 sm:gap-2"
           aria-label={`Attendance chart for ${course.title}`}
         >
           {attendance.points.map((point) => (
@@ -184,7 +188,7 @@ function AttendanceChart({ course }: { course: AdminProfileCourse }) {
                 style={{ height: `${Math.max(point.value, 4)}%` }}
                 title={`${point.label}: ${point.value}%`}
               />
-              <span className="truncate text-center text-[10px] text-(--color-text-muted)">
+              <span className="truncate text-center text-[8px] text-(--color-text-muted) sm:text-[10px]">
                 {point.label}
               </span>
             </div>
@@ -208,7 +212,7 @@ function CourseCard({
 }) {
   return (
     <article className="rounded-xl border border-(--color-border-light) bg-(--color-bg-surface) p-4">
-      <div className="flex min-w-0 gap-3">
+      <div className="flex min-w-0 flex-col gap-3 sm:flex-row">
         {course.image ? (
           <Image
             src={course.image}
@@ -216,10 +220,10 @@ function CourseCard({
             width={64}
             height={64}
             unoptimized
-            className="h-16 w-16 rounded-lg object-cover"
+            className="h-32 w-full rounded-lg object-cover sm:h-16 sm:w-16"
           />
         ) : (
-          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-(image:--gradient-brand)">
+          <div className="flex h-32 w-full shrink-0 items-center justify-center rounded-lg bg-(image:--gradient-brand) sm:h-16 sm:w-16">
             <BookOpen className="h-6 w-6 text-(--color-text-primary)" />
           </div>
         )}
@@ -643,8 +647,8 @@ function AdminProfileView({
   const [selectedReport, setSelectedReport] = useState<ModeratedUserReport | null>(null);
 
   return (
-    <PageShell className="bg-(--color-brand-lavender-soft)">
-      <div className="mx-auto flex w-full max-w-[1648px] flex-col gap-5 font-(family-name:--font-base)">
+    <PageShell className="overflow-x-hidden bg-(--color-brand-lavender-soft)">
+      <div className="mx-auto flex min-w-0 w-full max-w-[1648px] flex-col gap-5 font-(family-name:--font-base)">
         <Link
           href={backHref}
           className="inline-flex w-fit items-center gap-2 text-sm font-semibold text-(--color-blue-dark) hover:text-(--color-blue)"
@@ -658,8 +662,8 @@ function AdminProfileView({
           </p>
         </header>
 
-        <div className="grid items-start gap-5 2xl:grid-cols-[360px_minmax(0,1fr)]">
-          <div className="space-y-5">
+        <div className="grid min-w-0 grid-cols-1 items-start gap-5 2xl:grid-cols-[360px_minmax(0,1fr)]">
+          <div className="min-w-0 space-y-5">
             <Card className="flex flex-col items-center text-center">
               <div className="relative h-36 w-36 overflow-hidden rounded-full bg-(image:--gradient-brand)">
                 {user.avatar ? (
@@ -787,7 +791,7 @@ export function AdminProfileLoader({
   backHref?: string;
   backLabel?: string;
 }) {
-  const [data, setData] = useState<AdminUserProfile | null>(null);
+  const [data, setData] = useState<StaffUserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -831,6 +835,10 @@ export function AdminProfileLoader({
         </div>
       </PageShell>
     );
+  }
+
+  if ("role" in data) {
+    return <PublicProfileView profile={data} />;
   }
 
   return <AdminProfileView data={data} backHref={backHref} backLabel={backLabel} />;

@@ -90,11 +90,11 @@ export function MessageList({
   const tCommon = useTranslations("ChatCommon");
   const locale = useLocale();
   return (
-    <div className="relative mt-3 min-h-0 flex-1 lg:mt-4">
+    <div className="relative min-h-0 flex-1 lg:mt-4">
       <div
         ref={viewportRef}
         onScroll={onScroll}
-        className="chat-scrollbar-hidden relative flex h-full flex-col overflow-y-auto rounded-none border-0 bg-transparent px-0 pb-[72px] pt-1 shadow-none lg:rounded-[18px] lg:border lg:border-white/70 lg:bg-[#D6E0FF]/45 lg:px-5 lg:py-6 lg:shadow-[inset_0_2px_4px_rgba(255,255,255,0.65)]"
+        className="chat-scrollbar-hidden relative flex h-full flex-col overflow-y-auto rounded-none border-0 bg-transparent px-0 pb-[72px] pt-[73px] shadow-none lg:rounded-[18px] lg:border lg:border-white/70 lg:bg-[#D6E0FF]/45 lg:px-5 lg:py-6 lg:shadow-[inset_0_2px_4px_rgba(255,255,255,0.65)]"
       >
         {hasMore ? (
           <div className="mb-5 flex justify-center">

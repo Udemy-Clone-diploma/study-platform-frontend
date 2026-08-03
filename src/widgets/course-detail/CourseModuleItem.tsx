@@ -22,24 +22,24 @@ export function CourseModuleItem({ courseModule, slug, hasPricing }: Props) {
       ?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   return (
-    <div className="flex flex-col gap-4 border-b border-(--color-text-primary) py-5 last:border-b-0 sm:gap-5 sm:py-6">
+    <div className="flex flex-col gap-2 border-b border-(--color-text-primary) py-3 last:border-b-0 sm:gap-5 sm:py-6">
       <button
         type="button"
         id={headerId}
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center gap-3 text-left"
+        className="flex w-full items-center gap-2 text-left sm:gap-3"
       >
-        <span className="inline-flex flex-shrink-0 items-center justify-center rounded-[20px] bg-(--color-brand-lavender-soft) px-3 py-0.5 text-base font-semibold text-(--color-blue) sm:text-xl">
+        <span className="inline-flex flex-shrink-0 items-center justify-center rounded-[20px] bg-(--color-brand-lavender-soft) px-2 py-0.5 text-[8px] leading-3 font-semibold text-(--color-blue) sm:px-3 sm:text-xl sm:leading-normal">
           {t("modulePrefix", { number: courseModule.order })}
         </span>
-        <span className="flex-1 text-base font-semibold text-(--color-text-primary) sm:text-xl">
+        <span className="flex-1 text-[11px] leading-tight font-semibold text-(--color-text-primary) sm:text-xl sm:leading-normal">
           {courseModule.title}
         </span>
         <ChevronDown
           aria-hidden="true"
-          className={`h-6 w-6 flex-shrink-0 text-(--color-text-primary) transition-transform sm:h-8 sm:w-8 ${open ? "rotate-180" : ""}`}
+          className={`h-4 w-4 flex-shrink-0 text-(--color-text-primary) transition-transform sm:h-8 sm:w-8 ${open ? "rotate-180" : ""}`}
         />
       </button>
 
@@ -74,7 +74,7 @@ export function CourseModuleItem({ courseModule, slug, hasPricing }: Props) {
               </>
             );
             const row =
-              "flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg px-3 py-2 text-base sm:text-lg lg:text-xl";
+              "flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg px-2 py-1.5 text-xs sm:gap-x-3 sm:px-3 sm:py-2 sm:text-lg lg:text-xl";
             const interactive = `w-full text-left transition-colors hover:bg-(--color-catalog-highlight) ${row}`;
 
             return (

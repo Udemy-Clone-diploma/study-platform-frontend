@@ -55,9 +55,12 @@ export function BlogHeroSection({ role }: Props) {
   );
 
   return (
-    <SectionContainer style={{ paddingTop: "7.19vw", paddingBottom: "2.5vw" }}>
-      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between" style={{ gap: "clamp(16px, 2vw, 29px)" }}>
-        <div className="w-full lg:w-auto min-[1024px]:max-[1439px]:max-w-[max(420px,36.46vw)] min-[1440px]:max-w-[max(600px,36.46vw)]" style={{ display: "flex", flexDirection: "column", gap: "clamp(12px, 1.04vw, 15px)" }}>
+    <SectionContainer className="pt-7 pb-0 lg:pt-[7.19vw] lg:pb-[2.5vw]">
+      <div
+        className="flex flex-col lg:flex-row lg:items-start lg:justify-between"
+        style={{ gap: "clamp(16px, 2vw, 29px)" }}
+      >
+        <div className="flex w-full flex-col gap-2.5 lg:w-auto lg:gap-[clamp(12px,1.04vw,15px)] min-[1024px]:max-[1439px]:max-w-[max(420px,36.46vw)] min-[1440px]:max-w-[max(600px,36.46vw)]">
           <h1
             className="text-[28px] leading-[34px] md:text-[38px] md:leading-[46px] lg:text-[clamp(28px,3.125vw,45px)] lg:leading-[clamp(34px,3.75vw,54px)] lg:whitespace-nowrap"
             style={{
@@ -69,7 +72,9 @@ export function BlogHeroSection({ role }: Props) {
           >
             {t.rich("title", {
               highlight: (chunks) => (
-                <span className="bg-(--color-catalog-highlight) px-1 py-0.5 text-(--color-blue)">{chunks}</span>
+                <span className="bg-(--color-catalog-highlight) px-1 py-0.5 text-(--color-blue)">
+                  {chunks}
+                </span>
               ),
             })}
           </h1>
@@ -85,16 +90,21 @@ export function BlogHeroSection({ role }: Props) {
             {t("description")}
           </p>
 
-          {canManage && <div className="hidden lg:flex" style={{ marginTop: "0.52vw" }}>{manageRow}</div>}
+          {canManage && (
+            <div className="hidden lg:flex" style={{ marginTop: "0.52vw" }}>
+              {manageRow}
+            </div>
+          )}
         </div>
 
         <div className="hidden lg:block">{allButton}</div>
       </div>
 
-      <div className="mt-4 flex items-center justify-center lg:hidden" style={{ gap: "10px" }}>
-        {canManage && manageRow}
-        {allButton}
-      </div>
+      {canManage && (
+        <div className="mt-5 flex items-center justify-center lg:hidden">
+          <GradientButton href="/blog/create">{t("addArticle")}</GradientButton>
+        </div>
+      )}
     </SectionContainer>
   );
 }

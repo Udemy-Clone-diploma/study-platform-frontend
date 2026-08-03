@@ -29,10 +29,23 @@ function isItemActive(item: SidebarItem, pathname: string): boolean {
     : pathname === item.href || pathname.startsWith(`${item.href}/`);
 }
 
-function NavSlot({ href, active, label, children }: { href: string; active: boolean; label: string; children: React.ReactNode }) {
+function NavSlot({
+  href,
+  active,
+  label,
+  children,
+  onClick,
+}: {
+  href: string;
+  active: boolean;
+  label: string;
+  children: React.ReactNode;
+  onClick?: () => void;
+}) {
   return (
     <Link
       href={href}
+      onClick={onClick}
       aria-current={active ? "page" : undefined}
       className="flex flex-1 flex-col items-center gap-1 text-(--color-blue-dark)"
     >
@@ -42,7 +55,9 @@ function NavSlot({ href, active, label, children }: { href: string; active: bool
       >
         {children}
       </span>
-      <span style={labelStyle} className="max-w-full truncate">{label}</span>
+      <span style={labelStyle} className="max-w-full truncate">
+        {label}
+      </span>
     </Link>
   );
 }
@@ -68,9 +83,25 @@ export function BottomNav({ role, items }: Props) {
       }}
     >
       {primary.map((item) => (
-        <NavSlot key={item.id} href={item.href} active={isItemActive(item, pathname)} label={item.label}>
+        <NavSlot
+          key={item.id}
+          href={item.href}
+          active={isItemActive(item, pathname)}
+          label={item.label}
+          onClick={
+            item.id === "chats"
+              ? () => window.dispatchEvent(new Event("chat:list-requested"))
+              : undefined
+          }
+        >
           {item.iconSrc ? (
-            <Image src={item.iconSrc} alt="" width={40} height={40} className="h-10 w-10 object-contain" />
+            <Image
+              src={item.iconSrc}
+              alt=""
+              width={40}
+              height={40}
+              className="h-10 w-10 object-contain"
+            />
           ) : (
             <SidebarIcon name={item.icon} width={40} height={40} />
           )}

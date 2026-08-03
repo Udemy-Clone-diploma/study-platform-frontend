@@ -612,7 +612,8 @@
     "loadingChats": "Loading chats…",
     "newChatAriaLabel": "New chat",
     "noChats": "No chats yet",
-    "searchPlaceholder": "Search chats"
+    "searchPlaceholder": "Search chats",
+    "messageReports": "Message reports"
   },
   "ChatWorkspace": {
     "couldNotLoadMessages": "Could not load messages.",

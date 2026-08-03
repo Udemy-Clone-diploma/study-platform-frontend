@@ -4,9 +4,7 @@ import type { UserData } from "@/entities/user";
 /** Minimal shape of next-intl's translator, accepted so this plain module stays framework-agnostic. */
 type Translator = (key: string, values?: Record<string, string | number>) => string;
 
-export function userDisplayName(
-  user: Pick<ChatUser, "name" | "first_name" | "last_name">,
-) {
+export function userDisplayName(user: Pick<ChatUser, "name" | "first_name" | "last_name">) {
   return user.name || `${user.first_name} ${user.last_name}`.trim() || "User";
 }
 
@@ -79,6 +77,9 @@ export function userProfileHref(user: ChatUser, viewer: UserData | null) {
   }
   if (viewer?.role === "administrator") {
     return `/admin/chats/users/${user.id}`;
+  }
+  if (viewer?.role === "moderator") {
+    return `/profile/${user.id}?view=review&from=moderator-chat`;
   }
   return `/profile/${user.id}`;
 }

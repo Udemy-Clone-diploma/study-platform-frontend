@@ -92,6 +92,7 @@ import { ReportMessageModal } from "./ReportMessageModal";
 
 type ChatWorkspaceProps = {
   onViewProfile?: (user: ChatUser) => void;
+  moderationHref?: string;
 };
 
 type MessageCacheEntry = {
@@ -101,7 +102,7 @@ type MessageCacheEntry = {
 };
 
 /** Full chat workspace with an optional profile-view override for composed experiences. */
-export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
+export function ChatWorkspace({ onViewProfile, moderationHref }: ChatWorkspaceProps = {}) {
   const t = useTranslations("ChatWorkspace");
   const tCommon = useTranslations("ChatCommon");
   const tShared = useTranslations("Common");
@@ -224,6 +225,12 @@ export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
   useEffect(() => {
     setMobileChatOpen(Boolean(requestedChatId));
   }, [requestedChatId]);
+
+  useEffect(() => {
+    const showChatList = () => setMobileChatOpen(false);
+    window.addEventListener("chat:list-requested", showChatList);
+    return () => window.removeEventListener("chat:list-requested", showChatList);
+  }, []);
 
   const loadChats = useCallback(async () => {
     setError("");
@@ -1191,7 +1198,7 @@ export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
   }
 
   return (
-    <main className="-mt-16 -mb-[calc(103px+env(safe-area-inset-bottom))] flex h-[100dvh] min-h-0 flex-none flex-col overflow-hidden bg-[#D6E0FF] px-4 pb-[calc(103px+env(safe-area-inset-bottom))] pt-[123px] text-[#111827] lg:m-0 lg:h-[calc(100vh-76px)] lg:min-h-[640px] lg:flex-1 lg:flex-row lg:gap-[clamp(28px,4vw,76px)] lg:overflow-visible lg:px-[clamp(28px,4vw,78px)] lg:py-[clamp(24px,3vw,40px)]">
+    <main className="-mt-16 -mb-[calc(103px+env(safe-area-inset-bottom))] flex h-[100dvh] min-h-0 flex-none flex-col overflow-hidden bg-[#D6E0FF] px-4 pb-[calc(103px+env(safe-area-inset-bottom))] pt-[84px] text-[#111827] lg:m-0 lg:h-[calc(100vh-76px)] lg:min-h-[640px] lg:flex-1 lg:flex-row lg:gap-[clamp(28px,4vw,76px)] lg:overflow-visible lg:px-[clamp(28px,4vw,78px)] lg:py-[clamp(24px,3vw,40px)]">
       <ChatSidebar
         search={chatSearch}
         typeFilter={chatTypeFilter}
@@ -1204,6 +1211,7 @@ export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
         mobileVisible={!mobileChatOpen}
         onSelectChat={selectChat}
         onNewChat={() => setComposeOpen(true)}
+        moderationHref={moderationHref}
       />
 
       <section
@@ -1275,7 +1283,7 @@ export function ChatWorkspace({ onViewProfile }: ChatWorkspaceProps = {}) {
             {error ? (
               <p
                 role="alert"
-                className="mt-3 rounded-lg border border-[#FAD1D1] bg-[#FFF7F7] px-5 py-2 text-sm text-[#B42318]"
+                className="absolute inset-x-0 top-[73px] z-40 rounded-lg border border-[#FAD1D1] bg-[#FFF7F7] px-5 py-2 text-sm text-[#B42318] lg:relative lg:inset-auto lg:top-auto lg:mt-3"
               >
                 {error}
               </p>

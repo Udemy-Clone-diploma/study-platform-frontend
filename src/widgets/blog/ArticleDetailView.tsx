@@ -67,24 +67,32 @@ export function ArticleDetailView({ article, categories, currentUserId, currentU
       {/* Same background as /blog: Blog_Background.svg, painted at the top, not stretched. */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10"
+        className="pointer-events-none absolute inset-0 -z-10 bg-cover lg:bg-[length:100%_auto]"
         style={{
           backgroundImage: "url('/backgrounds/Blog_Background.svg')",
-          backgroundSize: "100% auto",
           backgroundPosition: "top center",
           backgroundRepeat: "no-repeat",
         }}
       />
-      <DecorImage src="/backgrounds/00 3.svg" className="top-[8%] left-[-10%] rotate-[138deg] hidden lg:block" />
-      <DecorImage src="/backgrounds/00 4.svg" className="top-[42%] right-[-8%] rotate-[-150deg] hidden lg:block" />
+      <DecorImage
+        src="/backgrounds/00 3.svg"
+        className="top-[8%] left-[-10%] rotate-[138deg] hidden lg:block"
+      />
+      <DecorImage
+        src="/backgrounds/00 4.svg"
+        className="top-[42%] right-[-8%] rotate-[-150deg] hidden lg:block"
+      />
 
-      <SectionContainer style={{ paddingTop: "3.6vw", paddingBottom: "5vw", maxWidth: "min(900px, 100%)" }}>
-        <div className="flex items-start justify-between" style={{ gap: 16, marginBottom: 24 }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <SectionContainer
+        className="pt-6 pb-12 lg:pt-[3.6vw] lg:pb-[5vw]"
+        style={{ maxWidth: "min(900px, 100%)" }}
+      >
+        <div className="mb-5 flex items-start justify-between gap-4 lg:mb-6">
+          <div className="flex min-w-0 flex-col gap-2 lg:gap-3">
             {article.category && (
               <span
+                className="hidden lg:inline-flex"
                 style={{
-                  display: "inline-flex",
                   alignSelf: "flex-start",
                   alignItems: "center",
                   padding: "0 10px",
@@ -102,14 +110,25 @@ export function ArticleDetailView({ article, categories, currentUserId, currentU
               </span>
             )}
             <h1
-              className="text-[28px] md:text-[36px] lg:text-[clamp(28px,3.5vw,48px)]"
-              style={{ fontFamily: "var(--font-base)", fontWeight: 400, lineHeight: 1.2, color: "var(--color-text-primary)", margin: 0, overflowWrap: "break-word" }}
+              className="text-[21px] leading-[1.12] sm:text-[28px] md:text-[36px] lg:text-[clamp(28px,3.5vw,48px)] lg:leading-[1.2]"
+              style={{
+                fontFamily: "var(--font-base)",
+                fontWeight: 400,
+                color: "var(--color-text-primary)",
+                margin: 0,
+                overflowWrap: "break-word",
+              }}
             >
               {renderHighlightedTitle(article.title)}
             </h1>
             <p
-              className="text-[15px] md:text-[17px] lg:text-[clamp(15px,1.4vw,20px)]"
-              style={{ fontFamily: "var(--font-base)", color: "var(--color-text-secondary)", margin: 0, overflowWrap: "break-word" }}
+              className="text-[12px] leading-[1.3] sm:text-[14px] md:text-[17px] lg:text-[clamp(15px,1.4vw,20px)]"
+              style={{
+                fontFamily: "var(--font-base)",
+                color: "var(--color-text-secondary)",
+                margin: 0,
+                overflowWrap: "break-word",
+              }}
             >
               {article.subtitle}
             </p>
@@ -133,35 +152,65 @@ export function ArticleDetailView({ article, categories, currentUserId, currentU
           </div>
         )}
 
-        <div className="flex items-center" style={{ gap: 10, marginBottom: 24 }}>
-          {article.author.avatar ? (
-            <Image src={article.author.avatar} alt={article.author.name} width={40} height={40} unoptimized style={{ borderRadius: "50%", objectFit: "cover" }} />
-          ) : (
-            <div style={{ width: 40, height: 40, borderRadius: "50%", background: "var(--color-badge-lavender)" }} />
-          )}
-          <div>
-            <p style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: 14, color: "var(--color-text-primary)", margin: 0 }}>
-              {article.author.name}
-            </p>
-            {article.published_at && (
-              <p style={{ fontFamily: "var(--font-base)", fontSize: 13, color: "var(--color-text-secondary)", margin: 0 }}>
-                {formatDate(article.published_at, locale)}
-              </p>
+        <div className="flex flex-col">
+          <div className="order-2 mb-4 flex items-center gap-2.5 lg:order-1 lg:mb-6">
+            {article.author.avatar ? (
+              <Image
+                src={article.author.avatar}
+                alt={article.author.name}
+                width={40}
+                height={40}
+                unoptimized
+                className="h-7 w-7 rounded-full object-cover lg:h-10 lg:w-10"
+              />
+            ) : (
+              <div className="h-7 w-7 rounded-full bg-(--color-badge-lavender) lg:h-10 lg:w-10" />
             )}
+            <div>
+              <p
+                className="text-[11px] lg:text-sm"
+                style={{
+                  fontFamily: "var(--font-base)",
+                  fontWeight: 600,
+                  color: "var(--color-text-primary)",
+                  margin: 0,
+                }}
+              >
+                {article.author.name}
+              </p>
+              {article.published_at && (
+                <p
+                  className="text-[10px] lg:text-[13px]"
+                  style={{
+                    fontFamily: "var(--font-base)",
+                    color: "var(--color-text-secondary)",
+                    margin: 0,
+                  }}
+                >
+                  {formatDate(article.published_at, locale)}
+                </p>
+              )}
+            </div>
           </div>
+
+          {article.cover_image && (
+            <div className="relative order-1 mb-3 aspect-[3/2] w-full overflow-hidden rounded-[14px] lg:order-2 lg:mb-8 lg:aspect-video lg:rounded-[20px]">
+              <Image
+                src={article.cover_image}
+                alt={article.title}
+                fill
+                unoptimized
+                style={{ objectFit: "cover" }}
+              />
+            </div>
+          )}
+
+          <div
+            className="order-3 text-[12px] leading-[1.18] text-(--color-text-primary) sm:text-sm sm:leading-[1.35] md:text-base lg:text-[clamp(15px,1.1vw,17px)] lg:leading-[1.7] [&_blockquote]:my-3 [&_blockquote]:border-l-2 [&_blockquote]:pl-3 [&_h2]:mt-5 [&_h2]:mb-2 [&_h2]:text-lg [&_h3]:mt-4 [&_h3]:mb-2 [&_h3]:text-base [&_li]:my-0.5 [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:mb-3 [&_table]:block [&_table]:max-w-full [&_table]:overflow-x-auto [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-5 lg:[&_h2]:text-2xl lg:[&_h3]:text-xl"
+            style={{ fontFamily: "var(--font-base)", overflowWrap: "break-word" }}
+            dangerouslySetInnerHTML={{ __html: sanitizeCourseHtml(article.body_html) }}
+          />
         </div>
-
-        {article.cover_image && (
-          <div style={{ position: "relative", width: "100%", aspectRatio: "16 / 9", borderRadius: 20, overflow: "hidden", marginBottom: 32 }}>
-            <Image src={article.cover_image} alt={article.title} fill unoptimized style={{ objectFit: "cover" }} />
-          </div>
-        )}
-
-        <div
-          className="text-[15px] md:text-[16px] lg:text-[clamp(15px,1.1vw,17px)]"
-          style={{ fontFamily: "var(--font-base)", lineHeight: 1.7, color: "var(--color-text-primary)", overflowWrap: "break-word" }}
-          dangerouslySetInnerHTML={{ __html: sanitizeCourseHtml(article.body_html) }}
-        />
       </SectionContainer>
 
       <ArticleActionModals categories={categories} state={actions} />

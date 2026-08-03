@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FileText } from "lucide-react";
+import { Bookmark } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { ModalShell } from "@/shared/ui/ModalShell";
 import { ModalFooter } from "@/shared/ui/ModalFooter";
@@ -53,12 +53,17 @@ export function ArticleFormModal({
     <ModalShell
       onClose={onClose}
       title={t("title")}
-      icon={<FileText size={24} style={{ color: "var(--color-text-primary)", flexShrink: 0 }} />}
-      width="clamp(480px, 60.42vw, 870px)"
-      padding="clamp(20px, 2.78vw, 40px) clamp(24px, 3.47vw, 50px)"
+      icon={<Bookmark size={24} style={{ color: "var(--color-text-primary)", flexShrink: 0 }} />}
+      width="min(870px, calc(100vw - 32px))"
+      padding="clamp(24px, 3.47vw, 50px)"
+      maxHeight="calc(100dvh - 32px)"
     >
       <form onSubmit={handleSubmit}>
-        {moderatorComment && <div style={{ marginBottom: "clamp(16px, 1.39vw, 20px)" }}><ModeratorNoteBanner comment={moderatorComment} /></div>}
+        {moderatorComment && (
+          <div style={{ marginBottom: "clamp(16px, 1.39vw, 20px)" }}>
+            <ModeratorNoteBanner comment={moderatorComment} />
+          </div>
+        )}
 
         <ArticleFormFields
           values={values}

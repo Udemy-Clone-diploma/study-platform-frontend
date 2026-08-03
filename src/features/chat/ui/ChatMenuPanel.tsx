@@ -56,7 +56,7 @@ export function ChatMenuPanel({
   return (
     <aside
       aria-hidden={!open}
-      className={`absolute right-0 top-[104px] z-30 w-[292px] transition duration-200 ${
+      className={`absolute right-0 top-[73px] z-40 w-[292px] transition duration-200 lg:top-[104px] ${
         open
           ? "pointer-events-auto translate-x-0 opacity-100"
           : "pointer-events-none translate-x-8 opacity-0"

@@ -1689,15 +1689,6 @@
     "deleteConfirmLabel": "Delete",
     "genericError": "Something went wrong."
   },
-  "CourseStatusBadge": {
-    "draft": "Draft",
-    "review": "Moderation",
-    "needs_revision": "Needs revision",
-    "rejected": "Rejected",
-    "published": "Published",
-    "hidden": "Hidden",
-    "archived": "Archived"
-  },
   "CourseStatusTabs": {
     "ariaLabel": "Filter courses by status",
     "published": "Published",
@@ -1706,9 +1697,6 @@
     "hidden": "Hidden",
     "rejected": "Rejected",
     "archived": "Archived"
-  },
-  "AdminDashboardPlaceholder": {
-    "comingSoon": "Administrator dashboard — coming soon"
   },
   "CoursesTable": {
     "columnCourse": "Course",

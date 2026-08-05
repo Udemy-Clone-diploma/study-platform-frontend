@@ -1690,15 +1690,6 @@
     "deleteConfirmLabel": "Eliminar",
     "genericError": "Algo salió mal."
   },
-  "CourseStatusBadge": {
-    "draft": "Borrador",
-    "review": "Moderación",
-    "needs_revision": "Requiere revisión",
-    "rejected": "Rechazado",
-    "published": "Publicado",
-    "hidden": "Oculto",
-    "archived": "Archivado"
-  },
   "CourseStatusTabs": {
     "ariaLabel": "Filtrar cursos por estado",
     "published": "Publicados",
@@ -1707,9 +1698,6 @@
     "hidden": "Ocultos",
     "rejected": "Rechazados",
     "archived": "Archivados"
-  },
-  "AdminDashboardPlaceholder": {
-    "comingSoon": "Panel de administración — próximamente"
   },
   "CoursesTable": {
     "columnCourse": "Curso",

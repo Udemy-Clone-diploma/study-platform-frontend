@@ -39,6 +39,7 @@ export function NewCoursesSection({ courses, wishlistedSlugs }: Props) {
             display: "flex",
             gap: "3.65vw",
             width: "max-content",
+            minHeight: "clamp(300px, calc(284.95px + 4.01vw), 362px)",
             animation: "carousel-right 60s linear infinite",
             animationPlayState: paused ? "paused" : "running",
           }}

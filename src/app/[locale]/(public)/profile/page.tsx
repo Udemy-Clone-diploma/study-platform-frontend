@@ -226,7 +226,7 @@ function ProfilePage() {
 
     if (loading) return (
         <div style={{ minHeight: "50vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <span style={{ fontFamily: "var(--font-base)", color: "var(--color-text-secondary)", fontSize: "1.04vw" }}>
+            <span style={{ fontFamily: "var(--font-base)", color: "var(--color-text-secondary)", fontSize: "clamp(13px, 1.04vw, 20px)" }}>
                 {t("loading")}
             </span>
         </div>
@@ -250,9 +250,9 @@ function ProfilePage() {
                 <PasswordChangeModal onClose={() => setShowPasswordModal(false)} />
             )}
 
-            <div style={{ position: "relative", zIndex: 1, display: "flex" }}>
-                <div style={{ width: "4.17vw", flexShrink: 0 }} />
-                <div style={GRAD_LINE} />
+            <div className="relative z-1 flex flex-col lg:flex-row">
+                <div className="hidden shrink-0 lg:block lg:w-[4.17vw]" />
+                <div className="hidden lg:block" style={GRAD_LINE} />
 
                 <ProfileSidebar
                     user={user}
@@ -267,9 +267,9 @@ function ProfilePage() {
                     onCancel={handleCancel}
                 />
 
-                <div style={GRAD_LINE} />
+                <div className="hidden lg:block" style={GRAD_LINE} />
 
-                <div style={{ flex: 1, padding: "4.17vw 9.375vw 6.25vw 2.08vw" }}>
+                <div className="w-full px-4 pt-4 pb-4 lg:flex-1 lg:px-0 lg:pt-[4.17vw] lg:pr-[9.375vw] lg:pb-[6.25vw] lg:pl-[2.08vw]">
                     <ProfileMainContent
                         editing={editing} saving={saving}
                         completionPercent={calcCompletion(user, socialLinks, completionExtras, !isMinimal)}
@@ -328,10 +328,10 @@ function ProfilePage() {
                             />
                         )}
                         {isMinimal && (
-                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25vw 2.08vw" }}>
+                            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-[1.25vw_2.08vw]">
                                 <div style={{ display: "flex", flexDirection: "column", gap: "0.208vw" }}>
-                                    <span style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "1.25vw", color: "var(--color-text-secondary)", letterSpacing: "-0.011em" }}>{t("email")}</span>
-                                    <span style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "1.25vw", color: "var(--color-text-primary)", letterSpacing: "-0.011em" }}>{user.email}</span>
+                                    <span style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(20px, 1.25vw, 24px)", color: "var(--color-text-secondary)", letterSpacing: "-0.011em" }}>{t("email")}</span>
+                                    <span style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(20px, 1.25vw, 24px)", color: "var(--color-text-primary)", letterSpacing: "-0.011em" }}>{user.email}</span>
                                 </div>
                             </div>
                         )}

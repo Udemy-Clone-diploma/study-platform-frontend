@@ -230,11 +230,11 @@ function NoteCard({ note }: { note: NoteListItem }) {
         />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-[11px] text-[#5e5e5e]">
+        <p className="truncate text-xs text-[#5e5e5e]">
           {note.course_title} <span className="px-1">|</span> {lessonLabel}
           {note.is_course_completed && <span className="px-1 text-[#5e5e5e]">· {t("completed")}</span>}
         </p>
-        <p className="line-clamp-2 text-sm font-medium leading-tight text-black">
+        <p className="line-clamp-2 text-base font-medium leading-tight text-black">
           {firstNoteLine(note.content, t("untitledNote"))}
         </p>
       </div>

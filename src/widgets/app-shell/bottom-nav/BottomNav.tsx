@@ -17,11 +17,13 @@ type Props = {
 
 const labelStyle: React.CSSProperties = {
   fontFamily: "var(--font-accent)",
-  fontSize: 10,
+  fontSize: "clamp(10px, calc(8.47px + 0.39vw), 12px)",
   lineHeight: "13px",
   textTransform: "uppercase",
   letterSpacing: "-0.24px",
 };
+
+const ICON_SIZE = "clamp(40px, calc(33.88px + 1.57vw), 48px)";
 
 function isItemActive(item: SidebarItem, pathname: string): boolean {
   return item.match === "exact"
@@ -50,8 +52,12 @@ function NavSlot({
       className="flex flex-1 flex-col items-center gap-1 text-(--color-blue-dark)"
     >
       <span
-        className="flex h-12 w-12 items-center justify-center rounded-[4px] p-1"
-        style={active ? { backgroundImage: "var(--gradient-bottom-nav-active)" } : undefined}
+        className="flex items-center justify-center rounded-[4px] p-1"
+        style={{
+          width: ICON_SIZE,
+          height: ICON_SIZE,
+          ...(active ? { backgroundImage: "var(--gradient-bottom-nav-active)" } : {}),
+        }}
       >
         {children}
       </span>
@@ -100,16 +106,17 @@ export function BottomNav({ role, items }: Props) {
               alt=""
               width={40}
               height={40}
-              className="h-10 w-10 object-contain"
+              className="object-contain"
+              style={{ width: "83%", height: "83%" }}
             />
           ) : (
-            <SidebarIcon name={item.icon} width={40} height={40} />
+            <SidebarIcon name={item.icon} width={40} height={40} style={{ width: "83%", height: "83%" }} />
           )}
         </NavSlot>
       ))}
 
       <NavSlot href={OTHERS_HREF} active={othersActive} label={t("others")}>
-        <MoreHorizontal className="h-10 w-10" aria-hidden />
+        <MoreHorizontal style={{ width: "83%", height: "83%" }} aria-hidden />
       </NavSlot>
     </nav>
   );

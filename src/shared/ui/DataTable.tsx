@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { ChevronDown, ChevronUp, ChevronsUpDown } from "lucide-react";
 import { useTranslations } from "next-intl";
 
@@ -36,6 +36,13 @@ interface DataTableProps<T> {
   currentSort?: string | null;
   /** Called when a sortable header is clicked. Receives the new ordering string. */
   onSortChange?: (ordering: string) => void;
+  /**
+   * Below `lg`, once columns hit their minimum readable size, stop shrinking them
+   * further and let the table scroll horizontally instead. Card variant only.
+   */
+  minWidth?: string;
+  /** Shrinks font/padding a step further — for when a sibling panel is eating into the available width. */
+  compact?: boolean;
 }
 
 /**
@@ -56,6 +63,8 @@ export function DataTable<T>({
   selectedKey = null,
   currentSort = null,
   onSortChange,
+  minWidth,
+  compact = false,
 }: DataTableProps<T>) {
   const t = useTranslations("Common");
   const resolvedEmptyMessage = emptyMessage ?? t("noData");
@@ -64,21 +73,121 @@ export function DataTable<T>({
       ? "font-semibold text-(--color-text-secondary)"
       : "text-(--color-text-primary)";
   const isCard = rowVariant === "card";
-  const fs = isCard ? "clamp(13px, 1.11vw, 16px)" : "clamp(13px, 1.11vw, 20px)";
-  const px = "clamp(12px, 1.67vw, 24px)";
-  const gap = "clamp(10px, 1.11vw, 16px)";
+  const fs = isCard
+    ? compact
+      ? "clamp(10px, 0.9vw, 13px)"
+      : "clamp(11px, 1.11vw, 16px)"
+    : "clamp(13px, 1.11vw, 20px)";
+  const px = compact ? "clamp(8px, 1.11vw, 18px)" : "clamp(12px, 1.67vw, 24px)";
+  const gap = compact ? "clamp(6px, 0.83vw, 12px)" : "clamp(10px, 1.11vw, 16px)";
   const numW = "clamp(18px, 1.39vw, 20px)";
+  const scrollX = isCard && !!minWidth;
 
   return (
     <div
-      className={`w-full overflow-hidden rounded-2xl bg-white${scrollable ? " flex min-h-0 flex-1 flex-col" : ""}`}
+      className={[
+        "w-full rounded-2xl bg-white",
+        scrollable ? "flex min-h-0 flex-1 flex-col" : "",
+        scrollX ? "overflow-x-auto lg:overflow-visible" : "overflow-hidden",
+      ].join(" ")}
       style={{
         boxShadow: "var(--shadow-dashboard-card)",
         padding: isCard
           ? "clamp(8px, 0.83vw, 12px) clamp(12px, 1.67vw, 24px) clamp(12px, 1.67vw, 24px)"
           : undefined,
+        ...(scrollX ? ({ "--table-min-w": minWidth } as CSSProperties) : {}),
       }}
     >
+      {scrollX ? (
+        <div className="max-lg:min-w-(--table-min-w)">
+          <DataTableContent
+            columns={columns}
+            rows={rows}
+            getRowKey={getRowKey}
+            resolvedEmptyMessage={resolvedEmptyMessage}
+            indexOffset={indexOffset}
+            scrollable={scrollable}
+            headerVariant={headerVariant}
+            headerTextClass={headerTextClass}
+            showIndex={showIndex}
+            isCard={isCard}
+            selectedKey={selectedKey}
+            currentSort={currentSort}
+            onSortChange={onSortChange}
+            t={t}
+            fs={fs}
+            px={px}
+            gap={gap}
+            numW={numW}
+          />
+        </div>
+      ) : (
+        <DataTableContent
+          columns={columns}
+          rows={rows}
+          getRowKey={getRowKey}
+          resolvedEmptyMessage={resolvedEmptyMessage}
+          indexOffset={indexOffset}
+          scrollable={scrollable}
+          headerVariant={headerVariant}
+          headerTextClass={headerTextClass}
+          showIndex={showIndex}
+          isCard={isCard}
+          selectedKey={selectedKey}
+          currentSort={currentSort}
+          onSortChange={onSortChange}
+          t={t}
+          fs={fs}
+          px={px}
+          gap={gap}
+          numW={numW}
+        />
+      )}
+    </div>
+  );
+}
+
+function DataTableContent<T>({
+  columns,
+  rows,
+  getRowKey,
+  resolvedEmptyMessage,
+  indexOffset,
+  scrollable,
+  headerVariant,
+  headerTextClass,
+  showIndex,
+  isCard,
+  selectedKey,
+  currentSort,
+  onSortChange,
+  t,
+  fs,
+  px,
+  gap,
+  numW,
+}: {
+  columns: DataTableColumn<T>[];
+  rows: T[];
+  getRowKey: (row: T, index: number) => string | number;
+  resolvedEmptyMessage: string;
+  indexOffset: number;
+  scrollable: boolean;
+  headerVariant: "gradient" | "plain";
+  headerTextClass: string;
+  showIndex: boolean;
+  isCard: boolean;
+  selectedKey: string | number | null;
+  currentSort: string | null;
+  onSortChange?: (ordering: string) => void;
+  t: ReturnType<typeof useTranslations>;
+  fs: string;
+  px: string;
+  gap: string;
+  numW: string;
+}) {
+  return (
+    <>
       {/* Gradient header row */}
       <div
         className="flex shrink-0 items-center"
@@ -177,7 +286,7 @@ export function DataTable<T>({
                 {columns.map((col) => (
                   <div
                     key={col.key}
-                    className="min-w-0"
+                    className="min-w-0 overflow-hidden break-words"
                     style={{
                       flex: col.flex ?? 1,
                       fontSize: fs,
@@ -228,6 +337,6 @@ export function DataTable<T>({
           })}
         </div>
       )}
-    </div>
+    </>
   );
 }

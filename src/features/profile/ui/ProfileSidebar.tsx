@@ -31,19 +31,15 @@ export function ProfileSidebar({ user, editing, avatarPreview, socialLinks, teac
     const avatarSrc = avatarPreview ?? user.avatar ?? null;
 
     return (
-        <div style={{
-            width: "22.14vw", flexShrink: 0,
-            display: "flex", flexDirection: "column", alignItems: "center",
-            gap: "1.25vw", padding: "4.17vw 1.5vw 6.25vw",
-            alignSelf: "flex-start",
-        }}>
+        <div
+            className="flex w-full shrink-0 flex-col items-center gap-5 px-4 pt-4 pb-4 lg:w-[22.14vw] lg:items-center lg:gap-[1.25vw] lg:self-start lg:px-[1.5vw] lg:pt-[4.17vw] lg:pb-[6.25vw]"
+        >
             {/* Avatar */}
             <div
                 onClick={editing ? () => fileRef.current?.click() : undefined}
+                className="relative h-[104px] w-[104px] shrink-0 overflow-hidden rounded-full lg:h-[12.5vw] lg:w-[12.5vw]"
                 style={{
-                    width: "12.5vw", height: "12.5vw", borderRadius: "50%",
-                    overflow: "hidden", flexShrink: 0, position: "relative",
-        background: "var(--color-surface)",
+                    background: "var(--color-surface)",
                     cursor: editing ? "pointer" : "default",
                 }}
             >
@@ -54,7 +50,7 @@ export function ProfileSidebar({ user, editing, avatarPreview, socialLinks, teac
                         width: "100%", height: "100%",
                         display: "flex", alignItems: "center", justifyContent: "center",
                         background: "var(--gradient-brand)",
-                        color: "var(--color-bg)", fontSize: "3vw", fontWeight: 700,
+                        color: "var(--color-bg)", fontSize: "clamp(24px, 3vw, 58px)", fontWeight: 700,
                         fontFamily: "var(--font-base)",
                     }}>
                         {user.first_name?.[0]?.toUpperCase() ?? "U"}
@@ -66,7 +62,7 @@ export function ProfileSidebar({ user, editing, avatarPreview, socialLinks, teac
                         position: "absolute", inset: 0,
                         display: "flex", alignItems: "center", justifyContent: "center",
                         background: "var(--color-overlay-dark)",
-                        color: "var(--color-bg)", fontSize: "0.833vw", fontWeight: 600,
+                        color: "var(--color-bg)", fontSize: "clamp(11px, 0.833vw, 16px)", fontWeight: 600,
                         fontFamily: "var(--font-base)", textAlign: "center",
                         lineHeight: 1.3,
                     }}>
@@ -89,7 +85,7 @@ export function ProfileSidebar({ user, editing, avatarPreview, socialLinks, teac
             {/* Full name */}
             <div style={{
                 fontFamily: "var(--font-base)", fontWeight: 700,
-                fontSize: "2.083vw", color: "var(--color-text-primary)",
+                fontSize: "clamp(32px, 2.083vw, 40px)", color: "var(--color-text-primary)",
                 textAlign: "center", lineHeight: 1.25, letterSpacing: "-0.011em",
             }}>
                 {fullName || "—"}
@@ -100,7 +96,7 @@ export function ProfileSidebar({ user, editing, avatarPreview, socialLinks, teac
                 <div style={{
                     display: "flex", alignItems: "center", gap: "0.417vw",
                     fontFamily: "var(--font-base)", fontWeight: 600,
-                    fontSize: "1.25vw", color: "var(--color-text-primary)",
+                    fontSize: "clamp(18px, 1.25vw, 24px)", color: "var(--color-text-primary)",
                 }}>
                     <span>⭐</span>
                     <span>{parseFloat(teacherRating).toFixed(1)}</span>
@@ -108,37 +104,34 @@ export function ProfileSidebar({ user, editing, avatarPreview, socialLinks, teac
             )}
 
             {/* Social media */}
-            {showSocial && <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.833vw" }}>
+            {showSocial && <div className="flex w-full flex-col items-center gap-3 lg:gap-[0.833vw]">
 
                 <span style={{
                     fontFamily: "var(--font-base)", fontWeight: 400,
-                    fontSize: "1.667vw", color: "var(--color-text-primary)", lineHeight: 1.25,
+                    fontSize: "clamp(20px, 1.667vw, 32px)", color: "var(--color-text-primary)", lineHeight: 1.25,
                 }}>
                     {t("mySocialMedia")}
                 </span>
 
                 {editing ? (
-                    <div style={{ display: "flex", flexDirection: "column", gap: "0.833vw", width: "100%" }}>
+                    <div className="flex w-full flex-col gap-3 lg:gap-[0.833vw]">
                         {PROFILE_SOCIALS.map(s => (
-                            <div key={s.key} style={{
-                                display: "flex", alignItems: "center", gap: "0.625vw",
+                            <div key={s.key} className="flex items-center gap-2 rounded-full border px-4 py-2 lg:gap-[0.625vw] lg:px-[1.042vw] lg:py-[0.417vw]" style={{
                                 background: "var(--color-bg)",
-                                border: "1px solid var(--color-text-primary)",
-                                borderRadius: "2.083vw",
-                                padding: "0.417vw 1.042vw",
+                                borderColor: "var(--color-text-primary)",
                             }}>
                                 <Image src={s.srcBlack} alt={s.label} width={32} height={32}
-                                    style={{ width: "1.458vw", height: "1.458vw", flexShrink: 0, display: "block" }}
+                                    className="h-5 w-5 shrink-0 lg:h-[1.458vw] lg:w-[1.458vw]"
+                                    style={{ display: "block" }}
                                     unoptimized />
                                 <input
                                     type="url" placeholder={s.label}
                                     value={socialLinks[s.key]}
                                     onChange={e => onSocialChange(s.key, e.target.value)}
+                                    className="min-w-0 flex-1 border-none bg-transparent outline-none"
                                     style={{
-                                        flex: 1, minWidth: 0, border: "none", outline: "none",
-                                        background: "transparent",
                                         fontFamily: "var(--font-base)", fontWeight: 400,
-                                        fontSize: "0.938vw", color: "var(--color-text-secondary)",
+                                        fontSize: "clamp(13px, 0.938vw, 18px)", color: "var(--color-text-secondary)",
                                         letterSpacing: "-0.011em",
                                     }}
                                 />
@@ -146,14 +139,14 @@ export function ProfileSidebar({ user, editing, avatarPreview, socialLinks, teac
                         ))}
                     </div>
                 ) : (
-                    <div style={{ display: "flex", gap: "1.875vw" }}>
+                    <div className="flex gap-6 lg:gap-[1.875vw]">
                         {PROFILE_SOCIALS.map(s => {
                             const link = socialLinks[s.key];
                             const img = (
                                 <Image key={s.key}
                                     src={link ? s.srcBlack : s.srcGray}
                                     alt={s.label} width={40} height={40}
-                                    style={{ width: "2.08vw", height: "2.08vw", display: "block" }}
+                                    className="block h-8 w-8 lg:h-[2.08vw] lg:w-[2.08vw]"
                                     unoptimized={!!link}
                                 />
                             );

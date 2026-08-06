@@ -710,7 +710,7 @@ export function AdminDashboard() {
               />
             </div>
 
-            <div className="grid gap-5 xl:grid-cols-3">
+            <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
               <div className="xl:col-span-2">
                 <RevenueTrendCard rows={data.revenueTrend} currency={data.currency} />
               </div>
@@ -720,7 +720,7 @@ export function AdminDashboard() {
               </div>
             </div>
 
-            <div className="grid gap-5 xl:grid-cols-2">
+            <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
               <LatestUsersPanel users={data.latestUsers} />
               <RecentCoursesPanel courses={data.recentCourses} />
             </div>

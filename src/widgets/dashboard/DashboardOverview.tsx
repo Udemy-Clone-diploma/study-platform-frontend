@@ -15,7 +15,6 @@ import { ScheduleRail } from "./ScheduleRail";
 import { StudentNotesPanel } from "./StudentNotesPanel";
 import { TeacherHomeworkCheckPanel } from "./TeacherHomeworkCheckPanel";
 import { TeacherStudentsPanel } from "./TeacherStudentsPanel";
-import { PAGE_PADDING_TOP, SIDEBAR_GAP } from "@/shared/ui/PageShell";
 
 type DashboardRole = "student" | "teacher";
 
@@ -33,7 +32,6 @@ export type DashboardListItem = {
 };
 
 const scheduleRailStyle = {
-  marginRight: "clamp(16px, calc(-11.43px + 2.68vw), 40px)",
   "--schedule-height": "calc(100vh - 76px - clamp(16px, 2.22vw, 32px))",
 } as CSSProperties;
 
@@ -50,35 +48,31 @@ function StudentDashboard() {
     <section className="min-h-[calc(100vh-76px)] bg-white">
       <StudentHomeworkProvider>
         <div
-          className="grid min-h-[calc(100vh-76px)]"
+          className="flex flex-col gap-4 px-4 pt-4 pb-4 lg:grid lg:min-h-[calc(100vh-76px)] lg:gap-[clamp(40px,calc(-110px+10.42vw),90px)] lg:px-0 lg:pt-[clamp(16px,3.06vw,44px)] lg:pb-0 lg:pl-[clamp(40px,calc(-110px+10.42vw),90px)]"
           style={{
             gridTemplateColumns: "1fr clamp(240px, calc(100.53px + 13.62vw), 362px)",
-            gap: SIDEBAR_GAP,
-            paddingTop: PAGE_PADDING_TOP,
-            paddingLeft: SIDEBAR_GAP,
           }}
         >
           <div
-            className="grid"
+            className="flex flex-col gap-4 lg:grid lg:gap-[clamp(12px,calc(-1.71px+1.34vw),24px)]"
             style={{
               gridTemplateColumns:
                 "clamp(390px, calc(-101.4px + 47.99vw), 820px) clamp(225px, calc(-55.04px + 27.34vw), 470px)",
-              gap: "clamp(12px, calc(-1.71px + 1.34vw), 24px)",
             }}
           >
-            <div className="flex min-w-0 flex-col" style={{ gap: "clamp(12px, 1.04vw, 20px)" }}>
+            <div className="flex min-w-0 flex-col" style={{ gap: "clamp(16px, 1.04vw, 20px)" }}>
               <MyCoursesDashboardWidget role="student" />
               <GrowthCard />
               <HomeworkQueuePanel />
             </div>
 
-            <div className="flex min-w-0 flex-col" style={{ gap: "clamp(12px, 1.04vw, 20px)" }}>
+            <div className="flex min-w-0 flex-col" style={{ gap: "clamp(16px, 1.04vw, 20px)" }}>
               <HomeworkReviewPanel />
               <StudentNotesPanel />
             </div>
           </div>
 
-          <div style={scheduleRailStyle}>
+          <div className="lg:mr-[clamp(16px,calc(-11.43px+2.68vw),40px)]" style={scheduleRailStyle}>
             <ScheduleRail />
           </div>
         </div>
@@ -91,40 +85,33 @@ function TeacherDashboard() {
   return (
     <section className="min-h-[calc(100vh-76px)] bg-white">
       <div
-        className="grid min-h-[calc(100vh-76px)]"
+        className="flex flex-col gap-4 px-4 pt-4 pb-4 lg:grid lg:min-h-[calc(100vh-76px)] lg:gap-[clamp(40px,calc(-110px+10.42vw),90px)] lg:px-0 lg:pt-[clamp(16px,3.06vw,44px)] lg:pb-0 lg:pl-[clamp(40px,calc(-110px+10.42vw),90px)]"
         style={{
           gridTemplateColumns: "1fr clamp(240px, calc(100.53px + 13.62vw), 362px)",
-          gap: SIDEBAR_GAP,
-          paddingTop: PAGE_PADDING_TOP,
-          paddingLeft: SIDEBAR_GAP,
         }}
       >
         <div
-          className="grid"
+          className="flex flex-col gap-4 lg:grid lg:gap-[clamp(12px,calc(-1.71px+1.34vw),24px)]"
           style={{
             gridTemplateColumns:
               "clamp(390px, calc(-101.4px + 47.99vw), 820px) clamp(225px, calc(-55.04px + 27.34vw), 470px)",
-            gap: "clamp(12px, calc(-1.71px + 1.34vw), 24px)",
           }}
         >
-          <div className="flex min-w-0 flex-col" style={{ gap: "clamp(12px, 1.04vw, 20px)" }}>
+          <div className="flex min-w-0 flex-col" style={{ gap: "clamp(16px, 1.04vw, 20px)" }}>
             <MyCoursesDashboardWidget role="teacher" />
             <GrowthCard metric="enrollments" />
             <TeacherHomeworkCheckPanel />
           </div>
 
           <div
-            className="flex min-w-0 flex-col"
-            style={{
-              gap: "clamp(12px, 1.04vw, 20px)",
-              paddingTop: "calc(clamp(36px, 2.71vw, 52px) + clamp(12px, 1.04vw, 20px))",
-            }}
+            className="flex min-w-0 flex-col lg:pt-[calc(clamp(36px,2.71vw,52px)+clamp(12px,1.04vw,20px))]"
+            style={{ gap: "clamp(16px, 1.04vw, 20px)" }}
           >
             <TeacherStudentsPanel />
           </div>
         </div>
 
-        <div style={scheduleRailStyle}>
+        <div className="lg:mr-[clamp(16px,calc(-11.43px+2.68vw),40px)]" style={scheduleRailStyle}>
           <ScheduleRail />
         </div>
       </div>
@@ -216,10 +203,10 @@ function ListRow({
     <>
       <IconTile accent={item.accent} icon={item.icon} size="sm" />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-[11px] text-[#5e5e5e]">
+        <p className="truncate text-xs text-[#5e5e5e]">
           {item.course} <span className="px-1">|</span> {item.meta}
         </p>
-        <p className="truncate text-sm font-medium text-black">{item.title}</p>
+        <p className="truncate text-base font-medium text-black">{item.title}</p>
       </div>
       {item.badge ? (
         <span className="rounded-md bg-[#fff4da] px-3 py-2 text-base font-medium text-[#8a6201]">

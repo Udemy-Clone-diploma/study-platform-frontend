@@ -112,7 +112,7 @@ export default function StudentCoursesPage() {
       <div style={{ maxWidth: "1648px", margin: "0 auto" }}>
         <nav
           aria-label={t("courseFilterAriaLabel")}
-          className="flex items-center"
+          className="-mx-4 flex items-center overflow-x-auto px-4 [-ms-overflow-style:none] [scrollbar-width:none] lg:mx-0 lg:overflow-visible lg:px-0 [&::-webkit-scrollbar]:hidden"
           style={{ marginBottom: "clamp(16px, 2.22vw, 32px)", gap: "clamp(16px, 1.67vw, 40px)" }}
         >
           {TAB_VALUES.map((tab) => (
@@ -121,12 +121,12 @@ export default function StudentCoursesPage() {
               onClick={() => handleTabChange(tab)}
               aria-current={activeTab === tab ? "page" : undefined}
               className={[
-                "font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-blue)",
+                "shrink-0 whitespace-nowrap font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-blue)",
                 activeTab === tab
                   ? "text-(--color-text-primary) underline underline-offset-4"
-                  : "text-(--color-text-secondary) hover:text-(--color-text-primary)",
+                  : "text-(--color-text-primary)",
               ].join(" ")}
-              style={{ fontSize: "clamp(14px, 1.39vw, 24px)" }}
+              style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(20px, 1.39vw, 24px)" }}
             >
               {tabLabel(tab, t, tCommon)}
             </button>

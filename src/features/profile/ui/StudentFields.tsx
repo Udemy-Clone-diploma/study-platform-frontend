@@ -4,11 +4,7 @@ import { AccentButton } from "@/shared/ui/AccentButton";
 import { DatePicker, todayISO } from "@/shared/ui/DatePicker";
 import type { StudentProfile, UserLanguage } from "@/entities/user";
 
-const GRID_3: React.CSSProperties = {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr 1fr",
-    gap: "2.083vw 8.75vw",
-};
+const GRID_3_CLASS = "grid grid-cols-1 gap-y-5 gap-x-6 lg:grid-cols-3 lg:gap-[2.083vw_8.75vw]";
 
 type Props = {
     editing: boolean;
@@ -44,16 +40,20 @@ export function StudentFields({
     const dobDisplay = profile?.date_of_birth ? formatDate(profile.date_of_birth, locale) : "—";
 
     return (
-        <div style={{ display: "flex", flexDirection: "column", gap: "1.25vw" }}>
+        <div className="flex flex-col gap-5 lg:gap-[1.25vw]">
 
-            <div style={GRID_3}>
+            <div className={GRID_3_CLASS}>
                 {/* Row 1 */}
-                <ProfileField
-                    label={t("firstName")} value={firstName}
-                    editing={editing} inputValue={firstName} onInputChange={onFirstNameChange}
-                />
-                <ProfileField label={t("email")} value={email} />
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.208vw" }}>
+                <div className="order-1 lg:order-none">
+                    <ProfileField
+                        label={t("firstName")} value={firstName}
+                        editing={editing} inputValue={firstName} onInputChange={onFirstNameChange}
+                    />
+                </div>
+                <div className="order-4 lg:order-none">
+                    <ProfileField label={t("email")} value={email} />
+                </div>
+                <div className="order-6 flex flex-col gap-1 lg:order-none lg:gap-[0.208vw]">
                     <span style={LABEL_STYLE}>{t("dateOfBirth")}</span>
                     {editing ? (
                         <DatePicker
@@ -68,12 +68,16 @@ export function StudentFields({
                 </div>
 
                 {/* Row 2 */}
-                <ProfileField
-                    label={t("lastName")} value={lastName}
-                    editing={editing} inputValue={lastName} onInputChange={onLastNameChange}
-                />
-                <ProfileField label={t("dateOfRegistration")} value={formatDate(dateJoined, locale)} />
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.208vw" }}>
+                <div className="order-2 lg:order-none">
+                    <ProfileField
+                        label={t("lastName")} value={lastName}
+                        editing={editing} inputValue={lastName} onInputChange={onLastNameChange}
+                    />
+                </div>
+                <div className="order-5 lg:order-none">
+                    <ProfileField label={t("dateOfRegistration")} value={formatDate(dateJoined, locale)} />
+                </div>
+                <div className="order-7 flex flex-col gap-1 lg:order-none lg:gap-[0.208vw]">
                     <span style={LABEL_STYLE}>{t("learningGoals")}</span>
                     {editing ? (
                         <textarea
@@ -88,11 +92,13 @@ export function StudentFields({
                 </div>
 
                 {/* Row 3 */}
-                <ProfileLanguageField
-                    value={language}
-                    inputValue={language} onInputChange={onLanguageChange}
-                />
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.208vw" }}>
+                <div className="order-3 lg:order-none">
+                    <ProfileLanguageField
+                        value={language}
+                        inputValue={language} onInputChange={onLanguageChange}
+                    />
+                </div>
+                <div className="order-8 flex flex-col gap-1 lg:order-none lg:gap-[0.208vw]">
                     <span style={{ ...LABEL_STYLE, visibility: editing ? "hidden" : "visible" }}>{t("password")}</span>
                     {editing ? (
                         <button
@@ -101,7 +107,7 @@ export function StudentFields({
                             style={{
                                 background: "none", border: "none", padding: 0,
                                 fontFamily: "var(--font-base)", fontWeight: 600,
-                                fontSize: "1.25vw", color: "var(--color-text-secondary)",
+                                fontSize: "clamp(20px, 1.25vw, 24px)", color: "var(--color-text-secondary)",
                                 cursor: "pointer", textAlign: "left", lineHeight: 1.5,
                                 letterSpacing: "-0.011em",
                             }}
@@ -113,7 +119,7 @@ export function StudentFields({
                     )}
                 </div>
                 {editing && (
-                    <div style={{ display: "flex", alignItems: "flex-end" }}>
+                    <div className="order-9 flex items-end lg:order-none">
                         <AccentButton size="md" onClick={onSave} disabled={saving}>
                             {saving ? t("saving") : t("save")}
                         </AccentButton>

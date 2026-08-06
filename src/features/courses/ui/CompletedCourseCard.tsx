@@ -43,7 +43,7 @@ export function CompletedCourseCard({
 }: Props) {
   const theme = LEVEL_THEME[level] ?? LEVEL_THEME.beginner;
   const clamped = Math.min(Math.max(progressPercent, 0), 100);
-  const thumbSize = "clamp(36px, 4.17vw, 60px)";
+  const thumbSize = "clamp(60px, 4.17vw, 60px)";
 
   return (
     <button
@@ -53,7 +53,7 @@ export function CompletedCourseCard({
       style={{
         background: theme.gradient,
         borderRadius: "clamp(12px, 1.39vw, 20px)",
-        padding: "clamp(10px, 1.25vw, 19px) clamp(8px, 0.83vw, 12px)",
+        padding: "clamp(26px, 1.25vw, 30px) clamp(12px, 0.83vw, 12px)",
         cursor: "pointer",
         border: "none",
         textAlign: "left",
@@ -74,7 +74,7 @@ export function CompletedCourseCard({
           <div className="flex min-w-0 flex-1 flex-col" style={{ gap: "clamp(3px, 0.28vw, 4px)" }}>
             <h3
               className="line-clamp-2 font-bold uppercase text-(--color-text-primary)"
-              style={{ fontSize: "clamp(10px, 0.97vw, 14px)", lineHeight: "clamp(13px, 1.25vw, 18px)" }}
+              style={{ fontSize: "clamp(12px, 0.97vw, 14px)", lineHeight: "clamp(15px, 1.25vw, 18px)" }}
             >
               {title}
             </h3>
@@ -83,7 +83,7 @@ export function CompletedCourseCard({
               style={{
                 background: theme.badgeBg,
                 color: theme.badgeText,
-                fontSize: "clamp(7px, 0.69vw, 10px)",
+                fontSize: "clamp(10px, 0.69vw, 10px)",
                 borderRadius: "clamp(3px, 0.35vw, 5px)",
                 padding: "2px clamp(4px, 0.42vw, 6px)",
               }}
@@ -96,7 +96,7 @@ export function CompletedCourseCard({
         <div className="flex justify-end">
           <span
             className="font-(family-name:--font-accent) font-semibold uppercase text-(--color-text-primary)"
-            style={{ fontSize: "clamp(10px, 1.11vw, 16px)" }}
+            style={{ fontSize: "clamp(12px, 1.11vw, 16px)" }}
           >
             {clamped}%
           </span>

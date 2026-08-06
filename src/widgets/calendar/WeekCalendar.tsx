@@ -12,12 +12,12 @@ const END_HOUR    = 23;
 const TOTAL_HOURS = END_HOUR - START_HOUR; // 16
 const TOTAL_MIN   = TOTAL_HOURS * 60;      // 960
 const HOURS = Array.from({ length: TOTAL_HOURS }, (_, i) => i + START_HOUR);
-const ROW_H = "clamp(36px, 2.76vw, 56px)";
+const ROW_H = "clamp(36px, calc(13.15px + 2.23vw), 56px)";
 
 const CHIP_BAR_GRADIENT =
   "linear-gradient(180deg, #A7BAFA 0%, #FCC4C3 50.96%, #FFF4DA 100%)";
 
-function chipColors(event: CalendarEvent): { bg: string; textColor: string; barColor?: string } {
+export function chipColors(event: CalendarEvent): { bg: string; textColor: string; barColor?: string } {
   if (event.type === "group_session")     return { bg: "rgba(252,196,195,0.5)", textColor: "#8B2624" };
   if (event.type === "personal")          return { bg: "rgba(195,235,210,0.5)", textColor: "#1A6633" };
   if (event.type === "personal_shared")   return { bg: "rgba(195,235,210,0.5)", textColor: "#1A6633", barColor: "rgba(59,130,246,0.75)" };
@@ -150,7 +150,7 @@ function EventChip({
   const TINY: React.CSSProperties = {
     fontFamily: "var(--font-accent)",
     fontWeight: 700,
-    fontSize: "clamp(7px, 0.48vw, 9px)",
+    fontSize: "clamp(7px, calc(4.72px + 0.22vw), 9px)",
     textTransform: "uppercase",
     letterSpacing: "0.04em",
     lineHeight: 1.2,
@@ -184,11 +184,11 @@ function EventChip({
     >
       <div style={{ width: 3, flexShrink: 0, background: chipBar }} />
       <div style={{ flex: 1, minWidth: 0, padding: "4px 6px", display: "flex", flexDirection: "column", gap: 2, overflow: "hidden" }}>
-        <div style={{ fontFamily: "var(--font-accent)", fontWeight: 500, fontSize: "clamp(9px, 0.63vw, 11px)", color: textColor, lineHeight: 1.4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textDecoration: isCancelled ? "line-through" : "none" }}>
+        <div style={{ fontFamily: "var(--font-accent)", fontWeight: 500, fontSize: "clamp(9px, calc(6.72px + 0.22vw), 11px)", color: textColor, lineHeight: 1.4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textDecoration: isCancelled ? "line-through" : "none" }}>
           {fmtChipTime(event.start_time, locale)} – {fmtChipTime(event.end_time, locale)}
         </div>
         {subtitle && (
-          <div style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(8px, 0.56vw, 10px)", color: textColor, lineHeight: 1.3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textDecoration: isCancelled ? "line-through" : "none" }}>
+          <div style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(8px, calc(5.72px + 0.22vw), 10px)", color: textColor, lineHeight: 1.3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textDecoration: isCancelled ? "line-through" : "none" }}>
             {subtitle}
           </div>
         )}
@@ -320,8 +320,8 @@ const NAV_BTN: React.CSSProperties = {
   background: "rgba(255,255,255,0.6)",
   border: "none",
   borderRadius: 20,
-  width: 40,
-  height: 40,
+  width: "clamp(40px, calc(30.86px + 0.89vw), 48px)",
+  height: "clamp(40px, calc(30.86px + 0.89vw), 48px)",
   padding: 8,
   display: "flex",
   alignItems: "center",
@@ -380,8 +380,9 @@ export function WeekCalendar({
 
   const columns  = Array.from({ length: 7 }, (_, i) => addDays(sunday, i));
   const todayISO = toISO(new Date());
-  const TIME_W   = "clamp(36px, 2.5vw, 48px)";
-  const TIME_GAP = "clamp(8px, 0.97vw, 14px)";
+  const TIME_W   = "clamp(36px, calc(22.29px + 1.34vw), 48px)";
+  const TIME_GAP = "clamp(8px, calc(1.14px + 0.67vw), 14px)";
+  const TOOLBAR_LEFT_OFFSET = "clamp(8px, calc(-53.72px + 6.03vw), 62px)";
   const BORDER   = "1px solid var(--color-calendar-border)";
 
   function eventsForCol(d: Date): CalendarEvent[] {
@@ -401,13 +402,13 @@ export function WeekCalendar({
         gap: 12,
       }}>
         {/* Left: arrows + month label — offset to align with day columns */}
-        <div style={{ display: "flex", alignItems: "center", gap: 16, marginLeft: `calc(${TIME_W} + ${TIME_GAP})` }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 16, marginLeft: TOOLBAR_LEFT_OFFSET }}>
           <button type="button" onClick={() => navigate(-1)} style={NAV_BTN}><ChevronLeft size={18} /></button>
           <button type="button" onClick={() => navigate(1)}  style={NAV_BTN}><ChevronRight size={18} /></button>
           <span style={{
             fontFamily: "var(--font-accent)",
             fontWeight: 400,
-            fontSize: "28px",
+            fontSize: "clamp(28px, calc(14.29px + 1.34vw), 40px)",
             color: "#000000",
             textTransform: "capitalize",
           }}>
@@ -420,7 +421,7 @@ export function WeekCalendar({
           <button type="button" onClick={goToday} style={{
             fontFamily: "var(--font-base)",
             fontWeight: 600,
-            fontSize: "clamp(11px, 0.72vw, 13px)",
+            fontSize: "clamp(11px, calc(8.72px + 0.22vw), 13px)",
             color: "var(--color-text-primary)",
             background: "rgba(255,255,255,0.7)",
             border: "1px solid var(--color-calendar-border)",
@@ -450,10 +451,10 @@ export function WeekCalendar({
                 position: "relative",
                 flex: 1,
                 minWidth: 0,
-                height: "clamp(48px, 4.44vw, 68px)",
+                height: "clamp(48px, calc(25.14px + 2.23vw), 68px)",
                 background: bg,
                 borderRight: i === 6 ? "none" : BORDER,
-                padding: "4px clamp(4px, 0.52vw, 8px) 0",
+                padding: "4px clamp(4px, calc(-0.57px + 0.45vw), 8px) 0",
                 boxSizing: "border-box",
                 display: "flex",
                 flexDirection: "column",
@@ -478,7 +479,7 @@ export function WeekCalendar({
               <span style={{
                 fontFamily: "var(--font-base)",
                 fontWeight: 700,
-                fontSize: "clamp(9px, 0.63vw, 11px)",
+                fontSize: "clamp(9px, calc(6.72px + 0.22vw), 11px)",
                 color: "var(--color-text-secondary)",
                 lineHeight: 1,
                 textTransform: "uppercase",
@@ -489,7 +490,7 @@ export function WeekCalendar({
               <span style={{
                 fontFamily: "var(--font-accent)",
                 fontWeight: 500,
-                fontSize: "clamp(16px, 1.46vw, 24px)",
+                fontSize: "clamp(16px, calc(6.86px + 0.89vw), 24px)",
                 color: active ? "var(--color-blue)" : "var(--color-text-primary)",
                 lineHeight: 1,
               }}>
@@ -518,7 +519,7 @@ export function WeekCalendar({
               <span style={{
                 fontFamily: "var(--font-accent)",
                 fontWeight: 500,
-                fontSize: "clamp(9px, 0.63vw, 12px)",
+                fontSize: "clamp(9px, calc(5.57px + 0.34vw), 12px)",
                 color: "var(--color-text-secondary)",
                 lineHeight: 1,
               }}>

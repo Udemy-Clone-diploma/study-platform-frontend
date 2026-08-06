@@ -143,21 +143,10 @@ export default function ModeratorCoursesPage() {
   return (
     <PageShell className="bg-my-courses">
       <div className="mx-auto w-full" style={{ maxWidth: 1648 }}>
-        <h1
-          className="font-semibold text-(--color-text-primary)"
-          style={{
-            fontFamily: "var(--font-base)",
-            fontSize: "clamp(24px, 2.5vw, 36px)",
-            margin: "0 0 clamp(16px, 1.67vw, 24px)",
-          }}
-        >
-          {t("pageTitle")}
-        </h1>
-
         <nav
           aria-label={t("filterAriaLabel")}
-          className="flex flex-wrap items-center"
-          style={{ gap: "clamp(12px, 2.6vw, 50px)", marginBottom: "clamp(16px, 1.67vw, 24px)" }}
+          className="-mx-4 flex items-center overflow-x-auto px-4 [-ms-overflow-style:none] [scrollbar-width:none] lg:mx-0 lg:flex-wrap lg:overflow-visible lg:px-0 [&::-webkit-scrollbar]:hidden"
+          style={{ gap: "clamp(16px, 1.67vw, 40px)", marginBottom: "clamp(16px, 1.67vw, 24px)" }}
         >
           {TAB_KEYS.map((key) => (
             <button
@@ -168,12 +157,13 @@ export default function ModeratorCoursesPage() {
                 setError("");
               }}
               aria-current={activeTab === key ? "page" : undefined}
-              className={`font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-blue) ${
+              className={[
+                "shrink-0 whitespace-nowrap font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-blue)",
                 activeTab === key
-                  ? "text-(--color-text-primary)"
-                  : "text-(--color-text-secondary) opacity-35 hover:opacity-100"
-              }`}
-              style={{ fontSize: "clamp(14px, 1.25vw, 24px)" }}
+                  ? "text-(--color-text-primary) underline underline-offset-4"
+                  : "text-(--color-text-primary)",
+              ].join(" ")}
+              style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(20px, 1.39vw, 24px)" }}
             >
               {t(TAB_LABEL_KEYS[key])}
             </button>

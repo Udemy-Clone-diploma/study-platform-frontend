@@ -14,7 +14,7 @@ type Props = {
 const LINE_INPUT: React.CSSProperties = {
     fontFamily: "var(--font-base)",
     fontWeight: 400,
-    fontSize: "1.04vw",
+    fontSize: "clamp(14px, 1.04vw, 20px)",
     color: "var(--color-text-primary)",
     background: "transparent",
     border: "none",
@@ -22,7 +22,7 @@ const LINE_INPUT: React.CSSProperties = {
     borderRadius: 0,
     outline: "none",
     width: "100%",
-    padding: "0.417vw 2vw 0.417vw 0",
+    padding: "clamp(6px, 0.417vw, 8px) clamp(24px, 2vw, 38px) clamp(6px, 0.417vw, 8px) 0",
 };
 
 /** Password change modal shown from the profile page. */
@@ -54,10 +54,10 @@ export function PasswordChangeModal({ onClose }: Props) {
 
     return (
         <ModalShell onClose={onClose} width="clamp(300px, 36vw, 520px)" maxHeight={undefined}>
-            <div style={{ display: "flex", flexDirection: "column", gap: "1.667vw" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "clamp(20px, 1.667vw, 32px)" }}>
 
                 {/* Old Password */}
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.625vw" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "clamp(8px, 0.625vw, 12px)" }}>
                     <span style={LABEL_STYLE}>{t("oldPassword")}</span>
                     <div style={{ position: "relative" }}>
                         <input
@@ -85,7 +85,7 @@ export function PasswordChangeModal({ onClose }: Props) {
                 </div>
 
                 {/* New Password */}
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.625vw" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "clamp(8px, 0.625vw, 12px)" }}>
                     <span style={LABEL_STYLE}>{t("newPassword")}</span>
                     <div style={{ position: "relative" }}>
                         <input
@@ -114,7 +114,7 @@ export function PasswordChangeModal({ onClose }: Props) {
 
                 {error && (
                     <span style={{
-                        fontFamily: "var(--font-base)", fontSize: "0.9vw",
+                        fontFamily: "var(--font-base)", fontSize: "clamp(12px, 0.9vw, 17px)",
                         color: "var(--color-danger)",
                     }}>
                         {error}
@@ -132,12 +132,12 @@ export function PasswordChangeModal({ onClose }: Props) {
                             color: "var(--color-bg)",
                             fontFamily: "var(--font-base)",
                             fontWeight: 700,
-                            fontSize: "1.04vw",
+                            fontSize: "clamp(13px, 1.04vw, 20px)",
                             letterSpacing: "0.08em",
                             textTransform: "uppercase",
                             border: "none",
                             borderRadius: "6.25vw",
-                            padding: "0.625vw 3.125vw",
+                            padding: "clamp(10px, 0.625vw, 12px) clamp(28px, 3.125vw, 60px)",
                             cursor: saving ? "not-allowed" : "pointer",
                             opacity: saving ? 0.7 : 1,
                             transition: "opacity 0.2s",

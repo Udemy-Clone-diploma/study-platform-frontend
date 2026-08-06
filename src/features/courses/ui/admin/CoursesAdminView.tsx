@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { PageShell } from "@/shared/ui/PageShell";
 import { Pagination } from "@/shared/ui/Pagination";
@@ -24,6 +24,7 @@ type PendingAction = {
 
 export function CoursesAdminView() {
   const t = useTranslations("CoursesAdminView");
+  const locale = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -55,7 +56,7 @@ export function CoursesAdminView() {
 
   useEffect(() => {
     let cancelled = false;
-    getCategories()
+    getCategories(locale)
       .then((data) => {
         if (!cancelled) setCategories(data);
       })
@@ -63,7 +64,7 @@ export function CoursesAdminView() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [locale]);
 
   const updateParams = useCallback(
     (updates: Record<string, string | null>, options?: { scroll?: boolean }) => {
@@ -88,6 +89,7 @@ export function CoursesAdminView() {
       category: category ?? undefined,
       ordering,
       status: statusTab ? STATUS_TAB_VALUES[statusTab] : undefined,
+      lang: locale,
     })
       .then((data) => {
         if (cancelled) return;
@@ -111,7 +113,7 @@ export function CoursesAdminView() {
     return () => {
       cancelled = true;
     };
-  }, [page, statusTab, category, search, ordering, queryKey, updateParams, t]);
+  }, [page, statusTab, category, search, ordering, queryKey, updateParams, t, locale]);
 
   const refresh = useCallback(() => setRefreshKey((key) => key + 1), []);
 
@@ -182,19 +184,8 @@ export function CoursesAdminView() {
     : null;
 
   return (
-    <PageShell className="bg-(--color-brand-lavender-soft)">
+    <PageShell className="bg-(--color-brand-lavender-soft) bg-admin-courses">
       <div className="flex w-full flex-col" style={{ maxWidth: 1648, margin: "0 auto" }}>
-        <h1
-          className="font-semibold text-(--color-text-primary)"
-          style={{
-            fontFamily: "var(--font-base)",
-            fontSize: "clamp(24px, 2.5vw, 36px)",
-            margin: "0 0 clamp(16px, 1.67vw, 24px)",
-          }}
-        >
-          {t("title")}
-        </h1>
-
         <div style={{ marginBottom: "clamp(16px, 1.67vw, 24px)" }}>
           <CourseStatusTabs
             active={statusTab}
@@ -227,7 +218,7 @@ export function CoursesAdminView() {
           </p>
         )}
 
-        <div className="flex flex-wrap items-start" style={{ gap: "clamp(16px, 1.67vw, 24px)" }}>
+        <div className="flex flex-wrap items-start lg:flex-nowrap" style={{ gap: "clamp(16px, 1.67vw, 24px)" }}>
           <div className="flex min-w-0 flex-col" style={{ flex: "1 1 640px" }}>
             <div
               key={refreshKey}

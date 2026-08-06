@@ -16,8 +16,11 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { WeekCalendar, toISO } from "./WeekCalendar";
+import { MonthAgendaMobile } from "./MonthAgendaMobile";
 import { padTwo } from "@/shared/lib/time";
+import { useIsDesktop } from "@/shared/lib/useIsDesktop";
 import { SidePanel } from "@/shared/ui/SidePanel";
+import { ModalShell } from "@/shared/ui/ModalShell";
 import { SelectField } from "@/shared/ui/SelectField";
 import {
   UnavailabilitySection,
@@ -113,8 +116,8 @@ const DRAWER_ADD_BTN: React.CSSProperties = {
   fontFamily: "var(--font-accent)",
   fontWeight: 500,
   fontSize: "clamp(12px, 1.04vw, 20px)",
-  color: "var(--color-text-primary)",
-  background: "var(--gradient-brand)",
+  color: "#fff",
+  background: "#121212",
   border: "none",
   borderRadius: 28,
   padding: "clamp(8px, 0.52vw, 10px) clamp(20px, 1.6vw, 32px)",
@@ -123,6 +126,40 @@ const DRAWER_ADD_BTN: React.CSSProperties = {
   letterSpacing: "0.03em",
   transition: "opacity 0.2s",
   whiteSpace: "nowrap",
+};
+
+const PILL_PRIMARY_BTN: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: 6,
+  fontFamily: "var(--font-accent)",
+  fontWeight: 500,
+  fontSize: "clamp(11px, 0.72vw, 13px)",
+  color: "#fff",
+  background: "#121212",
+  border: "none",
+  borderRadius: 999,
+  padding: "clamp(6px, 0.45vw, 8px) clamp(14px, 1.1vw, 18px)",
+  cursor: "pointer",
+  textTransform: "uppercase",
+  letterSpacing: "0.04em",
+  whiteSpace: "nowrap",
+  flexShrink: 0,
+};
+
+const ICON_CIRCLE_BTN: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  width: "clamp(32px, 2.3vw, 36px)",
+  height: "clamp(32px, 2.3vw, 36px)",
+  borderRadius: "50%",
+  background: "transparent",
+  border: "none",
+  cursor: "pointer",
+  flexShrink: 0,
+  padding: 0,
 };
 
 function UserAvatar({ u, size = 30 }: { u: UserSearchResult; size?: number }) {
@@ -1759,26 +1796,9 @@ function EventDetailPanel({
                             </span>
                           </div>
                         )}
-                        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 4 }}>
+                        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 4 }}>
                           {ceCanReschedule && ce.id === ev.id && (
-                            <button
-                              type="button"
-                              onClick={() => setMode("reschedule")}
-                              style={{
-                                alignSelf: "flex-start",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: 5,
-                                background: "none",
-                                border: "none",
-                                cursor: "pointer",
-                                fontFamily: "var(--font-base)",
-                                fontWeight: 600,
-                                fontSize: SMALL,
-                                color: "var(--color-text-primary)",
-                                padding: 0,
-                              }}
-                            >
+                            <button type="button" onClick={() => setMode("reschedule")} style={PILL_PRIMARY_BTN}>
                               <RotateCcw size={13} />
                               {tScheduleTab("reschedule")}
                             </button>
@@ -1789,18 +1809,11 @@ function EventDetailPanel({
                               disabled={restoringId === ce.id}
                               onClick={() => doRestore(ce.id)}
                               style={{
-                                alignSelf: "flex-start",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: 5,
-                                background: "none",
-                                border: "none",
-                                cursor: restoringId === ce.id ? "default" : "pointer",
-                                fontFamily: "var(--font-base)",
-                                fontWeight: 600,
-                                fontSize: SMALL,
+                                ...PILL_PRIMARY_BTN,
+                                background: "transparent",
                                 color: "#16a34a",
-                                padding: 0,
+                                border: "1px solid #16a34a",
+                                cursor: restoringId === ce.id ? "default" : "pointer",
                                 opacity: restoringId === ce.id ? 0.5 : 1,
                               }}
                             >
@@ -2928,98 +2941,38 @@ function EventDetailPanel({
 
         {/* ── Reschedule + Delete for personal event owner ── */}
         {isPersonal && isOwner && mode === "view" && !isPastEvent && (
-          <div style={{ display: "flex", gap: 16, marginTop: 4 }}>
-            <button
-              type="button"
-              onClick={() => setMode("reschedule")}
-              style={{
-                alignSelf: "flex-start",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 5,
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                fontFamily: "var(--font-base)",
-                fontWeight: 600,
-                fontSize: SMALL,
-                color: "var(--color-text-primary)",
-                padding: 0,
-              }}
-            >
-              <RotateCcw size={13} />
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 4 }}>
+            <button type="button" onClick={() => setMode("reschedule")} style={PILL_PRIMARY_BTN}>
+              <RotateCcw size={14} />
               {tScheduleTab("reschedule")}
             </button>
             <button
               type="button"
               onClick={() => setMode("confirm_delete")}
-              style={{
-                alignSelf: "flex-start",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 5,
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                fontFamily: "var(--font-base)",
-                fontWeight: 600,
-                fontSize: SMALL,
-                color: "var(--color-danger)",
-                opacity: 0.8,
-                padding: 0,
-              }}
+              aria-label={t("deleteEvent")}
+              title={t("deleteEvent")}
+              style={ICON_CIRCLE_BTN}
             >
-              <Trash2 size={13} />
-              {t("deleteEvent")}
+              <Trash2 size={16} color="var(--color-text-primary)" />
             </button>
           </div>
         )}
 
         {/* ── Teacher action buttons ── */}
         {canEdit && mode === "view" && (
-          <div style={{ display: "flex", gap: 16, marginTop: 4 }}>
-            <button
-              type="button"
-              onClick={() => setMode("reschedule")}
-              style={{
-                alignSelf: "flex-start",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 5,
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                fontFamily: "var(--font-base)",
-                fontWeight: 600,
-                fontSize: SMALL,
-                color: "var(--color-text-primary)",
-                padding: 0,
-              }}
-            >
-              <RotateCcw size={13} />
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 4 }}>
+            <button type="button" onClick={() => setMode("reschedule")} style={PILL_PRIMARY_BTN}>
+              <RotateCcw size={14} />
               {tScheduleTab("reschedule")}
             </button>
             <button
               type="button"
               onClick={() => setMode("confirm_cancel")}
-              style={{
-                alignSelf: "flex-start",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 5,
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                fontFamily: "var(--font-base)",
-                fontWeight: 600,
-                fontSize: SMALL,
-                color: "var(--color-danger)",
-                opacity: 0.8,
-                padding: 0,
-              }}
+              aria-label={t("cancelSession")}
+              title={t("cancelSession")}
+              style={ICON_CIRCLE_BTN}
             >
-              <X size={13} />
-              {t("cancelSession")}
+              <X size={16} color="var(--color-text-primary)" />
             </button>
           </div>
         )}
@@ -3281,20 +3234,21 @@ function ActionBtn({
         gap: 8,
         fontFamily: "var(--font-accent)",
         fontWeight: 500,
-        fontSize: "20px",
+        fontSize: "clamp(13px, calc(5px + 0.78vw), 20px)",
         color: active ? "#fff" : "#121212",
         background: active
           ? "#121212"
           : "linear-gradient(90deg, #A7BAFA 0%, #FCC4C3 50.96%, #FFF4DA 100%)",
         border: "none",
         borderRadius: 28,
-        padding: "0 28px",
-        height: 52,
-        minWidth: 200,
+        paddingInline: "clamp(14px, calc(-2px + 1.56vw), 28px)",
+        height: "clamp(36px, calc(17.71px + 1.79vw), 52px)",
+        minWidth: "clamp(140px, calc(71.43px + 6.7vw), 200px)",
         cursor: "pointer",
         letterSpacing: "0.03em",
         textTransform: "uppercase",
         flexShrink: 0,
+        whiteSpace: "nowrap",
       }}
     >
       <Plus size={18} strokeWidth={2.5} />
@@ -3310,6 +3264,7 @@ export type CalendarViewProps = {
 /** Full-page calendar for the student/teacher schedule route. */
 export function CalendarView({ role }: CalendarViewProps) {
   const t = useTranslations("CalendarView");
+  const isDesktop = useIsDesktop();
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [unavailability, setUnavailability] = useState<TeacherUnavailability[]>([]);
   const [deadlines, setDeadlines] = useState<CalendarDeadline[]>([]);
@@ -3405,33 +3360,43 @@ export function CalendarView({ role }: CalendarViewProps) {
 
   return (
     <div
+      className="bg-schedule-page px-4 lg:px-[clamp(28px,4.28vw,68px)]"
       style={{
         position: "relative",
         minHeight: "calc(100% + 2 * clamp(14px, 1.5vw, 28px))",
-        paddingInline: "clamp(28px, 4.28vw, 68px)",
         paddingBlock: "clamp(12px, 1.25vw, 20px)",
         background: "var(--color-calendar-bg)",
       }}
     >
-      {/* ── Calendar (always full width) ── */}
-      <WeekCalendar
-        events={events}
-        unavailability={role === "teacher" ? unavailability : []}
-        deadlines={deadlines}
-        onWeekChange={setWeekStart}
-        role={role}
-        onSlotClick={openNewEvent}
-        onEventClick={openEventView}
-        onDayHeaderClick={openDayDeadlines}
-        activeSlot={drawer?.type === "new" ? { date: drawer.date, hour: drawer.hour } : null}
-        actions={calendarActions}
-      />
+      {/* ── Calendar: month grid + agenda below `lg`, full week grid at `lg` and up ── */}
+      <div className="lg:hidden">
+        <MonthAgendaMobile
+          role={role}
+          onEventClick={openEventView}
+          onAddEvent={openNewEvent}
+          onBlockTime={role === "teacher" ? toggleBlock : undefined}
+          onDayHeaderClick={openDayDeadlines}
+          refreshKey={refreshTick}
+        />
+      </div>
+      <div className="hidden lg:block">
+        <WeekCalendar
+          events={events}
+          unavailability={role === "teacher" ? unavailability : []}
+          deadlines={deadlines}
+          onWeekChange={setWeekStart}
+          role={role}
+          onSlotClick={openNewEvent}
+          onEventClick={openEventView}
+          onDayHeaderClick={openDayDeadlines}
+          activeSlot={drawer?.type === "new" ? { date: drawer.date, hour: drawer.hour } : null}
+          actions={calendarActions}
+        />
+      </div>
 
-      {/* ── Side panel overlay ── */}
-      <SidePanel
-        open={drawerOpen}
-        onClose={() => setDrawer(null)}
-        title={
+      {/* ── Side panel overlay (desktop) / modal (mobile) ── */}
+      {(() => {
+        const drawerTitle =
           drawer?.type === "new"
             ? t("newEventTitle")
             : drawer?.type === "view"
@@ -3440,82 +3405,102 @@ export function CalendarView({ role }: CalendarViewProps) {
                 ? t("myUnavailabilityTitle")
                 : drawer?.type === "deadlines"
                   ? t("deadlinesTitle", { date: drawer.date })
-                  : ""
-        }
-      >
-        {drawer?.type === "new" && (
-          <NewEventPanel
-            key={`${drawer.date}-${drawer.hour}`}
-            date={drawer.date}
-            hour={drawer.hour}
-            role={role}
-            isUnavailable={drawer.isUnavailable}
-            unavailability={unavailability}
-            onSubmitSuccess={() => {
-              setRefreshTick((t) => t + 1);
-              setDrawer(null);
-            }}
-          />
-        )}
-        {drawer?.type === "view" && (
-          <EventDetailPanel
-            key={drawer.event.id + (drawer.initialMode ?? "")}
-            event={drawer.event}
-            role={role}
-            onEventUpdated={() => setRefreshTick((t) => t + 1)}
-            onClose={() => setDrawer(null)}
-            onAddNew={openNewEvent}
-            initialMode={drawer.initialMode}
-            onOpenEvent={(e, mode) =>
-              setDrawer({ type: "view", event: e, initialMode: mode ?? "view" })
-            }
-            overlappingCancelled={events.filter(
-              (e) =>
-                e.date === drawer.event.date &&
-                e.id !== drawer.event.id &&
-                (e.event_status === "cancelled" || e.event_status === "rescheduled") &&
-                e.start_time < drawer.event.end_time &&
-                drawer.event.start_time < e.end_time,
+                  : "";
+
+        const drawerContent = (
+          <>
+            {drawer?.type === "new" && (
+              <NewEventPanel
+                key={`${drawer.date}-${drawer.hour}`}
+                date={drawer.date}
+                hour={drawer.hour}
+                role={role}
+                isUnavailable={drawer.isUnavailable}
+                unavailability={unavailability}
+                onSubmitSuccess={() => {
+                  setRefreshTick((t) => t + 1);
+                  setDrawer(null);
+                }}
+              />
             )}
-          />
-        )}
-        {drawer?.type === "block" && <UnavailabilitySection />}
-        {drawer?.type === "deadlines" && (
-          <div style={{ display: "flex", flexDirection: "column", gap: "clamp(10px, 0.83vw, 14px)" }}>
-            {deadlines
-              .filter((dl) => dl.date === drawer.date)
-              .map((dl) => (
-                <div
-                  key={dl.assignment_id}
-                  style={{
-                    padding: "clamp(10px, 0.83vw, 14px)",
-                    borderRadius: "clamp(8px, 0.7vw, 12px)",
-                    border: "1px solid var(--color-calendar-border)",
-                    background: "#fff",
-                  }}
-                >
-                  <p style={{
-                    fontFamily: "var(--font-base)",
-                    fontWeight: 700,
-                    fontSize: "clamp(13px, 0.9vw, 15px)",
-                    color: "var(--color-text-primary)",
-                    margin: "0 0 4px",
-                  }}>
-                    {dl.title}
-                  </p>
-                  <p style={{
-                    fontFamily: "var(--font-base)",
-                    fontSize: "clamp(12px, 0.8vw, 13px)",
-                    color: "var(--color-text-secondary)",
-                    margin: 0,
-                  }}>
-                    {dl.course_title}
-                  </p>
-                </div>
-              ))}
-          </div>
-        )}
-      </SidePanel>
+            {drawer?.type === "view" && (
+              <EventDetailPanel
+                key={drawer.event.id + (drawer.initialMode ?? "")}
+                event={drawer.event}
+                role={role}
+                onEventUpdated={() => setRefreshTick((t) => t + 1)}
+                onClose={() => setDrawer(null)}
+                onAddNew={openNewEvent}
+                initialMode={drawer.initialMode}
+                onOpenEvent={(e, mode) =>
+                  setDrawer({ type: "view", event: e, initialMode: mode ?? "view" })
+                }
+                overlappingCancelled={events.filter(
+                  (e) =>
+                    e.date === drawer.event.date &&
+                    e.id !== drawer.event.id &&
+                    (e.event_status === "cancelled" || e.event_status === "rescheduled") &&
+                    e.start_time < drawer.event.end_time &&
+                    drawer.event.start_time < e.end_time,
+                )}
+              />
+            )}
+            {drawer?.type === "block" && <UnavailabilitySection />}
+            {drawer?.type === "deadlines" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "clamp(10px, 0.83vw, 14px)" }}>
+                {deadlines
+                  .filter((dl) => dl.date === drawer.date)
+                  .map((dl) => (
+                    <div
+                      key={dl.assignment_id}
+                      style={{
+                        padding: "clamp(10px, 0.83vw, 14px)",
+                        borderRadius: "clamp(8px, 0.7vw, 12px)",
+                        border: "1px solid var(--color-calendar-border)",
+                        background: "#fff",
+                      }}
+                    >
+                      <p style={{
+                        fontFamily: "var(--font-base)",
+                        fontWeight: 700,
+                        fontSize: "clamp(13px, 0.9vw, 15px)",
+                        color: "var(--color-text-primary)",
+                        margin: "0 0 4px",
+                      }}>
+                        {dl.title}
+                      </p>
+                      <p style={{
+                        fontFamily: "var(--font-base)",
+                        fontSize: "clamp(12px, 0.8vw, 13px)",
+                        color: "var(--color-text-secondary)",
+                        margin: 0,
+                      }}>
+                        {dl.course_title}
+                      </p>
+                    </div>
+                  ))}
+              </div>
+            )}
+          </>
+        );
+
+        return isDesktop ? (
+          <SidePanel open={drawerOpen} onClose={() => setDrawer(null)} title={drawerTitle}>
+            {drawerContent}
+          </SidePanel>
+        ) : (
+          drawerOpen && (
+            <ModalShell
+              onClose={() => setDrawer(null)}
+              title={drawerTitle}
+              width="clamp(300px, 92vw, 440px)"
+              padding="clamp(16px, 4vw, 24px)"
+            >
+              {drawerContent}
+            </ModalShell>
+          )
+        );
+      })()}
     </div>
   );
 }

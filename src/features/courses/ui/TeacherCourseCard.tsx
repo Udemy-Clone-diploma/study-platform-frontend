@@ -129,7 +129,7 @@ export function TeacherCourseCard({
   const border     = LEVEL_BORDER[level];
   const statusIcon = STATUS_ICON[status];
   const clamped    = progressPercent !== undefined ? Math.min(Math.max(progressPercent, 0), 100) : undefined;
-  const thumbSize  = "clamp(36px, 4.17vw, 60px)";
+  const thumbSize  = "clamp(60px, 4.17vw, 60px)";
   const iconSize   = "clamp(16px, 1.67vw, 24px)";
 
   const [modal, setModal] = useState<ModalKind | null>(null);
@@ -200,14 +200,14 @@ export function TeacherCourseCard({
           href={cardHref()}
           onClick={handleCardClick}
           className={[
-            "mini-course-card flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-blue)",
+            "mini-course-card flex w-full items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-blue)",
             status === "completed" ? "grayscale" : "",
           ].join(" ")}
           style={{
             "--card-bg": gradient,
             "--card-border-color": border,
             borderRadius: "clamp(12px, 1.39vw, 20px)",
-            padding: "clamp(10px, 2.09vw, 40px) clamp(8px, 0.83vw, 12px)",
+            padding: "clamp(28px, 2.09vw, 40px) clamp(12px, 0.83vw, 12px)",
             gap: "clamp(4px, 0.56vw, 8px)",
           } as React.CSSProperties}
         >
@@ -225,7 +225,7 @@ export function TeacherCourseCard({
             <div className="flex items-center" style={{ gap: "clamp(4px, 0.28vw, 4px)" }}>
               <h3
                 className="line-clamp-2 flex-1 font-bold uppercase text-(--color-text-primary)"
-                style={{ fontSize: "clamp(10px, 0.97vw, 14px)", lineHeight: "clamp(13px, 1.25vw, 18px)" }}
+                style={{ fontSize: "clamp(12px, 0.97vw, 14px)", lineHeight: "clamp(15px, 1.25vw, 18px)" }}
               >
                 {title}
               </h3>
@@ -252,7 +252,7 @@ export function TeacherCourseCard({
                 <div className="h-0.5 flex-1 overflow-hidden rounded-full bg-(--color-brand-lavender)">
                   <div className="h-full rounded-full bg-(--color-blue)" style={{ width: `${clamped}%` }} />
                 </div>
-                <span className="shrink-0 font-(family-name:--font-accent) font-semibold uppercase text-(--color-text-primary)" style={{ fontSize: "clamp(10px, 1.11vw, 16px)" }}>
+                <span className="shrink-0 font-(family-name:--font-accent) font-semibold uppercase text-(--color-text-primary)" style={{ fontSize: "clamp(12px, 1.11vw, 16px)" }}>
                   {clamped}%
                 </span>
               </div>

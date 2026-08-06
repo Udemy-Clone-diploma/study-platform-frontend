@@ -134,15 +134,15 @@ export function MyCoursesDashboardWidget({ role }: Props) {
   const allHref = role === "teacher" ? "/teacher-dashboard/courses" : "/student-dashboard/courses";
 
   return (
-    <div className="flex flex-col" style={{ gap: "clamp(12px, 1.04vw, 20px)" }}>
+    <div className="flex flex-col" style={{ gap: "clamp(16px, 1.04vw, 20px)" }}>
       <div
         className="flex items-center justify-between"
         style={{ gap: "clamp(8px, 0.83vw, 16px)" }}
       >
         <div
-          className={`flex shrink-0 items-center justify-between bg-(--color-brand-lavender) font-bold ${
+          className={`flex min-w-0 shrink-0 items-center justify-between bg-(--color-brand-lavender) font-bold ${
             role === "student"
-              ? "h-[52px] w-[399px] gap-2.5 rounded-[20px] p-4 font-(family-name:--font-base) text-xl leading-none tracking-normal not-italic text-(--color-text-primary)"
+              ? "h-[52px] flex-1 gap-2.5 rounded-[20px] p-4 font-(family-name:--font-base) text-xl leading-none tracking-normal not-italic text-(--color-text-primary) lg:w-[399px] lg:flex-none"
               : "font-(family-name:--font-accent) text-(--color-blue-dark)"
           }`}
           style={
@@ -174,37 +174,42 @@ export function MyCoursesDashboardWidget({ role }: Props) {
 
       {!loading &&
         ((role === "teacher" ? teacherCourses.length : studentCourses.length) > 0 ? (
-          <div className="grid grid-cols-2" style={{ gap: "clamp(8px, 0.83vw, 16px)" }}>
+          <div
+            className="-mx-4 flex snap-x snap-mandatory overflow-x-auto px-4 py-8 -my-6 [-ms-overflow-style:none] [scrollbar-width:none] lg:mx-0 lg:grid lg:grid-cols-2 lg:overflow-visible lg:px-0 lg:py-0 lg:my-0 [&::-webkit-scrollbar]:hidden"
+            style={{ gap: "clamp(8px, 0.83vw, 16px)" }}
+          >
             {role === "teacher"
               ? teacherCourses.map((course) => (
-                  <TeacherCourseCard
-                    key={course.id}
-                    title={course.title}
-                    level={course.level}
-                    status={BACKEND_TO_UI[course.status] ?? "draft"}
-                    imageSrc={course.image}
-                    iconSrc={LEVEL_ICON[course.level] ?? "/icons/curses.svg"}
-                    rating={
-                      course.status === "archived" || course.status === "published"
-                        ? Number(course.rating_avg)
-                        : undefined
-                    }
-                    slug={course.slug}
-                    enrolledCount={course.students_count}
-                    {...makeHandlers(course)}
-                  />
+                  <div key={course.id} className="w-[300px] shrink-0 snap-start lg:w-auto">
+                    <TeacherCourseCard
+                      title={course.title}
+                      level={course.level}
+                      status={BACKEND_TO_UI[course.status] ?? "draft"}
+                      imageSrc={course.image}
+                      iconSrc={LEVEL_ICON[course.level] ?? "/icons/curses.svg"}
+                      rating={
+                        course.status === "archived" || course.status === "published"
+                          ? Number(course.rating_avg)
+                          : undefined
+                      }
+                      slug={course.slug}
+                      enrolledCount={course.students_count}
+                      {...makeHandlers(course)}
+                    />
+                  </div>
                 ))
               : studentCourses.map((course) => (
-                  <StudentCourseCard
-                    key={course.id}
-                    title={course.title}
-                    teacherName={course.teacher_name}
-                    progressPercent={course.progress_percent ?? 0}
-                    imageSrc={course.image}
-                    iconSrc={LEVEL_ICON[course.level] ?? "/icons/curses.svg"}
-                    level={course.level}
-                    slug={course.slug}
-                  />
+                  <div key={course.id} className="w-[300px] shrink-0 snap-start lg:w-auto">
+                    <StudentCourseCard
+                      title={course.title}
+                      teacherName={course.teacher_name}
+                      progressPercent={course.progress_percent ?? 0}
+                      imageSrc={course.image}
+                      iconSrc={LEVEL_ICON[course.level] ?? "/icons/curses.svg"}
+                      level={course.level}
+                      slug={course.slug}
+                    />
+                  </div>
                 ))}
           </div>
         ) : (

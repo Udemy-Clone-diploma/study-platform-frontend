@@ -475,6 +475,36 @@ body {
   z-index: -1;
 }
 
+/* Admin courses page only: fills the whole viewport with the page's own solid
+   background color so the fixed header's/bottom-nav's rounded corners reveal
+   this instead of a hard white notch — exact color match, no blend needed. */
+.bg-admin-courses {
+  position: relative;
+  isolation: isolate;
+}
+.bg-admin-courses::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: var(--color-brand-lavender-soft);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Student/teacher schedule page only: same recipe as .bg-admin-courses. */
+.bg-schedule-page {
+  position: relative;
+  isolation: isolate;
+}
+.bg-schedule-page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: var(--color-calendar-bg);
+  pointer-events: none;
+  z-index: -1;
+}
+
 .drag-scroll {
   -ms-overflow-style: none;
   scrollbar-width: none;

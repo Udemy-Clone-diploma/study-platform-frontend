@@ -37,6 +37,7 @@ export function CoursesTable({
 }: Props) {
   const t = useTranslations("CoursesTable");
   const locale = useLocale();
+  const compact = selectedCourseId !== null;
   const columns: DataTableColumn<CourseListItem>[] = [
     {
       key: "course",
@@ -60,7 +61,7 @@ export function CoursesTable({
     {
       key: "instructor",
       label: t("columnInstructor"),
-      flex: 1.4,
+      flex: 1.2,
       headerAlign: "center",
       cellAlign: "center",
       render: (row) => (
@@ -91,7 +92,7 @@ export function CoursesTable({
     {
       key: "status",
       label: t("columnStatus"),
-      flex: 1.2,
+      flex: 1.7,
       headerAlign: "center",
       cellAlign: "center",
       render: (row) => (
@@ -124,8 +125,8 @@ export function CoursesTable({
       cellAlign: "center",
       render: (row) => (
         <div
-          className="flex items-center justify-center"
-          style={{ gap: "clamp(4px, 0.56vw, 8px)" }}
+          className="flex flex-wrap items-center justify-center"
+          style={{ gap: "clamp(2px, 0.42vw, 8px)", rowGap: "clamp(2px, 0.42vw, 6px)" }}
         >
           <Link
             href={`/courses/${row.slug}`}
@@ -165,6 +166,8 @@ export function CoursesTable({
       selectedKey={selectedCourseId}
       currentSort={currentSort}
       onSortChange={onSortChange}
+      minWidth="820px"
+      compact={compact}
     />
   );
 }

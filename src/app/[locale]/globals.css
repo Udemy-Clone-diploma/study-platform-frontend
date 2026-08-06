@@ -17,6 +17,9 @@
   --color-text-primary: #121212;
   --color-text-secondary: #5e5e5e;
   --profile-card-button-bottom: 2.8125rem;
+  --mobile-header-height: 4rem;
+  --mobile-header-radius: 1.25rem;
+  --mobile-header-content-offset: calc(var(--mobile-header-height) - var(--mobile-header-radius));
   --gradient-sidebar-item-expanded: linear-gradient(
     90deg,
     #fff4da 0%,

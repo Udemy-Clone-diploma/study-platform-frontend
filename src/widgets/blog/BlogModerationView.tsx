@@ -223,22 +223,26 @@ export function BlogModerationView({ role }: Props) {
     <PageShell className="bg-(--color-brand-lavender-soft)">
       <div style={{ maxWidth: "1648px", margin: "0 auto" }}>
         <div
-          className="flex flex-wrap items-center justify-between"
+          className="flex flex-col lg:flex-row lg:flex-wrap lg:items-center lg:justify-between"
           style={{ marginBottom: "clamp(12px, 1.11vw, 16px)", gap: "clamp(12px, 1.11vw, 16px)" }}
         >
-          <nav aria-label={t("modeNavAriaLabel")} className="flex flex-wrap items-center" style={{ gap: "clamp(16px, 1.67vw, 40px)" }}>
+          <nav
+            aria-label={t("modeNavAriaLabel")}
+            className="-mx-4 flex items-center overflow-x-auto px-4 [-ms-overflow-style:none] [scrollbar-width:none] lg:mx-0 lg:flex-wrap lg:overflow-visible lg:px-0 [&::-webkit-scrollbar]:hidden"
+            style={{ gap: "clamp(16px, 1.67vw, 40px)" }}
+          >
             {modeTabs(role, t).map(({ value, label }) => (
               <button
                 key={value}
                 onClick={() => changeMode(value)}
                 aria-current={mode === value ? "page" : undefined}
                 className={[
-                  "font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-blue)",
+                  "shrink-0 whitespace-nowrap font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-blue)",
                   mode === value
                     ? "text-(--color-text-primary) underline underline-offset-4"
-                    : "text-(--color-text-secondary) hover:text-(--color-text-primary)",
+                    : "text-(--color-text-primary)",
                 ].join(" ")}
-                style={{ fontSize: "clamp(14px, 1.39vw, 24px)" }}
+                style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(20px, 1.39vw, 24px)" }}
               >
                 {label}
               </button>
@@ -246,7 +250,7 @@ export function BlogModerationView({ role }: Props) {
           </nav>
 
           {mode === "mine" && (
-            <GradientButton href="/blog/create">
+            <GradientButton href="/blog/create" className="shrink-0 self-end lg:self-auto">
               {t("addArticle")}
               <Image
                 src="/icons/add.svg"
@@ -259,7 +263,7 @@ export function BlogModerationView({ role }: Props) {
           )}
 
           {mode === "categories" && (
-            <GradientButton onClick={() => setCategoryFormOpen("add")}>
+            <GradientButton onClick={() => setCategoryFormOpen("add")} className="shrink-0 self-end lg:self-auto">
               {t("addCategory")}
               <Image
                 src="/icons/add.svg"

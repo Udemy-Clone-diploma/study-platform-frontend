@@ -92,8 +92,15 @@ function CourseStatusBadge({ state }: { state: CourseState }) {
   return (
     <Tooltip content={state.description}>
       <span
-        className="inline-flex max-w-full items-center justify-center rounded-full border px-3 py-1 text-center font-(family-name:--font-accent) text-xs font-medium leading-4 whitespace-nowrap"
-        style={{ color, borderColor: color, background: "white" }}
+        className="inline-flex max-w-full items-center justify-center rounded-full border text-center font-(family-name:--font-accent) font-medium break-words"
+        style={{
+          color,
+          borderColor: color,
+          background: "white",
+          fontSize: "clamp(11px, 0.97vw, 13px)",
+          lineHeight: "1.35",
+          padding: "clamp(6px, 0.63vw, 8px) clamp(10px, 1.04vw, 14px)",
+        }}
       >
         {state.label}
       </span>
@@ -106,8 +113,8 @@ function CourseIdentity({ course, href, freeLabel }: { course: CourseListItem; h
     <>
       <CourseThumb image={course.image} title={course.title} />
       <div className="min-w-0">
-        <p className="truncate font-semibold text-(--color-text-primary)">{course.title}</p>
-        <p className="mt-0.5 truncate text-xs text-(--color-text-secondary)">
+        <p className="break-words font-semibold text-(--color-text-primary)">{course.title}</p>
+        <p className="mt-0.5 break-words text-xs text-(--color-text-secondary)">
           {course.subtitle || `${humanize(course.language)} - ${formatPrice(course, freeLabel)}`}
         </p>
       </div>
@@ -136,7 +143,8 @@ function TableAction({
     <button
       type="button"
       onClick={onClick}
-      className="inline-flex items-center gap-1.5 rounded-full border border-(--color-blue) bg-white px-3 py-1.5 text-xs font-semibold text-(--color-blue) transition hover:bg-(--color-brand-lavender-soft)"
+      className="inline-flex max-w-full items-center justify-center gap-1 whitespace-nowrap rounded-full border border-(--color-blue) bg-white font-semibold text-(--color-blue) transition hover:bg-(--color-brand-lavender-soft)"
+      style={{ fontSize: "clamp(10px, 0.9vw, 12px)", padding: "clamp(4px, 0.42vw, 6px) clamp(8px, 0.83vw, 12px)" }}
     >
       {children}
       {label}
@@ -170,32 +178,39 @@ function currentCourseColumns(
     {
       key: "teacher",
       label: t("columnTeacher"),
-      flex: 1.7,
-      render: (course) => <span className="truncate">{course.teacher_name || "-"}</span>,
+      flex: 1.4,
+      render: (course) => <span className="block break-words">{course.teacher_name || "-"}</span>,
     },
     {
       key: "category",
       label: t("columnCategory"),
-      flex: 1.5,
-      render: (course) =>
-        course.category?.name || <span className="text-(--color-text-secondary)">{t("noCategory")}</span>,
+      flex: 1.1,
+      render: (course) => (
+        <span className="block break-words">
+          {course.category?.name || (
+            <span className="text-(--color-text-secondary)">{t("noCategory")}</span>
+          )}
+        </span>
+      ),
     },
     {
       key: "level",
       label: t("columnLevel"),
-      flex: 1.1,
+      flex: 0.9,
       headerAlign: "center",
       cellAlign: "center",
       render: (course) => (
-        <span style={{ color: LEVEL_COLORS[course.level] }}>{tLevel(`level.${course.level}`)}</span>
+        <span className="block break-words" style={{ color: LEVEL_COLORS[course.level] }}>
+          {tLevel(`level.${course.level}`)}
+        </span>
       ),
     },
     {
       key: "format",
       label: t("columnFormat"),
-      flex: 1.7,
+      flex: 1.2,
       render: (course) => (
-        <span className="block truncate">
+        <span className="block break-words">
           {humanize(course.mode)} - {humanize(course.delivery_type)}
         </span>
       ),
@@ -225,20 +240,20 @@ function currentCourseColumns(
     {
       key: "rating",
       label: t("columnRating"),
-      flex: 1.35,
+      flex: 1.1,
       headerAlign: "center",
       cellAlign: "center",
       render: (course) => (
-        <span className="inline-flex items-center justify-center gap-1 whitespace-nowrap">
-          <Star className="h-3.5 w-3.5 fill-(--color-gold) text-(--color-gold)" />
-          {formatRating(course, t)}
+        <span className="inline-flex items-center justify-center gap-1">
+          <Star className="h-3.5 w-3.5 shrink-0 fill-(--color-gold) text-(--color-gold)" />
+          <span className="break-words">{formatRating(course, t)}</span>
         </span>
       ),
     },
     {
       key: "status",
       label: t("columnStatus"),
-      flex: 1.5,
+      flex: 2.4,
       headerAlign: "center",
       cellAlign: "center",
       render: (course) => (
@@ -248,7 +263,7 @@ function currentCourseColumns(
     {
       key: "actions",
       label: t("columnActions"),
-      flex: 1.3,
+      flex: 2.2,
       headerAlign: "center",
       cellAlign: "center",
       render: (course) =>
@@ -259,7 +274,8 @@ function currentCourseColumns(
         ) : (
           <Link
             href={`/moderator-dashboard/courses/${course.slug}/review`}
-            className="inline-flex items-center gap-1.5 rounded-full border border-(--color-blue) bg-white px-3 py-1.5 text-xs font-semibold text-(--color-blue) transition hover:bg-(--color-brand-lavender-soft)"
+            className="inline-flex max-w-full items-center justify-center gap-1 whitespace-nowrap rounded-full border border-(--color-blue) bg-white font-semibold text-(--color-blue) transition hover:bg-(--color-brand-lavender-soft)"
+            style={{ fontSize: "clamp(10px, 0.9vw, 12px)", padding: "clamp(4px, 0.42vw, 6px) clamp(8px, 0.83vw, 12px)" }}
           >
             <Eye className="h-3.5 w-3.5" />
             {t("reviewAction")}
@@ -293,6 +309,7 @@ export function ModeratorCoursesTable({
       headerVariant="plain"
       showIndex={false}
       rowVariant="card"
+      minWidth="900px"
     />
   );
 }
@@ -301,7 +318,7 @@ function historyCourseIdentity(record: HistoryRecord) {
   return (
     <div className="flex min-w-0 items-center gap-3">
       <CourseThumb image={record.course_image_url} title={record.course_title} />
-      <span className="min-w-0 truncate font-semibold text-(--color-text-primary)">
+      <span className="min-w-0 break-words font-semibold text-(--color-text-primary)">
         {record.course_title}
       </span>
     </div>
@@ -346,29 +363,36 @@ export function ModeratorHistoryTable({
     {
       key: "category",
       label: t("columnCategory"),
-      flex: 1.8,
-      render: (record) =>
-        record.course_category || (
-          <span className="text-(--color-text-secondary)">{t("noCategory")}</span>
-        ),
+      flex: 1.5,
+      render: (record) => (
+        <span className="block break-words">
+          {record.course_category || (
+            <span className="text-(--color-text-secondary)">{t("noCategory")}</span>
+          )}
+        </span>
+      ),
     },
     {
       key: "level",
       label: t("columnLevel"),
-      flex: 1.2,
+      flex: 1,
       headerAlign: "center",
       cellAlign: "center",
       render: (record) => {
         const level = record.course_level as CourseLevel;
-        return <span style={{ color: LEVEL_COLORS[level] }}>{tLevel(`level.${level}`)}</span>;
+        return (
+          <span className="block break-words" style={{ color: LEVEL_COLORS[level] }}>
+            {tLevel(`level.${level}`)}
+          </span>
+        );
       },
     },
     {
       key: "changes",
       label: t("columnChanges"),
-      flex: 2.2,
+      flex: 1.9,
       render: (record) => (
-        <span className="truncate" title={record.changed_fields.join(", ")}>
+        <span className="block break-words" title={record.changed_fields.join(", ")}>
           {historyChanges(record, t)}
         </span>
       ),
@@ -376,17 +400,17 @@ export function ModeratorHistoryTable({
     {
       key: "date",
       label: t("columnDecisionDate"),
-      flex: 1.6,
+      flex: 1.4,
       headerAlign: "center",
       cellAlign: "center",
       render: (record) => (
-        <span className="whitespace-nowrap">{formatCourseDate(historyDate(record, status), locale)}</span>
+        <span className="block break-words">{formatCourseDate(historyDate(record, status), locale)}</span>
       ),
     },
     {
       key: "status",
       label: t("columnStatus"),
-      flex: 1.4,
+      flex: 1.8,
       headerAlign: "center",
       cellAlign: "center",
       render: () => <CourseStatusBadge state={{ ...HISTORY_STATE[status], label: statusLabel }} />,
@@ -394,7 +418,7 @@ export function ModeratorHistoryTable({
     {
       key: "actions",
       label: t("columnActions"),
-      flex: 1.2,
+      flex: 1.9,
       headerAlign: "center",
       cellAlign: "center",
       render: (record) => (
@@ -414,6 +438,7 @@ export function ModeratorHistoryTable({
       headerVariant="plain"
       showIndex={false}
       rowVariant="card"
+      minWidth="760px"
     />
   );
 }

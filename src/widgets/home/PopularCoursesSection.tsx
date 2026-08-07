@@ -31,7 +31,7 @@ export function PopularCoursesSection({ courses, wishlistedSlugs }: Props) {
           {t("heading")}
         </h2>
       </SectionContainer>
-      <div style={{ overflow: "hidden", padding: "16px 0", marginBottom: "3%" }}>
+      <div style={{ overflow: "hidden", padding: "16px 0", marginBottom: "clamp(62px, 8vw, 150px)" }}>
         <div
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
@@ -39,6 +39,7 @@ export function PopularCoursesSection({ courses, wishlistedSlugs }: Props) {
             display: "flex",
             gap: "3.65vw",
             width: "max-content",
+            minHeight: "clamp(300px, calc(284.95px + 4.01vw), 362px)",
             animation: "carousel-right 60s linear infinite",
             animationDirection: "reverse",
             animationPlayState: paused ? "paused" : "running",

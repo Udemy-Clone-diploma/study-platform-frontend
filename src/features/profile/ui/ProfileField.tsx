@@ -7,28 +7,28 @@ import { LOCALE_OPTIONS } from "@/shared/lib/useLocaleSwitcher";
 
 export const LABEL_STYLE: React.CSSProperties = {
     fontFamily: "var(--font-base)", fontWeight: 600,
-    fontSize: "1.25vw", color: "var(--color-text-secondary)",
+    fontSize: "clamp(20px, 1.25vw, 24px)", color: "var(--color-text-secondary)",
     letterSpacing: "-0.011em", lineHeight: 1.5,
 };
 
 export const VALUE_STYLE: React.CSSProperties = {
     fontFamily: "var(--font-base)", fontWeight: 600,
-    fontSize: "1.25vw", color: "var(--color-text-primary)",
+    fontSize: "clamp(20px, 1.25vw, 24px)", color: "var(--color-text-primary)",
     letterSpacing: "-0.011em", lineHeight: 1.5,
 };
 
 export const INPUT_STYLE: React.CSSProperties = {
     fontFamily: "var(--font-base)",
     fontWeight: 400,
-    fontSize: "1.04vw",
+    fontSize: "clamp(16px, 1.04vw, 20px)",
     color: "var(--color-text-secondary)",
     letterSpacing: "-0.011em",
     lineHeight: 1.5,
     background: "var(--color-bg)",
     border: "1px solid var(--color-text-primary)",
     boxShadow: "none",
-    borderRadius: "2.083vw",
-    padding: "0.521vw 1.042vw",
+    borderRadius: "999px",
+    padding: "clamp(10px, 0.521vw, 12px) clamp(18px, 1.042vw, 20px)",
     outline: "none",
     width: "100%",
     appearance: "none" as const,
@@ -37,7 +37,7 @@ export const INPUT_STYLE: React.CSSProperties = {
 
 export const TEXTAREA_STYLE: React.CSSProperties = {
     ...INPUT_STYLE,
-    borderRadius: "0.833vw",
+    borderRadius: "clamp(14px, 0.833vw, 16px)",
     resize: "vertical" as const,
     lineHeight: 1.6,
 };
@@ -107,15 +107,15 @@ function ProfileCustomSelect({
                 <div style={{
                     position: "absolute", top: "calc(100% + 0.417vw)", left: 0, right: 0, zIndex: 100,
                     background: "var(--color-bg)",
-                    borderRadius: "1.094vw",
-                    padding: "0.521vw 1.042vw 1.042vw",
-                    display: "flex", flexDirection: "column", gap: "0.521vw",
+                    borderRadius: "clamp(14px, 1.094vw, 21px)",
+                    padding: "clamp(8px, 0.521vw, 10px) clamp(14px, 1.042vw, 20px) clamp(14px, 1.042vw, 20px)",
+                    display: "flex", flexDirection: "column", gap: "clamp(8px, 0.521vw, 10px)",
                     boxShadow: "var(--shadow-card)",
                 }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                         <span style={{
                             fontFamily: "var(--font-base)", fontWeight: 400,
-                            fontSize: "1.042vw", color: "var(--color-text-primary)",
+                            fontSize: "clamp(16px, 1.042vw, 20px)", color: "var(--color-text-primary)",
                         }}>
                             {selectedLabel}
                         </span>
@@ -124,7 +124,7 @@ function ProfileCustomSelect({
 
                     <div style={{ height: "1px", background: "var(--color-draft)" }} />
 
-                    <div style={{ display: "flex", flexDirection: "column", gap: "1.042vw", paddingTop: "0.26vw" }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "clamp(10px, 1.042vw, 20px)", paddingTop: "0.26vw" }}>
                         {options.map(opt => (
                             <button
                                 key={opt.value}
@@ -134,7 +134,7 @@ function ProfileCustomSelect({
                                     background: "none", border: "none", padding: 0,
                                     cursor: "pointer", textAlign: "left",
                                     fontFamily: "var(--font-base)", fontWeight: 400,
-                                    fontSize: "1.042vw", lineHeight: 1.25,
+                                    fontSize: "clamp(16px, 1.042vw, 20px)", lineHeight: 1.25,
                                     color: opt.value === value ? "var(--color-blue)" : "var(--color-text-primary)",
                                 }}
                             >

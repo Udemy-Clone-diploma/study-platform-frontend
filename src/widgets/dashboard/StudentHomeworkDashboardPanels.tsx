@@ -602,10 +602,10 @@ function HomeworkQueueCard({
     >
       <HomeworkIcon visual={visual} />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-[11px] text-[#5e5e5e]">
+        <p className="truncate text-xs text-[#5e5e5e]">
           {assignment.course_title} <span className="px-1">|</span> {kindLabel(assignmentKind(assignment), t)}
         </p>
-        <p className="truncate text-sm font-medium text-black">{assignment.title}</p>
+        <p className="truncate text-base font-medium text-black">{assignment.title}</p>
       </div>
       {showScoreBadge && tab === "todo" ? (
         <span className="rounded-md bg-[#fff4da] px-3 py-2 text-base font-medium text-[#8a6201]">

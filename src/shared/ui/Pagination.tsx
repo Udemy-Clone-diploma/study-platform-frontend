@@ -45,25 +45,25 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
   return (
     <nav
       aria-label={t("pagination")}
-      className="mx-auto flex w-fit items-center gap-12 rounded-3xl bg-white/60 px-2 py-1.5 text-(--color-text-primary)"
+      className="mx-auto flex max-w-full items-center gap-2 overflow-x-auto rounded-3xl bg-white/60 px-2 py-1.5 text-(--color-text-primary) [-ms-overflow-style:none] [scrollbar-width:none] lg:w-fit lg:gap-12 [&::-webkit-scrollbar]:hidden"
     >
       <button
         type="button"
         onClick={() => onPageChange(currentPage - 1)}
         disabled={isFirst}
-        className="flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-(--color-catalog-highlight) disabled:cursor-not-allowed disabled:opacity-40"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition hover:bg-(--color-catalog-highlight) disabled:cursor-not-allowed disabled:opacity-40 lg:h-10 lg:w-10"
         aria-label={t("previousPage")}
       >
-        <ChevronIcon direction="left" className="h-10 w-10" />
+        <ChevronIcon direction="left" className="h-8 w-8 lg:h-10 lg:w-10" />
       </button>
 
-      <ul className="flex items-center gap-3">
+      <ul className="flex items-center gap-1 lg:gap-3">
         {items.map((item, index) =>
           item === ELLIPSIS ? (
             <li
               key={`ellipsis-${index}`}
               aria-hidden="true"
-              className="flex h-10 w-10 items-center justify-center text-xl font-medium leading-none"
+              className="flex h-8 w-8 shrink-0 items-center justify-center text-base leading-none font-medium lg:h-10 lg:w-10 lg:text-xl"
             >
               ...
             </li>
@@ -73,7 +73,7 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
                 type="button"
                 onClick={() => onPageChange(item)}
                 aria-current={item === currentPage ? "page" : undefined}
-                className={`flex h-10 w-10 items-center justify-center rounded-full text-xl font-medium leading-none transition ${
+                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-base leading-none font-medium transition lg:h-10 lg:w-10 lg:text-xl ${
                   item === currentPage
                     ? "bg-(--color-text-primary) text-white"
                     : "hover:bg-(--color-catalog-highlight)"
@@ -90,10 +90,10 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
         type="button"
         onClick={() => onPageChange(currentPage + 1)}
         disabled={isLast}
-        className="flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-(--color-catalog-highlight) disabled:cursor-not-allowed disabled:opacity-40"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition hover:bg-(--color-catalog-highlight) disabled:cursor-not-allowed disabled:opacity-40 lg:h-10 lg:w-10"
         aria-label={t("nextPage")}
       >
-        <ChevronIcon direction="right" className="h-10 w-10" />
+        <ChevronIcon direction="right" className="h-8 w-8 lg:h-10 lg:w-10" />
       </button>
     </nav>
   );

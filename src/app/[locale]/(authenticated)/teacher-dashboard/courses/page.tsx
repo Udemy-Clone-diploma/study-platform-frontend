@@ -321,58 +321,61 @@ export default function TeacherCoursesPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  const addCourseButton = (
+    <Link
+      href="/teacher-dashboard/courses/new"
+      className="flex shrink-0 items-center font-(family-name:--font-accent) font-medium uppercase text-(--color-text-primary) transition-opacity hover:opacity-85 focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-blue)"
+      style={{
+        background: "var(--gradient-brand)",
+        borderRadius: "clamp(16px, 1.94vw, 28px)",
+        padding: "clamp(8px, 0.83vw, 12px) clamp(16px, 1.94vw, 28px)",
+        fontSize: "clamp(16px, 1.39vw, 20px)",
+        gap: "clamp(8px, 0.83vw, 12px)",
+      }}
+    >
+      {t("addCourse")}
+      <Image
+        src="/icons/add.svg"
+        alt=""
+        width={14}
+        height={14}
+        style={{ width: "clamp(18px, 1.94vw, 28px)", height: "clamp(18px, 1.94vw, 28px)" }}
+      />
+    </Link>
+  );
+
   return (
     <PageShell className="bg-my-courses">
       <div style={{ maxWidth: "1648px", margin: "0 auto" }}>
-        {/* Tabs + Add Course button */}
-        <div
-          className="flex flex-wrap items-center justify-between"
-          style={{ marginBottom: "clamp(16px, 2.22vw, 32px)", gap: "clamp(12px, 1.11vw, 16px)" }}
+        {/* Tabs */}
+        <nav
+          aria-label={t("courseFilterAriaLabel")}
+          className="-mx-4 flex items-center overflow-x-auto px-4 [-ms-overflow-style:none] [scrollbar-width:none] lg:mx-0 lg:flex-wrap lg:overflow-visible lg:px-0 [&::-webkit-scrollbar]:hidden"
+          style={{ marginBottom: "clamp(16px, 2.22vw, 32px)", gap: "clamp(16px, 1.67vw, 40px)" }}
         >
-          <nav
-            aria-label={t("courseFilterAriaLabel")}
-            className="flex flex-wrap items-center"
-            style={{ gap: "clamp(16px, 1.67vw, 40px)" }}
-          >
-            {TABS.map((tab) => (
-              <button
-                key={tab}
-                onClick={() => handleTabChange(tab)}
-                aria-current={activeTab === tab ? "page" : undefined}
-                className={[
-                  "font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-blue)",
-                  activeTab === tab
-                    ? "text-(--color-text-primary) underline underline-offset-4"
-                    : "text-(--color-text-secondary) hover:text-(--color-text-primary)",
-                ].join(" ")}
-                style={{ fontSize: "clamp(14px, 1.39vw, 24px)" }}
-              >
-                {t(TAB_LABEL_KEYS[tab])}
-              </button>
-            ))}
-          </nav>
+          {TABS.map((tab) => (
+            <button
+              key={tab}
+              onClick={() => handleTabChange(tab)}
+              aria-current={activeTab === tab ? "page" : undefined}
+              className={[
+                "shrink-0 whitespace-nowrap font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-blue)",
+                activeTab === tab
+                  ? "text-(--color-text-primary) underline underline-offset-4"
+                  : "text-(--color-text-primary)",
+              ].join(" ")}
+              style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(20px, 1.39vw, 24px)" }}
+            >
+              {t(TAB_LABEL_KEYS[tab])}
+            </button>
+          ))}
+        </nav>
 
-          <Link
-            href="/teacher-dashboard/courses/new"
-            className="flex items-center font-(family-name:--font-accent) font-medium uppercase text-(--color-text-primary) transition-opacity hover:opacity-85 focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-blue)"
-            style={{
-              background: "var(--gradient-brand)",
-              borderRadius: "clamp(16px, 1.94vw, 28px)",
-              padding: "clamp(8px, 0.83vw, 12px) clamp(16px, 1.94vw, 28px)",
-              fontSize: "clamp(14px, 1.39vw, 20px)",
-              gap: "clamp(8px, 0.83vw, 12px)",
-            }}
-          >
-            {t("addCourse")}
-            <Image
-              src="/icons/add.svg"
-              alt=""
-              width={14}
-              height={14}
-              style={{ width: "clamp(18px, 1.94vw, 28px)", height: "clamp(18px, 1.94vw, 28px)" }}
-            />
-          </Link>
-        </div>
+        {activeTab === "rejected" || (!loading && !error && months.length === 0) ? (
+          <div className="flex justify-end" style={{ marginBottom: "clamp(16px, 2.22vw, 32px)" }}>
+            {addCourseButton}
+          </div>
+        ) : null}
 
         {loading ? (
           <p className="mt-16 text-center text-lg text-(--color-text-secondary)">{t("loading")}</p>
@@ -400,14 +403,17 @@ export default function TeacherCoursesPage() {
             {t("noCoursesFound")}
           </p>
         ) : (
-          months.map((month) => (
-            <section key={month} style={{ marginBottom: "clamp(16px, 2.22vw, 32px)" }}>
-              <h2
-                className="font-normal text-(--color-text-primary)"
-                style={{ fontSize: "clamp(16px, 1.67vw, 24px)", marginBottom: "clamp(8px, 1.11vw, 16px)" }}
-              >
-                {month}
-              </h2>
+          months.map((month, monthIndex) => (
+            <section key={month} style={{ marginBottom: "clamp(24px, 3.06vw, 44px)" }}>
+              <div className="flex items-center justify-between" style={{ marginBottom: "clamp(20px, 2.22vw, 32px)" }}>
+                <h2
+                  className="font-normal text-(--color-text-primary) capitalize"
+                  style={{ fontSize: "clamp(16px, 1.67vw, 24px)" }}
+                >
+                  {month}
+                </h2>
+                {monthIndex === 0 && addCourseButton}
+              </div>
               <div
                 className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
                 style={{ gap: "clamp(8px, 1.11vw, 16px)" }}

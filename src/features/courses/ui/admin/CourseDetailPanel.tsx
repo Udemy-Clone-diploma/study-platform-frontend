@@ -5,6 +5,8 @@ import { Link } from "@/i18n/navigation";
 import { X } from "lucide-react";
 import { formatPrice } from "@/entities/course";
 import type { CourseListItem } from "@/entities/course";
+import { ModalShell } from "@/shared/ui/ModalShell";
+import { useIsDesktop } from "@/shared/lib/useIsDesktop";
 import { CourseStatusBadge } from "./CourseStatusBadge";
 import { CourseThumb, formatCourseDate } from "./CoursesTable";
 
@@ -22,44 +24,39 @@ export function CourseDetailPanel({ course, onClose }: Props) {
   const tTable = useTranslations("CoursesTable");
   const tLevel = useTranslations("CourseBasicsForm.level");
   const locale = useLocale();
+  const isDesktop = useIsDesktop();
 
-  return (
-    <aside
-      aria-label={t("courseDetailsAriaLabel")}
-      className="flex shrink-0 flex-col rounded-[20px] border border-white bg-(--color-white-20) shadow-(--shadow-usp-glass) backdrop-blur-md"
-      style={{
-        width: "clamp(300px, 24vw, 360px)",
-        padding: "clamp(16px, 1.67vw, 24px)",
-        gap: "clamp(14px, 1.25vw, 18px)",
-      }}
-    >
-      <div className="flex items-center justify-between" style={{ gap: 12 }}>
-        <h2
-          className="overflow-hidden font-bold text-ellipsis whitespace-nowrap text-(--color-text-primary)"
-          style={{
-            fontFamily: "var(--font-base)",
-            fontSize: "clamp(16px, 1.25vw, 18px)",
-            margin: 0,
-          }}
+  const header = (
+    <div className="flex items-center justify-between" style={{ gap: 12 }}>
+      <h2
+        className="overflow-hidden font-bold text-ellipsis whitespace-nowrap text-(--color-text-primary)"
+        style={{
+          fontFamily: "var(--font-base)",
+          fontSize: "clamp(16px, 1.25vw, 18px)",
+          margin: 0,
+        }}
+      >
+        <Link
+          href={`/courses/${course.slug}`}
+          target="_blank"
+          className="underline decoration-from-font hover:text-(--color-blue)"
         >
-          <Link
-            href={`/courses/${course.slug}`}
-            target="_blank"
-            className="underline decoration-from-font hover:text-(--color-blue)"
-          >
-            {course.title}
-          </Link>
-        </h2>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label={t("closeDetailsAriaLabel")}
-          className="flex shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-1 text-(--color-text-secondary) transition hover:bg-(--color-brand-lavender-soft)"
-        >
-          <X size={18} />
-        </button>
-      </div>
+          {course.title}
+        </Link>
+      </h2>
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label={t("closeDetailsAriaLabel")}
+        className="flex shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-1 text-(--color-text-secondary) transition hover:bg-(--color-brand-lavender-soft)"
+      >
+        <X size={18} />
+      </button>
+    </div>
+  );
 
+  const body = (
+    <>
       <div className="flex items-center" style={{ gap: 12 }}>
         <CourseThumb image={course.image} title={course.title} size="clamp(44px, 3.33vw, 56px)" />
         <CourseStatusBadge status={course.status} />
@@ -92,6 +89,37 @@ export function CourseDetailPanel({ course, onClose }: Props) {
           </DetailRow>
         )}
       </dl>
+    </>
+  );
+
+  if (!isDesktop) {
+    return (
+      <ModalShell
+        onClose={onClose}
+        ariaLabel={t("courseDetailsAriaLabel")}
+        width="clamp(300px, 92vw, 420px)"
+        padding="clamp(16px, 4vw, 24px)"
+      >
+        <div className="flex flex-col" style={{ gap: "clamp(14px, 4vw, 18px)" }}>
+          {header}
+          {body}
+        </div>
+      </ModalShell>
+    );
+  }
+
+  return (
+    <aside
+      aria-label={t("courseDetailsAriaLabel")}
+      className="flex shrink-0 flex-col rounded-[20px] border border-white bg-(--color-white-20) shadow-(--shadow-usp-glass) backdrop-blur-md"
+      style={{
+        width: "clamp(240px, calc(103px + 13.39vw), 360px)",
+        padding: "clamp(16px, 1.67vw, 24px)",
+        gap: "clamp(14px, 1.25vw, 18px)",
+      }}
+    >
+      {header}
+      {body}
     </aside>
   );
 }
@@ -104,7 +132,7 @@ function DetailRow({ label, children }: { label: string; children: React.ReactNo
     >
       <dt
         className="shrink-0 text-(--color-text-secondary)"
-        style={{ width: "clamp(72px, 5.5vw, 88px)" }}
+        style={{ width: "clamp(60px, calc(28px + 3.125vw), 88px)" }}
       >
         {label}
       </dt>

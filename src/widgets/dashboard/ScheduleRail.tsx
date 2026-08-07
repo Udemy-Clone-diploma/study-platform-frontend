@@ -475,8 +475,7 @@ export function ScheduleRail() {
 
   return (
     <aside
-      className="flex flex-col rounded-xl gap-4 bg-[linear-gradient(180deg,#fff4da_0%,#fcc4c3_45%,#a7bafa_100%)]"
-      style={{ height: "var(--schedule-height, calc(100vh - 76px))" } as React.CSSProperties}
+      className="flex h-[620px] flex-col rounded-xl gap-4 bg-[linear-gradient(180deg,#fff4da_0%,#fcc4c3_45%,#a7bafa_100%)] lg:h-[var(--schedule-height,calc(100vh-76px))]"
     >
 
       {/* ── Calendar card ── */}
@@ -559,7 +558,7 @@ export function ScheduleRail() {
 
       {/* ── Content ── */}
       <div
-        className="mx-2 mb-4 flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto rounded-2xl   p-3 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/50"
+        className="mx-2 mb-4 flex min-h-[180px] flex-1 flex-col gap-2 overflow-y-auto rounded-2xl   p-3 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/50"
         style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(255,255,255,0.5) transparent" }}
       >
         {tab === "day" && (

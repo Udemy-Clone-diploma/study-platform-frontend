@@ -20,13 +20,13 @@ export function ProfileMainContent({
 }: Props) {
     const t = useTranslations("Profile");
     return (
-        <div style={{ display: "flex", flexDirection: "column", gap: "1.5vw" }}>
+        <div className="flex flex-col gap-6 lg:gap-[1.5vw]">
 
             {/* Heading */}
             <div>
                 <h1 style={{
                     fontFamily: "var(--font-base)", fontWeight: 700,
-                    fontSize: "2.083vw", color: "var(--color-text-primary)",
+                    fontSize: "clamp(32px, 2.083vw, 40px)", color: "var(--color-text-primary)",
                     lineHeight: 1.25, margin: 0,
                 }}>
                     {t("title")}
@@ -34,7 +34,7 @@ export function ProfileMainContent({
                 {showSubtitle && (
                     <p style={{
                         marginTop: "0.417vw", marginBottom: 0,
-                        fontFamily: "var(--font-base)", fontSize: "1.04vw", fontWeight: 500,
+                        fontFamily: "var(--font-base)", fontSize: "clamp(16px, 1.04vw, 20px)", fontWeight: 500,
                         color: "var(--color-text-primary)", letterSpacing: "-0.011em",
                     }}>
                         {t("subtitle")}
@@ -48,14 +48,14 @@ export function ProfileMainContent({
                     display: "flex", justifyContent: "space-between", alignItems: "baseline",
                     marginBottom: "0.417vw", letterSpacing: "-0.011em",
                 }}>
-                    <span style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "1.04vw", color: "var(--color-text-primary)" }}>
+                    <span style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(18px, 1.04vw, 20px)", color: "var(--color-text-primary)" }}>
                         {t("completion")}
                     </span>
-                    <span style={{ fontFamily: "var(--font-accent)", fontWeight: 700, fontSize: "1.25vw", color: "var(--color-blue)" }}>
+                    <span style={{ fontFamily: "var(--font-accent)", fontWeight: 700, fontSize: "clamp(18px, 1.25vw, 24px)", color: "var(--color-blue)" }}>
                         {completionPercent}%
                     </span>
                 </div>
-                <div style={{ position: "relative", height: "0.42vw", borderRadius: "0.26vw", overflow: "hidden" }}>
+                <div style={{ position: "relative", height: "clamp(6px, 0.42vw, 8px)", borderRadius: "999px", overflow: "hidden" }}>
                     <div style={{ position: "absolute", inset: 0, background: "var(--color-brand-lavender)" }} />
                     <div style={{
                         position: "absolute", top: 0, left: 0, height: "100%",

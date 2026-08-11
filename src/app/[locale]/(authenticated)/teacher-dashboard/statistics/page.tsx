@@ -130,7 +130,10 @@ export default function TeacherStatisticsPage() {
               style={{ right: "clamp(-70px, -1vw, 10px)", bottom: "clamp(-160px, -14vw, -100px)", width: "clamp(300px, 28vw, 560px)", height: "auto", transform: "rotate(31.1deg)", zIndex: 1 }}
             />
 
-            <div className="grid" style={{ position: "relative", zIndex: 3, gridTemplateColumns: "minmax(360px, 1fr) minmax(320px, 1fr)", gap: "clamp(12px, 1.11vw, 20px)", alignItems: "start" }}>
+            <div
+              className="flex flex-col lg:grid lg:grid-cols-[minmax(360px,1fr)_minmax(320px,1fr)] lg:items-start"
+              style={{ position: "relative", zIndex: 3, gap: "clamp(12px, 1.11vw, 20px)" }}
+            >
               {/* Left: 2x2 stat blocks, with the enrollment-growth chart below them */}
               <div className="flex flex-col" style={{ gap: "clamp(12px, 1.11vw, 20px)" }}>
                 <div className="grid grid-cols-2" style={{ gap: "clamp(12px, 1.11vw, 20px)" }}>

@@ -47,7 +47,7 @@ function TabBtn({ active, onClick, children }: {
       borderBottom: active ? "2px solid var(--color-blue)" : "2px solid transparent",
       marginBottom: -1, background: "none",
       border: active ? undefined : "none",
-      cursor: "pointer", transition: "color 0.15s", whiteSpace: "nowrap" as const,
+      cursor: "pointer", transition: "color 0.15s", whiteSpace: "nowrap" as const, flexShrink: 0,
     }}>
       {children}
     </button>
@@ -384,7 +384,10 @@ export default function CourseManagementPage() {
       </div>
 
       {/* ── Tab bar ────────────────────────────────────────────────────────────── */}
-      <div style={{ display: "flex", borderBottom: "1px solid var(--color-border-light)", marginBottom: "clamp(16px, 1.39vw, 28px)", flexWrap: "wrap" }}>
+      <div
+        className="flex overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] lg:flex-wrap lg:overflow-visible [&::-webkit-scrollbar]:hidden"
+        style={{ borderBottom: "1px solid var(--color-border-light)", marginBottom: "clamp(16px, 1.39vw, 28px)" }}
+      >
         {MAIN_TAB_IDS.map(mainTabId => (
           <TabBtn key={mainTabId} active={tab === mainTabId} onClick={() => setTab(mainTabId)}>
             {t(`mainTab.${mainTabId}`)}
@@ -393,7 +396,7 @@ export default function CourseManagementPage() {
 
         {dynamicTabs.length > 0 && (
           <>
-            <div style={{ alignSelf: "stretch", width: 1, background: "var(--color-border-light)", margin: "6px 6px 0" }} />
+            <div style={{ alignSelf: "stretch", width: 1, flexShrink: 0, background: "var(--color-border-light)", margin: "6px 6px 0" }} />
             {dynamicTabs.map(ft => (
               <TabBtn key={ft} active={tab === ft} onClick={() => setTab(ft)}>
                 {t(`formatTab.${ft}`)}

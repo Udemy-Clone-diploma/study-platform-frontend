@@ -291,7 +291,7 @@ function ScoreBar({ percent, passing }: { percent: number; passing: number }) {
         {/* Current-score marker above the bar: label on top, pill pointing down at the bar. */}
         <div
           className="absolute bottom-full mb-2 flex -translate-x-1/2 flex-col items-center"
-          style={{ left: `${percent}%` }}
+          style={{ left: `clamp(70px, ${percent}%, calc(100% - 70px))` }}
         >
           <span className="whitespace-nowrap font-(family-name:--font-base) text-base text-(--color-text-primary)">
             {t("yourCurrentScore")}
@@ -321,7 +321,7 @@ function ScoreBar({ percent, passing }: { percent: number; passing: number }) {
         {/* Passing-score marker below the bar: pill pointing up at the bar, label underneath. */}
         <div
           className="absolute top-full mt-2 flex -translate-x-1/2 flex-col items-center"
-          style={{ left: `${passing}%` }}
+          style={{ left: `clamp(70px, ${passing}%, calc(100% - 70px))` }}
         >
           <span className="relative rounded-md bg-(--color-text-primary) px-3 py-1 font-(family-name:--font-accent) text-2xl text-white">
             <span

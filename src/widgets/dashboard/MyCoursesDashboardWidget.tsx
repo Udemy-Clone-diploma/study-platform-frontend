@@ -142,20 +142,16 @@ export function MyCoursesDashboardWidget({ role }: Props) {
         <div
           className={`flex min-w-0 shrink-0 items-center justify-between bg-(--color-brand-lavender) font-bold ${
             role === "student"
-              ? "h-[52px] flex-1 gap-2.5 rounded-[20px] p-4 font-(family-name:--font-base) text-xl leading-none tracking-normal not-italic text-(--color-text-primary) lg:w-[399px] lg:flex-none"
+              ? "flex-1 rounded-[20px] font-(family-name:--font-base) leading-none tracking-normal not-italic text-(--color-text-primary) lg:w-[399px] lg:flex-none"
               : "font-(family-name:--font-accent) text-(--color-blue-dark)"
           }`}
-          style={
-            role === "teacher"
-              ? {
-                  borderRadius: "clamp(16px, 1.35vw, 26px)",
-                  height: "clamp(36px, 2.71vw, 52px)",
-                  padding: "0 clamp(12px, 1.25vw, 24px)",
-                  fontSize: "clamp(12px, 1.04vw, 20px)",
-                  gap: "clamp(8px, 0.83vw, 16px)",
-                }
-              : undefined
-          }
+          style={{
+            borderRadius: role === "student" ? undefined : "clamp(16px, 1.35vw, 26px)",
+            height: "clamp(36px, 2.71vw, 52px)",
+            padding: "0 clamp(12px, 1.25vw, 24px)",
+            fontSize: "clamp(12px, 1.04vw, 20px)",
+            gap: "clamp(8px, 0.83vw, 16px)",
+          }}
         >
           <span>{tCommon("myCourses")}</span>
           <span>{loading ? "…" : total}</span>

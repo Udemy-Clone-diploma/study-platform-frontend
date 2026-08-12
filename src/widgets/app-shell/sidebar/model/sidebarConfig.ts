@@ -315,14 +315,6 @@ function buildAdminItems(t: Translator, tCommon: Translator): SidebarItem[] {
       match: "startsWith",
     },
     {
-      id: "statistics",
-      label: t("statistics"),
-      href: "/admin/statistics",
-      icon: "statistics",
-      iconSrc: "/icons/statistics.svg",
-      match: "startsWith",
-    },
-    {
       id: "blog",
       label: t("blog"),
       href: "/admin/blog",

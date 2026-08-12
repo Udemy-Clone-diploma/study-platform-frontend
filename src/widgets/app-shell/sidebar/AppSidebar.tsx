@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import {
   SidebarNavItem,
@@ -18,9 +18,27 @@ export function AppSidebar({
   const t = useTranslations("AppSidebar");
   const [isExpanded, setIsExpanded] =
     useState(false);
+  const asideRef = useRef<HTMLElement>(null);
+
+  // Collapse back to the icon rail on an outside click, focus leaving it, or Escape.
+  useEffect(() => {
+    if (!isExpanded) return;
+    const outside = (e: Event) =>
+      asideRef.current && !asideRef.current.contains(e.target as Node) && setIsExpanded(false);
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setIsExpanded(false);
+    document.addEventListener("pointerdown", outside);
+    document.addEventListener("focusin", outside);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", outside);
+      document.removeEventListener("focusin", outside);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [isExpanded]);
 
   return (
     <aside
+      ref={asideRef}
       className={[
         "absolute inset-y-0 left-0 z-30 hidden overflow-y-auto overflow-x-hidden [background-image:var(--gradient-brand)] [background-size:100vw_100%] [background-position:0_0] bg-no-repeat px-[clamp(10px,0.85vw,16px)] pt-[clamp(16px,1.5vw,28px)] transition-[width] duration-200 lg:block",
         isExpanded

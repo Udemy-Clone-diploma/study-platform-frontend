@@ -10,7 +10,7 @@ type Props = {
 export function LearnTabs({ slug, active }: Props) {
   const t = useTranslations("LearnTabs");
   return (
-    <nav aria-label={t("ariaLabel")} className="mx-auto flex items-center gap-5 lg:gap-10">
+    <nav aria-label={t("ariaLabel")} className="mx-auto flex items-baseline gap-5 lg:gap-10">
       <LearnTab href={`/learn/${slug}`} label={t("course")} isActive={active === "course"} />
       <LearnTab
         href={`/learn/${slug}?tab=progress`}

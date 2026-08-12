@@ -65,17 +65,17 @@ export function LessonBreadcrumb({
     >
       <Link
         href={`/learn/${slug}`}
-        className="group inline-flex max-w-[38%] shrink-0 cursor-pointer items-center gap-1.5 rounded-lg px-2 py-1 transition-colors hover:bg-(--color-brand-lavender)/20"
+        className="group hidden min-w-0 max-w-[38%] shrink cursor-pointer items-center gap-1.5 rounded-lg px-2 py-1 transition-colors hover:bg-(--color-brand-lavender)/20 md:inline-flex"
       >
         <span className="shrink-0 text-(--color-text-secondary) transition-colors group-hover:text-(--color-blue)">
           {t("course")}
         </span>
-        <span className="truncate transition-colors group-hover:text-(--color-blue)">
+        <span className="min-w-0 truncate transition-colors group-hover:text-(--color-blue)">
           {courseTitle}
         </span>
       </Link>
 
-      <Slash />
+      <Slash className="hidden md:inline" />
 
       <div ref={containerRef} className="relative flex min-w-0 flex-1 items-center">
         <button
@@ -85,11 +85,13 @@ export function LessonBreadcrumb({
           onClick={toggle}
           className="group/bc flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 rounded-lg px-2 py-1 text-left transition-colors hover:bg-(--color-brand-lavender)/20"
         >
-          <Segment
-            label={currentModule ? t("module", { order: currentModule.order }) : t("moduleBare")}
-            value={currentModule?.title ?? courseTitle}
-          />
-          <Slash />
+          <span className="hidden min-w-0 shrink items-center gap-1.5 sm:inline-flex">
+            <Segment
+              label={currentModule ? t("module", { order: currentModule.order }) : t("moduleBare")}
+              value={currentModule?.title ?? courseTitle}
+            />
+            <Slash />
+          </span>
           <Segment label={t("lesson", { order: lessonOrder })} value={lessonTitle} />
           <ChevronDown
             aria-hidden="true"
@@ -110,9 +112,9 @@ export function LessonBreadcrumb({
 }
 
 /** "/" divider between breadcrumb segments. */
-function Slash() {
+function Slash({ className = "" }: { className?: string }) {
   return (
-    <span aria-hidden="true" className="shrink-0 text-(--color-text-secondary)">
+    <span aria-hidden="true" className={`shrink-0 text-(--color-text-secondary) ${className}`}>
       /
     </span>
   );
@@ -121,11 +123,11 @@ function Slash() {
 /** A labeled Module/Lesson segment; recolors with the shared trigger on hover. */
 function Segment({ label, value }: { label: string; value: string }) {
   return (
-    <span className="inline-flex min-w-0 items-center gap-1.5">
+    <span className="inline-flex min-w-0 shrink items-center gap-1.5">
       <span className="shrink-0 text-(--color-text-secondary) transition-colors group-hover/bc:text-(--color-blue)">
         {label}:
       </span>
-      <span className="truncate transition-colors group-hover/bc:text-(--color-blue)">
+      <span className="min-w-0 truncate transition-colors group-hover/bc:text-(--color-blue)">
         {value}
       </span>
     </span>
@@ -157,72 +159,76 @@ function CurriculumPopover({
 
   return (
     <div
-      className={`absolute left-0 top-full z-30 w-[min(780px,80vw)] pt-3 transition-opacity duration-150 ${
+      className={`absolute left-0 top-full z-30 w-full pt-4 transition-opacity duration-150 md:w-[min(780px,80vw)] ${
         open ? "visible opacity-100" : "invisible opacity-0"
       }`}
     >
-      <div className="max-h-[60vh] overflow-y-auto rounded-2xl bg-white p-4 shadow-[0_12px_32px_rgba(18,18,18,0.16)]">
-        <header className="mb-3 flex flex-col gap-1.5 border-b border-(--color-border-light) px-2 pb-3">
-          <div className="flex items-center justify-between font-(family-name:--font-base) text-sm font-medium text-(--color-text-secondary)">
-            <span>{t("courseProgress")}</span>
-            <span>{t("lessonsSummary", { done, total, percent })}</span>
-          </div>
-          <div className="h-1.5 w-full rounded-full bg-(--color-brand-lavender-soft)">
-            <div
-              className="h-full rounded-full bg-(--color-blue) transition-[width]"
-              style={{ width: `${percent}%` }}
-            />
-          </div>
-        </header>
-        <ul className="flex flex-col gap-4">
-          {modules.map((mod) => (
-            <li key={mod.id} className="flex flex-col gap-1">
-              <p className="px-2 font-(family-name:--font-base) text-sm font-semibold uppercase tracking-wide text-(--color-text-secondary)">
-                {t("moduleWithTitle", { order: mod.order, title: mod.title })}
-              </p>
-              <ul className="flex flex-col">
-                {byOrder(mod.lessons).map((lsn) => {
-                  const isCurrent = lsn.id === currentLessonId;
-                  const isDone = completed.has(lsn.id);
-                  return (
-                    <li key={lsn.id}>
-                      <Link
-                        href={`/learn/${slug}/${lsn.id}`}
-                        aria-current={isCurrent ? "page" : undefined}
-                        onClick={onNavigate}
-                        className={`flex items-center gap-2.5 rounded-md px-2 py-1.5 text-base font-medium transition-colors ${
-                          isCurrent
-                            ? "bg-(--color-brand-lavender-soft) text-(--color-blue)"
-                            : "text-(--color-text-primary) hover:bg-(--color-brand-lavender)/15"
-                        }`}
-                      >
-                        <span
-                          aria-hidden="true"
-                          className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
-                            isDone
-                              ? "border-(--color-blue) bg-(--color-blue) text-white"
-                              : "border-(--color-text-secondary) bg-white text-transparent"
+      {/* Rounding + scrolling are split across two elements: a native scrollbar
+          rendered on the same element as rounded-2xl squares off that corner. */}
+      <div className="overflow-hidden rounded-2xl bg-white shadow-[0_12px_32px_rgba(18,18,18,0.16)]">
+        <div className="max-h-[min(55vh,calc(100dvh-11rem))] overflow-y-auto p-4 lg:max-h-[60vh]">
+          <header className="mb-3 flex flex-col gap-1.5 border-b border-(--color-border-light) px-2 pb-3">
+            <div className="flex items-center justify-between font-(family-name:--font-base) text-sm font-medium text-(--color-text-secondary)">
+              <span>{t("courseProgress")}</span>
+              <span>{t("lessonsSummary", { done, total, percent })}</span>
+            </div>
+            <div className="h-1.5 w-full rounded-full bg-(--color-brand-lavender-soft)">
+              <div
+                className="h-full rounded-full bg-(--color-blue) transition-[width]"
+                style={{ width: `${percent}%` }}
+              />
+            </div>
+          </header>
+          <ul className="flex flex-col gap-4">
+            {modules.map((mod) => (
+              <li key={mod.id} className="flex flex-col gap-1">
+                <p className="px-2 font-(family-name:--font-base) text-sm font-semibold uppercase tracking-wide text-(--color-text-secondary)">
+                  {t("moduleWithTitle", { order: mod.order, title: mod.title })}
+                </p>
+                <ul className="flex flex-col">
+                  {byOrder(mod.lessons).map((lsn) => {
+                    const isCurrent = lsn.id === currentLessonId;
+                    const isDone = completed.has(lsn.id);
+                    return (
+                      <li key={lsn.id}>
+                        <Link
+                          href={`/learn/${slug}/${lsn.id}`}
+                          aria-current={isCurrent ? "page" : undefined}
+                          onClick={onNavigate}
+                          className={`flex items-center gap-2.5 rounded-md px-2 py-1.5 text-base font-medium transition-colors ${
+                            isCurrent
+                              ? "bg-(--color-brand-lavender-soft) text-(--color-blue)"
+                              : "text-(--color-text-primary) hover:bg-(--color-brand-lavender)/15"
                           }`}
                         >
-                          <Check className="h-2.5 w-2.5" strokeWidth={3} />
-                        </span>
-                        <span className="min-w-0 truncate">
-                          {t("lessonWithTitle", { order: lsn.order, title: lsn.title })}
-                        </span>
-                        {lsn.is_mandatory && (
-                          <span className="ml-auto flex-shrink-0 rounded-full bg-(--color-brand-yellow) px-2 py-0.5 font-(family-name:--font-accent) text-[10px] uppercase text-(--color-text-primary)">
-                            {t("mandatory")}
+                          <span
+                            aria-hidden="true"
+                            className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
+                              isDone
+                                ? "border-(--color-blue) bg-(--color-blue) text-white"
+                                : "border-(--color-text-secondary) bg-white text-transparent"
+                            }`}
+                          >
+                            <Check className="h-2.5 w-2.5" strokeWidth={3} />
                           </span>
-                        )}
-                        {isDone && <span className="sr-only">{t("completed")}</span>}
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </li>
-          ))}
-        </ul>
+                          <span className="min-w-0 truncate">
+                            {t("lessonWithTitle", { order: lsn.order, title: lsn.title })}
+                          </span>
+                          {lsn.is_mandatory && (
+                            <span className="ml-auto flex-shrink-0 rounded-full bg-(--color-brand-yellow) px-2 py-0.5 font-(family-name:--font-accent) text-[10px] uppercase text-(--color-text-primary)">
+                              {t("mandatory")}
+                            </span>
+                          )}
+                          {isDone && <span className="sr-only">{t("completed")}</span>}
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
   );

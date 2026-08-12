@@ -71,7 +71,7 @@ export function CourseOverviewView({ course, initialProgress = null, isMock = fa
     <section className="relative isolate overflow-hidden bg-white">
       <LearnPageDecor />
 
-      <div className="relative z-10 flex w-full flex-col gap-8 px-5 py-6 lg:gap-12 lg:px-12 lg:py-12 xl:gap-15 xl:px-[90px] xl:py-15">
+      <div className="relative z-10 flex w-full flex-col gap-8 p-4 lg:gap-12 lg:px-12 lg:py-12 xl:gap-15 xl:px-[90px] xl:py-15">
         <LearnTabs slug={course.slug} active="course" />
 
         <header className="flex flex-wrap items-start justify-between gap-x-8 gap-y-3">

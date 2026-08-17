@@ -3296,6 +3296,11 @@
       "applyAsTeacher": "Postuler comme formateur",
       "fallbackError": "Impossible de créer votre compte. Veuillez réessayer."
     },
+    "social": {
+      "orContinueWith": "ou continuer avec",
+      "continueWithGoogle": "Continuer avec Google",
+      "fallbackError": "La connexion avec Google a échoué. Veuillez réessayer."
+    },
     "resendEmail": {
       "defaultSubmitLabel": "Envoyer",
       "defaultSuccessMessage": "E-mail envoyé. Vérifiez votre boîte de réception ou vos courriers indésirables.",

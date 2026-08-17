@@ -11,8 +11,10 @@ import {
 import { RegisterFormData } from "@/features/auth/model/types/registerTypes";
 import { registerUser } from "@/features/auth/api/authApi";
 import { useAuthForm } from "@/features/auth/model/useAuthForm";
+import { useGoogleAuth } from "@/features/auth/model/useGoogleAuth";
 import { AuthField } from "@/features/auth/ui/AuthField";
 import { AuthShell } from "@/features/auth/ui/AuthShell";
+import { GoogleSignInButton } from "@/features/auth/ui/GoogleSignInButton";
 import { AccentButton } from "@/shared/ui/AccentButton";
 import { DatePicker, todayISO } from "@/shared/ui/DatePicker";
 
@@ -31,10 +33,17 @@ export function RegisterForm() {
   const router = useRouter();
   const t = useTranslations("Auth.register");
   const tValidation = useTranslations("Auth.validation");
+  const tSocial = useTranslations("Auth.social");
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [step, setStep] = useState<1 | 2>(1);
+
+  const {
+    handleCredential: handleGoogleCredential,
+    isSubmitting: isGoogleSubmitting,
+    error: googleError,
+  } = useGoogleAuth({ fallbackError: tSocial("fallbackError") });
 
   const {
     formData,
@@ -96,57 +105,75 @@ export function RegisterForm() {
           </h1>
 
           {step === 1 ? (
-            <div className="grid gap-x-[120px] gap-y-9 md:grid-cols-2">
-              <AuthField
-                id="firstName"
-                name="firstName"
-                type="text"
-                label={t("firstNameLabel")}
-                placeholder={t("textPlaceholder")}
-                value={formData.firstName}
-                onChange={handleChange}
-                error={errors.firstName}
-                autoComplete="given-name"
-              />
+            <>
+              <div className="flex flex-col items-center gap-5">
+                <GoogleSignInButton
+                  onCredential={handleGoogleCredential}
+                  disabled={isGoogleSubmitting}
+                />
+                {googleError ? (
+                  <p className="text-center text-sm text-[#be3b3b]">{googleError}</p>
+                ) : null}
 
-              <DatePicker
-                variant="underline"
-                allowTyping
-                label={t("dateOfBirthLabel")}
-                max={todayISO()}
-                value={formData.dateOfBirth}
-                error={errors.dateOfBirth}
-                onChange={(dateOfBirth) => {
-                  setFormData((prev) => ({ ...prev, dateOfBirth }));
-                  setErrors((prev) => ({ ...prev, dateOfBirth: "" }));
-                  setApiError("");
-                }}
-              />
+                <div className="flex w-full max-w-[320px] items-center gap-4 text-[0.68rem] font-medium tracking-[0.2em] text-[#8a8590] uppercase">
+                  <span className="h-px flex-1 bg-black/10" />
+                  {tSocial("orContinueWith")}
+                  <span className="h-px flex-1 bg-black/10" />
+                </div>
+              </div>
 
-              <AuthField
-                id="lastName"
-                name="lastName"
-                type="text"
-                label={t("lastNameLabel")}
-                placeholder={t("textPlaceholder")}
-                value={formData.lastName}
-                onChange={handleChange}
-                error={errors.lastName}
-                autoComplete="family-name"
-              />
+              <div className="grid gap-x-[120px] gap-y-9 md:grid-cols-2">
+                <AuthField
+                  id="firstName"
+                  name="firstName"
+                  type="text"
+                  label={t("firstNameLabel")}
+                  placeholder={t("textPlaceholder")}
+                  value={formData.firstName}
+                  onChange={handleChange}
+                  error={errors.firstName}
+                  autoComplete="given-name"
+                />
 
-              <AuthField
-                id="email"
-                name="email"
-                type="email"
-                label={t("emailLabel")}
-                placeholder={t("textPlaceholder")}
-                value={formData.email}
-                onChange={handleChange}
-                error={errors.email}
-                autoComplete="email"
-              />
-            </div>
+                <DatePicker
+                  variant="underline"
+                  allowTyping
+                  label={t("dateOfBirthLabel")}
+                  max={todayISO()}
+                  value={formData.dateOfBirth}
+                  error={errors.dateOfBirth}
+                  onChange={(dateOfBirth) => {
+                    setFormData((prev) => ({ ...prev, dateOfBirth }));
+                    setErrors((prev) => ({ ...prev, dateOfBirth: "" }));
+                    setApiError("");
+                  }}
+                />
+
+                <AuthField
+                  id="lastName"
+                  name="lastName"
+                  type="text"
+                  label={t("lastNameLabel")}
+                  placeholder={t("textPlaceholder")}
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  error={errors.lastName}
+                  autoComplete="family-name"
+                />
+
+                <AuthField
+                  id="email"
+                  name="email"
+                  type="email"
+                  label={t("emailLabel")}
+                  placeholder={t("textPlaceholder")}
+                  value={formData.email}
+                  onChange={handleChange}
+                  error={errors.email}
+                  autoComplete="email"
+                />
+              </div>
+            </>
           ) : (
             <div className="space-y-6">
               <AuthField
@@ -182,10 +209,7 @@ export function RegisterForm() {
           {apiError ? <p className="text-center text-sm text-[#be3b3b]">{apiError}</p> : null}
 
           <div className="flex flex-col items-center gap-5">
-            <AccentButton
-              type="submit"
-              disabled={isSubmitting}
-            >
+            <AccentButton type="submit" disabled={isSubmitting}>
               {step === 1 ? t("continue") : isSubmitting ? t("creating") : t("signUp")}
             </AccentButton>
 
@@ -212,12 +236,14 @@ export function RegisterForm() {
 
             <p className="text-center text-[0.78rem] text-[#3e3840]">
               {t("wantToTeach")}{" "}
-              <Link href="/register/teacher" className="text-[#3557ff] transition hover:text-[#1937cb]">
+              <Link
+                href="/register/teacher"
+                className="text-[#3557ff] transition hover:text-[#1937cb]"
+              >
                 {t("applyAsTeacher")}
               </Link>
             </p>
           </div>
-
         </div>
       </form>
     </AuthShell>

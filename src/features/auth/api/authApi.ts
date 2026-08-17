@@ -23,6 +23,11 @@ export async function loginUser(payload: LoginPayload): Promise<LoginResponse> {
   return data;
 }
 
+export async function googleLogin(idToken: string): Promise<LoginResponse> {
+  const { data } = await api.post<LoginResponse>("auth/google/", { id_token: idToken });
+  return data;
+}
+
 export async function logoutUser(refresh: string): Promise<{ detail: string }> {
   const { data } = await api.post<{ detail: string }>("auth/logout/", { refresh });
   return data;
@@ -73,7 +78,10 @@ export async function uploadTeacherSignature(file: File): Promise<TeacherProfile
   return response.data.profile as TeacherProfile;
 }
 
-export async function changePassword(payload: { old_password: string; new_password: string }): Promise<void> {
+export async function changePassword(payload: {
+  old_password: string;
+  new_password: string;
+}): Promise<void> {
   await api.post("auth/change-password/", payload);
 }
 

@@ -3296,6 +3296,11 @@
       "applyAsTeacher": "Postúlate como profesor",
       "fallbackError": "No pudimos crear tu cuenta. Inténtalo de nuevo."
     },
+    "social": {
+      "orContinueWith": "o continuar con",
+      "continueWithGoogle": "Continuar con Google",
+      "fallbackError": "No pudimos iniciar tu sesión con Google. Inténtalo de nuevo."
+    },
     "resendEmail": {
       "defaultSubmitLabel": "Enviar",
       "defaultSuccessMessage": "Correo enviado. Revisa tu bandeja de entrada o spam.",

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { useRouter } from "@/i18n/navigation";
 import {
@@ -9,6 +9,7 @@ import {
   validateRegisterIdentityStep,
 } from "@/features/auth/model/validation";
 import { RegisterFormData } from "@/features/auth/model/types/registerTypes";
+import type { UserLanguage } from "@/entities/user";
 import { registerUser } from "@/features/auth/api/authApi";
 import { useAuthForm } from "@/features/auth/model/useAuthForm";
 import { useGoogleAuth } from "@/features/auth/model/useGoogleAuth";
@@ -31,6 +32,7 @@ const initialForm: RegisterFormData = {
 
 export function RegisterForm() {
   const router = useRouter();
+  const locale = useLocale();
   const t = useTranslations("Auth.register");
   const tValidation = useTranslations("Auth.validation");
   const tSocial = useTranslations("Auth.social");
@@ -70,7 +72,7 @@ export function RegisterForm() {
         password: data.password,
         password_confirm: data.password_confirm,
         role: "student",
-        language: "en",
+        language: locale as UserLanguage,
       });
 
       router.push(`/register/check-email?email=${encodeURIComponent(data.email.trim())}`);

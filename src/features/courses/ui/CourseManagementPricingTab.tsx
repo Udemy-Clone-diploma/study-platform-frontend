@@ -26,6 +26,15 @@ const CURRENCY_OPTIONS: Array<{ value: "USD" | "EUR" | "UAH"; label: string }> =
   { value: "UAH", label: "UAH" },
 ];
 
+function getLocalIsoDate(offsetDays = 0): string {
+  const date = new Date();
+  date.setDate(date.getDate() + offsetDays);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 // ── Shared field styles ────────────────────────────────────────────────────
 
 const FIELD_LABEL: React.CSSProperties = {
@@ -296,17 +305,19 @@ function FormatCard({ fmt, slug, onUpdated, onDeleted }: FormatCardProps) {
   const [error, setError]       = useState<string | null>(null);
   const [showRemoveModal, setShowRemoveModal] = useState(false);
   const [toggling, setToggling] = useState(false);
+  const [enrollmentDeadline, setEnrollmentDeadline] = useState(fmt.enrollment_deadline ?? "");
 
-  const today   = new Date().toISOString().split("T")[0];
-  const isClosed = !!fmt.enrollment_deadline && fmt.enrollment_deadline <= today;
+  const today   = getLocalIsoDate();
+  const isClosed = !!fmt.enrollment_deadline && fmt.enrollment_deadline < today;
   const isFull   = fmt.max_students != null && fmt.enrolled_count >= fmt.max_students;
 
   async function handleToggleEnrollment() {
     setToggling(true);
     try {
       const updated = await updateDeliveryFormat(slug, fmt.id, {
-        enrollment_deadline: isClosed ? null : today,
+        enrollment_deadline: isClosed ? null : getLocalIsoDate(-1),
       });
+      setEnrollmentDeadline(updated.enrollment_deadline ?? "");
       onUpdated(updated);
     } finally {
       setToggling(false);
@@ -353,6 +364,9 @@ function FormatCard({ fmt, slug, onUpdated, onDeleted }: FormatCardProps) {
       if (fmt.format_type === "individual") {
         payload.max_students = maxStudents.trim() !== "" ? Number(maxStudents) : null;
       }
+      if (fmt.format_type === "group") {
+        payload.enrollment_deadline = enrollmentDeadline || null;
+      }
       const updated = await updateDeliveryFormat(slug, fmt.id, payload);
       onUpdated(updated);
       setEditing(false);
@@ -369,7 +383,10 @@ function FormatCard({ fmt, slug, onUpdated, onDeleted }: FormatCardProps) {
   }
 
   async function handleCloseEnrollment() {
-    const updated = await updateDeliveryFormat(slug, fmt.id, { enrollment_deadline: today });
+    const updated = await updateDeliveryFormat(slug, fmt.id, {
+      enrollment_deadline: getLocalIsoDate(-1),
+    });
+    setEnrollmentDeadline(updated.enrollment_deadline ?? "");
     onUpdated(updated);
     setShowRemoveModal(false);
   }
@@ -402,8 +419,8 @@ function FormatCard({ fmt, slug, onUpdated, onDeleted }: FormatCardProps) {
               {fmt.format_type === "individual" && fmt.max_students != null && (
                 <span style={{ marginLeft: 8 }}>&middot; {t("spotsCount", { count: fmt.max_students })}</span>
               )}
-              {isClosed && fmt.enrollment_deadline && (
-                <span style={{ marginLeft: 8, color: "var(--color-rejected)" }}>&middot; {t("deadline", { date: fmt.enrollment_deadline })}</span>
+              {fmt.format_type === "group" && fmt.enrollment_deadline && (
+                <span style={{ marginLeft: 8, color: isClosed ? "var(--color-rejected)" : undefined }}>&middot; {t("deadline", { date: fmt.enrollment_deadline })}</span>
               )}
             </div>
           )}
@@ -462,6 +479,20 @@ function FormatCard({ fmt, slug, onUpdated, onDeleted }: FormatCardProps) {
               />
             </div>
           )}
+          {fmt.format_type === "group" && (
+            <div className="mt-3 max-w-xs">
+              <label style={FIELD_LABEL}>{t("enrollmentDeadline")}</label>
+              <input
+                type="date"
+                value={enrollmentDeadline}
+                onChange={e => setEnrollmentDeadline(e.target.value)}
+                style={PILL_INPUT}
+              />
+              <p className="mt-1.5 mb-0 font-(family-name:--font-base) text-xs text-(--color-text-muted)">
+                {t("enrollmentDeadlineHint")}
+              </p>
+            </div>
+          )}
           {error && (
             <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.72vw, 13px)", color: "var(--color-rejected)", marginTop: 8, marginBottom: 0 }}>
               {error}
@@ -500,8 +531,11 @@ function AddFormatPanel({ slug, existingTypes, onCreated, onClose }: AddFormatPa
   const [installments, setInstallments]           = useState(false);
   const [installmentCount, setInstallmentCount]   = useState("");
   const [installmentAmount, setInstallmentAmount] = useState("");
+  const [enrollmentDeadline, setEnrollmentDeadline] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError]   = useState<string | null>(null);
+  const isGroupDeadlineMissing = selected === "group" && !enrollmentDeadline;
+  const createDisabled = saving || isGroupDeadlineMissing;
 
   function handleChange(key: string, value: string | boolean) {
     if (key === "price") {
@@ -527,6 +561,9 @@ function AddFormatPanel({ slug, existingTypes, onCreated, onClose }: AddFormatPa
     try {
       const payload: CourseDeliveryFormatPayload = {
         format_type: selected,
+        ...(selected === "group" ? {
+          enrollment_deadline: enrollmentDeadline,
+        } : {}),
         ...(price ? {
           pricing: {
             price,
@@ -599,6 +636,22 @@ function AddFormatPanel({ slug, existingTypes, onCreated, onClose }: AddFormatPa
             onChange={handleChange}
           />
 
+          {selected === "group" && (
+            <div className="max-w-xs">
+              <label style={FIELD_LABEL}>{t("enrollmentDeadline")}</label>
+              <input
+                type="date"
+                value={enrollmentDeadline}
+                onChange={e => setEnrollmentDeadline(e.target.value)}
+                required
+                style={PILL_INPUT}
+              />
+              <p className="mt-1.5 mb-0 font-(family-name:--font-base) text-xs text-(--color-text-muted)">
+                {t("enrollmentDeadlineRequiredHint")}
+              </p>
+            </div>
+          )}
+
           {error && (
             <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.72vw, 13px)", color: "var(--color-rejected)", margin: 0 }}>
               {error}
@@ -609,7 +662,7 @@ function AddFormatPanel({ slug, existingTypes, onCreated, onClose }: AddFormatPa
             <button
               type="button"
               onClick={handleCreate}
-              disabled={saving}
+              disabled={createDisabled}
               style={{
                 background: "var(--gradient-brand)",
                 border: "none",
@@ -619,8 +672,8 @@ function AddFormatPanel({ slug, existingTypes, onCreated, onClose }: AddFormatPa
                 fontWeight: 700,
                 fontSize: "clamp(12px, 0.78vw, 14px)",
                 color: "#fff",
-                cursor: saving ? "not-allowed" : "pointer",
-                opacity: saving ? 0.7 : 1,
+                cursor: createDisabled ? "not-allowed" : "pointer",
+                opacity: createDisabled ? 0.7 : 1,
               }}
             >
               {saving ? t("creating") : t("create")}

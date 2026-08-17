@@ -636,6 +636,7 @@
     "statusBlocked": "Заблоковано",
     "statusReconnecting": "Перепідключення",
     "statusOnline": "Онлайн",
+    "statusTyping": "{names} друкує…",
     "thisUser": "цього користувача",
     "clearHistoryTitle": "Очистити історію?",
     "clearHistoryDescription": "Повідомлення зникнуть лише для вас. Інші учасники чату збережуть свою історію.",
@@ -717,8 +718,7 @@
     "peerBlockedNotice": "Ви не можете написати цьому користувачу.",
     "readOnlyNotice": "Цей чат доступний лише для читання.",
     "replyTo": "Відповідь для {name}",
-    "sendMessageAriaLabel": "Надіслати повідомлення",
-    "typingIndicator": "{names} друкує…"
+    "sendMessageAriaLabel": "Надіслати повідомлення"
   },
   "MessageList": {
     "edited": "Відредаговано",
@@ -2500,6 +2500,9 @@
     "installmentsSuffix": "{count}× платежів",
     "spotsCount": "{count} місць",
     "deadline": "дедлайн {date}",
+    "enrollmentDeadline": "Кінцева дата запису",
+    "enrollmentDeadlineHint": "Залиште порожнім, щоб запис на групове навчання був відкритий без кінцевої дати.",
+    "enrollmentDeadlineRequiredHint": "Обов'язково для створення групового формату.",
     "errorSaveFailed": "Не вдалося зберегти.",
     "addDeliveryFormat": "Додати формат навчання",
     "allFormatsConfigured": "Усі формати навчання вже налаштовано.",

@@ -636,6 +636,7 @@
     "statusBlocked": "Bloqueado",
     "statusReconnecting": "Reconectando",
     "statusOnline": "En línea",
+    "statusTyping": "{names} está escribiendo…",
     "thisUser": "este usuario",
     "clearHistoryTitle": "¿Borrar historial?",
     "clearHistoryDescription": "Los mensajes desaparecerán solo para ti. Los demás participantes del chat conservarán su historial.",
@@ -717,8 +718,7 @@
     "peerBlockedNotice": "No puedes enviar mensajes a este usuario.",
     "readOnlyNotice": "Este chat es de solo lectura.",
     "replyTo": "Respondiendo a {name}",
-    "sendMessageAriaLabel": "Enviar mensaje",
-    "typingIndicator": "{names} está escribiendo…"
+    "sendMessageAriaLabel": "Enviar mensaje"
   },
   "MessageList": {
     "edited": "Editado",
@@ -2500,6 +2500,9 @@
     "installmentsSuffix": "{count}× cuotas",
     "spotsCount": "{count} plazas",
     "deadline": "fecha límite {date}",
+    "enrollmentDeadline": "Fecha límite de inscripción",
+    "enrollmentDeadlineHint": "Déjalo vacío para mantener abierta la inscripción grupal sin fecha límite.",
+    "enrollmentDeadlineRequiredHint": "Es obligatorio para crear un formato grupal.",
     "errorSaveFailed": "No se pudo guardar.",
     "addDeliveryFormat": "Añadir formato de curso",
     "allFormatsConfigured": "Todos los formatos de curso ya están configurados.",

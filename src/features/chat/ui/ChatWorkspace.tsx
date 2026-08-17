@@ -1143,9 +1143,11 @@ export function ChatWorkspace({ onViewProfile, moderationHref }: ChatWorkspacePr
       ? t("statusBlocked")
       : socketStatus !== "open"
         ? t("statusReconnecting")
-        : selectedChat?.type === "direct" && selectedPeerOnline
-          ? t("statusOnline")
-          : "";
+        : typingLabel
+          ? t("statusTyping", { names: typingLabel })
+          : selectedChat?.type === "direct" && selectedPeerOnline
+            ? t("statusOnline")
+            : "";
   const selectedPeerName = selectedPeer ? userDisplayName(selectedPeer) : t("thisUser");
   const confirmation =
     confirmationAction === "clear-history"
@@ -1312,7 +1314,6 @@ export function ChatWorkspace({ onViewProfile, moderationHref }: ChatWorkspacePr
 
             <MessageComposer
               chat={selectedChat}
-              typingLabel={typingLabel}
               peerBlocked={selectedPeerBlocked}
               replyingTo={replyingTo}
               meId={me?.id ?? null}

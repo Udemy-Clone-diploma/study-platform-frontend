@@ -636,6 +636,7 @@
     "statusBlocked": "Blocked",
     "statusReconnecting": "Reconnecting",
     "statusOnline": "Online",
+    "statusTyping": "{names} is typing…",
     "thisUser": "this user",
     "clearHistoryTitle": "Clear history?",
     "clearHistoryDescription": "Messages will disappear only for you. Other chat participants will keep their history.",
@@ -717,8 +718,7 @@
     "peerBlockedNotice": "You can't message this user.",
     "readOnlyNotice": "This chat is read-only.",
     "replyTo": "Replying to {name}",
-    "sendMessageAriaLabel": "Send message",
-    "typingIndicator": "{names} typing…"
+    "sendMessageAriaLabel": "Send message"
   },
   "MessageList": {
     "edited": "Edited",
@@ -2500,6 +2500,9 @@
     "installmentsSuffix": "{count}× installments",
     "spotsCount": "{count} spots",
     "deadline": "deadline {date}",
+    "enrollmentDeadline": "Enrollment deadline",
+    "enrollmentDeadlineHint": "Leave empty to keep group enrollment open without a deadline.",
+    "enrollmentDeadlineRequiredHint": "Required to create a group format.",
     "errorSaveFailed": "Failed to save.",
     "addDeliveryFormat": "Add delivery format",
     "allFormatsConfigured": "All delivery formats are already configured.",

@@ -636,6 +636,7 @@
     "statusBlocked": "Blockiert",
     "statusReconnecting": "Verbindung wird wiederhergestellt",
     "statusOnline": "Online",
+    "statusTyping": "{names} tippt gerade…",
     "thisUser": "diesen Nutzer",
     "clearHistoryTitle": "Verlauf löschen?",
     "clearHistoryDescription": "Nachrichten verschwinden nur für Sie. Andere Chatteilnehmer behalten ihren Verlauf.",
@@ -717,8 +718,7 @@
     "peerBlockedNotice": "Sie können diesem Benutzer keine Nachricht senden.",
     "readOnlyNotice": "Dieser Chat ist schreibgeschützt.",
     "replyTo": "Antwort an {name}",
-    "sendMessageAriaLabel": "Nachricht senden",
-    "typingIndicator": "{names} schreibt…"
+    "sendMessageAriaLabel": "Nachricht senden"
   },
   "MessageList": {
     "edited": "Bearbeitet",
@@ -2500,6 +2500,9 @@
     "installmentsSuffix": "{count}× Raten",
     "spotsCount": "{count} Plätze",
     "deadline": "Frist {date}",
+    "enrollmentDeadline": "Anmeldefrist",
+    "enrollmentDeadlineHint": "Leer lassen, um die Gruppenanmeldung ohne Frist offen zu halten.",
+    "enrollmentDeadlineRequiredHint": "Erforderlich, um ein Gruppenformat zu erstellen.",
     "errorSaveFailed": "Speichern fehlgeschlagen.",
     "addDeliveryFormat": "Kursformat hinzufügen",
     "allFormatsConfigured": "Alle Kursformate sind bereits konfiguriert.",

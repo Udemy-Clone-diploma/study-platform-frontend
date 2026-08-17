@@ -636,6 +636,7 @@
     "statusBlocked": "Bloqué",
     "statusReconnecting": "Reconnexion",
     "statusOnline": "En ligne",
+    "statusTyping": "{names} est en train d'écrire…",
     "thisUser": "cet utilisateur",
     "clearHistoryTitle": "Effacer l'historique ?",
     "clearHistoryDescription": "Les messages disparaîtront uniquement pour vous. Les autres participants conserveront leur historique.",
@@ -717,8 +718,7 @@
     "peerBlockedNotice": "Vous ne pouvez pas envoyer de message à cet utilisateur.",
     "readOnlyNotice": "Cette discussion est en lecture seule.",
     "replyTo": "Réponse à {name}",
-    "sendMessageAriaLabel": "Envoyer le message",
-    "typingIndicator": "{names} est en train d'écrire…"
+    "sendMessageAriaLabel": "Envoyer le message"
   },
   "MessageList": {
     "edited": "Modifié",
@@ -2500,6 +2500,9 @@
     "installmentsSuffix": "{count}× échéances",
     "spotsCount": "{count} places",
     "deadline": "date limite {date}",
+    "enrollmentDeadline": "Date limite d'inscription",
+    "enrollmentDeadlineHint": "Laissez vide pour maintenir les inscriptions de groupe ouvertes sans date limite.",
+    "enrollmentDeadlineRequiredHint": "Requise pour créer un format de groupe.",
     "errorSaveFailed": "Échec de l'enregistrement.",
     "addDeliveryFormat": "Ajouter un format de cours",
     "allFormatsConfigured": "Tous les formats de cours sont déjà configurés.",

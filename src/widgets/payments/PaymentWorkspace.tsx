@@ -50,6 +50,8 @@ const CART_CARD_GRADIENT = {
   intermediate: "var(--gradient-card-blue)",
   advanced: "var(--gradient-card-pink)",
 } as const;
+const PAYMENT_TABLE_SCROLLBAR_CLASS =
+  "overflow-x-auto pb-3 [scrollbar-color:var(--color-text-primary)_var(--color-draft)] [scrollbar-width:thin] [&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-(--color-draft) [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-(--color-text-primary)";
 
 function formatDate(value: string, locale: string): string {
   return new Intl.DateTimeFormat(locale).format(new Date(value)).replace(/\//g, ".");
@@ -124,13 +126,20 @@ function installmentOptionForItems(items: CartItem[]) {
   return { count, firstAmount, totalAmount };
 }
 
-function courseLabel(payment: Payment, t: (key: string, values?: Record<string, number>) => string): string {
-  if (payment.items.length === 0) return payment.description || t("paymentNumber", { id: payment.id });
+function courseLabel(
+  payment: Payment,
+  t: (key: string, values?: Record<string, number>) => string,
+): string {
+  if (payment.items.length === 0)
+    return payment.description || t("paymentNumber", { id: payment.id });
   if (payment.items.length === 1) return payment.items[0].course_title;
   return payment.items.map((item) => item.course_title).join(", ");
 }
 
-function orderCourseLabel(order: Order, t: (key: string, values?: Record<string, number>) => string): string {
+function orderCourseLabel(
+  order: Order,
+  t: (key: string, values?: Record<string, number>) => string,
+): string {
   if (order.items.length === 0) return t("orderNumber", { id: order.id });
   if (order.items.length === 1) return order.items[0].course_title;
   return order.items.map((item) => item.course_title).join(", ");
@@ -162,7 +171,10 @@ function PaymentTabs({
 }) {
   const t = useTranslations("PaymentWorkspace");
   return (
-    <nav className="flex border-b border-[#A7BAFA]" aria-label={t("paymentSectionsAriaLabel")}>
+    <nav
+      className="flex overflow-x-auto border-b border-[#A7BAFA]"
+      aria-label={t("paymentSectionsAriaLabel")}
+    >
       {tabs.map((tab) => {
         const isActive = activeTab === tab.id;
 
@@ -173,7 +185,7 @@ function PaymentTabs({
             aria-current={isActive ? "page" : undefined}
             onClick={() => onChange(tab.id)}
             className={[
-              "h-10 min-w-[88px] px-3 text-center font-(family-name:--font-base) text-[20px] leading-5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#003AFF]",
+              "h-10 min-w-fit flex-1 px-2 text-center font-(family-name:--font-base) text-base leading-5 whitespace-nowrap transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#003AFF] md:min-w-[88px] md:px-3 md:text-[20px]",
               isActive
                 ? "border-b-2 border-[#003AFF] font-semibold text-[#003AFF]"
                 : "border-b-2 border-transparent font-normal text-[#121212] hover:text-[#003AFF]",
@@ -410,7 +422,7 @@ function CartPaymentPanel({
   const selectedItems = cart.items.filter((item) => selectedItemIds.includes(item.id));
 
   return (
-    <div className="mx-6 mt-10 grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_315px]">
+    <div className="mt-6 grid grid-cols-1 gap-6 md:mx-6 md:mt-10 md:gap-10 lg:grid-cols-[minmax(0,1fr)_315px]">
       <section className="min-w-0">
         <h2 className="font-(family-name:--font-base) text-[20px] leading-6 font-normal text-[#5E5E5E]">
           {t("itemsInCart")}
@@ -427,7 +439,7 @@ function CartPaymentPanel({
             return (
               <label
                 key={item.id}
-                className="flex w-full max-w-[480px] cursor-pointer items-center gap-7"
+                className="flex w-full max-w-[480px] cursor-pointer items-center gap-3 md:gap-7"
               >
                 <input
                   type="checkbox"
@@ -532,10 +544,10 @@ function InstallmentPlansTable({
   }
 
   return (
-    <div className="mt-6 overflow-x-auto">
+    <div className={`mt-6 ${PAYMENT_TABLE_SCROLLBAR_CLASS}`}>
       {/* TODO: Prefer a dedicated payment-installments endpoint when backend exposes one. */}
-      <div className="w-[831px] font-(family-name:--font-base) text-[#121212]">
-        <div className="grid w-[831px] grid-cols-[minmax(0,1fr)_120px_120px_120px_96px] items-center px-5 pb-4 text-[13px] text-[#6A6A6A]">
+      <div className="w-[620px] font-(family-name:--font-base) text-[#121212] md:w-[831px]">
+        <div className="grid w-[620px] grid-cols-[minmax(0,1fr)_120px_120px_120px_96px] items-center px-5 pb-4 text-[13px] text-[#6A6A6A] md:w-[831px]">
           <span>{t("course")}</span>
           <span>{t("date")}</span>
           <span>{t("amount")}</span>
@@ -555,7 +567,7 @@ function InstallmentPlansTable({
             return (
               <div
                 key={`${order.id}-${installment.id}`}
-                className="grid h-[55px] w-[831px] grid-cols-[minmax(0,1fr)_120px_120px_120px_96px] items-center rounded-full bg-[#EEF3FF] px-5 text-[16px] leading-5 font-normal"
+                className="grid h-11 w-[620px] grid-cols-[minmax(0,1fr)_120px_120px_120px_96px] items-center rounded-full bg-[#EEF3FF] px-5 text-sm leading-5 font-normal md:h-[55px] md:w-[831px] md:text-[16px]"
               >
                 <span className="truncate">
                   {installment.installment_number}/{order.installments_count}{" "}
@@ -601,8 +613,8 @@ function PaymentHistoryTable({ payments }: { payments: Payment[] }) {
   }
 
   return (
-    <div className="mt-10 overflow-x-auto">
-      <table className="w-full min-w-[620px] table-fixed border-collapse font-(family-name:--font-base) text-[16px] leading-4 text-[#121212]">
+    <div className={`mt-6 md:mt-10 ${PAYMENT_TABLE_SCROLLBAR_CLASS}`}>
+      <table className="w-full min-w-[620px] table-fixed border-collapse font-(family-name:--font-base) text-sm leading-4 text-[#121212] md:text-[16px]">
         <colgroup>
           <col className="w-1/4" />
           <col className="w-[16%]" />
@@ -611,9 +623,15 @@ function PaymentHistoryTable({ payments }: { payments: Payment[] }) {
         </colgroup>
         <thead>
           <tr className="border-b border-[#D4D4D4] text-left text-[#6A6A6A]">
-            <th className="h-10 px-4 font-normal text-[20px] leading-5">{t("course")}</th>
-            <th className="h-10 px-4 font-normal text-[20px] leading-5">{t("date")}</th>
-            <th className="h-10 px-4 font-normal text-[20px] leading-5">{t("amount")}</th>
+            <th className="h-8 px-4 text-base leading-5 font-normal md:h-10 md:text-[20px]">
+              {t("course")}
+            </th>
+            <th className="h-8 px-4 text-base leading-5 font-normal md:h-10 md:text-[20px]">
+              {t("date")}
+            </th>
+            <th className="h-8 px-4 text-base leading-5 font-normal md:h-10 md:text-[20px]">
+              {t("amount")}
+            </th>
             <th aria-label={t("receipt")} className="h-10 px-4" />
           </tr>
         </thead>
@@ -1071,7 +1089,7 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
   const isHistoryTab = activeTab === "history";
 
   return (
-    <main className="relative isolate -m-[clamp(14px,1.5vw,28px)] min-h-[calc(100vh-76px)] overflow-hidden bg-white px-4 py-8 before:pointer-events-none before:absolute before:left-[112.69px] before:top-[-257px] before:z-0 before:h-[1001.87px] before:w-[1367.86px] before:rotate-[-33.8deg] before:rounded-[50%] before:bg-[#FCC4C3] before:opacity-50 before:blur-[300px] before:content-[''] sm:px-10">
+    <main className="relative isolate min-h-full overflow-hidden bg-white px-4 pt-9 pb-8 before:pointer-events-none before:absolute before:left-[112.69px] before:top-[-257px] before:z-0 before:hidden before:h-[1001.87px] before:w-[1367.86px] before:rotate-[-33.8deg] before:rounded-[50%] before:bg-[#FCC4C3] before:opacity-50 before:blur-[300px] before:content-[''] sm:px-10 lg:-m-[clamp(14px,1.5vw,28px)] lg:min-h-[calc(100vh-76px)] lg:py-8 lg:before:block">
       {toast ? (
         <div
           role="status"
@@ -1102,17 +1120,17 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
       />
 
       <section className="relative z-10 mx-auto w-full max-w-[890px]">
-        <h1 className="mb-6 font-(family-name:--font-base) text-[26px] font-semibold leading-[31px] text-[#121212]">
+        <h1 className="mb-3 font-(family-name:--font-base) text-xl leading-6 font-normal text-[#121212] md:mb-6 md:text-[26px] md:leading-[31px] md:font-semibold">
           {t("tuitionPayment")}
         </h1>
 
         <div
           className={
             isPlansTab
-              ? "h-[560px] overflow-y-auto rounded-[10px] bg-white px-5 pt-2 pb-8 shadow-[0_0_15px_rgba(0,0,0,0.18)]"
+              ? "h-72 overflow-y-auto rounded-2xl bg-white px-2 pt-2 pb-4 shadow-[0_0_15px_rgba(0,0,0,0.18)] sm:px-5 md:h-[560px] md:pb-8"
               : isHistoryTab
-                ? "h-[560px] overflow-y-auto rounded-[16px] bg-white px-5 pt-4 pb-8 shadow-[0_0_15px_rgba(0,0,0,0.18)] md:px-8"
-                : "h-[560px] overflow-y-auto rounded-[16px] bg-white px-5 py-4 shadow-[0_0_15px_rgba(0,0,0,0.18)] md:px-8 md:pt-4 md:pb-8"
+                ? "h-72 overflow-y-auto rounded-2xl bg-white px-2 pt-4 pb-4 shadow-[0_0_15px_rgba(0,0,0,0.18)] sm:px-5 md:h-[560px] md:px-8 md:pb-8"
+                : "min-h-72 overflow-y-auto rounded-2xl bg-white px-3 py-4 shadow-[0_0_15px_rgba(0,0,0,0.18)] sm:px-5 md:h-[560px] md:px-8 md:pt-4 md:pb-8"
           }
         >
           <PaymentTabs tabs={tabs} activeTab={activeTab} onChange={handleTabChange} />

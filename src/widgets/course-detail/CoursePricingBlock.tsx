@@ -38,11 +38,22 @@ const FORMAT_ICON: Record<DeliveryFormatType, React.ComponentType<{ className?: 
 };
 
 function formatPrice(price: string, currency: string, locale: string): string {
+  const amount = Number(price);
   return new Intl.NumberFormat(locale, {
     style: "currency",
     currency,
-    maximumFractionDigits: 0,
-  }).format(Number(price));
+    minimumFractionDigits: Number.isInteger(amount) ? 0 : 2,
+    maximumFractionDigits: 2,
+  }).format(amount);
+}
+
+function resolvePrice(price: string | null | undefined, fallback: string): string {
+  if (price == null || price.trim() === "") return fallback;
+  return Number.isFinite(Number(price)) ? price : fallback;
+}
+
+function pricesDiffer(first: string, second: string): boolean {
+  return Math.abs(Number(first) - Number(second)) >= 0.01;
 }
 
 function formatDate(iso: string, locale: string): string {
@@ -51,6 +62,14 @@ function formatDate(iso: string, locale: string): string {
     day: "numeric",
     year: "numeric",
   });
+}
+
+function getLocalIsoDate(): string {
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 /** Cohort radio list shown inside a group format card. Starts collapsed. */
@@ -281,11 +300,11 @@ export function CoursePricingBlock({ courseId, formats, slug, cohorts = [], disc
   const [cohortPickerOpen, setCohortPickerOpen] = useState<Record<number, boolean>>({});
   const [selectedCohort, setSelectedCohort] = useState<Record<number, number>>({});
   const [selectedSlots, setSelectedSlots] = useState<Record<number, number[]>>({});
-  const today = new Date().toISOString().split("T")[0];
+  const today = getLocalIsoDate();
   const pricedFormats = formats.filter((f) => f.pricing);
 
   const isEnrollmentClosed = (fmt: PublicCourseDeliveryFormat) =>
-    !!fmt.enrollment_deadline && fmt.enrollment_deadline <= today;
+    !!fmt.enrollment_deadline && fmt.enrollment_deadline < today;
 
   const getAvailableCohorts = (formatId: number) =>
     cohorts.filter(
@@ -391,6 +410,19 @@ export function CoursePricingBlock({ courseId, formats, slug, cohorts = [], disc
       <div className="flex flex-wrap items-start justify-center gap-x-8 gap-y-4 sm:gap-y-12 xl:gap-x-62">
         {pricedFormats.map((fmt) => {
           const plan = fmt.pricing!;
+          const finalPrice = resolvePrice(plan.final_price, plan.price);
+          const finalInstallmentAmount = plan.installment_amount
+            ? resolvePrice(plan.final_installment_amount, plan.installment_amount)
+            : null;
+          const hasDiscount = Boolean(
+            discountPercent && pricesDiffer(plan.price, finalPrice),
+          );
+          const hasInstallmentDiscount = Boolean(
+            discountPercent &&
+              plan.installment_amount &&
+              finalInstallmentAmount &&
+              pricesDiffer(plan.installment_amount, finalInstallmentAmount),
+          );
           const Icon = FORMAT_ICON[fmt.format_type];
           const isGroup = fmt.format_type === "group";
           const isIndividual = fmt.format_type === "individual";
@@ -429,16 +461,16 @@ export function CoursePricingBlock({ courseId, formats, slug, cohorts = [], disc
 
                 <div className="flex flex-col items-center gap-4 sm:gap-7">
                   <PriceRow label={t("fullPrice")}>
-                    {discountPercent && plan.final_price !== plan.price ? (
+                    {hasDiscount ? (
                       <span className="text-base text-(--color-text-secondary) line-through">
                         {formatPrice(plan.price, plan.currency, locale)}
                       </span>
                     ) : null}
                     <span className="font-(family-name:--font-accent) text-xl font-bold uppercase sm:text-2xl">
-                      {formatPrice(plan.final_price, plan.currency, locale)}
+                      {formatPrice(finalPrice, plan.currency, locale)}
                     </span>
                     <span className="text-base">{t("onePayment")}</span>
-                    {discountPercent && plan.final_price !== plan.price ? (
+                    {hasDiscount ? (
                       <span className="rounded-md bg-(--color-brand-pink) px-2 py-px font-(family-name:--font-accent) text-sm text-(--color-pink-dark)">
                         -{discountPercent}%
                       </span>
@@ -447,13 +479,17 @@ export function CoursePricingBlock({ courseId, formats, slug, cohorts = [], disc
 
                   {plan.installment_count && plan.installment_amount && (
                     <PriceRow label={t("installmentPlan")}>
-                      {discountPercent && plan.final_installment_amount !== plan.installment_amount ? (
+                      {hasInstallmentDiscount ? (
                         <span className="text-base text-(--color-text-secondary) line-through">
                           {formatPrice(plan.installment_amount, plan.currency, locale)}
                         </span>
                       ) : null}
                       <span className="font-(family-name:--font-accent) text-xl font-bold uppercase sm:text-2xl">
-                        {formatPrice(plan.final_installment_amount ?? plan.installment_amount, plan.currency, locale)}
+                        {formatPrice(
+                          finalInstallmentAmount ?? plan.installment_amount,
+                          plan.currency,
+                          locale,
+                        )}
                       </span>
                       <span className="text-[11px] sm:text-base">
                         {t("monthlyPayments", { count: plan.installment_count })}

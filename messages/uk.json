@@ -3296,6 +3296,11 @@
       "applyAsTeacher": "Подати заявку викладача",
       "fallbackError": "Не вдалося створити акаунт. Спробуйте ще раз."
     },
+    "social": {
+      "orContinueWith": "або продовжити з",
+      "continueWithGoogle": "Продовжити з Google",
+      "fallbackError": "Не вдалося увійти через Google. Спробуйте ще раз."
+    },
     "resendEmail": {
       "defaultSubmitLabel": "Надіслати",
       "defaultSuccessMessage": "Лист надіслано. Перевірте вхідні або папку спам.",

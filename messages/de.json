@@ -3296,6 +3296,11 @@
       "applyAsTeacher": "Als Lehrkraft bewerben",
       "fallbackError": "Dein Konto konnte nicht erstellt werden. Bitte versuche es erneut."
     },
+    "social": {
+      "orContinueWith": "oder weiter mit",
+      "continueWithGoogle": "Mit Google fortfahren",
+      "fallbackError": "Die Anmeldung mit Google ist fehlgeschlagen. Bitte versuche es erneut."
+    },
     "resendEmail": {
       "defaultSubmitLabel": "Senden",
       "defaultSuccessMessage": "E-Mail gesendet. Bitte prüfe dein Postfach oder den Spam-Ordner.",

@@ -3296,6 +3296,11 @@
       "applyAsTeacher": "Apply as a teacher",
       "fallbackError": "We could not create your account. Please try again."
     },
+    "social": {
+      "orContinueWith": "or continue with",
+      "continueWithGoogle": "Continue with Google",
+      "fallbackError": "We could not sign you in with Google. Please try again."
+    },
     "resendEmail": {
       "defaultSubmitLabel": "Send",
       "defaultSuccessMessage": "Email sent. Please check your inbox or spam folder.",

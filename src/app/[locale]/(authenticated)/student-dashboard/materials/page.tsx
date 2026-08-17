@@ -9,13 +9,15 @@ import type { MaterialDocument, MaterialLessonCard } from "@/entities/materials"
 import { getEnrolledCourses } from "@/entities/course";
 import type { EnrolledCourseListItem } from "@/entities/course";
 import type { ApiError } from "@/shared/api/base";
-import { formatDate } from "@/shared/lib/time";
+import { useIsDesktop } from "@/shared/lib/useIsDesktop";
 import { PageShell } from "@/shared/ui/PageShell";
+import { Pagination } from "@/shared/ui/Pagination";
 import { PillSelect } from "@/shared/ui/PillSelect";
 import { SidePanel } from "@/shared/ui/SidePanel";
 import { MaterialPreviewModal } from "@/shared/ui/MaterialPreviewModal";
 
 const ALL_COURSES = "__all__";
+const PAGE_SIZE = 4;
 
 function monthKey(value: string): string {
   const date = new Date(value);
@@ -26,10 +28,12 @@ function monthLabel(value: string, locale: string): string {
   return new Intl.DateTimeFormat(locale, { month: "long" }).format(new Date(value));
 }
 
-function formatShortDate(value: string, locale: string): string {
+function formatShortDate(value: string): string {
   const date = new Date(value);
   if (!Number.isFinite(date.getTime())) return "";
-  return formatDate(date, locale, { day: "2-digit", month: "2-digit" }).replace(/\//g, ".");
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  return `${day}.${month}`;
 }
 
 /** Student's library of lesson-attached materials, grouped by month, with a detail drawer + preview modal. */
@@ -38,12 +42,14 @@ export default function MaterialsPage() {
   const tCommon = useTranslations("Common");
   const tSidebar = useTranslations("AppSidebar");
   const locale = useLocale();
+  const isDesktop = useIsDesktop();
   const [cards, setCards] = useState<MaterialLessonCard[]>([]);
   const [courses, setCourses] = useState<EnrolledCourseListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [courseFilter, setCourseFilter] = useState(ALL_COURSES);
+  const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<MaterialLessonCard | null>(null);
   const [previewMaterial, setPreviewMaterial] = useState<MaterialDocument | null>(null);
 
@@ -74,68 +80,78 @@ export default function MaterialsPage() {
 
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
-    return cards.filter((card) => {
-      if (courseFilter !== ALL_COURSES && card.course_slug !== courseFilter) return false;
-      if (
-        query &&
-        !card.lesson_title.toLowerCase().includes(query) &&
-        !card.course_title.toLowerCase().includes(query)
-      )
-        return false;
-      return true;
-    });
+    return cards
+      .filter((card) => {
+        if (courseFilter !== ALL_COURSES && card.course_slug !== courseFilter) return false;
+        if (
+          query &&
+          !card.lesson_title.toLowerCase().includes(query) &&
+          !card.course_title.toLowerCase().includes(query)
+        )
+          return false;
+        return true;
+      })
+      .sort((a, b) => new Date(b.lesson_date).getTime() - new Date(a.lesson_date).getTime());
   }, [cards, courseFilter, search]);
 
+  const totalPages = isDesktop ? 1 : Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pageCards = useMemo(
+    () =>
+      isDesktop ? filtered : filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
+    [currentPage, filtered, isDesktop],
+  );
+
   const grouped = useMemo(() => {
-    const sorted = [...filtered].sort(
-      (a, b) => new Date(b.lesson_date).getTime() - new Date(a.lesson_date).getTime(),
-    );
     const groups = new Map<string, { key: string; label: string; items: MaterialLessonCard[] }>();
-    sorted.forEach((card) => {
+    pageCards.forEach((card) => {
       const key = monthKey(card.lesson_date);
       const group = groups.get(key);
       if (group) group.items.push(card);
       else groups.set(key, { key, label: monthLabel(card.lesson_date, locale), items: [card] });
     });
     return Array.from(groups.values());
-  }, [filtered, locale]);
+  }, [pageCards, locale]);
+
+  function handleCourseChange(next: string) {
+    setCourseFilter(next);
+    setPage(1);
+  }
+
+  function handleSearchChange(value: string) {
+    setSearch(value);
+    setPage(1);
+  }
+
+  function handlePageChange(next: number) {
+    setPage(Math.min(Math.max(next, 1), totalPages));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 
   return (
-    <PageShell className="bg-wishlist" style={{ display: "flex", flexDirection: "column" }}>
-      <div className="mb-6 mr-4 flex flex-wrap items-center gap-4" style={{ flexShrink: 0 }}>
-        <PillSelect value={courseFilter} options={courseOptions} onChange={setCourseFilter} />
-        <label
-          className="flex cursor-text items-center gap-2 bg-white"
-          style={{
-            minWidth: "clamp(180px, 18vw, 320px)",
-            maxWidth: 470,
-            height: "clamp(32px, 2.78vw, 40px)",
-            border: "1px solid var(--color-brand-lavender)",
-            borderRadius: 40,
-            padding: "clamp(6px, 0.56vw, 8px) clamp(12px, 1.11vw, 16px)",
-          }}
-        >
+    <PageShell className="bg-wishlist flex flex-col [--page-padding-y:7rem] lg:[--page-padding-y:clamp(16px,3.06vw,44px)]">
+      <div className="mb-9 flex shrink-0 flex-col items-start gap-7 lg:mr-4 lg:mb-6 lg:flex-row lg:flex-wrap lg:items-center lg:gap-4">
+        <label className="flex h-10 w-full cursor-text items-center gap-2 rounded-full border border-(--color-brand-pink) bg-white px-4 lg:h-[clamp(32px,2.78vw,40px)] lg:w-auto lg:min-w-[clamp(180px,18vw,320px)] lg:max-w-[470px] lg:border-(--color-brand-lavender) lg:px-[clamp(12px,1.11vw,16px)] lg:py-[clamp(6px,0.56vw,8px)]">
           <Search
-            style={{
-              width: "clamp(14px, 1.39vw, 20px)",
-              height: "clamp(14px, 1.39vw, 20px)",
-              color: "var(--color-brand-lavender)",
-              flexShrink: 0,
-            }}
+            aria-hidden="true"
+            className="h-6 w-6 shrink-0 text-(--color-brand-pink) lg:h-[clamp(14px,1.39vw,20px)] lg:w-[clamp(14px,1.39vw,20px)] lg:text-(--color-brand-lavender)"
           />
           <input
             type="search"
-            placeholder={tCommon("search")}
+            aria-label={tCommon("search")}
+            placeholder={t("searchPlaceholder")}
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="min-w-0 flex-1 bg-transparent outline-none"
-            style={{
-              fontFamily: "var(--font-base)",
-              fontSize: "clamp(13px, 1.11vw, 20px)",
-              color: "var(--color-text-primary)",
-            }}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            className="min-w-0 flex-1 bg-transparent font-(family-name:--font-base) text-xs leading-none text-(--color-text-primary) outline-none lg:text-[clamp(13px,1.11vw,20px)]"
           />
         </label>
+        <PillSelect
+          value={courseFilter}
+          options={courseOptions}
+          onChange={handleCourseChange}
+          className="lg:order-first"
+          mobileProminent
+        />
       </div>
 
       {loading ? (
@@ -145,22 +161,13 @@ export default function MaterialsPage() {
       ) : grouped.length === 0 ? (
         <p className="text-center text-lg text-(--color-text-secondary)">{t("noMaterialsFound")}</p>
       ) : (
-        <div className="flex flex-col" style={{ gap: "clamp(28px, 2.5vw, 44px)" }}>
+        <div className="flex flex-col gap-9 lg:gap-[clamp(28px,2.5vw,44px)]">
           {grouped.map((group) => (
             <section key={group.key}>
-              <h2
-                className="font-normal text-(--color-text-primary)"
-                style={{
-                  fontSize: "clamp(16px, 1.67vw, 24px)",
-                  marginBottom: "clamp(8px, 1.11vw, 16px)",
-                }}
-              >
+              <h2 className="mb-6 text-base leading-6 font-normal text-(--color-text-primary) lg:mb-[clamp(8px,1.11vw,16px)] lg:text-[clamp(16px,1.67vw,24px)] lg:leading-normal">
                 {group.label}
               </h2>
-              <div
-                className="grid gap-4"
-                style={{ gridTemplateColumns: "repeat(auto-fill, minmax(420px, 1fr))" }}
-              >
+              <div className="grid grid-cols-1 gap-3 lg:grid-cols-[repeat(auto-fill,minmax(420px,1fr))] lg:gap-4">
                 {group.items.map((card) => (
                   <MaterialCard
                     key={card.lesson_id}
@@ -174,6 +181,17 @@ export default function MaterialsPage() {
         </div>
       )}
 
+      {!loading && !error && filtered.length > 0 && totalPages > 1 && (
+        <div className="flex shrink-0 justify-center pt-10 lg:pt-[clamp(16px,2.22vw,32px)]">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            compactOnMobile
+          />
+        </div>
+      )}
+
       <SidePanel
         open={selected != null}
         onClose={() => setSelected(null)}
@@ -182,7 +200,7 @@ export default function MaterialsPage() {
         {selected && (
           <div className="flex h-full flex-col gap-6 font-(family-name:--font-base) text-(--color-text-primary)">
             <div className="flex items-center gap-5 text-[14px] leading-[18px] text-(--color-text-secondary)">
-              <span>{formatShortDate(selected.lesson_date, locale)}</span>
+              <span>{formatShortDate(selected.lesson_date)}</span>
               <span className="truncate">{selected.course_title}</span>
             </div>
 
@@ -252,73 +270,51 @@ export default function MaterialsPage() {
 
 function MaterialCard({ card, onClick }: { card: MaterialLessonCard; onClick: () => void }) {
   const t = useTranslations("StudentMaterialsPage");
-  const locale = useLocale();
   return (
     <button
       type="button"
       onClick={onClick}
-      className="relative text-left transition-transform hover:-translate-y-0.5"
-      style={{ height: "clamp(160px, 14.3vw, 220px)" }}
+      className="relative h-33 text-left transition-transform hover:-translate-y-0.5 lg:h-[clamp(160px,14.3vw,220px)]"
     >
       {/* Gradient block — wider, shifted right, sits behind the glass panel */}
       <div
-        className="absolute flex flex-col justify-center gap-2 overflow-hidden"
+        className="absolute flex flex-col justify-center gap-2 overflow-hidden rounded-(--mobile-header-radius) py-3.5 pr-5 pl-12 lg:rounded-[clamp(12px,1.04vw,20px)] lg:py-[clamp(14px,1.25vw,24px)] lg:pr-[clamp(20px,2.08vw,40px)] lg:pl-[clamp(40px,3.54vw,68px)]"
         style={{
           left: "28.84%",
           right: 0,
           top: 0,
           bottom: 0,
-          padding:
-            "clamp(14px, 1.25vw, 24px) clamp(20px, 2.08vw, 40px) clamp(14px, 1.25vw, 24px) clamp(40px, 3.54vw, 68px)",
           background: "var(--gradient-brand)",
-          borderRadius: "clamp(12px, 1.04vw, 20px)",
         }}
       >
-        <span
-          className="font-(family-name:--font-base) text-(--color-text-primary)"
-          style={{ fontSize: "clamp(13px, 1.04vw, 20px)" }}
-        >
+        <span className="font-(family-name:--font-base) text-base leading-5 text-(--color-text-primary) lg:text-[clamp(13px,1.04vw,20px)] lg:leading-normal">
           {card.course_title}
         </span>
-        <span
-          className="line-clamp-3 font-(family-name:--font-base) text-(--color-text-primary)"
-          style={{ fontSize: "clamp(11px, 0.83vw, 16px)" }}
-        >
+        <span className="line-clamp-3 font-(family-name:--font-base) text-xs leading-[15px] text-(--color-text-primary) lg:text-[clamp(11px,0.83vw,16px)] lg:leading-normal">
           {t("lessonLabel", { title: card.lesson_title })}
         </span>
       </div>
 
       {/* Glass panel — narrower, on top, overlapping the gradient block's left edge */}
       <div
-        className="absolute flex flex-col items-center justify-center gap-2 text-center"
+        className="absolute flex flex-col items-center justify-center gap-2 rounded-(--mobile-header-radius) p-3.5 text-center lg:rounded-[clamp(12px,1.04vw,20px)] lg:p-[clamp(14px,1.25vw,24px)]"
         style={{
           left: 0,
           width: "38.82%",
           top: 0,
           bottom: 0,
-          padding: "clamp(14px, 1.25vw, 24px)",
           background: "var(--gradient-lavender)",
           boxShadow: "inset 0 2px 4px #fff, 0 4px 14px rgba(0,0,0,0.08)",
-          borderRadius: "clamp(12px, 1.04vw, 20px)",
         }}
       >
-        <span
-          className="font-(family-name:--font-accent) text-(--color-text-primary)"
-          style={{ fontSize: "clamp(18px, 1.67vw, 32px)" }}
-        >
+        <span className="font-(family-name:--font-accent) text-xl leading-[25px] text-(--color-text-primary) lg:text-[clamp(18px,1.67vw,32px)] lg:leading-normal">
           {t("moduleLabel", { order: card.module_order })}
         </span>
-        <span
-          className="font-(family-name:--font-accent) text-(--color-text-primary)"
-          style={{ fontSize: "clamp(11px, 0.83vw, 16px)" }}
-        >
+        <span className="font-(family-name:--font-accent) text-xs leading-[15px] text-(--color-text-primary) lg:text-[clamp(11px,0.83vw,16px)] lg:leading-normal">
           {card.module_title}
         </span>
-        <span
-          className="font-(family-name:--font-base) font-medium text-(--color-blue)"
-          style={{ fontSize: "clamp(11px, 0.83vw, 16px)" }}
-        >
-          {formatShortDate(card.lesson_date, locale)}
+        <span className="font-(family-name:--font-base) text-xs leading-[15px] font-medium text-(--color-blue) lg:text-[clamp(11px,0.83vw,16px)] lg:leading-normal">
+          {formatShortDate(card.lesson_date)}
         </span>
       </div>
     </button>

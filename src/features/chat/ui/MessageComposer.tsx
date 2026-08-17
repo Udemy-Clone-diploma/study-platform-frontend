@@ -1,5 +1,13 @@
 import Image from "next/image";
-import { useEffect, useMemo, type ClipboardEvent, type KeyboardEvent, type RefObject } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  type ClipboardEvent,
+  type KeyboardEvent,
+  type RefObject,
+} from "react";
 import { useTranslations } from "next-intl";
 import { LockKeyhole, Paperclip, Send, X } from "lucide-react";
 import type { ChatMessage, ChatRoom } from "@/entities/chat";
@@ -7,7 +15,6 @@ import { formatFileSize, messageAuthorLabel, messagePreview } from "../lib/chatF
 
 type Props = {
   chat: ChatRoom;
-  typingLabel: string;
   peerBlocked: boolean;
   replyingTo: ChatMessage | null;
   meId: number | null;
@@ -23,6 +30,18 @@ type Props = {
   compressImages: boolean;
   onCompressImagesChange: (value: boolean) => void;
 };
+
+function resizeMessageTextarea(textarea: HTMLTextAreaElement) {
+  textarea.style.height = "auto";
+  textarea.style.overflowY = "hidden";
+
+  const minHeight = Number.parseFloat(window.getComputedStyle(textarea).minHeight);
+  const maxHeight = minHeight * 3;
+  const contentHeight = textarea.scrollHeight;
+
+  textarea.style.height = `${Math.min(Math.max(contentHeight, minHeight), maxHeight)}px`;
+  textarea.style.overflowY = contentHeight > maxHeight ? "auto" : "hidden";
+}
 
 function AttachedFileChip({
   file,
@@ -64,7 +83,6 @@ function AttachedFileChip({
 /** Displays read-only status or the reply, attachment, and message composing controls. */
 export function MessageComposer({
   chat,
-  typingLabel,
   peerBlocked,
   replyingTo,
   meId,
@@ -82,6 +100,20 @@ export function MessageComposer({
 }: Props) {
   const t = useTranslations("MessageComposer");
   const tCommon = useTranslations("ChatCommon");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useLayoutEffect(() => {
+    if (textareaRef.current) resizeMessageTextarea(textareaRef.current);
+  }, [draft]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (textareaRef.current) resizeMessageTextarea(textareaRef.current);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   if (chat.is_read_only) {
     return (
@@ -94,10 +126,11 @@ export function MessageComposer({
 
   return (
     <div className="fixed inset-x-4 bottom-[calc(103px+12px+env(safe-area-inset-bottom))] z-30 shrink-0 lg:relative lg:inset-auto lg:bottom-auto lg:z-auto lg:mt-4">
-      <div className="mb-2 hidden min-h-5 text-xs text-[#4B5563] lg:block">
-        {typingLabel ? t("typingIndicator", { names: typingLabel }) : ""}
-        {peerBlocked ? t("peerBlockedNotice") : ""}
-      </div>
+      {peerBlocked ? (
+        <div className="mb-2 hidden min-h-5 text-xs text-[#4B5563] lg:block">
+          {t("peerBlockedNotice")}
+        </div>
+      ) : null}
 
       {replyingTo ? (
         <div className="mb-3 flex items-start justify-between gap-3 rounded-lg border border-[#A7BAFA] bg-white/70 px-4 py-2">
@@ -144,10 +177,11 @@ export function MessageComposer({
         </div>
       ) : null}
 
-      <div className="flex items-end gap-2 lg:gap-3">
+      <div className="flex items-center gap-2 lg:gap-3">
         <div className="flex min-h-10 flex-1 rounded-[18px] bg-[linear-gradient(90deg,#A7BAFA_0%,#FCC4C3_52%,#FFF4DA_100%)] p-[2px] lg:min-h-14">
-          <div className="flex min-h-9 flex-1 items-end rounded-[16px] bg-[#D6E0FF] lg:min-h-[52px]">
+          <div className="flex min-h-9 flex-1 items-center rounded-[16px] bg-[#D6E0FF] lg:min-h-[52px]">
             <textarea
+              ref={textareaRef}
               value={draft}
               rows={1}
               disabled={peerBlocked}
@@ -160,7 +194,7 @@ export function MessageComposer({
                 }
               }}
               placeholder={t("messagePlaceholder")}
-              className="max-h-32 min-h-9 flex-1 resize-none bg-transparent px-3 py-2 text-xs leading-4 outline-none placeholder:text-[#121212] disabled:cursor-not-allowed disabled:opacity-60 lg:min-h-[52px] lg:px-6 lg:py-4 lg:text-sm lg:leading-normal"
+              className="min-h-9 flex-1 resize-none overflow-y-hidden bg-transparent px-3 py-2 text-xs leading-4 outline-none [scrollbar-color:var(--color-text-muted)_transparent] [scrollbar-width:thin] placeholder:text-[#121212] disabled:cursor-not-allowed disabled:opacity-60 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-(--color-text-muted) lg:min-h-[52px] lg:px-6 lg:py-4 lg:text-sm lg:leading-normal"
             />
             <input
               ref={fileInputRef}

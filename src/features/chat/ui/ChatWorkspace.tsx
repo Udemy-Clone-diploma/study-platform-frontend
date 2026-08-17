@@ -350,16 +350,17 @@ export function ChatWorkspace({ onViewProfile, moderationHref }: ChatWorkspacePr
         setMessages((current) => {
           if (event.message.chat !== selectedChatIdRef.current) return current;
           if (current.some((message) => message.id === event.message.id)) return current;
-          const withoutOptimistic = current.filter(
+          const optimisticIndex = current.findIndex(
             (message) =>
-              !(
-                message.optimistic &&
-                message.sender?.id === event.message.sender?.id &&
-                message.text === event.message.text &&
-                message.reply_to === event.message.reply_to
-              ),
+              message.optimistic &&
+              message.sender?.id === event.message.sender?.id &&
+              message.text === event.message.text &&
+              message.reply_to === event.message.reply_to,
           );
-          return [...withoutOptimistic, event.message];
+          if (optimisticIndex < 0) return [...current, event.message];
+          return current.map((message, index) =>
+            index === optimisticIndex ? event.message : message,
+          );
         });
         setChats((current) =>
           sortChats(
@@ -675,16 +676,6 @@ export function ChatWorkspace({ onViewProfile, moderationHref }: ChatWorkspacePr
       optimistic: true,
     };
     setMessages((current) => [...current, optimistic]);
-
-    if (files.length === 0) {
-      const sentOverSocket = send("message.send", {
-        chat_id: selectedChatId,
-        text: messageText,
-        message_type: messageType,
-        reply_to: replyTarget?.id ?? null,
-      });
-      if (sentOverSocket) return;
-    }
 
     try {
       const created = await sendMessage(
@@ -1143,9 +1134,11 @@ export function ChatWorkspace({ onViewProfile, moderationHref }: ChatWorkspacePr
       ? t("statusBlocked")
       : socketStatus !== "open"
         ? t("statusReconnecting")
-        : selectedChat?.type === "direct" && selectedPeerOnline
-          ? t("statusOnline")
-          : "";
+        : typingLabel
+          ? t("statusTyping", { names: typingLabel })
+          : selectedChat?.type === "direct" && selectedPeerOnline
+            ? t("statusOnline")
+            : "";
   const selectedPeerName = selectedPeer ? userDisplayName(selectedPeer) : t("thisUser");
   const confirmation =
     confirmationAction === "clear-history"
@@ -1198,7 +1191,7 @@ export function ChatWorkspace({ onViewProfile, moderationHref }: ChatWorkspacePr
   }
 
   return (
-    <main className="-mt-16 -mb-[calc(103px+env(safe-area-inset-bottom))] flex h-[100dvh] min-h-0 flex-none flex-col overflow-hidden bg-[#D6E0FF] px-4 pb-[calc(103px+env(safe-area-inset-bottom))] pt-[84px] text-[#111827] lg:m-0 lg:h-[calc(100vh-76px)] lg:min-h-[640px] lg:flex-1 lg:flex-row lg:gap-[clamp(28px,4vw,76px)] lg:overflow-visible lg:px-[clamp(28px,4vw,78px)] lg:py-[clamp(24px,3vw,40px)]">
+    <main className="-mt-16 -mb-[calc(103px+env(safe-area-inset-bottom))] flex h-[100dvh] min-h-0 flex-none flex-col overflow-hidden bg-[#D6E0FF] px-4 pb-[calc(103px+env(safe-area-inset-bottom))] pt-[104px] text-[#111827] lg:m-0 lg:h-[calc(100vh-76px)] lg:min-h-[640px] lg:flex-1 lg:flex-row lg:gap-[clamp(28px,4vw,76px)] lg:overflow-visible lg:px-[clamp(28px,4vw,78px)] lg:py-[clamp(24px,3vw,40px)]">
       <ChatSidebar
         search={chatSearch}
         typeFilter={chatTypeFilter}
@@ -1312,7 +1305,6 @@ export function ChatWorkspace({ onViewProfile, moderationHref }: ChatWorkspacePr
 
             <MessageComposer
               chat={selectedChat}
-              typingLabel={typingLabel}
               peerBlocked={selectedPeerBlocked}
               replyingTo={replyingTo}
               meId={me?.id ?? null}

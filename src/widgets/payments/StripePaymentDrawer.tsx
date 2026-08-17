@@ -18,7 +18,12 @@ type StripePaymentDrawerProps = {
   onPaymentSuccessRedirect?: () => void;
 };
 
-function formatMoney(amount: string, currency: string | null, freeLabel: string, locale: string): string {
+function formatMoney(
+  amount: string,
+  currency: string | null,
+  freeLabel: string,
+  locale: string,
+): string {
   if (!currency) return Number(amount) === 0 ? freeLabel : amount;
   return new Intl.NumberFormat(locale, {
     style: "currency",
@@ -53,11 +58,9 @@ export function StripePaymentDrawer({
       role="dialog"
       aria-modal="true"
       aria-label={t("ariaLabel")}
-      className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-[#B7C7FA]/80 px-4 py-10 md:pt-[112px]"
+      className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto overscroll-contain bg-[#B7C7FA]/80 px-4 pt-24 pb-[calc(103px+env(safe-area-inset-bottom)+2rem)] xl:py-10 xl:pt-[112px]"
     >
-      <div
-        className="flex w-full max-w-[calc(100vw-32px)] flex-col overflow-y-auto rounded-[16px] bg-white px-6 py-8 shadow-[0_0_15px_rgba(0,0,0,0.18)] md:h-[593px] md:w-[1100px] md:max-h-[calc(100vh-80px)] md:max-w-[calc(100vw-32px)] md:px-[60px] md:pt-[60px] md:pb-[72px]"
-      >
+      <div className="flex w-full max-w-[calc(100vw-32px)] flex-col overflow-y-auto rounded-[16px] bg-white px-3 py-8 shadow-[0_0_15px_rgba(0,0,0,0.18)] sm:px-6 xl:h-[593px] xl:w-[1100px] xl:max-h-[calc(100vh-80px)] xl:max-w-[calc(100vw-32px)] xl:px-[60px] xl:pt-[60px] xl:pb-[72px]">
         <StripePaymentForm
           intent={intent}
           paymentType={paymentType}

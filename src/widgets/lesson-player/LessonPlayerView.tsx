@@ -371,9 +371,9 @@ function LessonNavLink({ href, direction }: { href?: string; direction: "prev" |
   const isPrev = direction === "prev";
   const content = (
     <>
-      {isPrev && <ChevronLeft className="h-5 w-5" aria-hidden="true" />}
-      {isPrev ? t("previous") : t("next")}
-      {!isPrev && <ChevronRight className="h-5 w-5" aria-hidden="true" />}
+      {isPrev && <ChevronLeft className="h-5 w-5 shrink-0" aria-hidden="true" />}
+      <span className="hidden sm:inline">{isPrev ? t("previous") : t("next")}</span>
+      {!isPrev && <ChevronRight className="h-5 w-5 shrink-0" aria-hidden="true" />}
     </>
   );
   const base =

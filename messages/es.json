@@ -1128,6 +1128,7 @@
   },
   "StudentMaterialsPage": {
     "errorLoad": "No se pudieron cargar los materiales.",
+    "searchPlaceholder": "Busca entre más de 10.000 artículos",
     "noMaterialsFound": "No se encontraron materiales.",
     "moduleLabel": "Módulo {order}",
     "lessonLabel": "Lección: {title}",
@@ -2013,7 +2014,7 @@
     "submitAndFinish": "Enviar y finalizar"
   },
   "PaymentWorkspace": {
-    "tabCard": "Tarjeta",
+    "tabCart": "Carrito",
     "tabPlans": "Planes",
     "tabHistory": "Historial de pagos",
     "noticeCourseAvailable": "El curso ya está disponible en Mis cursos.",
@@ -3298,6 +3299,11 @@
       "wantToTeach": "¿Quieres enseñar en la plataforma?",
       "applyAsTeacher": "Postúlate como profesor",
       "fallbackError": "No pudimos crear tu cuenta. Inténtalo de nuevo."
+    },
+    "social": {
+      "orContinueWith": "o continuar con",
+      "continueWithGoogle": "Continuar con Google",
+      "fallbackError": "No pudimos iniciar tu sesión con Google. Inténtalo de nuevo."
     },
     "resendEmail": {
       "defaultSubmitLabel": "Enviar",

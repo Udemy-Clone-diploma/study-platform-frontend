@@ -6,8 +6,8 @@ export function LearnPageDecor({ showPlanet = true }: { showPlanet?: boolean }) 
     <>
       <DecorBackground />
       <DecorBlob />
-      {showPlanet && <DecorPlanet />}
       <DecorBottomFade />
+      {showPlanet && <DecorPlanet />}
     </>
   );
 }
@@ -77,7 +77,7 @@ function DecorPlanet() {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none absolute -right-32 -bottom-28 -z-10 hidden h-[600px] w-[600px] lg:block xl:h-[max(700px,33vw)] xl:w-[max(700px,33vw)]"
+      className="pointer-events-none absolute -right-14 -bottom-14 -z-10 h-52 w-52 sm:-right-20 sm:-bottom-20 sm:h-72 sm:w-72 lg:-right-32 lg:-bottom-28 lg:h-[600px] lg:w-[600px] xl:h-[max(700px,33vw)] xl:w-[max(700px,33vw)]"
     >
       <Image
         src="/backgrounds/learn-planet.png"

@@ -80,7 +80,12 @@ export function NotificationBell({ iconSize = 24 }: { iconSize?: number } = {}) 
           onClick={toggle}
           className="relative flex h-10 w-10 items-center justify-center transition-opacity hover:opacity-70"
         >
-          <Image src="/layout/notifications-icon.png" alt="" width={iconSize} height={iconSize} />
+          <Image
+            src="/layout/24Reviews.svg"
+            alt=""
+            width={iconSize}
+            height={Math.round((iconSize * 22) / 29)}
+          />
           {unreadCount > 0 && (
             <span className="absolute -top-0.5 right-0 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-(--color-danger) px-1 text-[10px] font-bold text-(--color-bg)">
               {unreadCount > 9 ? "9+" : unreadCount}

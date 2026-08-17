@@ -159,13 +159,11 @@ export default function StudentStatisticsPage() {
             />
 
             <div
-              className="grid"
+              className="flex flex-col lg:grid lg:grid-cols-[minmax(360px,1fr)_minmax(320px,1fr)] lg:items-start"
               style={{
                 position: "relative",
                 zIndex: 3,
-                gridTemplateColumns: "minmax(360px, 1fr) minmax(320px, 1fr)",
                 gap: "clamp(12px, 1.11vw, 20px)",
-                alignItems: "start",
               }}
             >
               {/* Left: 2x2 stat blocks, with the average-score chart below them */}

@@ -371,7 +371,7 @@ function StripePaymentElementForm({
           ) : null}
         </section>
 
-        <section className="min-w-0 justify-self-start md:w-full md:max-w-[490px]">
+        <section className="w-full min-w-0 max-w-[490px] justify-self-start">
           <h3 className="mb-5 text-[20px] leading-6 font-normal text-[#121212]">
             {t("paymentMethod")}
           </h3>

@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
@@ -51,12 +51,34 @@ export function MobileHeaderMenu({ isLoggedIn, categories, role }: Props) {
   const t = useTranslations("Common");
   const tHeader = useTranslations("Header");
   const { locale } = useLocaleSwitcher();
+  const containerRef = useRef<HTMLDivElement>(null);
 
   function closeAll() {
     setMenuOpen(false);
     setCatalogOpen(false);
     setProfileOpen(false);
   }
+
+  // Close the open menu/search panel on an outside click, focus leaving it, or
+  // Escape. Skipped while the language modal is open: it portals to
+  // document.body, so it would always read as "outside" this container.
+  useEffect(() => {
+    if ((!menuOpen && !searchOpen) || languageModalOpen) return;
+    const outside = (e: Event) =>
+      containerRef.current &&
+      !containerRef.current.contains(e.target as Node) &&
+      (setMenuOpen(false), setSearchOpen(false));
+    const onKey = (e: KeyboardEvent) =>
+      e.key === "Escape" && (setMenuOpen(false), setSearchOpen(false));
+    document.addEventListener("pointerdown", outside);
+    document.addEventListener("focusin", outside);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", outside);
+      document.removeEventListener("focusin", outside);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [menuOpen, searchOpen, languageModalOpen]);
 
   function toggleMenu() {
     setMenuOpen((prev) => !prev);
@@ -76,7 +98,7 @@ export function MobileHeaderMenu({ isLoggedIn, categories, role }: Props) {
   }
 
   return (
-    <div className="lg:hidden">
+    <div ref={containerRef} className="lg:hidden">
       <div className="flex h-(--mobile-header-height) items-center justify-between px-4">
         <button
           type="button"

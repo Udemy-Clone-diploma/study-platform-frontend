@@ -1128,6 +1128,7 @@
   },
   "StudentMaterialsPage": {
     "errorLoad": "Materialien konnten nicht geladen werden.",
+    "searchPlaceholder": "Über 10.000 Artikel durchsuchen",
     "noMaterialsFound": "Keine Materialien gefunden.",
     "moduleLabel": "Modul {order}",
     "lessonLabel": "Lektion: {title}",
@@ -2013,7 +2014,7 @@
     "submitAndFinish": "Senden & abschließen"
   },
   "PaymentWorkspace": {
-    "tabCard": "Karte",
+    "tabCart": "Warenkorb",
     "tabPlans": "Pläne",
     "tabHistory": "Zahlungsverlauf",
     "noticeCourseAvailable": "Der Kurs ist bereits unter Meine Kurse verfügbar.",
@@ -3298,6 +3299,11 @@
       "wantToTeach": "Möchtest du auf der Plattform unterrichten?",
       "applyAsTeacher": "Als Lehrkraft bewerben",
       "fallbackError": "Dein Konto konnte nicht erstellt werden. Bitte versuche es erneut."
+    },
+    "social": {
+      "orContinueWith": "oder weiter mit",
+      "continueWithGoogle": "Mit Google fortfahren",
+      "fallbackError": "Die Anmeldung mit Google ist fehlgeschlagen. Bitte versuche es erneut."
     },
     "resendEmail": {
       "defaultSubmitLabel": "Senden",

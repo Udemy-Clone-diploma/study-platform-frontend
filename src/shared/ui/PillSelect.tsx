@@ -15,6 +15,8 @@ type PillSelectProps = {
   className?: string;
   /** Optional leading icon rendered before the label (e.g. a filter-type icon). */
   icon?: ReactNode;
+  /** Uses the roomier dashboard-filter treatment on mobile while preserving the desktop size. */
+  mobileProminent?: boolean;
 };
 
 /**
@@ -31,6 +33,7 @@ export function PillSelect({
   ariaLabel,
   className = "",
   icon,
+  mobileProminent = false,
 }: PillSelectProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -54,24 +57,43 @@ export function PillSelect({
         aria-expanded={open}
         disabled={disabled}
         onClick={() => !disabled && setOpen((p) => !p)}
-        className="flex items-center gap-[10px] bg-white text-(--color-text-primary) transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
+        className={`flex items-center gap-[10px] bg-white text-(--color-text-primary) transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50 ${
+          mobileProminent
+            ? "h-10 rounded-(--mobile-header-radius) px-4 py-2 text-xl leading-normal lg:h-[clamp(32px,2.78vw,40px)] lg:rounded-[clamp(16px,1.39vw,20px)] lg:px-[clamp(12px,1.11vw,16px)] lg:py-[clamp(6px,0.56vw,8px)] lg:text-[clamp(13px,1.11vw,20px)]"
+            : ""
+        }`}
         style={{
-          height: "clamp(32px, 2.78vw, 40px)",
-          padding: "clamp(6px, 0.56vw, 8px) clamp(12px, 1.11vw, 16px)",
+          ...(mobileProminent
+            ? {}
+            : {
+                height: "clamp(32px, 2.78vw, 40px)",
+                padding: "clamp(6px, 0.56vw, 8px) clamp(12px, 1.11vw, 16px)",
+                borderRadius: "clamp(16px, 1.39vw, 20px)",
+                fontSize: "clamp(13px, 1.11vw, 20px)",
+              }),
           boxShadow: "0px 0px 4px rgba(72, 70, 70, 0.16)",
-          borderRadius: "clamp(16px, 1.39vw, 20px)",
           fontFamily: "var(--font-base)",
-          fontSize: "clamp(13px, 1.11vw, 20px)",
           whiteSpace: "nowrap",
         }}
       >
         {icon}
-        <span className="min-w-0 truncate">{selected?.label ?? placeholder ?? options[0]?.label}</span>
+        <span className="min-w-0 truncate">
+          {selected?.label ?? placeholder ?? options[0]?.label}
+        </span>
         <ChevronDown
           aria-hidden="true"
+          className={
+            mobileProminent
+              ? "h-5 w-5 lg:h-[clamp(14px,1.11vw,16px)] lg:w-[clamp(14px,1.11vw,16px)]"
+              : ""
+          }
           style={{
-            width: "clamp(14px, 1.11vw, 16px)",
-            height: "clamp(14px, 1.11vw, 16px)",
+            ...(mobileProminent
+              ? {}
+              : {
+                  width: "clamp(14px, 1.11vw, 16px)",
+                  height: "clamp(14px, 1.11vw, 16px)",
+                }),
             flexShrink: 0,
             transition: "transform 0.15s",
             transform: open ? "rotate(180deg)" : "rotate(0deg)",
@@ -109,7 +131,8 @@ export function PillSelect({
                     padding: "clamp(6px, 0.56vw, 8px) clamp(12px, 1.11vw, 16px)",
                     fontFamily: "var(--font-base)",
                     fontSize: "clamp(13px, 1.11vw, 18px)",
-                    color: option.value === value ? "var(--color-blue)" : "var(--color-text-primary)",
+                    color:
+                      option.value === value ? "var(--color-blue)" : "var(--color-text-primary)",
                     background: "none",
                     border: "none",
                     cursor: "pointer",

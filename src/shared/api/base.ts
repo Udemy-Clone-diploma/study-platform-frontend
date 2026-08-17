@@ -18,7 +18,9 @@ let refreshPromise: Promise<string | null> | null = null;
 
 function isAuthRefreshAllowed(url?: string): boolean {
   if (!url) return true;
-  return !["auth/login/", "auth/logout/", "auth/refresh/"].some((path) => url.includes(path));
+  return !["auth/login/", "auth/logout/", "auth/refresh/", "auth/google/"].some((path) =>
+    url.includes(path),
+  );
 }
 
 async function refreshAccessToken(): Promise<string | null> {

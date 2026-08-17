@@ -202,7 +202,7 @@ export function PaymentResultPage({ mode }: { mode: ResultMode }) {
             </button>
           ) : null}
           <Link
-            href="/student-dashboard/payment?tab=card"
+            href="/student-dashboard/payment?tab=cart"
             className="inline-flex h-9 min-w-[140px] items-center justify-center rounded-full border border-[#003AFF] px-5 font-mono text-[12px] text-[#003AFF] transition-colors hover:bg-[#EEF3FF]"
           >
             {isFailed ? t("tryAgain") : t("backToPayment")}

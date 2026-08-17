@@ -28,7 +28,7 @@ type Props = {
   discountPercent?: number | null;
 };
 
-const CART_URL = "/student-dashboard/payment?tab=card";
+const CART_URL = "/student-dashboard/payment?tab=cart";
 
 const FORMAT_ICON: Record<DeliveryFormatType, React.ComponentType<{ className?: string }>> = {
   self_paced: BookOpen,

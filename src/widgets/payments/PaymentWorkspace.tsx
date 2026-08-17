@@ -24,7 +24,7 @@ import {
 import type { ApiError } from "@/shared/api/base";
 import { StripePaymentDrawer } from "./StripePaymentDrawer";
 
-type TabId = "card" | "plans" | "history";
+type TabId = "cart" | "plans" | "history";
 type WorkspaceRole = "student" | "teacher";
 type CheckoutIntentState = {
   intent: PaymentIntent;
@@ -32,14 +32,14 @@ type CheckoutIntentState = {
   installmentCount: number | null;
 };
 
-const TAB_ORDER: TabId[] = ["card", "plans", "history"];
+const TAB_ORDER: TabId[] = ["cart", "plans", "history"];
 const TAB_ROLES: Record<TabId, WorkspaceRole[]> = {
-  card: ["student"],
+  cart: ["student"],
   plans: ["student", "teacher"],
   history: ["student", "teacher"],
 };
 const TAB_LABEL_KEYS: Record<TabId, string> = {
-  card: "tabCard",
+  cart: "tabCart",
   plans: "tabPlans",
   history: "tabHistory",
 };
@@ -146,7 +146,7 @@ function orderCourseLabel(
 }
 
 function resolveTab(value: string | null, role: WorkspaceRole): TabId {
-  const normalizedValue = value === "cart" ? "card" : value;
+  const normalizedValue = value === "card" ? "cart" : value;
   const allowedTabs = TAB_ORDER.filter((id) => TAB_ROLES[id].includes(role));
   return allowedTabs.includes(normalizedValue as TabId)
     ? (normalizedValue as TabId)
@@ -172,7 +172,7 @@ function PaymentTabs({
   const t = useTranslations("PaymentWorkspace");
   return (
     <nav
-      className="flex overflow-x-auto border-b border-[#A7BAFA]"
+      className="flex shrink-0 overflow-x-auto border-b border-[#A7BAFA]"
       aria-label={t("paymentSectionsAriaLabel")}
     >
       {tabs.map((tab) => {
@@ -826,7 +826,7 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
   }, [searchParams, t]);
 
   useEffect(() => {
-    if (role !== "student" || activeTab !== "card") return;
+    if (role !== "student" || activeTab !== "cart") return;
 
     let cancelled = false;
     setCartLoading(true);
@@ -870,7 +870,7 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
   useEffect(() => {
     if (
       role !== "student" ||
-      activeTab !== "card" ||
+      activeTab !== "cart" ||
       requestedPaymentType !== "installments" ||
       appliedPaymentRequestRef.current === paymentRequestKey
     ) {
@@ -1089,7 +1089,14 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
   const isHistoryTab = activeTab === "history";
 
   return (
-    <main className="relative isolate min-h-full overflow-hidden bg-white px-4 pt-9 pb-8 before:pointer-events-none before:absolute before:left-[112.69px] before:top-[-257px] before:z-0 before:hidden before:h-[1001.87px] before:w-[1367.86px] before:rotate-[-33.8deg] before:rounded-[50%] before:bg-[#FCC4C3] before:opacity-50 before:blur-[300px] before:content-[''] sm:px-10 lg:-m-[clamp(14px,1.5vw,28px)] lg:min-h-[calc(100vh-76px)] lg:py-8 lg:before:block">
+    <main
+      className={[
+        "relative isolate overflow-hidden bg-white px-4 pt-9 before:pointer-events-none before:absolute before:left-[112.69px] before:top-[-257px] before:z-0 before:hidden before:h-[1001.87px] before:w-[1367.86px] before:rotate-[-33.8deg] before:rounded-[50%] before:bg-[#FCC4C3] before:opacity-50 before:blur-[300px] before:content-[''] sm:px-10 lg:-m-[clamp(14px,1.5vw,28px)] lg:before:block",
+        isPlansTab
+          ? "flex h-full flex-col pb-5 lg:h-[calc(100vh-76px+clamp(14px,1.5vw,28px))] lg:pt-8"
+          : "min-h-full pb-8 lg:min-h-[calc(100vh-76px)] lg:py-8",
+      ].join(" ")}
+    >
       {toast ? (
         <div
           role="status"
@@ -1119,7 +1126,12 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
         onPaymentError={setOrdersError}
       />
 
-      <section className="relative z-10 mx-auto w-full max-w-[890px]">
+      <section
+        className={[
+          "relative z-10 mx-auto w-full max-w-[890px]",
+          isPlansTab ? "flex min-h-0 flex-1 flex-col" : "",
+        ].join(" ")}
+      >
         <h1 className="mb-3 font-(family-name:--font-base) text-xl leading-6 font-normal text-[#121212] md:mb-6 md:text-[26px] md:leading-[31px] md:font-semibold">
           {t("tuitionPayment")}
         </h1>
@@ -1127,7 +1139,7 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
         <div
           className={
             isPlansTab
-              ? "h-72 overflow-y-auto rounded-2xl bg-white px-2 pt-2 pb-4 shadow-[0_0_15px_rgba(0,0,0,0.18)] sm:px-5 md:h-[560px] md:pb-8"
+              ? "min-h-0 flex-1 overflow-y-auto rounded-2xl bg-white px-2 pt-4 pb-4 shadow-[0_0_15px_rgba(0,0,0,0.18)] sm:px-5 md:pb-8"
               : isHistoryTab
                 ? "h-72 overflow-y-auto rounded-2xl bg-white px-2 pt-4 pb-4 shadow-[0_0_15px_rgba(0,0,0,0.18)] sm:px-5 md:h-[560px] md:px-8 md:pb-8"
                 : "min-h-72 overflow-y-auto rounded-2xl bg-white px-3 py-4 shadow-[0_0_15px_rgba(0,0,0,0.18)] sm:px-5 md:h-[560px] md:px-8 md:pt-4 md:pb-8"
@@ -1135,7 +1147,7 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
         >
           <PaymentTabs tabs={tabs} activeTab={activeTab} onChange={handleTabChange} />
 
-          {activeTab === "card" ? (
+          {activeTab === "cart" ? (
             <CartPaymentPanel
               cart={cart}
               loading={cartLoading}

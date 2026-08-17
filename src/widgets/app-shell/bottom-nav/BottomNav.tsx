@@ -16,14 +16,12 @@ type Props = {
 };
 
 const labelStyle: React.CSSProperties = {
-  fontFamily: "var(--font-accent)",
+  fontFamily: "var(--font-base)",
   fontSize: "clamp(10px, calc(8.47px + 0.39vw), 12px)",
   lineHeight: "13px",
-  textTransform: "uppercase",
-  letterSpacing: "-0.24px",
 };
 
-const ICON_SIZE = "clamp(40px, calc(33.88px + 1.57vw), 48px)";
+const ICON_SIZE = "clamp(2.5rem, 12.8vw, 3rem)";
 
 function isItemActive(item: SidebarItem, pathname: string): boolean {
   return item.match === "exact"
@@ -71,8 +69,9 @@ function NavSlot({
 export function BottomNav({ role, items }: Props) {
   const t = useTranslations("AppSidebar");
   const pathname = usePathname();
-  const { primary } = getBottomNavSplit(role, items);
-  const othersActive = pathname.startsWith(OTHERS_HREF);
+  const { primary, overflow } = getBottomNavSplit(role, items);
+  const othersActive =
+    pathname.startsWith(OTHERS_HREF) || overflow.some((item) => isItemActive(item, pathname));
 
   return (
     <nav
@@ -110,7 +109,12 @@ export function BottomNav({ role, items }: Props) {
               style={{ width: "83%", height: "83%" }}
             />
           ) : (
-            <SidebarIcon name={item.icon} width={40} height={40} style={{ width: "83%", height: "83%" }} />
+            <SidebarIcon
+              name={item.icon}
+              width={40}
+              height={40}
+              style={{ width: "83%", height: "83%" }}
+            />
           )}
         </NavSlot>
       ))}

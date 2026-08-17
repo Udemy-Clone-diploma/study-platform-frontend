@@ -8,7 +8,7 @@ type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 function tabSuffix(params: Record<string, string | string[] | undefined>): string {
   const tab = params.tab;
   if (typeof tab !== "string") return "";
-  return `?tab=${encodeURIComponent(tab === "cart" ? "card" : tab)}`;
+  return `?tab=${encodeURIComponent(tab === "card" ? "cart" : tab)}`;
 }
 
 export default async function PaymentPage({ searchParams }: { searchParams: SearchParams }) {

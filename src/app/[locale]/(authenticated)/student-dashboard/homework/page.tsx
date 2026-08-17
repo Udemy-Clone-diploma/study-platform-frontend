@@ -1,7 +1,17 @@
 "use client";
 
 import Image from "next/image";
-import { type FormEvent, type ReactNode, useEffect, useId, useMemo, useRef, useState } from "react";
+import {
+  type FormEvent,
+  type ReactNode,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
+import { createPortal } from "react-dom";
 import { useLocale, useTranslations } from "next-intl";
 import { ChevronDown, ClipboardList, Paperclip, X } from "lucide-react";
 import {
@@ -21,7 +31,6 @@ import {
 } from "@/entities/homework";
 import { QuizQuestionCard, QuizWindow, type AnswerState } from "@/features/quiz";
 import type { ApiError } from "@/shared/api/base";
-import { formatDate } from "@/shared/lib/time";
 import { GradientButton } from "@/shared/ui/GradientButton";
 import { PageShell } from "@/shared/ui/PageShell";
 
@@ -44,6 +53,24 @@ const STATUS_FILTER_VALUES: StatusFilter[] = [
   "reviewed",
 ];
 
+const subscribeToClientMount = () => () => {};
+const getClientMountSnapshot = () => true;
+const getServerMountSnapshot = () => false;
+const subscribeToMobileViewport = (onChange: () => void) => {
+  const mediaQuery = window.matchMedia("(max-width: 1023px)");
+  mediaQuery.addEventListener("change", onChange);
+  return () => mediaQuery.removeEventListener("change", onChange);
+};
+const getMobileViewportSnapshot = () => window.matchMedia("(max-width: 1023px)").matches;
+const getServerMobileViewportSnapshot = () => false;
+const DIALOG_FOCUSABLE_SELECTOR = [
+  "a[href]",
+  "button:not([disabled])",
+  "input:not([disabled])",
+  "textarea:not([disabled])",
+  '[tabindex]:not([tabindex="-1"])',
+].join(",");
+
 function taskTypeOptions(t: Translator): FilterOption<TaskTypeFilter>[] {
   return [
     { value: "all", label: t("taskTypeAll") },
@@ -63,14 +90,18 @@ function statusOptions(t: Translator): FilterOption<StatusFilter>[] {
   ];
 }
 
-function compactDateLabel(value: string | null, locale: string): string {
+function compactDateLabel(value: string | null): string {
   if (!value) return "";
-  return formatDate(value, locale, { day: "2-digit", month: "2-digit" }).replace(/\//g, ".");
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return "";
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  return `${day}.${month}`;
 }
 
-function cardDeadlineLabel(value: string | null, locale: string, t: Translator): string {
+function cardDeadlineLabel(value: string | null, t: Translator): string {
   if (!value) return t("noDeadline");
-  return compactDateLabel(value, locale);
+  return compactDateLabel(value);
 }
 
 function assignmentDateValue(assignment: HomeworkAssignment): string {
@@ -246,7 +277,6 @@ function HomeworkCard({
   onToggle: () => void;
 }) {
   const t = useTranslations("StudentHomeworkPage");
-  const locale = useLocale();
   const kind = assignmentKindLabel(assignment, t);
   const courseName = assignment.course_title || t("courseFallback");
   const iconSrc = assignment.course_image ?? "/icons/book-gradient.svg";
@@ -293,11 +323,30 @@ function HomeworkCard({
           </span>
         ) : (
           <span className="mb-[3.5px] whitespace-nowrap text-[16px] leading-none font-normal tracking-normal not-italic text-[#003AFF]">
-            {cardDeadlineLabel(assignment.due_at, locale, t)}
+            {cardDeadlineLabel(assignment.due_at, t)}
           </span>
         )}
       </span>
     </button>
+  );
+}
+
+function HomeworkBookIcon() {
+  return (
+    <>
+      <span aria-hidden="true" className="relative block h-8 w-8 lg:hidden">
+        <span className="absolute bottom-0 left-0 h-2.5 w-[30px] rounded-bl-[5px] border-[3px] border-black bg-[#FCC4C3]" />
+        <span className="absolute top-0 left-0 h-[26px] w-[29px] rounded-[3px] bg-black" />
+        <span className="absolute top-[7px] left-[8px] h-[3px] w-[14px] rounded-full bg-[#FCC4C3]" />
+      </span>
+      <Image
+        src="/icons/book.svg"
+        alt=""
+        width={22}
+        height={22}
+        className="hidden h-5 w-5 lg:block"
+      />
+    </>
   );
 }
 
@@ -307,6 +356,8 @@ function HomeworkSidebar({
   answer,
   files,
   saving,
+  error,
+  covered,
   onClose,
   onOpenTest,
   onAnswerChange,
@@ -319,6 +370,8 @@ function HomeworkSidebar({
   answer: string;
   files: File[];
   saving: boolean;
+  error: string | null;
+  covered: boolean;
   onClose: () => void;
   onOpenTest: (assignment: HomeworkAssignment) => void;
   onAnswerChange: (value: string) => void;
@@ -327,225 +380,344 @@ function HomeworkSidebar({
   onRemoveFile: (index: number) => void;
 }) {
   const t = useTranslations("StudentHomeworkPage");
-  const locale = useLocale();
   const open = Boolean(assignment);
+  const dialogRef = useRef<HTMLElement>(null);
+  const returnFocusRef = useRef<HTMLElement | null>(null);
+  const mounted = useSyncExternalStore(
+    subscribeToClientMount,
+    getClientMountSnapshot,
+    getServerMountSnapshot,
+  );
+  const mobileViewport = useSyncExternalStore(
+    subscribeToMobileViewport,
+    getMobileViewportSnapshot,
+    getServerMobileViewportSnapshot,
+  );
+
+  useEffect(() => {
+    if (!open || !mobileViewport) return;
+    const previousBodyOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousBodyOverflow;
+    };
+  }, [mobileViewport, open]);
 
   useEffect(() => {
     if (!open) return;
 
+    returnFocusRef.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const focusFrame = window.requestAnimationFrame(() => {
+      const firstVisibleControl = Array.from(
+        dialogRef.current?.querySelectorAll<HTMLElement>(DIALOG_FOCUSABLE_SELECTOR) ?? [],
+      ).find((element) => element.offsetParent !== null);
+      firstVisibleControl?.focus();
+    });
+
+    return () => {
+      window.cancelAnimationFrame(focusFrame);
+      if (returnFocusRef.current?.isConnected) returnFocusRef.current.focus();
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open || covered) return;
+
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape") {
+        onClose();
+        return;
+      }
+
+      if (event.key !== "Tab" || !mobileViewport) return;
+      const dialog = dialogRef.current;
+      if (!dialog) return;
+      const controls = Array.from(
+        dialog.querySelectorAll<HTMLElement>(DIALOG_FOCUSABLE_SELECTOR),
+      ).filter((element) => element.offsetParent !== null);
+      if (controls.length === 0) {
+        event.preventDefault();
+        return;
+      }
+
+      const first = controls[0];
+      const last = controls[controls.length - 1];
+      if (
+        event.shiftKey &&
+        (document.activeElement === first || !dialog.contains(document.activeElement))
+      ) {
+        event.preventDefault();
+        last.focus();
+      } else if (
+        !event.shiftKey &&
+        (document.activeElement === last || !dialog.contains(document.activeElement))
+      ) {
+        event.preventDefault();
+        first.focus();
+      }
     }
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [onClose, open]);
+  }, [covered, mobileViewport, onClose, open]);
 
-  return (
-    <aside
-      aria-hidden={!open}
-      className={[
-        "fixed top-[76px] right-0 bottom-0 z-40 w-[min(490px,calc(100vw-24px))] overflow-hidden rounded-tl-[20px] rounded-bl-[20px] bg-white shadow-[0_0_30px_rgba(0,0,0,0.16)] transition-transform duration-300 ease-out",
-        open ? "translate-x-0" : "translate-x-full",
-      ].join(" ")}
-    >
-      {assignment ? (
-        <div className="flex h-full flex-col overflow-y-auto px-[36px] py-8 font-(family-name:--font-base) text-[#121212]">
-          <button
-            type="button"
-            aria-label={t("closeHomeworkDetails")}
-            onClick={onClose}
-            className="mb-9 flex h-8 w-8 items-center justify-center rounded-full text-black transition hover:bg-[#F4F4F4]"
-          >
-            <X size={18} aria-hidden="true" />
-          </button>
+  if (!mounted) return null;
 
-          <div className="flex items-center gap-5 text-[14px] leading-[18px] text-[#5E5E5E]">
-            <span>{compactDateLabel(assignment.due_at || assignment.published_at, locale)}</span>
-            <span className="truncate">{assignment.course_title}</span>
-          </div>
+  return createPortal(
+    <>
+      {open && !covered ? (
+        <div
+          aria-hidden="true"
+          className="fixed inset-0 z-[55] bg-black/75 lg:hidden"
+          onClick={onClose}
+        />
+      ) : null}
 
-          <div className="mt-7">
-            <h2 className="font-(family-name:--font-accent) text-[28px] leading-[35px] font-normal tracking-normal">
-              {drawerTitle(assignment)}
-            </h2>
-            <p className="mt-1 font-(family-name:--font-accent) text-[16px] leading-5 tracking-normal">
-              {drawerSubtitle(assignment)}
-            </p>
-          </div>
-
-          <div className="mt-6 max-w-[330px] text-[13px] leading-[16px]">
-            {assignment.lesson_title ? (
-              <p className="font-semibold">{t("lessonLabel", { title: assignment.lesson_title })}</p>
-            ) : null}
-            {assignment.description ? (
-              <p className="mt-1 whitespace-pre-wrap">{assignment.description}</p>
-            ) : (
-              <p className="mt-1 text-[#5E5E5E]">{t("noDescriptionProvided")}</p>
-            )}
-          </div>
-
-          <div className="mt-8">
-            <h3 className="text-[13px] leading-4 font-semibold">{t("mainMaterialsHeading")}</h3>
-            <div className="mt-5 flex flex-col gap-5">
-              {assignment.test_detail ? (
-                <button
-                  type="button"
-                  onClick={() => onOpenTest(assignment)}
-                  className="-mx-1 flex items-center gap-4 rounded-md px-1 py-0.5 text-left transition hover:bg-[#FAFAFA]"
-                >
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-[linear-gradient(135deg,#FCC4C3_0%,#A7BAFA_100%)]">
-                    <Image
-                      src="/icons/test.svg"
-                      alt=""
-                      width={22}
-                      height={22}
-                      className="h-5 w-5"
-                    />
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block truncate text-[13px] leading-4 font-medium">
-                      {assignment.test_detail.title}
-                    </span>
-                    <span className="mt-0.5 block text-[10px] leading-3 text-[#5E5E5E]">{t("taskKindTest")}</span>
-                  </span>
-                </button>
-              ) : null}
-              {assignment.attachments.length > 0
-                ? assignment.attachments.map((attachment) =>
-                    attachment.url ? (
-                      <a
-                        key={attachment.id}
-                        href={attachment.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="-mx-1 flex items-center gap-4 rounded-md px-1 py-0.5 transition hover:bg-[#FAFAFA]"
-                      >
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-[linear-gradient(135deg,#FCC4C3_0%,#A7BAFA_100%)]">
-                          <Image
-                            src="/icons/book.svg"
-                            alt=""
-                            width={22}
-                            height={22}
-                            className="h-5 w-5"
-                          />
-                        </span>
-                        <span className="min-w-0">
-                          <span className="block truncate text-[13px] leading-4 font-medium">
-                            {attachment.original_name}
-                          </span>
-                          <span className="mt-0.5 block text-[10px] leading-3 text-[#5E5E5E]">
-                            {t("materialLabel")}
-                          </span>
-                        </span>
-                      </a>
-                    ) : null,
-                  )
-                : null}
-              {!assignment.test_detail && assignment.attachments.length === 0 ? (
-                <p className="text-[12px] text-[#5E5E5E]">{t("noMaterialsAttached")}</p>
-              ) : null}
+      <aside
+        ref={dialogRef}
+        role="dialog"
+        aria-modal={open && mobileViewport && !covered ? "true" : undefined}
+        aria-hidden={!open || covered}
+        inert={!open || covered}
+        aria-label={assignment ? drawerTitle(assignment) : t("closeHomeworkDetails")}
+        className={[
+          "fixed top-1/2 left-1/2 z-[60] h-[min(833px,calc(100dvh-32px))] w-[min(375px,calc(100vw-32px))] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[25px] bg-white shadow-[0_0_30px_rgba(0,0,0,0.35)] transition-[transform,opacity,visibility] duration-300 ease-out lg:top-[76px] lg:right-0 lg:bottom-0 lg:left-auto lg:z-40 lg:h-auto lg:w-[min(490px,calc(100vw-24px))] lg:translate-y-0 lg:rounded-none lg:rounded-tl-[20px] lg:rounded-bl-[20px] lg:shadow-[0_0_30px_rgba(0,0,0,0.16)]",
+          open
+            ? "scale-100 opacity-100 lg:translate-x-0"
+            : "pointer-events-none invisible scale-95 opacity-0 lg:visible lg:scale-100 lg:translate-x-full lg:opacity-100",
+        ].join(" ")}
+      >
+        {assignment ? (
+          <div className="flex h-full min-h-0 flex-col overflow-y-auto overscroll-contain px-4 pt-10 pb-8 font-(family-name:--font-base) text-[#121212] lg:px-[36px] lg:py-8">
+            <div className="flex shrink-0 items-center justify-between gap-4 lg:hidden">
+              <div className="flex min-w-0 items-center gap-5 text-base leading-5 text-[#5E5E5E]">
+                <span className="shrink-0">
+                  {compactDateLabel(assignment.due_at || assignment.published_at)}
+                </span>
+                <span className="truncate">{assignment.course_title}</span>
+              </div>
+              <button
+                type="button"
+                aria-label={t("closeHomeworkDetails")}
+                onClick={onClose}
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-black transition hover:bg-[#F4F4F4]"
+              >
+                <X className="h-7 w-7" aria-hidden="true" />
+              </button>
             </div>
-          </div>
 
-          <div className="mt-7 h-px bg-[#A7BAFA]" />
+            <button
+              type="button"
+              aria-label={t("closeHomeworkDetails")}
+              onClick={onClose}
+              className="mb-9 hidden h-8 w-8 items-center justify-center rounded-full text-black transition hover:bg-[#F4F4F4] lg:flex"
+            >
+              <X size={18} aria-hidden="true" />
+            </button>
 
-          {submission ? (
-            <div className="mt-5 rounded-lg bg-[#F4F7FF] p-4 text-sm">
-              <p className="font-medium text-[#24376F]">{submissionStatusLabel(submission, t)}</p>
-              {submission.test_attempt ? (
-                <p className="mt-2 text-[#24376F]">
-                  {t("testAttemptSent", {
-                    score: submission.test_attempt.score,
-                    number: submission.test_attempt.attempt_number,
-                  })}
+            <div className="hidden items-center gap-5 text-[14px] leading-[18px] text-[#5E5E5E] lg:flex">
+              <span>{compactDateLabel(assignment.due_at || assignment.published_at)}</span>
+              <span className="truncate">{assignment.course_title}</span>
+            </div>
+
+            <div className="mt-5 lg:mt-7">
+              <h2 className="font-(family-name:--font-accent) text-[32px] leading-10 font-normal tracking-normal lg:text-[28px] lg:leading-[35px]">
+                {drawerTitle(assignment)}
+              </h2>
+              <p className="mt-1 font-(family-name:--font-accent) text-[16px] leading-5 tracking-normal">
+                {drawerSubtitle(assignment)}
+              </p>
+            </div>
+
+            <div className="mt-6 max-w-none text-base leading-5 lg:max-w-[330px] lg:text-[13px] lg:leading-[16px]">
+              {assignment.lesson_title ? (
+                <p className="font-semibold">
+                  {t("lessonLabel", { title: assignment.lesson_title })}
                 </p>
               ) : null}
-              {submission.content ? (
-                <p className="mt-2 whitespace-pre-wrap text-[#303030]">{submission.content}</p>
-              ) : null}
-              {submission.attachments.length > 0 ? (
-                <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                  {submission.attachments.map((attachment) =>
-                    attachment.url ? (
-                      <a
-                        key={attachment.id}
-                        href={attachment.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="rounded-md bg-white px-3 py-2 text-[#3851B0] hover:underline"
-                      >
-                        {attachment.original_name}
-                      </a>
-                    ) : null,
-                  )}
-                </div>
-              ) : null}
-              {submission.status === "reviewed" ? (
-                <div className="mt-3 space-y-1 text-[#24376F]">
-                  <p>{t("scoreLabel", { score: submission.score ?? "-" })}</p>
-                  {submission.feedback ? <p>{t("commentLabel", { feedback: submission.feedback })}</p> : null}
-                </div>
-              ) : null}
+              {assignment.description ? (
+                <p className="mt-1 whitespace-pre-wrap">{assignment.description}</p>
+              ) : (
+                <p className="mt-1 text-[#5E5E5E]">{t("noDescriptionProvided")}</p>
+              )}
             </div>
-          ) : (
-            <form onSubmit={(event) => onSubmit(event, assignment.id)} className="mt-6">
-              <textarea
-                rows={8}
-                value={answer}
-                onChange={(event) => onAnswerChange(event.target.value)}
-                placeholder={t("textPlaceholder")}
-                className="h-[192px] w-full resize-none rounded-[4px] border border-[#CFCFCF] px-4 py-4 text-[16px] leading-5 outline-none transition placeholder:text-[#7E7E7E] focus:ring-2 focus:ring-[#9DB1FA]"
-              />
 
-              {files.length > 0 ? (
-                <div className="mt-3 flex flex-col gap-2">
-                  {files.map((file, index) => (
-                    <div
-                      key={`${file.name}-${index}`}
-                      className="flex items-center justify-between gap-3 rounded bg-[#F5F5F5] px-3 py-2 text-xs text-[#3E3E3E]"
-                    >
-                      <span className="truncate">{file.name}</span>
-                      <button
-                        type="button"
-                        disabled={saving}
-                        onClick={() => onRemoveFile(index)}
-                        className="shrink-0 text-[#A44] hover:underline disabled:text-[#AAA]"
-                      >
-                        {t("remove")}
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              ) : null}
-
-              <div className="relative mt-4 flex min-h-[38px] items-center justify-center">
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="inline-flex h-[38px] min-w-[144px] items-center justify-center rounded-full bg-black px-8 font-(family-name:--font-accent) text-[13px] leading-none font-semibold uppercase text-white transition hover:bg-[#252525] disabled:bg-[#BFBFBF]"
-                >
-                  {saving ? t("submitting") : t("submit")}
-                </button>
-                <label className="absolute right-0 inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-black transition hover:bg-[#F4F4F4] has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-60">
-                  <Paperclip size={30} strokeWidth={1.8} aria-hidden="true" />
-                  <input
-                    type="file"
-                    multiple
-                    disabled={saving}
-                    className="sr-only"
-                    onChange={(event) => {
-                      onAddFiles(event.target.files);
-                      event.target.value = "";
-                    }}
-                  />
-                </label>
+            <div className="mt-6 lg:mt-8">
+              <h3 className="text-base leading-5 font-semibold lg:text-[13px] lg:leading-4">
+                {t("mainMaterialsHeading")}
+              </h3>
+              <div className="mt-4 flex flex-col gap-4 lg:mt-5 lg:gap-5">
+                {assignment.test_detail ? (
+                  <button
+                    type="button"
+                    onClick={() => onOpenTest(assignment)}
+                    className="-mx-1 flex items-center gap-4 rounded-md px-1 py-0 text-left transition hover:bg-[#FAFAFA] lg:py-0.5"
+                  >
+                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-[linear-gradient(135deg,#FCC4C3_0%,#A7BAFA_100%)] lg:h-9 lg:w-9">
+                      <Image
+                        src="/icons/test.svg"
+                        alt=""
+                        width={32}
+                        height={32}
+                        className="h-8 w-8 lg:h-5 lg:w-5"
+                      />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block truncate text-base leading-5 font-medium lg:text-[13px] lg:leading-4">
+                        {assignment.test_detail.title}
+                      </span>
+                      <span className="mt-0.5 block text-xs leading-4 text-[#5E5E5E] lg:text-[10px] lg:leading-3">
+                        {t("taskKindTest")}
+                      </span>
+                    </span>
+                  </button>
+                ) : null}
+                {assignment.attachments.length > 0
+                  ? assignment.attachments.map((attachment) =>
+                      attachment.url ? (
+                        <a
+                          key={attachment.id}
+                          href={attachment.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="-mx-1 flex items-center gap-4 rounded-md px-1 py-0 transition hover:bg-[#FAFAFA] lg:py-0.5"
+                        >
+                          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-[linear-gradient(135deg,#FCC4C3_0%,#A7BAFA_100%)] lg:h-9 lg:w-9">
+                            <HomeworkBookIcon />
+                          </span>
+                          <span className="min-w-0">
+                            <span className="block truncate text-base leading-5 font-medium lg:text-[13px] lg:leading-4">
+                              {attachment.original_name}
+                            </span>
+                            <span className="mt-0.5 block text-xs leading-4 text-[#5E5E5E] lg:text-[10px] lg:leading-3">
+                              {t("materialLabel")}
+                            </span>
+                          </span>
+                        </a>
+                      ) : null,
+                    )
+                  : null}
+                {!assignment.test_detail && assignment.attachments.length === 0 ? (
+                  <p className="text-[12px] text-[#5E5E5E]">{t("noMaterialsAttached")}</p>
+                ) : null}
               </div>
-            </form>
-          )}
-        </div>
-      ) : null}
-    </aside>
+            </div>
+
+            <div className="mt-3 h-px shrink-0 bg-[#A7BAFA] lg:mt-7" />
+
+            {submission ? (
+              <div className="mt-5 rounded-lg bg-[#F4F7FF] p-4 text-sm">
+                <p className="font-medium text-[#24376F]">{submissionStatusLabel(submission, t)}</p>
+                {submission.test_attempt ? (
+                  <p className="mt-2 text-[#24376F]">
+                    {t("testAttemptSent", {
+                      score: submission.test_attempt.score,
+                      number: submission.test_attempt.attempt_number,
+                    })}
+                  </p>
+                ) : null}
+                {submission.content ? (
+                  <p className="mt-2 whitespace-pre-wrap text-[#303030]">{submission.content}</p>
+                ) : null}
+                {submission.attachments.length > 0 ? (
+                  <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                    {submission.attachments.map((attachment) =>
+                      attachment.url ? (
+                        <a
+                          key={attachment.id}
+                          href={attachment.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="rounded-md bg-white px-3 py-2 text-[#3851B0] hover:underline"
+                        >
+                          {attachment.original_name}
+                        </a>
+                      ) : null,
+                    )}
+                  </div>
+                ) : null}
+                {submission.status === "reviewed" ? (
+                  <div className="mt-3 space-y-1 text-[#24376F]">
+                    <p>{t("scoreLabel", { score: submission.score ?? "-" })}</p>
+                    {submission.feedback ? (
+                      <p>{t("commentLabel", { feedback: submission.feedback })}</p>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
+            ) : (
+              <form onSubmit={(event) => onSubmit(event, assignment.id)} className="mt-5 lg:mt-6">
+                <textarea
+                  rows={8}
+                  value={answer}
+                  onChange={(event) => onAnswerChange(event.target.value)}
+                  placeholder={t("textPlaceholder")}
+                  className="h-[clamp(160px,30dvh,266px)] w-full resize-none rounded-lg border-2 border-[#CFCFCF] px-5 py-5 text-xl leading-6 outline-none transition placeholder:text-[#7E7E7E] focus:ring-2 focus:ring-[#9DB1FA] lg:h-[192px] lg:rounded-[4px] lg:border lg:px-4 lg:py-4 lg:text-[16px] lg:leading-5"
+                />
+
+                {files.length > 0 ? (
+                  <div className="mt-3 flex flex-col gap-2">
+                    {files.map((file, index) => (
+                      <div
+                        key={`${file.name}-${index}`}
+                        className="flex items-center justify-between gap-3 rounded bg-[#F5F5F5] px-3 py-2 text-xs text-[#3E3E3E]"
+                      >
+                        <span className="truncate">{file.name}</span>
+                        <button
+                          type="button"
+                          disabled={saving}
+                          onClick={() => onRemoveFile(index)}
+                          className="shrink-0 text-[#A44] hover:underline disabled:text-[#AAA]"
+                        >
+                          {t("remove")}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+
+                {error ? (
+                  <p role="alert" className="mt-3 text-sm text-[#B42318]">
+                    {error}
+                  </p>
+                ) : null}
+
+                <div className="relative mt-7 flex min-h-10 items-center justify-center lg:mt-4 lg:min-h-[38px]">
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    className="inline-flex h-10 min-w-40 items-center justify-center rounded-full bg-black px-8 font-(family-name:--font-accent) text-sm leading-none font-semibold uppercase text-white transition hover:bg-[#252525] disabled:bg-[#BFBFBF] lg:h-[38px] lg:min-w-[144px] lg:text-[13px]"
+                  >
+                    {saving ? t("submitting") : t("submit")}
+                  </button>
+                  <label className="absolute right-0 inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-black transition hover:bg-[#F4F4F4] focus-within:ring-2 focus-within:ring-[#9DB1FA] has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-60 lg:h-9 lg:w-9">
+                    <Paperclip
+                      className="h-10 w-10 lg:h-[30px] lg:w-[30px]"
+                      strokeWidth={1.8}
+                      aria-hidden="true"
+                    />
+                    <input
+                      type="file"
+                      multiple
+                      disabled={saving}
+                      aria-label={t("materialLabel")}
+                      className="sr-only"
+                      onChange={(event) => {
+                        onAddFiles(event.target.files);
+                        event.target.value = "";
+                      }}
+                    />
+                  </label>
+                </div>
+              </form>
+            )}
+          </div>
+        ) : null}
+      </aside>
+    </>,
+    document.body,
   );
 }
 
@@ -564,6 +736,7 @@ function HomeworkQuizModal({
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!assignment || !test) return;
@@ -608,6 +781,19 @@ function HomeworkQuizModal({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [assignment, onClose]);
 
+  useEffect(() => {
+    if (!assignment) return;
+
+    const returnFocus =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const focusFrame = window.requestAnimationFrame(() => closeButtonRef.current?.focus());
+
+    return () => {
+      window.cancelAnimationFrame(focusFrame);
+      if (returnFocus?.isConnected) returnFocus.focus();
+    };
+  }, [assignment]);
+
   if (!assignment || !test) return null;
 
   const restart = () => {
@@ -629,9 +815,7 @@ function HomeworkQuizModal({
       setResult(response);
     } catch (requestError) {
       const apiError = requestError as Partial<ApiError>;
-      setError(
-        apiError.message || apiError.detail || t("couldNotSubmitAnswers"),
-      );
+      setError(apiError.message || apiError.detail || t("couldNotSubmitAnswers"));
     } finally {
       setSubmitting(false);
     }
@@ -639,6 +823,7 @@ function HomeworkQuizModal({
 
   const closeButton = (
     <button
+      ref={closeButtonRef}
       type="button"
       aria-label={t("closeTest")}
       onClick={onClose}
@@ -648,9 +833,9 @@ function HomeworkQuizModal({
     </button>
   );
 
-  return (
+  return createPortal(
     <div
-      className="fixed top-[76px] right-0 bottom-0 left-[clamp(60px,4.5vw,80px)] z-40 overflow-y-auto bg-(--color-brand-lavender-soft) px-8 py-[52px]"
+      className="fixed inset-0 z-[70] overflow-y-auto bg-(--color-brand-lavender-soft) px-4 py-4 lg:top-[76px] lg:right-0 lg:bottom-0 lg:left-[clamp(60px,4.5vw,80px)] lg:px-8 lg:py-[52px]"
       onClick={onClose}
     >
       <section
@@ -717,7 +902,8 @@ function HomeworkQuizModal({
           )}
         </QuizWindow>
       </section>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -764,7 +950,9 @@ function HomeworkQuizResults({
         <span className="flex h-[60px] w-[60px] items-center justify-center rounded-lg bg-(--color-brand-lavender) font-(family-name:--font-accent) text-2xl font-medium leading-[30px] text-(--color-blue-dark)">
           {result.score}
         </span>
-        {result.can_retake ? <GradientButton onClick={onRetake}>{t("retake")}</GradientButton> : null}
+        {result.can_retake ? (
+          <GradientButton onClick={onRetake}>{t("retake")}</GradientButton>
+        ) : null}
         <QuizActionButton onClick={onClose}>{t("backToHomework")}</QuizActionButton>
       </div>
     </div>
@@ -949,7 +1137,9 @@ export default function StudentHomeworkPage() {
       />
       <section className="relative z-10 w-full max-w-[1710px] font-(family-name:--font-base)">
         <div className="flex flex-wrap items-center gap-3">
-          <h1 className="mr-2 text-[28px] leading-none font-normal text-[#121212]">{tSidebar("homework")}</h1>
+          <h1 className="mr-2 text-[28px] leading-none font-normal text-[#121212]">
+            {tSidebar("homework")}
+          </h1>
           <FilterSelect
             label={t("taskTypeFilterLabel")}
             value={taskTypeFilter}
@@ -977,7 +1167,7 @@ export default function StudentHomeworkPage() {
         </div>
 
         {loading ? <p className="mt-8 text-sm text-[#6A6A6A]">{t("loadingHomework")}</p> : null}
-        {error ? (
+        {error && !selectedAssignment ? (
           <p role="alert" className="mt-6 text-sm text-[#B42318]">
             {error}
           </p>
@@ -985,7 +1175,9 @@ export default function StudentHomeworkPage() {
         {!loading && !error && assignments.length === 0 ? (
           <div className="mt-8 rounded-xl border border-dashed border-[#D9D4CB] bg-white px-6 py-14 text-center">
             <ClipboardList className="mx-auto text-[#9DAEF3]" size={34} aria-hidden="true" />
-            <h2 className="mt-3 font-semibold text-[#121212]">{t("noHomeworkAssignedYetHeading")}</h2>
+            <h2 className="mt-3 font-semibold text-[#121212]">
+              {t("noHomeworkAssignedYetHeading")}
+            </h2>
           </div>
         ) : null}
         {!loading && !error && assignments.length > 0 && filteredAssignments.length === 0 ? (
@@ -1011,7 +1203,10 @@ export default function StudentHomeworkPage() {
                         assignment={assignment}
                         submission={submission}
                         expanded={selected}
-                        onToggle={() => setSelectedAssignmentId(assignment.id)}
+                        onToggle={() => {
+                          setError("");
+                          setSelectedAssignmentId(assignment.id);
+                        }}
                       />
                     </article>
                   );
@@ -1027,7 +1222,12 @@ export default function StudentHomeworkPage() {
         answer={selectedAssignment ? (answers[selectedAssignment.id] ?? "") : ""}
         files={selectedAssignment ? (attachmentFiles[selectedAssignment.id] ?? []) : []}
         saving={selectedAssignment ? savingId === selectedAssignment.id : false}
-        onClose={() => setSelectedAssignmentId(null)}
+        error={error}
+        covered={Boolean(testAssignment)}
+        onClose={() => {
+          setError("");
+          setSelectedAssignmentId(null);
+        }}
         onOpenTest={setTestAssignment}
         onAnswerChange={(value) => {
           if (!selectedAssignment) return;

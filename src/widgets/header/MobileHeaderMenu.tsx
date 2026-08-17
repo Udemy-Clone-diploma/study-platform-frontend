@@ -99,7 +99,7 @@ export function MobileHeaderMenu({ isLoggedIn, categories, role }: Props) {
 
   return (
     <div ref={containerRef} className="lg:hidden">
-      <div className="flex h-16 items-center justify-between px-4">
+      <div className="flex h-(--mobile-header-height) items-center justify-between px-4">
         <button
           type="button"
           aria-label={menuOpen ? tHeader("closeMenu") : tHeader("openMenu")}

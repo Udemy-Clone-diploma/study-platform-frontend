@@ -17,6 +17,9 @@
   --color-text-primary: #121212;
   --color-text-secondary: #5e5e5e;
   --profile-card-button-bottom: 2.8125rem;
+  --mobile-header-height: 4rem;
+  --mobile-header-radius: 1.25rem;
+  --mobile-header-content-offset: calc(var(--mobile-header-height) - var(--mobile-header-radius));
   --gradient-sidebar-item-expanded: linear-gradient(
     90deg,
     #fff4da 0%,
@@ -512,6 +515,43 @@ body {
 }
 .drag-scroll::-webkit-scrollbar {
   display: none;
+}
+
+.home-course-carousel-viewport {
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.home-course-carousel-track {
+  display: flex;
+  width: max-content;
+  animation: none;
+}
+
+.home-course-carousel-set {
+  display: flex;
+  flex-shrink: 0;
+  gap: 3.65vw;
+  padding-inline-end: 3.65vw;
+}
+
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .home-course-carousel-viewport {
+    overflow-x: hidden;
+  }
+
+  .home-course-carousel-track {
+    animation: carousel-right 60s linear infinite;
+  }
+
+  .home-course-carousel-track[data-direction="left"] {
+    animation-direction: reverse;
+  }
+
+  .home-course-carousel-track[data-paused="true"] {
+    animation-play-state: paused;
+  }
 }
 
 .dashboard-homework-scrollbar {

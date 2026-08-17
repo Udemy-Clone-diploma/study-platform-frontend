@@ -636,6 +636,7 @@
     "statusBlocked": "Blockiert",
     "statusReconnecting": "Verbindung wird wiederhergestellt",
     "statusOnline": "Online",
+    "statusTyping": "{names} tippt gerade…",
     "thisUser": "diesen Nutzer",
     "clearHistoryTitle": "Verlauf löschen?",
     "clearHistoryDescription": "Nachrichten verschwinden nur für Sie. Andere Chatteilnehmer behalten ihren Verlauf.",
@@ -717,8 +718,7 @@
     "peerBlockedNotice": "Sie können diesem Benutzer keine Nachricht senden.",
     "readOnlyNotice": "Dieser Chat ist schreibgeschützt.",
     "replyTo": "Antwort an {name}",
-    "sendMessageAriaLabel": "Nachricht senden",
-    "typingIndicator": "{names} schreibt…"
+    "sendMessageAriaLabel": "Nachricht senden"
   },
   "MessageList": {
     "edited": "Bearbeitet",
@@ -1128,6 +1128,7 @@
   },
   "StudentMaterialsPage": {
     "errorLoad": "Materialien konnten nicht geladen werden.",
+    "searchPlaceholder": "Über 10.000 Artikel durchsuchen",
     "noMaterialsFound": "Keine Materialien gefunden.",
     "moduleLabel": "Modul {order}",
     "lessonLabel": "Lektion: {title}",
@@ -2013,7 +2014,7 @@
     "submitAndFinish": "Senden & abschließen"
   },
   "PaymentWorkspace": {
-    "tabCard": "Karte",
+    "tabCart": "Warenkorb",
     "tabPlans": "Pläne",
     "tabHistory": "Zahlungsverlauf",
     "noticeCourseAvailable": "Der Kurs ist bereits unter Meine Kurse verfügbar.",
@@ -2500,6 +2501,9 @@
     "installmentsSuffix": "{count}× Raten",
     "spotsCount": "{count} Plätze",
     "deadline": "Frist {date}",
+    "enrollmentDeadline": "Anmeldefrist",
+    "enrollmentDeadlineHint": "Leer lassen, um die Gruppenanmeldung ohne Frist offen zu halten.",
+    "enrollmentDeadlineRequiredHint": "Erforderlich, um ein Gruppenformat zu erstellen.",
     "errorSaveFailed": "Speichern fehlgeschlagen.",
     "addDeliveryFormat": "Kursformat hinzufügen",
     "allFormatsConfigured": "Alle Kursformate sind bereits konfiguriert.",

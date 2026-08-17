@@ -48,7 +48,7 @@ function StudentDashboard() {
     <section className="min-h-[calc(100vh-76px)] bg-white">
       <StudentHomeworkProvider>
         <div
-          className="flex flex-col gap-4 px-4 pt-4 pb-4 lg:grid lg:min-h-[calc(100vh-76px)] lg:gap-[clamp(40px,calc(-110px+10.42vw),90px)] lg:px-0 lg:pt-[clamp(16px,3.06vw,44px)] lg:pb-0 lg:pl-[clamp(40px,calc(-110px+10.42vw),90px)]"
+          className="flex flex-col gap-4 px-4 pt-9 pb-4 lg:grid lg:min-h-[calc(100vh-76px)] lg:gap-[clamp(40px,calc(-110px+10.42vw),90px)] lg:px-0 lg:pt-[clamp(16px,3.06vw,44px)] lg:pb-0 lg:pl-[clamp(40px,calc(-110px+10.42vw),90px)]"
           style={{
             gridTemplateColumns: "1fr clamp(240px, calc(100.53px + 13.62vw), 362px)",
           }}

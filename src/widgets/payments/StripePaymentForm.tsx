@@ -241,14 +241,14 @@ function StripePaymentElementForm({
         ) : null}
       </div>
 
-      <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="mb-14 flex flex-col gap-4 xl:mb-10 xl:flex-row xl:items-center xl:justify-between">
         <div>
           <button
             type="button"
             onClick={handleInvoiceDownload}
             disabled={invoiceLoading}
             title={t("invoiceTitle")}
-            className="inline-flex h-10 w-fit items-center gap-2.5 rounded-[20px] bg-[#D6E0FF] px-5 font-(family-name:--font-accent) text-[16px] leading-5 font-medium uppercase text-[#121212] disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex h-10 w-full items-center justify-start gap-2.5 rounded-[20px] bg-[linear-gradient(90deg,var(--color-brand-lavender-soft)_0%,transparent_100%)] px-5 font-(family-name:--font-accent) text-[16px] leading-5 font-medium uppercase text-[#121212] disabled:cursor-not-allowed disabled:opacity-60 xl:w-fit xl:bg-none xl:bg-[#D6E0FF]"
           >
             {invoiceLoading ? t("downloading") : t("downloadInvoice")}
             <Image src="/icons/download.svg" alt="" aria-hidden="true" width={20} height={20} />
@@ -263,7 +263,7 @@ function StripePaymentElementForm({
         <div
           role="group"
           aria-label={t("paymentTypeAriaLabel")}
-          className="inline-flex h-10 w-[340px] gap-2.5 overflow-hidden rounded-[20px] border border-[#003AFF] bg-white font-(family-name:--font-accent) text-[16px] leading-5 font-medium uppercase text-[#121212]"
+          className="inline-flex h-10 w-full overflow-hidden rounded-[20px] border border-[#003AFF] bg-white font-(family-name:--font-accent) text-sm leading-5 font-medium uppercase text-[#121212] xl:w-[340px] xl:text-[16px]"
         >
           <button
             type="button"
@@ -271,7 +271,7 @@ function StripePaymentElementForm({
             disabled={!onPaymentTypeChange || processing || paymentType === "full"}
             onClick={() => onPaymentTypeChange?.("full")}
             className={[
-              "inline-flex h-full shrink-0 items-center justify-center rounded-[20px] px-5 transition-colors disabled:cursor-not-allowed disabled:opacity-60",
+              "inline-flex h-full min-w-0 flex-1 items-center justify-center rounded-[20px] px-2 transition-colors disabled:cursor-not-allowed disabled:opacity-60",
               paymentType === "full" ? "bg-[#D6E0FF]" : "",
             ].join(" ")}
           >
@@ -297,7 +297,7 @@ function StripePaymentElementForm({
         </div>
       </div>
 
-      <div className="grid flex-1 grid-cols-1 gap-8 md:grid-cols-[365px_490px] md:gap-[94px]">
+      <div className="grid flex-1 grid-cols-1 gap-14 xl:grid-cols-[365px_490px] xl:gap-[94px]">
         <section className="flex min-w-0 flex-col">
           <h3 className="mb-4 text-[20px] leading-6 font-normal text-[#121212]">
             {t("orderSummary")}
@@ -343,7 +343,7 @@ function StripePaymentElementForm({
               type="button"
               onClick={handleWalletClick}
               aria-label="Google Pay"
-              className="inline-flex h-[40px] w-[188px] flex-none items-center justify-center gap-[10px] rounded-[232px] border border-[#121212] px-[10px] text-[14px] leading-none text-[#121212] opacity-100 transition-colors hover:bg-[#F2F2F2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#003AFF]"
+              className="inline-flex h-10 min-w-0 flex-1 items-center justify-center gap-2.5 rounded-full border border-[#121212] px-2.5 text-sm leading-none text-[#121212] opacity-100 transition-colors hover:bg-[#F2F2F2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#003AFF] xl:w-[188px] xl:flex-none"
             >
               <Image src="/icons/G.svg" alt="" aria-hidden="true" width={17} height={18} />
               {t("pay")}
@@ -352,7 +352,7 @@ function StripePaymentElementForm({
               type="button"
               onClick={handleWalletClick}
               aria-label="Apple Pay"
-              className="inline-flex h-[40px] w-[188px] flex-none items-center justify-center gap-[10px] rounded-[232px] border border-[#121212] px-[10px] text-[14px] leading-none text-[#121212] opacity-100 transition-colors hover:bg-[#F2F2F2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#003AFF]"
+              className="inline-flex h-10 min-w-0 flex-1 items-center justify-center gap-2.5 rounded-full border border-[#121212] px-2.5 text-sm leading-none text-[#121212] opacity-100 transition-colors hover:bg-[#F2F2F2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#003AFF] xl:w-[188px] xl:flex-none"
             >
               <Image src="/icons/ApplePay.svg" alt="" aria-hidden="true" width={50} height={20} />
             </button>
@@ -371,7 +371,7 @@ function StripePaymentElementForm({
           ) : null}
         </section>
 
-        <section className="min-w-0 justify-self-start md:w-full md:max-w-[490px]">
+        <section className="w-full min-w-0 max-w-[490px] justify-self-start">
           <h3 className="mb-5 text-[20px] leading-6 font-normal text-[#121212]">
             {t("paymentMethod")}
           </h3>
@@ -385,7 +385,7 @@ function StripePaymentElementForm({
                 {t("cardNumber")}
               </label>
               <div
-                className={`flex h-10 items-center rounded-md border px-3 transition-colors ${
+                className={`flex h-12 items-center rounded-md border px-3 transition-colors xl:h-10 ${
                   fieldErrors.number ? "border-[#D62E2E]" : "border-[#DCE5FF]"
                 }`}
               >
@@ -412,7 +412,7 @@ function StripePaymentElementForm({
                   {t("expiry")}
                 </label>
                 <div
-                  className={`flex h-10 items-center rounded-md border px-3 transition-colors ${
+                  className={`flex h-12 items-center rounded-md border px-3 transition-colors xl:h-10 ${
                     fieldErrors.expiry ? "border-[#D62E2E]" : "border-[#DCE5FF]"
                   }`}
                 >
@@ -438,7 +438,7 @@ function StripePaymentElementForm({
                   CVC
                 </label>
                 <div
-                  className={`flex h-10 items-center rounded-md border px-3 transition-colors ${
+                  className={`flex h-12 items-center rounded-md border px-3 transition-colors xl:h-10 ${
                     fieldErrors.cvc ? "border-[#D62E2E]" : "border-[#DCE5FF]"
                   }`}
                 >

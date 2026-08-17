@@ -145,7 +145,9 @@ export function GroupInfoModal({
               ) : null}
             </div>
             <div className="min-w-0 max-w-full">
-              <h2 className="truncate text-3xl font-bold text-[#121212]">{currentTitle}</h2>
+              <h2 className="whitespace-normal break-words text-3xl font-bold text-[#121212]">
+                {currentTitle}
+              </h2>
               <p className="mt-1 text-sm text-[#4B5563]">
                 {t("memberCount", { count: participants.length })}
               </p>

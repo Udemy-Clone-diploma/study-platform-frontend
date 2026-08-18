@@ -3,9 +3,11 @@
 import Image from "next/image";
 import { useRef } from "react";
 import { useTranslations } from "next-intl";
+import { Star } from "lucide-react";
 import { AccentButton } from "@/shared/ui/AccentButton";
 import type { UserData } from "@/entities/user";
 import { PROFILE_SOCIALS, type SocialLinks } from "../model/socialLinks";
+import { PILL_BTN_MOBILE_CLASS } from "./ProfileField";
 
 export { PROFILE_SOCIALS as SOCIAL_ICONS } from "../model/socialLinks";
 export type { SocialLinks } from "../model/socialLinks";
@@ -37,7 +39,7 @@ export function ProfileSidebar({ user, editing, avatarPreview, socialLinks, teac
             {/* Avatar */}
             <div
                 onClick={editing ? () => fileRef.current?.click() : undefined}
-                className="relative h-[104px] w-[104px] shrink-0 overflow-hidden rounded-full lg:h-[12.5vw] lg:w-[12.5vw]"
+                className="relative h-60 w-60 shrink-0 overflow-hidden rounded-full lg:h-[12.5vw] lg:w-[12.5vw]"
                 style={{
                     background: "var(--color-surface)",
                     cursor: editing ? "pointer" : "default",
@@ -93,12 +95,11 @@ export function ProfileSidebar({ user, editing, avatarPreview, socialLinks, teac
 
             {/* Teacher rating */}
             {teacherRating && parseFloat(teacherRating) > 0 && (
-                <div style={{
-                    display: "flex", alignItems: "center", gap: "0.417vw",
+                <div className="flex items-center gap-2 lg:gap-[0.417vw]" style={{
                     fontFamily: "var(--font-base)", fontWeight: 600,
-                    fontSize: "clamp(18px, 1.25vw, 24px)", color: "var(--color-text-primary)",
+                    fontSize: "clamp(20px, 1.25vw, 24px)", color: "var(--color-text-primary)",
                 }}>
-                    <span>⭐</span>
+                    <Star aria-hidden className="h-6 w-6 fill-(--color-gold) text-(--color-gold) lg:h-[1.25vw] lg:w-[1.25vw]" />
                     <span>{parseFloat(teacherRating).toFixed(1)}</span>
                 </div>
             )}
@@ -114,14 +115,14 @@ export function ProfileSidebar({ user, editing, avatarPreview, socialLinks, teac
                 </span>
 
                 {editing ? (
-                    <div className="flex w-full flex-col gap-3 lg:gap-[0.833vw]">
+                    <div className="flex w-[277px] max-w-full flex-col gap-4 lg:w-full lg:gap-[0.833vw]">
                         {PROFILE_SOCIALS.map(s => (
-                            <div key={s.key} className="flex items-center gap-2 rounded-full border px-4 py-2 lg:gap-[0.625vw] lg:px-[1.042vw] lg:py-[0.417vw]" style={{
+                            <div key={s.key} className="flex h-[46px] items-center gap-2.5 rounded-full border px-5 lg:h-auto lg:gap-[0.625vw] lg:px-[1.042vw] lg:py-[0.417vw]" style={{
                                 background: "var(--color-bg)",
                                 borderColor: "var(--color-text-primary)",
                             }}>
                                 <Image src={s.srcBlack} alt={s.label} width={32} height={32}
-                                    className="h-5 w-5 shrink-0 lg:h-[1.458vw] lg:w-[1.458vw]"
+                                    className="h-8 w-8 shrink-0 lg:h-[1.458vw] lg:w-[1.458vw]"
                                     style={{ display: "block" }}
                                     unoptimized />
                                 <input
@@ -131,7 +132,7 @@ export function ProfileSidebar({ user, editing, avatarPreview, socialLinks, teac
                                     className="min-w-0 flex-1 border-none bg-transparent outline-none"
                                     style={{
                                         fontFamily: "var(--font-base)", fontWeight: 400,
-                                        fontSize: "clamp(13px, 0.938vw, 18px)", color: "var(--color-text-secondary)",
+                                        fontSize: "clamp(16px, 0.938vw, 18px)", color: "var(--color-text-secondary)",
                                         letterSpacing: "-0.011em",
                                     }}
                                 />
@@ -139,14 +140,14 @@ export function ProfileSidebar({ user, editing, avatarPreview, socialLinks, teac
                         ))}
                     </div>
                 ) : (
-                    <div className="flex gap-6 lg:gap-[1.875vw]">
+                    <div className="flex gap-9 lg:gap-[1.875vw]">
                         {PROFILE_SOCIALS.map(s => {
                             const link = socialLinks[s.key];
                             const img = (
                                 <Image key={s.key}
                                     src={link ? s.srcBlack : s.srcGray}
                                     alt={s.label} width={40} height={40}
-                                    className="block h-8 w-8 lg:h-[2.08vw] lg:w-[2.08vw]"
+                                    className="block h-10 w-10 lg:h-[2.08vw] lg:w-[2.08vw]"
                                     unoptimized={!!link}
                                 />
                             );
@@ -163,11 +164,11 @@ export function ProfileSidebar({ user, editing, avatarPreview, socialLinks, teac
 
             {/* Edit / Cancel button */}
             {editing ? (
-                <AccentButton size="md" onClick={onCancel} style={{ marginTop: "0.417vw" }} className="!bg-[var(--color-text-secondary)] hover:!bg-[var(--color-cancel-hover)]">
+                <AccentButton size="md" onClick={onCancel} className={`mt-3 lg:mt-[0.417vw] ${PILL_BTN_MOBILE_CLASS} !bg-[var(--color-text-secondary)] hover:!bg-[var(--color-cancel-hover)]`}>
                     {t("cancelAndExit")}
                 </AccentButton>
             ) : (
-                <AccentButton size="md" onClick={onEdit} style={{ marginTop: "0.417vw" }}>
+                <AccentButton size="md" onClick={onEdit} className={`mt-3 lg:mt-[0.417vw] ${PILL_BTN_MOBILE_CLASS}`}>
                     {t("edit")}
                 </AccentButton>
             )}

@@ -8,7 +8,7 @@ import { useTranslations } from "next-intl";
 import type { UserRole } from "@/entities/user";
 import type { SidebarItem } from "@/features/app-shell";
 import { SidebarIcon } from "@/shared/ui/icons/SidebarIcons";
-import { getBottomNavSplit, OTHERS_HREF } from "./model/bottomNavConfig";
+import { BOTTOM_NAV_LABEL_IDS, getBottomNavSplit, OTHERS_HREF } from "./model/bottomNavConfig";
 
 type Props = {
   role: UserRole;
@@ -47,7 +47,7 @@ function NavSlot({
       href={href}
       onClick={onClick}
       aria-current={active ? "page" : undefined}
-      className="flex flex-1 flex-col items-center gap-1 text-(--color-blue-dark)"
+      className="flex min-w-0 flex-1 flex-col items-center gap-1 text-(--color-blue-dark)"
     >
       <span
         className="flex items-center justify-center rounded-[4px] p-1"
@@ -68,6 +68,7 @@ function NavSlot({
 
 export function BottomNav({ role, items }: Props) {
   const t = useTranslations("AppSidebar");
+  const tNav = useTranslations("BottomNav");
   const pathname = usePathname();
   const { primary, overflow } = getBottomNavSplit(role, items);
   const othersActive =
@@ -92,7 +93,7 @@ export function BottomNav({ role, items }: Props) {
           key={item.id}
           href={item.href}
           active={isItemActive(item, pathname)}
-          label={item.label}
+          label={BOTTOM_NAV_LABEL_IDS.has(item.id) ? tNav(item.id) : item.label}
           onClick={
             item.id === "chats"
               ? () => window.dispatchEvent(new Event("chat:list-requested"))

@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { updateMe, uploadAvatar, uploadTeacherSignature, updateTeacherProfile, updateStudentProfile, withAuth } from "@/features/auth";
 import { getMe } from "@/entities/user";
+import type { ApiError } from "@/shared/api/base";
 import type { UserData, UserLanguage, TeacherProfile, StudentProfile } from "@/entities/user";
 import {
   ProfileBgBlobs,
@@ -49,6 +50,7 @@ function ProfilePage() {
     const [loading, setLoading]         = useState(true);
     const [editing, setEditing]         = useState(false);
     const [saving, setSaving]           = useState(false);
+    const [saveError, setSaveError]     = useState("");
     const [firstName, setFirstName]     = useState("");
     const [lastName, setLastName]       = useState("");
     const [language, setLanguage]       = useState<UserLanguage>("en");
@@ -97,6 +99,7 @@ function ProfilePage() {
 
     function handleEdit() {
         if (!user) return;
+        setSaveError("");
         setFirstName(user.first_name);
         setLastName(user.last_name);
         setLanguage(user.language);
@@ -121,6 +124,7 @@ function ProfilePage() {
     }
 
     function handleCancel() {
+        setSaveError("");
         if (user) {
             setFirstName(user.first_name);
             setLastName(user.last_name);
@@ -167,6 +171,7 @@ function ProfilePage() {
 
     async function handleSave() {
         setSaving(true);
+        setSaveError("");
         const minimal = user?.role === "administrator" || user?.role === "moderator";
         try {
             let updated = await updateMe({
@@ -215,6 +220,13 @@ function ProfilePage() {
             if (updated.language !== user?.language) {
                 router.replace(pathname, { locale: updated.language });
             }
+        } catch (err) {
+            // Without this the rejection escapes as an unhandledRejection and the
+            // user is left in edit mode with no indication the save failed.
+            // Timeouts and network drops carry no status and a message like
+            // "timeout of 10000ms exceeded", which is not worth showing a user.
+            const apiError = err as ApiError;
+            setSaveError(apiError?.status ? apiError.message || t("saveFailed") : t("saveFailed"));
         } finally {
             setSaving(false);
         }
@@ -269,12 +281,13 @@ function ProfilePage() {
 
                 <div className="hidden lg:block" style={GRAD_LINE} />
 
-                <div className="w-full px-4 pt-4 pb-4 lg:flex-1 lg:px-0 lg:pt-[4.17vw] lg:pr-[9.375vw] lg:pb-[6.25vw] lg:pl-[2.08vw]">
+                <div className="w-full px-4 pt-4 pb-[54px] lg:flex-1 lg:px-0 lg:pt-[4.17vw] lg:pr-[9.375vw] lg:pb-[6.25vw] lg:pl-[2.08vw]">
                     <ProfileMainContent
                         editing={editing} saving={saving}
                         completionPercent={calcCompletion(user, socialLinks, completionExtras, !isMinimal)}
                         showSubtitle={!isMinimal}
                         showSaveButton={!studentProfile}
+                        saveError={saveError}
                         onSave={handleSave}
                     >
                         {teacherProfile !== null && (

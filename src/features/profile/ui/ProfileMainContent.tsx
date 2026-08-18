@@ -1,5 +1,6 @@
 import { useTranslations } from "next-intl";
 import { AccentButton } from "@/shared/ui/AccentButton";
+import { PILL_BTN_MOBILE_CLASS } from "./ProfileField";
 
 type Props = {
     editing: boolean;
@@ -7,6 +8,8 @@ type Props = {
     completionPercent: number;
     showSubtitle?: boolean;
     showSaveButton?: boolean;
+    /** Message from a failed save, shown above the button. */
+    saveError?: string;
     onSave: () => void;
     children?: React.ReactNode;
 };
@@ -16,6 +19,7 @@ export function ProfileMainContent({
     editing, saving, completionPercent,
     showSubtitle = true,
     showSaveButton = true,
+    saveError,
     onSave, children,
 }: Props) {
     const t = useTranslations("Profile");
@@ -24,7 +28,7 @@ export function ProfileMainContent({
 
             {/* Heading */}
             <div>
-                <h1 style={{
+                <h1 className="text-center lg:text-left" style={{
                     fontFamily: "var(--font-base)", fontWeight: 700,
                     fontSize: "clamp(32px, 2.083vw, 40px)", color: "var(--color-text-primary)",
                     lineHeight: 1.25, margin: 0,
@@ -32,8 +36,8 @@ export function ProfileMainContent({
                     {t("title")}
                 </h1>
                 {showSubtitle && (
-                    <p style={{
-                        marginTop: "0.417vw", marginBottom: 0,
+                    <p className="mt-2 lg:mt-[0.417vw]" style={{
+                        marginBottom: 0,
                         fontFamily: "var(--font-base)", fontSize: "clamp(16px, 1.04vw, 20px)", fontWeight: 500,
                         color: "var(--color-text-primary)", letterSpacing: "-0.011em",
                     }}>
@@ -44,14 +48,14 @@ export function ProfileMainContent({
 
             {/* Progress bar */}
             <div>
-                <div style={{
-                    display: "flex", justifyContent: "space-between", alignItems: "baseline",
-                    marginBottom: "0.417vw", letterSpacing: "-0.011em",
-                }}>
-                    <span style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(18px, 1.04vw, 20px)", color: "var(--color-text-primary)" }}>
+                <div
+                    className="mb-5 flex items-baseline justify-between lg:mb-[0.417vw]"
+                    style={{ letterSpacing: "-0.011em" }}
+                >
+                    <span style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "20px", color: "var(--color-text-primary)" }}>
                         {t("completion")}
                     </span>
-                    <span style={{ fontFamily: "var(--font-accent)", fontWeight: 700, fontSize: "clamp(18px, 1.25vw, 24px)", color: "var(--color-blue)" }}>
+                    <span style={{ fontFamily: "var(--font-accent)", fontWeight: 600, fontSize: "clamp(20px, 1.25vw, 24px)", color: "var(--color-blue)" }}>
                         {completionPercent}%
                     </span>
                 </div>
@@ -71,8 +75,16 @@ export function ProfileMainContent({
 
             {/* Save button */}
             {editing && showSaveButton && (
-                <div>
-                    <AccentButton size="md" onClick={onSave} disabled={saving}>
+                <div className="flex flex-col items-center gap-3 lg:items-start">
+                    {saveError && (
+                        <p role="alert" className="m-0 text-center text-(--color-danger) lg:text-left" style={{
+                            fontFamily: "var(--font-base)", fontWeight: 600,
+                            fontSize: "clamp(16px, 1.04vw, 20px)", letterSpacing: "-0.011em",
+                        }}>
+                            {saveError}
+                        </p>
+                    )}
+                    <AccentButton size="md" onClick={onSave} disabled={saving} className={PILL_BTN_MOBILE_CLASS}>
                         {saving ? t("saving") : t("save")}
                     </AccentButton>
                 </div>

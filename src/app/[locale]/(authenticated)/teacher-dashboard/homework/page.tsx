@@ -376,9 +376,9 @@ function TeacherHomeworkCard({
       type="button"
       disabled={submissionsCount === 0}
       onClick={onOpenReview}
-      className="group grid h-20 w-full max-w-[722px] grid-cols-[60px_minmax(0,1fr)_178px] items-center gap-2.5 rounded-lg bg-white px-3 py-2.5 text-left font-(family-name:--font-base) shadow-[0_0_4px_rgba(0,0,0,0.16)] transition hover:shadow-[0_3px_12px_rgba(0,0,0,0.12)] focus:outline-none focus:ring-2 focus:ring-[#9DB1FA]"
+      className="group grid w-full max-w-[722px] grid-cols-[44px_minmax(0,1fr)] items-center gap-x-2 gap-y-2 rounded-lg bg-white px-3 py-3 text-left font-(family-name:--font-base) shadow-[0_0_4px_rgba(0,0,0,0.16)] transition hover:shadow-[0_3px_12px_rgba(0,0,0,0.12)] focus:outline-none focus:ring-2 focus:ring-[#9DB1FA] lg:h-20 lg:grid-cols-[60px_minmax(0,1fr)_178px] lg:gap-2.5 lg:py-2.5"
     >
-      <span className="flex h-[60px] w-[60px] items-center justify-center overflow-hidden rounded-md">
+      <span className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-md lg:h-[60px] lg:w-[60px]">
         <Image
           src={iconSrc}
           alt=""
@@ -386,19 +386,20 @@ function TeacherHomeworkCard({
           height={60}
           unoptimized={!!assignment.course_image}
           aria-hidden="true"
-          className="h-[60px] w-[60px] object-contain"
+          className="h-full w-full object-contain"
         />
       </span>
       <span className="min-w-0">
-        <span className="block h-5 max-w-[244px] truncate text-[16px] leading-5 font-normal text-[#5E5E5E]">
+        <span className="block truncate text-[12px] leading-4 font-normal text-[#5E5E5E] lg:h-5 lg:max-w-[244px] lg:text-[16px] lg:leading-5">
           {assignment.course_title || t("courseFallback")} &bull; {kindLabel}
         </span>
-        <span className="mt-[7px] block max-w-[393px] truncate text-[20px] leading-none font-medium text-[#121212]">
+        <span className="mt-1 block truncate text-[16px] leading-tight font-medium text-[#121212] lg:mt-[7px] lg:max-w-[393px] lg:text-[20px] lg:leading-none">
           {assignment.title}
         </span>
       </span>
-      <span className="grid gap-1 text-[11px] leading-none font-normal text-[#5E5E5E]">
-        <span className="truncate">
+      {/* Below `lg` this metadata block has no column of its own: it wraps onto a full-width row under the title. */}
+      <span className="col-span-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] leading-none font-normal text-[#5E5E5E] lg:col-span-1 lg:grid lg:gap-1">
+        <span className="min-w-0 max-w-full truncate">
           {t("toLabel")} <span className="text-[#121212]">{recipientsLabel(assignment, t)}</span>
         </span>
         <span>
@@ -1556,7 +1557,7 @@ export default function TeacherHomeworkPage() {
           <h1 className="sr-only">{tSidebar("homework")}</h1>
           <nav
             aria-label={t("homeworkQueuesAriaLabel")}
-            className="flex flex-wrap items-center gap-[50px]"
+            className="-mx-4 flex items-center gap-6 overflow-x-auto px-4 [-ms-overflow-style:none] [scrollbar-width:none] lg:mx-0 lg:flex-wrap lg:gap-[50px] lg:overflow-visible lg:px-0 [&::-webkit-scrollbar]:hidden"
           >
             {queueTabs.map((tab) => {
               const active = queueFilter === tab.value;
@@ -1566,7 +1567,7 @@ export default function TeacherHomeworkPage() {
                   type="button"
                   aria-pressed={active}
                   onClick={() => setQueueFilter(tab.value)}
-                  className={`inline-flex h-9 items-center font-(family-name:--font-base) text-[24px] leading-none font-semibold text-[#121212] transition ${
+                  className={`inline-flex h-9 shrink-0 items-center font-(family-name:--font-base) text-[20px] leading-none font-semibold whitespace-nowrap text-[#121212] transition lg:text-[24px] ${
                     active ? "" : "hover:text-[#003AFF]"
                   }`}
                 >
@@ -1579,7 +1580,7 @@ export default function TeacherHomeworkPage() {
             type="button"
             onClick={openModal}
             disabled={loadingCourses || courses.length === 0}
-            className="inline-flex h-[52px] w-fit min-w-[240px] shrink-0 items-center justify-center gap-2.5 rounded-[28px] bg-[linear-gradient(90deg,#A7BAFA_0%,#FCC4C3_55%,#FFF4DA_100%)] px-7 py-2.5 font-(family-name:--font-accent) text-[20px] leading-[30px] font-medium text-[#121212] uppercase transition hover:brightness-[0.98] focus:outline-none focus:ring-2 focus:ring-[#9DB1FA] disabled:cursor-not-allowed disabled:grayscale disabled:opacity-60"
+            className="inline-flex h-[46px] w-full min-w-[160px] shrink-0 items-center justify-center gap-2.5 rounded-[28px] bg-[linear-gradient(90deg,#A7BAFA_0%,#FCC4C3_55%,#FFF4DA_100%)] px-5 py-2 font-(family-name:--font-accent) text-[16px] leading-[24px] font-medium text-[#121212] uppercase transition hover:brightness-[0.98] focus:outline-none focus:ring-2 focus:ring-[#9DB1FA] disabled:cursor-not-allowed disabled:grayscale disabled:opacity-60 sm:w-fit lg:h-[52px] lg:min-w-[240px] lg:px-7 lg:py-2.5 lg:text-[20px] lg:leading-[30px]"
           >
             <span className="whitespace-nowrap">{t("addHomework")}</span>
             <Image
@@ -1588,13 +1589,14 @@ export default function TeacherHomeworkPage() {
               width={21}
               height={21}
               aria-hidden="true"
-              className="h-[21px] w-[21px] shrink-0"
+              className="h-[18px] w-[18px] shrink-0 lg:h-[21px] lg:w-[21px]"
             />
           </button>
         </div>
 
-        <div className="mt-3 flex w-[min(100%,1020px)] items-center gap-2">
+        <div className="-mx-4 mt-3 flex w-[calc(100%+32px)] items-center gap-2 overflow-x-auto px-4 [-ms-overflow-style:none] [scrollbar-width:none] lg:mx-0 lg:w-[min(100%,1020px)] lg:overflow-visible lg:px-0 [&::-webkit-scrollbar]:hidden">
           <PillSelect
+            className="shrink-0"
             value={selectedCourseSlug}
             options={courses.map((course) => ({ value: course.slug, label: course.title }))}
             placeholder={t("subjectPlaceholder")}
@@ -1602,6 +1604,7 @@ export default function TeacherHomeworkPage() {
             onChange={setSelectedCourseSlug}
           />
           <PillSelect
+            className="shrink-0"
             value={statusFilter}
             options={[
               { value: "all", label: t("statusFilterPlaceholder") },
@@ -1614,10 +1617,10 @@ export default function TeacherHomeworkPage() {
           />
           <span className="hidden">{t("groupComingSoon")}</span>
           <span className="hidden">{t("studentComingSoon")}</span>
-          <span className="inline-flex h-10 items-center rounded-full border border-[#ECECEC] bg-white px-5 font-(family-name:--font-base) text-[20px] leading-none font-normal text-[#121212] shadow-[0_0_4px_rgba(0,0,0,0.06)]">
+          <span className="inline-flex h-10 shrink-0 items-center rounded-full border border-[#ECECEC] bg-white px-4 font-(family-name:--font-base) text-[16px] leading-none font-normal whitespace-nowrap text-[#121212] shadow-[0_0_4px_rgba(0,0,0,0.06)] lg:px-5 lg:text-[20px]">
             {t("totalAssignments")}
           </span>
-          <span className="inline-flex h-10 min-w-10 items-center justify-center rounded-full border border-[#ECECEC] bg-white px-3 font-(family-name:--font-base) text-[20px] leading-none font-normal text-[#121212] shadow-[0_0_4px_rgba(0,0,0,0.06)]">
+          <span className="inline-flex h-10 min-w-10 shrink-0 items-center justify-center rounded-full border border-[#ECECEC] bg-white px-3 font-(family-name:--font-base) text-[16px] leading-none font-normal text-[#121212] shadow-[0_0_4px_rgba(0,0,0,0.06)] lg:text-[20px]">
             {visibleAssignments.length}
           </span>
         </div>
@@ -1648,7 +1651,7 @@ export default function TeacherHomeworkPage() {
             <div className="space-y-11">
               {assignmentsByMonth.map(([month, items]) => (
                 <section key={month}>
-                  <h2 className="mb-6 text-[28px] leading-none font-normal text-[#121212]">
+                  <h2 className="mb-4 text-[16px] leading-none font-normal text-[#121212] capitalize lg:mb-6 lg:text-[28px]">
                     {month}
                   </h2>
                   <div className="grid gap-x-5 gap-y-6 2xl:grid-cols-[minmax(0,722px)_minmax(0,722px)]">

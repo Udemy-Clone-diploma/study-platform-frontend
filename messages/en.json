@@ -1767,6 +1767,7 @@
     "completion": "Profile completion",
     "save": "Save",
     "saving": "Saving...",
+    "saveFailed": "Could not save your profile. Please check your connection and try again.",
     "loading": "Loading...",
     "email": "Email"
   },
@@ -2879,6 +2880,14 @@
     "navigationAriaLabel": "Application navigation",
     "menuAriaLabel": "Menu",
     "primaryNavAriaLabel": "Primary"
+  },
+  "BottomNav": {
+    "homework": "Homework",
+    "courses": "Courses",
+    "dashboard": "Dashboard",
+    "chats": "Chats",
+    "reports": "Reports",
+    "students": "Students"
   },
   "Header": {
     "openMenu": "Open menu",

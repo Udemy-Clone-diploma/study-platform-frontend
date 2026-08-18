@@ -1767,6 +1767,7 @@
     "completion": "Заповненість профілю",
     "save": "Зберегти",
     "saving": "Збереження...",
+    "saveFailed": "Не вдалося зберегти профіль. Перевірте з'єднання та спробуйте ще раз.",
     "loading": "Завантаження...",
     "email": "Email"
   },
@@ -2879,6 +2880,14 @@
     "navigationAriaLabel": "Навігація застосунку",
     "menuAriaLabel": "Меню",
     "primaryNavAriaLabel": "Основна навігація"
+  },
+  "BottomNav": {
+    "homework": "Завдання",
+    "courses": "Курси",
+    "dashboard": "Дашборд",
+    "chats": "Чати",
+    "reports": "Скарги",
+    "students": "Студенти"
   },
   "Header": {
     "openMenu": "Відкрити меню",

@@ -5,6 +5,17 @@ import { useTranslations } from "next-intl";
 import type { UserLanguage } from "@/entities/user";
 import { LOCALE_OPTIONS } from "@/shared/lib/useLocaleSwitcher";
 
+/** Label-to-value gap. Floors at the design's 4px so it doesn't collapse on phones. */
+export const FIELD_GAP = "max(4px, 0.208vw)";
+
+/**
+ * Below `lg` the pill buttons follow the mobile design (46px tall, 160px wide,
+ * 16px label) instead of AccentButton's desktop clamps. `!` is required because
+ * AccentButton applies its sizes through the `style` prop.
+ */
+export const PILL_BTN_MOBILE_CLASS =
+    "max-lg:!h-[46px] max-lg:!min-w-[160px] max-lg:!text-base";
+
 export const LABEL_STYLE: React.CSSProperties = {
     fontFamily: "var(--font-base)", fontWeight: 600,
     fontSize: "clamp(20px, 1.25vw, 24px)", color: "var(--color-text-secondary)",
@@ -158,7 +169,7 @@ export type ProfileFieldProps = {
 
 export function ProfileField({ label, value, editing, inputValue, onInputChange }: ProfileFieldProps) {
     return (
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.208vw" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: FIELD_GAP }}>
             <span style={LABEL_STYLE}>{label}</span>
             {editing && onInputChange ? (
                 <input style={INPUT_STYLE} value={inputValue ?? value}
@@ -179,7 +190,7 @@ export type ProfileLanguageFieldProps = {
 export function ProfileLanguageField({ inputValue, onInputChange }: ProfileLanguageFieldProps) {
     const t = useTranslations("ProfileFields");
     return (
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.208vw" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: FIELD_GAP }}>
             <span style={LABEL_STYLE}>{t("websiteLanguage")}</span>
             <ProfileCustomSelect
                 options={LANG_OPTIONS}
@@ -201,7 +212,7 @@ export type ProfileInstructionLanguageFieldProps = {
 export function ProfileInstructionLanguageField({ editing, value, inputValue, onInputChange }: ProfileInstructionLanguageFieldProps) {
     const t = useTranslations("ProfileFields");
     return (
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.208vw" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: FIELD_GAP }}>
             <span style={LABEL_STYLE}>{t("instructionLanguages")}</span>
             {editing ? (
                 <ProfileCustomSelect

@@ -5,11 +5,17 @@ const BLOB: React.CSSProperties = {
     pointerEvents: "none", zIndex: -1,
 };
 
+/**
+ * Height is a share of the page, not a fixed pixel band: the tops are spaced by
+ * 33% each, so anything shorter than that leaves uncoloured gaps between the
+ * bands on a long page (the profile in edit mode is ~3000px tall). 40% keeps a
+ * 7% overlap at every seam. The px floor covers very short pages.
+ */
 const MOBILE_BAND: React.CSSProperties = {
     position: "absolute",
     left: 0,
     width: "100%",
-    height: "clamp(320px, 115vw, 480px)",
+    height: "max(clamp(320px, 115vw, 480px), 40%)",
     filter: "blur(clamp(55px, 20vw, 100px))",
     opacity: 0.5,
     pointerEvents: "none", zIndex: -1,
@@ -21,8 +27,8 @@ export function ProfileBgBlobs() {
             {/* Mobile: full-width bands stacked one under another down the whole page */}
             <div className="block lg:hidden">
                 <div style={{ ...MOBILE_BAND, top: "0%",  background: "var(--color-brand-cream)" }} />
-                <div style={{ ...MOBILE_BAND, top: "38%", background: "var(--color-brand-pink)" }} />
-                <div style={{ ...MOBILE_BAND, top: "76%", background: "var(--color-brand-lavender)" }} />
+                <div style={{ ...MOBILE_BAND, top: "33%", background: "var(--color-brand-pink)" }} />
+                <div style={{ ...MOBILE_BAND, top: "66%", background: "var(--color-brand-lavender)" }} />
             </div>
 
             {/* Desktop: fixed corner blobs */}

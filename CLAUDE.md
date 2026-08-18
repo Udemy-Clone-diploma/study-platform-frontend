@@ -43,13 +43,16 @@ Per `AGENTS.md`, when in doubt about any Next API, read the relevant page under 
 
 ```
 src/
-  app/                   # Next 16 app router; route groups: (authentication), (authenticated), (public), (errors)
+  app/
+    [locale]/            # every route lives under a locale segment; route groups: (authentication), (authenticated), (public), (errors)
     globals.css          # Tailwind v4 + tokens: @theme (colors/gradients/shadows), :root (font stacks), @theme inline (font bridges)
   entities/              # domain layer: course/, user/ (model/types, api/, lib/) — exported via index.ts
   features/              # behavior: auth/, courses/, users/, app-shell/ (each slice exports a public barrel)
   widgets/               # composed UI: header/, footer/, home/, app-shell/
   shared/                # framework-agnostic: api/, lib/, ui/
-  proxy.ts               # Next 16 edge proxy (auth + role gating)
+  i18n/                  # next-intl: routing.ts (locales), request.ts (message loading), navigation.ts (Link/useRouter)
+  proxy.ts               # Next 16 edge proxy (next-intl routing + auth + role gating)
+messages/                # en/uk/fr/es/de.json message catalogs, at the repo root
 ```
 
 FSD layer order: `shared → entities → features → widgets → app`. Imports go upward only; siblings within a layer don't import each other. Domain types/helpers belong in `entities/<thing>/`, not under `features/<x>/model/types/`. Cross-slice consumers should import from a slice's `index.ts` barrel (e.g. `@/features/courses`), not deep into its files.
@@ -72,10 +75,29 @@ Three cookies define the session:
 
 ### Two-layer route protection
 
-1. **`src/proxy.ts`** runs at the edge. It checks `access_token` and `user_role` cookies against `PROTECTED_ROUTES` (`/admin`, `/teacher-dashboard`, `/student-dashboard`, `/profile`) and redirects unauthenticated users to a per-route `loginRedirect` or, for wrong-role users, to the role's `ROLE_HOME`. Public paths are listed explicitly (`/`, `/login`, `/register`, `/admin/login`, anything under `/courses/`, anything under `/register/`).
+1. **`src/proxy.ts`** runs at the edge. It runs next-intl's middleware first, then strips the locale prefix via `splitLocale()` and checks `access_token` and `user_role` cookies against `PROTECTED_ROUTES` (`/admin`, `/moderator-dashboard`, `/teacher-dashboard`, `/student-dashboard`, `/profile`, `/learn`), matched against the **locale-stripped** path. Unauthenticated users are redirected to a per-route `loginRedirect`, wrong-role users to the role's `ROLE_HOME`; both are re-prefixed with the current locale. Public paths are listed explicitly (`/`, `/login`, `/register`, `/admin/login`, `/verify`, anything under `/courses/`, anything under `/register/`).
 2. **`src/features/auth/ui/withAuth.tsx`** is a client HOC that re-checks `user_role` after hydration and pushes to `/login` or `/403`. Use this on pages that need a client-side guard in addition to the proxy.
 
+Neither layer is a security boundary: `user_role` is not httpOnly (client axios reads it), so it is user-editable. They are routing UX. The real boundary is the backend, which rejects any request whose JWT lacks the permission.
+
+The proxy has two deliberate soft-pass branches: no `access_token` but a `refresh_token` present, and an `access_token` with no `user_role` cookie plus a `refresh_token`. Both call `next()` **without a role check** so an expired 15-minute token does not bounce the user to login. The second one reaches the page with no role verified at all, which is exactly what `withAuth` is for. Put `withAuth` on any page where that matters.
+
 If you add a new authenticated route, update **both** `PROTECTED_ROUTES` in `proxy.ts` and any `withAuth` wrapping at the page level. `ROLE_HOME` is currently duplicated in three places: `proxy.ts`, `LoginForm.tsx`, `UserDropdown.tsx`. Keep them in sync when roles change (and ideally consolidate into `entities/user/` as a single source of truth).
+
+### Internationalization (next-intl)
+
+Five locales: `en` (default), `uk`, `fr`, `es`, `de`, declared in `src/i18n/routing.ts` with `localePrefix: "always"`. Every URL carries a prefix (`/en/admin`, `/uk/catalog`); there are no unprefixed routes, and `src/proxy.ts` redirects to add one.
+
+- **Copy lives in `messages/<locale>.json`** at the repo root, grouped into namespaces. Read it with `useTranslations("Namespace")` in client components or `getTranslations("Namespace")` in Server Components (`getTranslations({ locale, namespace })` in `generateMetadata`, which is why grepping for the string form alone under-reports usage).
+- **There is no fallback chain.** `src/i18n/request.ts` loads exactly one locale file per request. A key in `en.json` that is missing from `uk.json` does not fall back to English: next-intl logs the error and renders the literal key path (`Namespace.key`) in the UI. Adding a key means adding it to **all five** files. Keep them at exact parity.
+- **Navigate through `@/i18n/navigation`**, never `next/link` or `next/navigation`. Its `Link` and `useRouter` carry the locale prefix; the plain Next equivalents drop it and bounce the user to the default locale.
+- **`src/app/[locale]/layout.tsx` ships the whole catalog to the client** via `getMessages()` into `NextIntlClientProvider`, so an unused namespace is real payload on every page. Delete namespaces when their last consumer goes.
+
+### Copy language
+
+- **Admin surfaces are English-only and must not use next-intl.** That covers `/admin/*`, `src/features/*/ui/admin/`, `widgets/dashboard/AdminDashboard.tsx`, and the admin finance panel at `/admin/payment`. Write plain English string literals. It is an internal staff tool; translating it five ways is wasted effort.
+- **Everything else is localized**, including moderator surfaces (`ModeratorCoursesTable` and friends) and the user-facing payment pages (teacher payments, student payments, checkout). Only `/admin/payment` is exempt.
+- The trap when a component straddles both: a `t(...)` label silently overrides a label passed in from a shared helper. `deriveCourseState` in `entities/course/model/course-state.ts` supplies English labels, and localized call sites deliberately override them with `t(...)` while keeping the derived tone, colour and tooltip.
 
 ### API layer
 
@@ -113,7 +135,7 @@ Rules (apply in order of strictness):
 - **Reuse before creating.** Place reusable primitives in `src/shared/ui/`, feature-scoped UI in `src/features/<slice>/ui/`. Before creating a new component, grep for an existing one. Prefer composition over large monoliths.
 - **Component JSDoc.** Each exported component in `src/shared/ui/` and `src/features/*/ui/` gets one-line JSDoc above it.
 - **Shared primitives that already exist:** `Input` (`src/shared/ui/Input.tsx`) is the generic primitive; auth screens use `AuthField` (`src/features/auth/ui/AuthField.tsx`) which adds the password-reveal toggle. `AccentButton` is the solid-black pill (auth, header, hero CTAs); `GradientButton` is the brand-gradient pill (home/marketing). Do not swap them, they carry different semantic weight.
-- **Copy language.** Auth screens are English. The 403 page and a few legacy fallbacks are Ukrainian. Match the surrounding language when editing.
+- **Copy language.** Never hardcode user-facing copy outside admin surfaces; pull it from `messages/` via next-intl. See "Copy language" above for the admin exemption.
 - **Accessibility.** WCAG: semantic elements, focus rings, `aria-*`, keyboard support, sufficient contrast.
 - For Figma-driven tasks, follow `FIGMA.md`.
 

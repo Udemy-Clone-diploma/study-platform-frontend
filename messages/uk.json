@@ -1691,15 +1691,6 @@
     "deleteConfirmLabel": "Видалити",
     "genericError": "Щось пішло не так."
   },
-  "CourseStatusBadge": {
-    "draft": "Чернетка",
-    "review": "Модерація",
-    "needs_revision": "Потребує доопрацювання",
-    "rejected": "Відхилено",
-    "published": "Опубліковано",
-    "hidden": "Приховано",
-    "archived": "Архівовано"
-  },
   "CourseStatusTabs": {
     "ariaLabel": "Фільтр курсів за статусом",
     "published": "Опубліковані",
@@ -1708,9 +1699,6 @@
     "hidden": "Приховані",
     "rejected": "Відхилені",
     "archived": "Архівні"
-  },
-  "AdminDashboardPlaceholder": {
-    "comingSoon": "Панель адміністратора — незабаром"
   },
   "CoursesTable": {
     "columnCourse": "Курс",

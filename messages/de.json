@@ -1755,6 +1755,7 @@
     "completion": "Profil vollständig",
     "save": "Speichern",
     "saving": "Wird gespeichert...",
+    "saveFailed": "Profil konnte nicht gespeichert werden. Bitte überprüfe deine Verbindung und versuche es erneut.",
     "loading": "Wird geladen...",
     "email": "E-Mail"
   },
@@ -2867,6 +2868,14 @@
     "navigationAriaLabel": "Anwendungsnavigation",
     "menuAriaLabel": "Menü",
     "primaryNavAriaLabel": "Hauptnavigation"
+  },
+  "BottomNav": {
+    "homework": "Aufgaben",
+    "courses": "Kurse",
+    "dashboard": "Dashboard",
+    "chats": "Chats",
+    "reports": "Meldungen",
+    "students": "Studenten"
   },
   "Header": {
     "openMenu": "Menü öffnen",

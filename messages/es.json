@@ -1755,6 +1755,7 @@
     "completion": "Perfil completado",
     "save": "Guardar",
     "saving": "Guardando...",
+    "saveFailed": "No se pudo guardar tu perfil. Comprueba tu conexión e inténtalo de nuevo.",
     "loading": "Cargando...",
     "email": "Correo electrónico"
   },
@@ -2867,6 +2868,14 @@
     "navigationAriaLabel": "Navegación de la aplicación",
     "menuAriaLabel": "Menú",
     "primaryNavAriaLabel": "Navegación principal"
+  },
+  "BottomNav": {
+    "homework": "Tareas",
+    "courses": "Cursos",
+    "dashboard": "Panel",
+    "chats": "Chats",
+    "reports": "Denuncias",
+    "students": "Alumnos"
   },
   "Header": {
     "openMenu": "Abrir menú",

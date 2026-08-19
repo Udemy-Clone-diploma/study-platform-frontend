@@ -359,12 +359,14 @@ export default function TeacherCoursesPage() {
               onClick={() => handleTabChange(tab)}
               aria-current={activeTab === tab ? "page" : undefined}
               className={[
-                "shrink-0 whitespace-nowrap font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-blue)",
-                activeTab === tab
-                  ? "text-(--color-text-primary) underline underline-offset-4"
-                  : "text-(--color-text-primary)",
+                "shrink-0 cursor-pointer whitespace-nowrap font-semibold text-(--color-text-primary) transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-blue)",
+                activeTab === tab ? "underline underline-offset-4" : "hover:opacity-70",
               ].join(" ")}
-              style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(20px, 1.39vw, 24px)" }}
+              style={{
+                fontFamily: "var(--font-base)",
+                fontWeight: 600,
+                fontSize: "clamp(20px, 1.39vw, 24px)",
+              }}
             >
               {t(TAB_LABEL_KEYS[tab])}
             </button>

@@ -1755,6 +1755,7 @@
     "completion": "Profil complété",
     "save": "Enregistrer",
     "saving": "Enregistrement...",
+    "saveFailed": "Impossible d'enregistrer votre profil. Vérifiez votre connexion et réessayez.",
     "loading": "Chargement...",
     "email": "E-mail"
   },
@@ -2867,6 +2868,14 @@
     "navigationAriaLabel": "Navigation de l'application",
     "menuAriaLabel": "Menu",
     "primaryNavAriaLabel": "Navigation principale"
+  },
+  "BottomNav": {
+    "homework": "Devoirs",
+    "courses": "Cours",
+    "dashboard": "Tableau",
+    "chats": "Messages",
+    "reports": "Plaintes",
+    "students": "Étudiants"
   },
   "Header": {
     "openMenu": "Ouvrir le menu",

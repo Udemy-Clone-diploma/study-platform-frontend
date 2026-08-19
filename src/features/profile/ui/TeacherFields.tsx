@@ -2,10 +2,10 @@
 
 import { useRef } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { ProfileField, ProfileLanguageField, ProfileInstructionLanguageField, LABEL_STYLE, VALUE_STYLE, TEXTAREA_STYLE, formatDate } from "./ProfileField";
+import { ProfileField, ProfileLanguageField, ProfileInstructionLanguageField, LABEL_STYLE, VALUE_STYLE, TEXTAREA_STYLE, FIELD_GAP, formatDate } from "./ProfileField";
 import type { TeacherProfile, UserLanguage } from "@/entities/user";
 
-const GRID_3_CLASS = "grid grid-cols-1 gap-y-5 gap-x-6 lg:grid-cols-3 lg:gap-[2.083vw_8.75vw]";
+const GRID_3_CLASS = "grid grid-cols-1 gap-y-6 gap-x-6 lg:grid-cols-3 lg:gap-[2.083vw_8.75vw]";
 
 type Props = {
     editing: boolean;
@@ -108,7 +108,8 @@ export function TeacherFields({
 
                 {/* Password cell */}
                 <div className="order-9 flex flex-col gap-1 lg:order-none lg:gap-[0.208vw]">
-                    <span style={{ ...LABEL_STYLE, visibility: editing ? "hidden" : "visible" }}>{t("password")}</span>
+                    {/* While editing the label is only a spacer keeping the desktop grid row aligned; on mobile it would just be dead space. */}
+                    <span className={editing ? "max-lg:hidden" : undefined} style={{ ...LABEL_STYLE, visibility: editing ? "hidden" : "visible" }}>{t("password")}</span>
                     {editing ? (
                         <button
                             type="button"
@@ -144,7 +145,7 @@ export function TeacherFields({
             </div>
 
             {/* Bio — full width below the grid */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.208vw" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: FIELD_GAP }}>
                 <span style={LABEL_STYLE}>{t("bio")}</span>
                 {editing ? (
                     <textarea
@@ -159,7 +160,7 @@ export function TeacherFields({
             </div>
 
             {/* Signature — drawn onto generated course certificates */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.208vw" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: FIELD_GAP }}>
                 <span style={LABEL_STYLE}>{t("signature")}</span>
                 <p style={{ ...VALUE_STYLE, fontWeight: 400, color: "var(--color-text-secondary)", margin: 0 }}>
                     {t("signatureRequired")}

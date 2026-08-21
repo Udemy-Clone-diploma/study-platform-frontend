@@ -1,6 +1,11 @@
 import type { PricingPlan } from "@/entities/course";
 
-export type TeacherOrderStatus = "paid" | "unpaid" | "overdue";
+export type TeacherOrderStatus = 
+|"paid" 
+| "unpaid" 
+| "overdue"   
+| "refunded"
+| "partially_refunded";
 
 export type TeacherOrderRow = {
   order_id: number;

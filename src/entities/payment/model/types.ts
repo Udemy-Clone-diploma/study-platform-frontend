@@ -81,7 +81,7 @@ export type Payment = {
   refunded_amount: string;
   currency: PricingPlan["currency"];
   status: PaymentStatus;
-  payment_method: "stripe" | "manual";
+  payment_method: "stripe" | "liqpay" | "manual";
   description: string;
   checkout_url: string;
   stripe_payment_intent_id: string;

@@ -35,6 +35,7 @@ import { PaymentDetailPanel } from "./PaymentDetailPanel";
 import { RevenueTrendCard } from "./RevenueTrendCard";
 import { RevenueCategoryCard } from "./RevenueCategoryCard";
 import { CurrencyTabs } from "./CurrencyTabs";
+import { StaffPayoutPanel } from "./StaffPayoutPanel";
 
 const PAGE_SIZE = 10;
 const DEFAULT_ORDERING = "-created_at";
@@ -48,7 +49,7 @@ const STATUS_VALUES: PaymentStatus[] = [
   "canceled",
   "refunded",
 ];
-const METHOD_VALUES: PaymentMethod[] = ["stripe", "manual"];
+const METHOD_VALUES: PaymentMethod[] = ["stripe", "manual", "liqpay"];
 
 function saveBlob(blob: Blob, filename: string) {
   const url = window.URL.createObjectURL(blob);
@@ -351,7 +352,14 @@ export function FinanceAdminView() {
             loading={summaryLoading && !summaryError}
           />
         </div>
-
+        <div
+          style={{
+            marginBottom:
+              "clamp(16px, 1.67vw, 24px)",
+          }}
+        >
+          <StaffPayoutPanel />
+        </div>
         <div
           className="flex flex-wrap items-stretch"
           style={{ gap: "clamp(12px, 1.11vw, 16px)", marginBottom: "clamp(16px, 1.67vw, 24px)" }}

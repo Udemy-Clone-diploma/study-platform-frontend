@@ -29,8 +29,13 @@ export function paymentCourses(payment: AdminPayment, t: Translator): string {
   return `${titles[0]} ${t("moreCourses", { count: titles.length - 1 })}`;
 }
 
-export function methodLabel(method: AdminPayment["payment_method"], t: Translator): string {
-  return method === "stripe" ? t("methodStripe") : t("methodManual");
+export function methodLabel(
+  method: AdminPayment["payment_method"],
+  t: Translator,
+): string {
+  if (method === "stripe") return t("methodStripe");
+  if (method === "liqpay") return t("methodLiqPay");
+  return t("methodManual");
 }
 
 export function refundedSoFar(payment: AdminPayment): number {

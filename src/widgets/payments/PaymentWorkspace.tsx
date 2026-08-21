@@ -23,6 +23,11 @@ import {
 } from "@/entities/payment";
 import type { ApiError } from "@/shared/api/base";
 import { StripePaymentDrawer } from "./StripePaymentDrawer";
+import {
+  createLiqPayCheckout,
+  syncLiqPayStatus,
+  type LiqPayCheckoutResponse,
+} from "@/entities/payment/api/liqpayApi";
 
 type TabId = "cart" | "plans" | "history";
 type WorkspaceRole = "student" | "teacher";
@@ -31,6 +36,9 @@ type CheckoutIntentState = {
   paymentMode: PaymentType;
   installmentCount: number | null;
 };
+
+const LIQPAY_PENDING_PAYMENT_KEY =
+  "nexo_liqpay_pending_payment";
 
 const TAB_ORDER: TabId[] = ["cart", "plans", "history"];
 const TAB_ROLES: Record<TabId, WorkspaceRole[]> = {
@@ -305,12 +313,16 @@ function OrderSummary({
   checkoutLoading,
   checkoutError,
   onPay,
+  onPayWithLiqPay,
+  liqPayDisabled,
 }: {
   selectedItems: CartItem[];
   currency: string | null;
   checkoutLoading: boolean;
   checkoutError: string;
   onPay: () => void;
+  onPayWithLiqPay: () => void;
+  liqPayDisabled: boolean;
 }) {
   const t = useTranslations("PaymentWorkspace");
   const locale = useLocale();
@@ -359,6 +371,15 @@ function OrderSummary({
         {checkoutLoading ? t("opening") : t("toPay")}
       </button>
 
+      <button
+        type="button"
+        onClick={onPayWithLiqPay}
+        disabled={!canPay || checkoutLoading || liqPayDisabled}
+        className="mt-2 inline-flex h-11 w-full items-center justify-center rounded-full border border-[#003AFF] bg-white px-5 text-[16px] font-medium leading-5 text-[#003AFF] transition-colors hover:bg-[#F3F6FF] disabled:cursor-not-allowed disabled:border-[#A0A0A0] disabled:text-[#A0A0A0]"
+      >
+        Pay with LiqPay
+      </button>
+
       {checkoutError ? (
         <p role="alert" className="mt-3 text-[12px] text-[#B42318]">
           {checkoutError}
@@ -379,6 +400,8 @@ function CartPaymentPanel({
   onToggleItem,
   onRemoveItem,
   onPay,
+  onPayWithLiqPay,
+  liqPayDisabled,
 }: {
   cart: Cart | null;
   loading: boolean;
@@ -390,6 +413,8 @@ function CartPaymentPanel({
   onToggleItem: (itemId: number) => void;
   onRemoveItem: (itemId: number, courseId: number) => void;
   onPay: () => void;
+  onPayWithLiqPay: () => void;
+  liqPayDisabled: boolean;
 }) {
   const t = useTranslations("PaymentWorkspace");
   const tDays = useTranslations("Days");
@@ -510,6 +535,8 @@ function CartPaymentPanel({
         checkoutLoading={checkoutLoading}
         checkoutError={checkoutError}
         onPay={onPay}
+        onPayWithLiqPay={onPayWithLiqPay}
+        liqPayDisabled={liqPayDisabled}
       />
     </div>
   );
@@ -656,6 +683,35 @@ function PaymentHistoryTable({ payments }: { payments: Payment[] }) {
   );
 }
 
+
+function submitLiqPayForm(
+  checkout: LiqPayCheckoutResponse,
+) {
+  const form = document.createElement("form");
+
+  form.method = "POST";
+  form.action = checkout.checkout_url;
+
+  const dataInput = document.createElement("input");
+  dataInput.type = "hidden";
+  dataInput.name = "data";
+  dataInput.value = checkout.data;
+
+  const signatureInput =
+    document.createElement("input");
+
+  signatureInput.type = "hidden";
+  signatureInput.name = "signature";
+  signatureInput.value = checkout.signature;
+
+  form.appendChild(dataInput);
+  form.appendChild(signatureInput);
+
+  document.body.appendChild(form);
+
+  form.submit();
+}
+
 export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole }) {
   const t = useTranslations("PaymentWorkspace");
   const locale = useLocale();
@@ -668,6 +724,7 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
   const requestedCartItemId = parsePositiveInt(searchParams.get("cart_item_id"));
   const paymentRequestKey = `${requestedPaymentType ?? "default"}:${requestedCartItemId ?? "all"}`;
   const appliedPaymentRequestRef = useRef<string | null>(null);
+  const liqPayReturnHandledRef = useRef(false);
   const [activeTab, setActiveTab] = useState<TabId>(() =>
     resolveTab(searchParams.get("tab"), role),
   );
@@ -808,6 +865,197 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
   useEffect(() => {
     setActiveTab(resolveTab(searchParams.get("tab"), role));
   }, [role, searchParams]);
+
+  useEffect(() => {
+    if (
+      role !== "student" ||
+      searchParams.get("liqpay")
+        !== "return" ||
+      liqPayReturnHandledRef.current
+    ) {
+      return;
+    }
+
+    liqPayReturnHandledRef.current =
+      true;
+
+    const rawPendingPayment =
+      sessionStorage.getItem(
+        LIQPAY_PENDING_PAYMENT_KEY,
+      );
+
+    if (!rawPendingPayment) {
+      setToast(
+        t("noticePaymentProcessing"),
+      );
+      return;
+    }
+
+    let pendingPayment: {
+      paymentId: number;
+      orderId: number;
+    };
+
+    try {
+      pendingPayment =
+        JSON.parse(
+          rawPendingPayment,
+        ) as {
+          paymentId: number;
+          orderId: number;
+        };
+    } catch {
+      sessionStorage.removeItem(
+        LIQPAY_PENDING_PAYMENT_KEY,
+      );
+
+      return;
+    }
+
+    let cancelled = false;
+    let timeoutId:
+      | number
+      | undefined;
+
+    let attempts = 0;
+
+    const MAX_LIQPAY_SYNC_ATTEMPTS = 10;
+    const LIQPAY_SYNC_DELAY_MS = 2000;
+
+    async function syncPayment() {
+      attempts += 1;
+
+      try {
+        const result =
+          await syncLiqPayStatus(
+            pendingPayment.paymentId,
+          );
+
+        if (cancelled) {
+          return;
+        }
+
+        if (
+          result.payment_status ===
+          "succeeded"
+        ) {
+          sessionStorage.removeItem(
+            LIQPAY_PENDING_PAYMENT_KEY,
+          );
+
+          const [
+            refreshedPayments,
+            refreshedCart,
+          ] = await Promise.all([
+            getPayments(),
+            getCart(),
+          ]);
+
+          if (cancelled) {
+            return;
+          }
+
+          setPayments(
+            refreshedPayments.results,
+          );
+
+          setCart(refreshedCart);
+
+          setSelectedCartItemIds(
+            refreshedCart.items.map(
+              (item) => item.id,
+            ),
+          );
+
+          setActiveTab("history");
+
+          const params =
+            new URLSearchParams(
+              searchParams.toString(),
+            );
+
+          params.set(
+            "tab",
+            "history",
+          );
+
+          params.delete("liqpay");
+
+          router.replace(
+            `${pathname}?${params.toString()}`,
+            {
+              scroll: false,
+            },
+          );
+
+          return;
+        }
+
+        if (
+          result.payment_status ===
+            "failed" ||
+          result.payment_status ===
+            "canceled"
+        ) {
+          sessionStorage.removeItem(
+            LIQPAY_PENDING_PAYMENT_KEY,
+          );
+
+          setToast(
+            t(
+              "noticePaymentCanceled",
+            ),
+          );
+
+          return;
+        }
+
+        setToast(
+          t(
+            "noticePaymentProcessing",
+          ),
+        );
+      } catch {
+        if (!cancelled) {
+          setToast(
+            t(
+              "noticePaymentProcessing",
+            ),
+          );
+        }
+      }
+
+      if (
+        !cancelled &&
+        attempts <
+          MAX_LIQPAY_SYNC_ATTEMPTS
+      ) {
+        timeoutId =
+          window.setTimeout(
+            syncPayment,
+            LIQPAY_SYNC_DELAY_MS,
+          );
+      }
+    }
+
+    syncPayment();
+
+    return () => {
+      cancelled = true;
+
+      if (timeoutId) {
+        window.clearTimeout(
+          timeoutId,
+        );
+      }
+    };
+  }, [
+    pathname,
+    role,
+    router,
+    searchParams,
+    t,
+  ]);
 
   useEffect(() => {
     const notice = searchParams.get("notice");
@@ -1046,13 +1294,163 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
     }
   }
 
-  async function handlePay() {
-    if (cartCheckoutIntent?.paymentMode === checkoutMode) {
-      setIsCartPaymentDrawerOpen(true);
+  async function startCartLiqPayCheckout(
+    paymentType: PaymentType,
+  ) {
+    if (
+      !cart ||
+      selectedCartItems.length === 0 ||
+      checkoutLoading
+    ) {
+      setCheckoutError(
+        t("errorSelectCourse"),
+      );
       return;
     }
 
+    setCheckoutLoading(true);
+    setCheckoutError("");
+
+    try {
+      const freeCartItems =
+        selectedCartItems.filter(
+          (item) =>
+            Number(item.unit_price) === 0,
+        );
+
+      const paidCartItems =
+        selectedCartItems.filter(
+          (item) =>
+            Number(item.unit_price) > 0,
+        );
+
+      if (freeCartItems.length > 0) {
+        await Promise.all(
+          freeCartItems.map((item) =>
+            enrollInFreeCourse(
+              item.course.slug,
+              {
+                pricing_plan_id:
+                  item.pricing_plan_id ??
+                  undefined,
+
+                cohort_id:
+                  item.cohort?.id,
+
+                schedule_slot_ids:
+                  item.schedule_slots.map(
+                    (slot) => slot.id,
+                  ),
+              },
+            ),
+          ),
+        );
+
+        const refreshedCart =
+          await getCart();
+
+        setCart(refreshedCart);
+
+        setSelectedCartItemIds(
+          paidCartItems.map(
+            (item) => item.id,
+          ),
+        );
+
+        if (
+          paidCartItems.length === 0
+        ) {
+          setToast(
+            t("freeCourseGranted"),
+          );
+          return;
+        }
+      }
+
+      const paidInstallmentOption =
+        installmentOptionForItems(
+          paidCartItems,
+        );
+
+      if (
+        paymentType ===
+          "installments" &&
+        !paidInstallmentOption
+      ) {
+        setCheckoutError(
+          t(
+            "errorPartialNotAvailable",
+          ),
+        );
+        return;
+      }
+
+      const requestedInstallmentCount =
+        paymentType ===
+          "installments" &&
+        paidInstallmentOption
+          ? paidInstallmentOption.count
+          : undefined;
+
+      const checkout =
+        await createLiqPayCheckout({
+          selected_cart_item_ids:
+            paidCartItems.map(
+              (item) => item.id,
+            ),
+
+          payment_type:
+            paymentType,
+
+          installments_count:
+            requestedInstallmentCount,
+        });
+
+      sessionStorage.setItem(
+        LIQPAY_PENDING_PAYMENT_KEY,
+        JSON.stringify({
+          paymentId:
+            checkout.payment_id,
+
+          orderId:
+            checkout.order_id,
+
+          providerOrderId:
+            checkout.provider_order_id,
+
+          createdAt:
+            Date.now(),
+        }),
+      );
+
+      submitLiqPayForm(checkout);
+    } catch (error) {
+      const apiError =
+        error as Partial<ApiError>;
+
+      setCheckoutError(
+        apiError.detail ||
+          apiError.message ||
+          t("errorStartPayment"),
+      );
+
+      setCheckoutLoading(false);
+    }
+  }
+
+  async function handlePay() {
     await startCartCheckout(checkoutMode);
+  }
+
+  async function handlePayWithLiqPay() {
+    if (cartCheckoutIntent) {
+      setCheckoutError(
+        "A card payment is already in progress. Complete the card payment before switching payment method.",
+      );
+      return;
+    }
+
+    await startCartLiqPayCheckout(checkoutMode);
   }
 
   async function handleCartPaymentTypeChange(paymentType: PaymentType) {
@@ -1159,6 +1557,8 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
               onToggleItem={handleToggleItem}
               onRemoveItem={handleRemoveItem}
               onPay={handlePay}
+              onPayWithLiqPay={handlePayWithLiqPay}
+              liqPayDisabled={Boolean(cartCheckoutIntent)}
             />
           ) : null}
 

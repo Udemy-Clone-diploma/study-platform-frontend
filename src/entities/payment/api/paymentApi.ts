@@ -13,6 +13,68 @@ import type { TeacherOrderStatus, TeacherOrdersData } from "../model/teacherOrde
 
 const ORDERS_ENDPOINT = "orders/";
 const PAYMENTS_ENDPOINT = "payments/";
+const PAYOUTS_ENDPOINT = "teacher/payouts/";
+
+export type TeacherPayoutStatus = {
+  status: "not_configured" | "incomplete" | "pending" | "active" | "restricted";
+  configured: boolean;
+  details_submitted: boolean;
+  charges_enabled: boolean;
+  payouts_enabled: boolean;
+  outstanding_requirements: string[];
+  disabled_reason: string;
+};
+
+export type StripeBalanceAmount = {
+  amount: string;
+  currency: string;
+};
+
+export type StripeConnectedPayout = {
+  id: string;
+  amount: string;
+  currency: string;
+  status:
+    | "paid"
+    | "pending"
+    | "in_transit"
+    | "failed"
+    | "canceled"
+    | string;
+  method: string;
+  type: string;
+  created: number | null;
+  arrival_date: number | null;
+  failure_code: string;
+  failure_message: string;
+};
+
+export type TeacherStripeFinance = {
+  configured: boolean;
+  available: StripeBalanceAmount[];
+  pending: StripeBalanceAmount[];
+  payouts: StripeConnectedPayout[];
+};
+
+export async function getTeacherStripeFinance(): Promise<TeacherStripeFinance> {
+  return (
+    await api.get<TeacherStripeFinance>(
+      `${PAYOUTS_ENDPOINT}finance/`,
+    )
+  ).data;
+}
+
+export async function getTeacherPayoutStatus(): Promise<TeacherPayoutStatus> {
+  return (await api.get<TeacherPayoutStatus>(PAYOUTS_ENDPOINT)).data;
+}
+
+export async function startTeacherPayoutOnboarding(): Promise<TeacherPayoutStatus & { onboarding_url: string }> {
+  return (await api.post<TeacherPayoutStatus & { onboarding_url: string }>(`${PAYOUTS_ENDPOINT}onboarding/`)).data;
+}
+
+export async function refreshTeacherPayoutStatus(): Promise<TeacherPayoutStatus> {
+  return (await api.post<TeacherPayoutStatus>(`${PAYOUTS_ENDPOINT}refresh/`)).data;
+}
 
 export type CheckoutSessionInput = {
   success_url?: string;

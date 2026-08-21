@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, type CSSProperties } from "react";
 import type { PublicCourseListItem } from "@/entities/course";
 import { CourseCard } from "@/features/courses";
 
-const MOBILE_CAROUSEL_QUERY = "(max-width: 1023px), (hover: none), (pointer: coarse)";
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
+const DESKTOP_HOVER_QUERY = "(min-width: 1024px) and (hover: hover) and (pointer: fine)";
 const LOOP_DURATION_MS = 60_000;
 const RESUME_DELAY_MS = 900;
 
@@ -21,12 +21,11 @@ export function CourseCarousel({ courses, wishlistedSlugs, direction, viewportSt
   const viewportRef = useRef<HTMLDivElement>(null);
   const firstCopyRef = useRef<HTMLDivElement>(null);
   const copyWidthRef = useRef(0);
-  const nativeScrollRef = useRef(false);
   const touchActiveRef = useRef(false);
   const interactionPausedRef = useRef(false);
+  const hoverPausedRef = useRef(false);
   const scrollRemainderRef = useRef(0);
   const resumeTimerRef = useRef<number | null>(null);
-  const [hoverPaused, setHoverPaused] = useState(false);
   const wishlistSet = new Set(wishlistedSlugs);
 
   const clearResumeTimer = () => {
@@ -51,14 +50,7 @@ export function CourseCarousel({ courses, wishlistedSlugs, direction, viewportSt
     scrollRemainderRef.current = 0;
   };
 
-  const handleTouchEnd = () => {
-    touchActiveRef.current = false;
-    scheduleAutoplayResume();
-  };
-
   const handleScroll = () => {
-    if (!nativeScrollRef.current) return;
-
     const viewport = viewportRef.current;
     const copyWidth = copyWidthRef.current;
     if (!viewport || copyWidth <= 0) return;
@@ -79,8 +71,8 @@ export function CourseCarousel({ courses, wishlistedSlugs, direction, viewportSt
     const firstCopy = firstCopyRef.current;
     if (!viewport || !firstCopy || courses.length === 0) return;
 
-    const mobileCarousel = window.matchMedia(MOBILE_CAROUSEL_QUERY);
     const reducedMotion = window.matchMedia(REDUCED_MOTION_QUERY);
+    const desktopHover = window.matchMedia(DESKTOP_HOVER_QUERY);
     let animationFrame = 0;
     let previousFrameTime: number | null = null;
 
@@ -93,7 +85,12 @@ export function CourseCarousel({ courses, wishlistedSlugs, direction, viewportSt
       previousFrameTime = time;
 
       const copyWidth = copyWidthRef.current;
-      if (!interactionPausedRef.current && copyWidth > 0) {
+      if (
+        !reducedMotion.matches &&
+        !interactionPausedRef.current &&
+        !(hoverPausedRef.current && desktopHover.matches) &&
+        copyWidth > 0
+      ) {
         const distance = (copyWidth * elapsed) / LOOP_DURATION_MS;
         scrollRemainderRef.current += direction === "left" ? distance : -distance;
 
@@ -111,46 +108,40 @@ export function CourseCarousel({ courses, wishlistedSlugs, direction, viewportSt
       animationFrame = window.requestAnimationFrame(animate);
     };
 
-    const syncMode = () => {
-      window.cancelAnimationFrame(animationFrame);
-      previousFrameTime = null;
-      scrollRemainderRef.current = 0;
-
-      const useNativeScroll = mobileCarousel.matches || reducedMotion.matches;
-      const wasUsingNativeScroll = nativeScrollRef.current;
-      nativeScrollRef.current = useNativeScroll;
-      measureCopy();
-
-      if (!useNativeScroll) {
-        viewport.scrollLeft = 0;
-        return;
-      }
-
-      if (!wasUsingNativeScroll || viewport.scrollLeft <= 0) {
-        viewport.scrollLeft = copyWidthRef.current;
-      }
-
-      if (mobileCarousel.matches && !reducedMotion.matches) {
-        animationFrame = window.requestAnimationFrame(animate);
-      }
-    };
-
-    syncMode();
+    measureCopy();
+    viewport.scrollLeft = copyWidthRef.current;
+    animationFrame = window.requestAnimationFrame(animate);
 
     const resizeObserver =
       typeof ResizeObserver === "undefined" ? null : new ResizeObserver(measureCopy);
+    const releaseTouch = () => {
+      if (!touchActiveRef.current) return;
+
+      touchActiveRef.current = false;
+      if (resumeTimerRef.current !== null) {
+        window.clearTimeout(resumeTimerRef.current);
+      }
+      resumeTimerRef.current = window.setTimeout(() => {
+        interactionPausedRef.current = false;
+        resumeTimerRef.current = null;
+      }, RESUME_DELAY_MS);
+    };
+
     resizeObserver?.observe(firstCopy);
     window.addEventListener("resize", measureCopy);
-    mobileCarousel.addEventListener("change", syncMode);
-    reducedMotion.addEventListener("change", syncMode);
+    window.addEventListener("touchend", releaseTouch, { passive: true });
+    window.addEventListener("touchcancel", releaseTouch, { passive: true });
 
     return () => {
       window.cancelAnimationFrame(animationFrame);
       resizeObserver?.disconnect();
       window.removeEventListener("resize", measureCopy);
-      mobileCarousel.removeEventListener("change", syncMode);
-      reducedMotion.removeEventListener("change", syncMode);
-      clearResumeTimer();
+      window.removeEventListener("touchend", releaseTouch);
+      window.removeEventListener("touchcancel", releaseTouch);
+      if (resumeTimerRef.current !== null) {
+        window.clearTimeout(resumeTimerRef.current);
+        resumeTimerRef.current = null;
+      }
     };
   }, [courses.length, direction]);
 
@@ -170,15 +161,17 @@ export function CourseCarousel({ courses, wishlistedSlugs, direction, viewportSt
       style={{ padding: "16px 0", ...viewportStyle }}
       onScroll={handleScroll}
       onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-      onTouchCancel={handleTouchEnd}
     >
       <div
         className="home-course-carousel-track"
-        data-direction={direction}
-        data-paused={hoverPaused}
-        onMouseEnter={() => setHoverPaused(true)}
-        onMouseLeave={() => setHoverPaused(false)}
+        onPointerEnter={(event) => {
+          if (event.pointerType === "mouse" && window.matchMedia(DESKTOP_HOVER_QUERY).matches) {
+            hoverPausedRef.current = true;
+          }
+        }}
+        onPointerLeave={() => {
+          hoverPausedRef.current = false;
+        }}
         style={{ minHeight: "clamp(300px, calc(284.95px + 4.01vw), 362px)" }}
       >
         <div ref={firstCopyRef} className="home-course-carousel-set">

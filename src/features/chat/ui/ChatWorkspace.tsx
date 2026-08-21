@@ -1191,7 +1191,7 @@ export function ChatWorkspace({ onViewProfile, moderationHref }: ChatWorkspacePr
   }
 
   return (
-    <main className="-mt-16 -mb-[calc(103px+env(safe-area-inset-bottom))] flex h-[100dvh] min-h-0 flex-none flex-col overflow-hidden bg-[#D6E0FF] px-4 pb-[calc(103px+env(safe-area-inset-bottom))] pt-[104px] text-[#111827] lg:m-0 lg:h-[calc(100vh-76px)] lg:min-h-[640px] lg:flex-1 lg:flex-row lg:gap-[clamp(28px,4vw,76px)] lg:overflow-visible lg:px-[clamp(28px,4vw,78px)] lg:py-[clamp(24px,3vw,40px)]">
+    <main className="relative isolate z-0 -mt-16 -mb-[calc(103px+env(safe-area-inset-bottom))] flex h-[100dvh] min-h-0 flex-none flex-col overflow-hidden bg-[#D6E0FF] px-4 pb-[calc(103px+env(safe-area-inset-bottom))] pt-[104px] text-[#111827] lg:m-0 lg:h-[calc(100vh-76px)] lg:min-h-[640px] lg:flex-1 lg:flex-row lg:gap-[clamp(28px,4vw,76px)] lg:overflow-visible lg:px-[clamp(28px,4vw,78px)] lg:py-[clamp(24px,3vw,40px)]">
       <ChatSidebar
         search={chatSearch}
         typeFilter={chatTypeFilter}

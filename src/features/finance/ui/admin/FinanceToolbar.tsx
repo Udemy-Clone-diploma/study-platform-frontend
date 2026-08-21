@@ -64,6 +64,7 @@ export function FinanceToolbar({
   const METHOD_OPTIONS: { label: string; value: PaymentMethod | null }[] = [
     { label: t("allMethods"), value: null },
     { label: t("methodStripe"), value: "stripe" },
+    { label: t("methodLiqPay"), value: "liqpay" },
     { label: t("methodManual"), value: "manual" },
   ];
 

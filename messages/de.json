@@ -72,7 +72,8 @@
     "invitedBy": "von {organizer}",
     "scheduleConflict": "Terminkonflikt",
     "accept": "Annehmen",
-    "decline": "Ablehnen"
+    "decline": "Ablehnen",
+    "respondFailed": "Antwort konnte nicht gesendet werden. Bitte erneut versuchen."
   },
   "StudentHomeworkDashboard": {
     "homework": "Hausaufgaben",
@@ -488,7 +489,8 @@
   "ArticleActionModals": {
     "saveChangesLabel": "Änderungen speichern",
     "deleteArticleTitle": "Artikel löschen",
-    "deleteArticleDescription": "„{title}“ löschen? Dies kann nicht rückgängig gemacht werden."
+    "deleteArticleDescription": "„{title}“ löschen? Dies kann nicht rückgängig gemacht werden.",
+    "actionFailed": "Aktion konnte nicht ausgeführt werden. Bitte erneut versuchen."
   },
   "ArticleFormModal": {
     "title": "Artikel bearbeiten",
@@ -2195,7 +2197,8 @@
     "cannotReturnToDraft": "Kann nicht zu Entwurf zurückgesetzt werden",
     "noLongerRejected": "Dieser Kurs ist nicht mehr abgelehnt.",
     "currentStatus": "Aktueller Status:",
-    "ok": "OK"
+    "ok": "OK",
+    "errorAction": "Aktion konnte nicht ausgeführt werden. Bitte erneut versuchen."
   },
   "TeacherCourseCard": {
     "courseOptionsAriaLabel": "Kursoptionen",

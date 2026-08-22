@@ -45,7 +45,6 @@ export function ProfileSidebar({
 
   return (
     <div className="flex w-full shrink-0 flex-col items-center gap-5 px-4 pt-4 pb-4 lg:w-[22.14vw] lg:items-center lg:gap-[1.25vw] lg:self-start lg:px-[1.5vw] lg:pt-[4.17vw] lg:pb-[6.25vw]">
-      {/* Avatar */}
       <div
         onClick={editing ? () => fileRef.current?.click() : undefined}
         className="relative h-60 w-60 shrink-0 overflow-hidden rounded-full lg:h-[12.5vw] lg:w-[12.5vw]"
@@ -108,7 +107,6 @@ export function ProfileSidebar({
         />
       </div>
 
-      {/* Full name */}
       <div
         style={{
           fontFamily: "var(--font-base)",
@@ -123,7 +121,6 @@ export function ProfileSidebar({
         {fullName || "—"}
       </div>
 
-      {/* Teacher rating */}
       {teacherRating && parseFloat(teacherRating) > 0 && (
         <div
           className="flex items-center gap-2 lg:gap-[0.417vw]"
@@ -142,7 +139,6 @@ export function ProfileSidebar({
         </div>
       )}
 
-      {/* Social media */}
       {showSocial && (
         <div className="flex w-full flex-col items-center gap-3 lg:gap-[0.833vw]">
           <span
@@ -228,7 +224,6 @@ export function ProfileSidebar({
         </div>
       )}
 
-      {/* Edit / Cancel button */}
       {editing ? (
         <AccentButton
           size="md"

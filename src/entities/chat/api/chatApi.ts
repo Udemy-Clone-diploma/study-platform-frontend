@@ -174,25 +174,6 @@ export async function markChatRead(
   return data;
 }
 
-export async function getParticipants(chatId: number): Promise<ChatParticipant[]> {
-  const { data } = await api.get<ChatParticipant[]>(`chats/${chatId}/participants/`);
-  return data;
-}
-
-export async function addParticipants(
-  chatId: number,
-  userIds: number[],
-): Promise<ChatParticipant[]> {
-  const { data } = await api.post<ChatParticipant[]>(`chats/${chatId}/participants/`, {
-    user_ids: userIds,
-  });
-  return data;
-}
-
-export async function removeParticipant(chatId: number, userId: number): Promise<void> {
-  await api.delete(`chats/${chatId}/participants/${userId}/`);
-}
-
 export async function updateParticipantRole(
   chatId: number,
   userId: number,
@@ -218,4 +199,23 @@ export async function uploadMessageAttachment(
 export async function searchUsers(email: string): Promise<UserSearchResult[]> {
   const { data } = await api.get<UserSearchResult[]>("users/search/", { params: { email } });
   return data;
+}
+
+export async function getParticipants(chatId: number): Promise<ChatParticipant[]> {
+  const { data } = await api.get<ChatParticipant[]>(`chats/${chatId}/participants/`);
+  return data;
+}
+
+export async function addParticipants(
+  chatId: number,
+  userIds: number[],
+): Promise<ChatParticipant[]> {
+  const { data } = await api.post<ChatParticipant[]>(`chats/${chatId}/participants/`, {
+    user_ids: userIds,
+  });
+  return data;
+}
+
+export async function removeParticipant(chatId: number, userId: number): Promise<void> {
+  await api.delete(`chats/${chatId}/participants/${userId}/`);
 }

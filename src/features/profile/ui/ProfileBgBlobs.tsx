@@ -28,14 +28,12 @@ const MOBILE_BAND: React.CSSProperties = {
 export function ProfileBgBlobs() {
   return (
     <>
-      {/* Mobile: full-width bands stacked one under another down the whole page */}
       <div className="block lg:hidden">
         <div style={{ ...MOBILE_BAND, top: "0%", background: "var(--color-brand-cream)" }} />
         <div style={{ ...MOBILE_BAND, top: "33%", background: "var(--color-brand-pink)" }} />
         <div style={{ ...MOBILE_BAND, top: "66%", background: "var(--color-brand-lavender)" }} />
       </div>
 
-      {/* Desktop: fixed corner blobs */}
       <div className="hidden lg:block">
         <div
           style={{ ...BLOB, right: "30vw", top: "-6.67vw", background: "var(--color-brand-pink)" }}

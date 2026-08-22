@@ -5,8 +5,6 @@ import { useTranslations } from "next-intl";
 import { updateLesson } from "@/entities/course";
 import type { CourseLesson, CourseModule } from "@/entities/course";
 
-// ── LessonUnlockRow ───────────────────────────────────────────────────────────
-
 function LessonUnlockRow({
   lesson,
   slug,
@@ -58,7 +56,6 @@ function LessonUnlockRow({
         transition: "opacity 0.15s",
       }}
     >
-      {/* Order + title */}
       <span
         style={{
           fontFamily: "var(--font-base)",
@@ -75,7 +72,6 @@ function LessonUnlockRow({
         {lesson.order}.&nbsp;{lesson.title}
       </span>
 
-      {/* Days-from-start input */}
       <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
         <input
           type="number"
@@ -141,8 +137,6 @@ function LessonUnlockRow({
   );
 }
 
-// ── Main export ───────────────────────────────────────────────────────────────
-
 /** Per-lesson unlock schedule settings for the Scheduled delivery format. */
 export function CourseManagementScheduledTab({
   modules,
@@ -165,7 +159,6 @@ export function CourseManagementScheduledTab({
         padding: "clamp(16px, 1.25vw, 22px)",
       }}
     >
-      {/* Header row */}
       <div
         style={{
           display: "flex",

@@ -89,8 +89,6 @@ const SAVE_BTN: React.CSSProperties = {
   flexShrink: 0,
 };
 
-// ── Shared helpers ─────────────────────────────────────────────────────────────
-
 function toDateStr(iso: string | null | undefined): string {
   return iso ? iso.slice(0, 10) : "";
 }
@@ -120,8 +118,6 @@ function ListWrap({ children }: { children: React.ReactNode }) {
   return <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>{children}</div>;
 }
 
-// ── CompletionBadge ────────────────────────────────────────────────────────────
-
 export function CompletionBadge({ completed }: { completed: boolean }) {
   const t = useTranslations("CourseManagementStudentsBlock");
   return (
@@ -143,8 +139,6 @@ export function CompletionBadge({ completed }: { completed: boolean }) {
     </span>
   );
 }
-
-// ── StudentRow (generic) ───────────────────────────────────────────────────────
 
 function StudentRow({
   name,
@@ -249,8 +243,6 @@ function StudentRow({
     </div>
   );
 }
-
-// ── IndividualStudentRow (with period inline-edit) ─────────────────────────────
 
 function IndividualStudentRow({
   student,
@@ -405,8 +397,6 @@ function IndividualStudentRow({
   );
 }
 
-// ── Individual: students with booked days + period ─────────────────────────────
-
 /** List content for the Individual format — shows each student's scheduled days and learning period. */
 export function IndividualStudentsList({
   slug,
@@ -479,8 +469,6 @@ export function IndividualStudentsList({
   );
 }
 
-// ── Group: students with their cohort name ─────────────────────────────────────
-
 /** List content for the Group format — shows each student with their cohort badge. */
 export function GroupStudentsList({
   course,
@@ -534,8 +522,6 @@ export function GroupStudentsList({
     </ListWrap>
   );
 }
-
-// ── Scheduled / Self-paced: plain enrolled list ────────────────────────────────
 
 /** List content for Scheduled or Self-paced formats — plain student list. */
 export function SimpleStudentsList({ slug, fmtId }: { slug: string; fmtId: number }) {

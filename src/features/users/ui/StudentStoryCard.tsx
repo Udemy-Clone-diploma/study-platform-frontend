@@ -19,7 +19,6 @@ export function StudentStoryCard({ article }: Props) {
         justifyContent: "space-between",
       }}
     >
-      {/* Background image*/}
       {article.cover_image ? (
         <Image
           src={article.cover_image}
@@ -39,7 +38,6 @@ export function StudentStoryCard({ article }: Props) {
         />
       )}
 
-      {/* Arrow button — top right */}
       <Link
         href={`/blog/${article.slug}`}
         style={{
@@ -71,7 +69,6 @@ export function StudentStoryCard({ article }: Props) {
         </div>
       </Link>
 
-      {/* Bottom info panel */}
       <Link
         href={`/blog/${article.slug}`}
         style={{

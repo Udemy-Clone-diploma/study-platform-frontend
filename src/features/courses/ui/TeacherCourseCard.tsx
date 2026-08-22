@@ -35,8 +35,6 @@ const STATUS_ICON: Record<TeacherCourseStatus, string | null> = {
   completed: null,
 };
 
-// ----- modal config -------------------------------------------------------
-
 type ModalKind =
   | "delete"
   | "delete-hide"
@@ -140,8 +138,6 @@ function modalConfig(
       };
   }
 }
-
-// ----- component ----------------------------------------------------------
 
 type Props = {
   title: string;

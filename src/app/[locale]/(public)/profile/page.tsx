@@ -73,7 +73,6 @@ function ProfilePage() {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
 
-  // Teacher-specific edit state
   const [specialization, setSpecialization] = useState("");
   const [experience, setExperience] = useState("");
   const [bio, setBio] = useState("");
@@ -83,7 +82,6 @@ function ProfilePage() {
   const [signatureFile, setSignatureFile] = useState<File | null>(null);
   const [signaturePreview, setSignaturePreview] = useState<string | null>(null);
 
-  // Student-specific edit state
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [learningGoals, setLearningGoals] = useState("");
 

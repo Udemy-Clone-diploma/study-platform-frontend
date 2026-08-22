@@ -138,7 +138,6 @@ export function ModeratorReviewStep(props: StepProps) {
         </p>
       </div>
 
-      {/* Overview */}
       <SectionCard>
         <p
           style={{
@@ -269,10 +268,8 @@ export function ModeratorReviewStep(props: StepProps) {
         </div>
       </SectionCard>
 
-      {/* Stats */}
       <CourseStatsGrid stats={STATS} />
 
-      {/* Structure */}
       <SectionCard>
         <p
           style={{

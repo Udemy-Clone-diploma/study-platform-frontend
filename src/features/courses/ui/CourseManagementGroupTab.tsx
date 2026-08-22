@@ -15,6 +15,7 @@ import {
 import { AddButton } from "@/shared/ui/AddButton";
 import { ModalShell } from "@/shared/ui/ModalShell";
 import { DatePicker } from "@/shared/ui/DatePicker";
+import { apiErrorMessage } from "@/shared/api/lib/apiErrorMessage";
 import type { CourseDetail } from "@/entities/course";
 import type { CourseCohort } from "@/entities/course/model/cohort";
 import type { CohortMember, EnrolledStudent } from "@/entities/course/model/cohortGroup";
@@ -47,7 +48,6 @@ import {
   updatePersonalEvent,
 } from "@/entities/course";
 
-// ── Shared styles ──────────────────────────────────────────────────────────────
 const CARD: React.CSSProperties = {
   background: "#fff",
   borderRadius: 16,
@@ -120,7 +120,6 @@ function padTwo(n: number) {
   return String(n).padStart(2, "0");
 }
 
-// ── PillSelect ─────────────────────────────────────────────────────────────────
 function PillSelect<T extends string | number>({
   options,
   value,
@@ -213,7 +212,6 @@ function PillSelect<T extends string | number>({
   );
 }
 
-// ── TimePicker ─────────────────────────────────────────────────────────────────
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const MINUTES = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
 
@@ -342,7 +340,6 @@ function TimePicker({ value, onChange }: { value: string; onChange: (v: string) 
   );
 }
 
-// ── AddStudentDropdown ─────────────────────────────────────────────────────────
 function AddStudentDropdown({
   enrolledStudents,
   takenIds,
@@ -548,7 +545,6 @@ function AddStudentDropdown({
   );
 }
 
-// ── MemberRow ──────────────────────────────────────────────────────────────────
 function memberInitials(name: string): string {
   return name
     .split(" ")
@@ -672,7 +668,6 @@ function MemberRow({
   );
 }
 
-// ── CohortScheduleRow ──────────────────────────────────────────────────────────
 function CohortScheduleRow({
   entry,
   onDelete,
@@ -757,7 +752,6 @@ function CohortScheduleRow({
   );
 }
 
-// ── CohortScheduleForm ─────────────────────────────────────────────────────────
 function CohortScheduleForm({
   initial,
   onSave,
@@ -782,13 +776,13 @@ function CohortScheduleForm({
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  // Conflict modal state
   const [conflictModal, setConflictModal] = useState<{
     info: ScheduleConflicts;
     payload: CohortSchedulePayload;
   } | null>(null);
   const [pendingEvents, setPendingEvents] = useState<ScheduleConflictPersonalEvent[]>([]);
   const [modalSaving, setModalSaving] = useState(false);
+  const [modalErr, setModalErr] = useState("");
   // Per-event reschedule inline form: { eventId, date, start, end }
   const [rescheduleState, setRescheduleState] = useState<{
     eventId: number;
@@ -838,11 +832,12 @@ function CohortScheduleForm({
 
   const handleDeleteEvent = async (ev: ScheduleConflictPersonalEvent) => {
     setEventLoading(ev.id);
+    setModalErr("");
     try {
       await deletePersonalEvent(ev.id);
       resolveEvent(ev.id);
-    } catch {
-      /* ignore */
+    } catch (e) {
+      setModalErr(apiErrorMessage(e, t("errorSaveFailed")));
     } finally {
       setEventLoading(null);
     }
@@ -851,11 +846,12 @@ function CohortScheduleForm({
   const handleDeclineEvent = async (ev: ScheduleConflictPersonalEvent) => {
     if (!ev.invitation_id) return;
     setEventLoading(ev.id);
+    setModalErr("");
     try {
       await respondToInvitation(ev.invitation_id, "decline");
       resolveEvent(ev.id);
-    } catch {
-      /* ignore */
+    } catch (e) {
+      setModalErr(apiErrorMessage(e, t("errorSaveFailed")));
     } finally {
       setEventLoading(null);
     }
@@ -864,6 +860,7 @@ function CohortScheduleForm({
   const handleRescheduleEvent = async (ev: ScheduleConflictPersonalEvent) => {
     if (!rescheduleState || rescheduleState.eventId !== ev.id) return;
     setEventLoading(ev.id);
+    setModalErr("");
     try {
       await updatePersonalEvent(ev.id, {
         date: rescheduleState.date,
@@ -871,8 +868,8 @@ function CohortScheduleForm({
         end_time: rescheduleState.end,
       });
       resolveEvent(ev.id);
-    } catch {
-      /* ignore */
+    } catch (e) {
+      setModalErr(apiErrorMessage(e, t("errorSaveFailed")));
     } finally {
       setEventLoading(null);
     }
@@ -986,7 +983,6 @@ function CohortScheduleForm({
                   minHeight: "clamp(320px, 40vh, 520px)",
                 }}
               >
-                {/* Group / individual — informational */}
                 {conflictModal.info.group.length > 0 && (
                   <div>
                     <p style={{ ...LABEL, marginBottom: 6 }}>{tSchedule("groupSessions")}</p>
@@ -1016,7 +1012,6 @@ function CohortScheduleForm({
                   </div>
                 )}
 
-                {/* Weekly unavailability blocks */}
                 {hasPersonalBlocks && (
                   <div>
                     <p style={{ ...LABEL, marginBottom: 6 }}>
@@ -1043,7 +1038,6 @@ function CohortScheduleForm({
                   </div>
                 )}
 
-                {/* Personal calendar events — per-event actions */}
                 {pendingEvents.length > 0 && (
                   <div>
                     <p style={{ ...LABEL, marginBottom: 6 }}>{tSchedule("personalEvents")}</p>
@@ -1174,7 +1168,6 @@ function CohortScheduleForm({
                   </div>
                 )}
 
-                {/* Bottom hint when blocked */}
                 {blocked && (
                   <p
                     style={{
@@ -1188,7 +1181,6 @@ function CohortScheduleForm({
                   </p>
                 )}
 
-                {/* Session conflict hard-block notice */}
                 {hasSessionConflicts && !hasPendingEvents && (
                   <p
                     style={{
@@ -1202,7 +1194,11 @@ function CohortScheduleForm({
                   </p>
                 )}
 
-                {/* Action buttons */}
+                {modalErr && (
+                  <p role="alert" style={ERR}>
+                    {modalErr}
+                  </p>
+                )}
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                   {hasPersonalBlocks && (
                     <button
@@ -1254,7 +1250,6 @@ function CohortScheduleForm({
   );
 }
 
-// ── CohortForm ─────────────────────────────────────────────────────────────────
 function CohortForm({
   slug,
   formatId,
@@ -1425,7 +1420,6 @@ function CohortForm({
   );
 }
 
-// ── GroupCohortCard ────────────────────────────────────────────────────────────
 function GroupCohortCard({
   cohort,
   slug,
@@ -1611,7 +1605,6 @@ function GroupCohortCard({
 
   return (
     <div style={CARD}>
-      {/* Header */}
       <div
         style={{
           display: "flex",
@@ -1733,7 +1726,6 @@ function GroupCohortCard({
         </div>
       </div>
 
-      {/* Inline edit form */}
       {editing && (
         <div style={{ marginTop: 14 }}>
           <div style={{ height: 1, background: "var(--color-border-light)", marginBottom: 12 }} />
@@ -1751,7 +1743,6 @@ function GroupCohortCard({
         </div>
       )}
 
-      {/* Delete confirm modal */}
       {deleting && (
         <ModalShell
           onClose={() => !deleteBusy && setDeleting(false)}
@@ -1830,7 +1821,6 @@ function GroupCohortCard({
         <div style={{ marginTop: 16 }}>
           <div style={{ height: 1, background: "var(--color-border-light)", marginBottom: 14 }} />
 
-          {/* Sub-tab switcher */}
           <div
             style={{
               display: "flex",
@@ -1847,7 +1837,6 @@ function GroupCohortCard({
             {subTabBtn("schedule", t("scheduleTab", { count: schedules.length }))}
           </div>
 
-          {/* Students sub-tab */}
           {subTab === "students" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {members.length > 0 ? (
@@ -1898,7 +1887,6 @@ function GroupCohortCard({
             </div>
           )}
 
-          {/* Schedule sub-tab */}
           {subTab === "schedule" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {!schedulesLoaded && (
@@ -1988,8 +1976,6 @@ function GroupCohortCard({
   );
 }
 
-// ── Main export ────────────────────────────────────────────────────────────────
-
 /** Group format tab: per-cohort member assignment, weekly schedule management, and cohort creation. */
 export function CourseManagementGroupTab({
   course,
@@ -2044,14 +2030,12 @@ export function CourseManagementGroupTab({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      {/* Toolbar */}
       <div style={{ display: "flex", justifyContent: "flex-end" }}>
         {groupFormatId && !adding && (
           <AddButton onClick={() => setAdding(true)}>{t("addCohort")}</AddButton>
         )}
       </div>
 
-      {/* Add cohort form */}
       {adding && groupFormatId && (
         <div
           style={{
@@ -2070,7 +2054,6 @@ export function CourseManagementGroupTab({
         </div>
       )}
 
-      {/* Empty state */}
       {cohorts.length === 0 && !adding && (
         <div
           style={{
@@ -2106,7 +2089,6 @@ export function CourseManagementGroupTab({
         </div>
       )}
 
-      {/* Cohort cards */}
       {cohorts.map((cohort) => (
         <GroupCohortCard
           key={cohort.id}

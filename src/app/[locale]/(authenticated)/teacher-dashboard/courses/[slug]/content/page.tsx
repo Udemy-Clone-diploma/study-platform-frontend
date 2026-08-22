@@ -142,8 +142,6 @@ export default function CourseContentPage() {
     void syncCourseDuration(updatedModules);
   }
 
-  // ── Lesson handlers ───────────────────────────────────────────────────
-
   function openAddLessonModal(moduleId: number) {
     setLessonModal({ open: true, mode: "add", moduleId });
   }
@@ -231,8 +229,6 @@ export default function CourseContentPage() {
     setModuleList(updatedModules);
     void syncCourseDuration(updatedModules);
   }
-
-  // ── Submit / discard for pending edit ────────────────────────────────
 
   function handleGoToReview() {
     router.push(`/teacher-dashboard/courses/${slug}/review`);
@@ -393,7 +389,6 @@ export default function CourseContentPage() {
               </div>
             )}
 
-            {/* Moderator content feedback */}
             {moderationReview &&
               (() => {
                 const ACTION_MAP: Record<string, { label: string; color: string }> = {

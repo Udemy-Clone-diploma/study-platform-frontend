@@ -13,18 +13,12 @@ import {
 } from "@/entities/course";
 import type { CourseCompletion, CourseDetail, CourseReview } from "@/entities/course";
 import type { ApiError } from "@/shared/api/base";
-
-// ── helpers ────────────────────────────────────────────────────────────────────
-
 const bf = "var(--font-base)";
 const af = "var(--font-accent)";
 
 function fmt(iso: string, locale: string) {
   return new Date(iso).toLocaleDateString(locale);
 }
-
-// ── sub-components ─────────────────────────────────────────────────────────────
-
 function FieldRow({
   label,
   value,
@@ -144,9 +138,6 @@ function StarRow({
     </div>
   );
 }
-
-// ── component ──────────────────────────────────────────────────────────────────
-
 type Props = {
   completion: CourseCompletion;
   onClose: () => void;
@@ -246,7 +237,6 @@ export function CompletionResultModal({ completion, onClose }: Props) {
   return (
     <ModalShell onClose={onClose} title={completion.title} width="clamp(400px, 50vw, 680px)">
       <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-        {/* ── Status header ─────────────────────────────────────── */}
         <div
           style={{
             display: "flex",
@@ -280,8 +270,6 @@ export function CompletionResultModal({ completion, onClose }: Props) {
             {t("completed")}
           </span>
         </div>
-
-        {/* ── Meta ──────────────────────────────────────────────── */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
           <span style={{ fontFamily: bf, fontSize: 13, color: "var(--color-text-secondary)" }}>
             {t("startedCompleted", {
@@ -296,8 +284,6 @@ export function CompletionResultModal({ completion, onClose }: Props) {
             </strong>
           </span>
         </div>
-
-        {/* ── Course info ───────────────────────────────────────── */}
         <Section title={t("course")}>
           {detailLoading ? (
             <p
@@ -388,8 +374,6 @@ export function CompletionResultModal({ completion, onClose }: Props) {
             </>
           )}
         </Section>
-
-        {/* ── Purchase ──────────────────────────────────────────── */}
         <Section title={t("purchase")}>
           <FieldRow label={t("pricePaid")} value={pricePaid} />
           <FieldRow
@@ -398,8 +382,6 @@ export function CompletionResultModal({ completion, onClose }: Props) {
             value={completion.purchased_at ? fmt(completion.purchased_at, locale) : "—"}
           />
         </Section>
-
-        {/* ── Results ───────────────────────────────────────────── */}
         <Section title={t("results")}>
           <FieldRow label={t("progress")} value={`${completion.progress_percent}%`} />
           <FieldRow label={t("finalScore")} value={completion.final_score ?? "—"} />
@@ -439,8 +421,6 @@ export function CompletionResultModal({ completion, onClose }: Props) {
             }
           />
         </Section>
-
-        {/* ── Review ────────────────────────────────────────────── */}
         {completion.slug && !reviewLoadFailed && (
           <Section title={t("review")}>
             {reviewLoading ? (

@@ -2,7 +2,7 @@ import { getLocale } from "next-intl/server";
 import { getBlogCategories, getArticles } from "@/entities/blog";
 import { getMe } from "@/entities/user";
 import { getAccessToken } from "@/shared/api/authCookies";
-import { BlogArticles } from "@/widgets/blog/BlogArticles";
+import { BlogArticles } from "@/widgets/blog";
 
 export const dynamic = "force-dynamic";
 

@@ -89,7 +89,12 @@ export function useNotifications() {
       if (!target || target.is_read) return;
       setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)));
       setUnreadCount((prev) => Math.max(0, prev - 1));
-      await markNotificationRead(id).catch(() => null);
+      try {
+        await markNotificationRead(id);
+      } catch {
+        setNotifications((prev) => prev.map((n) => (n.id === id ? target : n)));
+        setUnreadCount((prev) => prev + 1);
+      }
     },
     [notifications],
   );
@@ -100,7 +105,12 @@ export function useNotifications() {
       if (!target || !target.is_read) return;
       setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, is_read: false } : n)));
       setUnreadCount((prev) => prev + 1);
-      await markNotificationUnread(id).catch(() => null);
+      try {
+        await markNotificationUnread(id);
+      } catch {
+        setNotifications((prev) => prev.map((n) => (n.id === id ? target : n)));
+        setUnreadCount((prev) => Math.max(0, prev - 1));
+      }
     },
     [notifications],
   );
@@ -109,18 +119,31 @@ export function useNotifications() {
     async (id: number) => {
       const target = notifications.find((n) => n.id === id);
       if (!target) return;
+      const index = notifications.findIndex((n) => n.id === id);
       setNotifications((prev) => prev.filter((n) => n.id !== id));
       if (!target.is_read) setUnreadCount((prev) => Math.max(0, prev - 1));
-      await deleteNotification(id).catch(() => null);
+      try {
+        await deleteNotification(id);
+      } catch {
+        setNotifications((prev) => [...prev.slice(0, index), target, ...prev.slice(index)]);
+        if (!target.is_read) setUnreadCount((prev) => prev + 1);
+      }
     },
     [notifications],
   );
 
   const markAllRead = useCallback(async () => {
+    const previous = notifications;
+    const previousUnread = unreadCount;
     setNotifications((prev) => prev.map((n) => (n.is_read ? n : { ...n, is_read: true })));
     setUnreadCount(0);
-    await markAllNotificationsRead().catch(() => null);
-  }, []);
+    try {
+      await markAllNotificationsRead();
+    } catch {
+      setNotifications(previous);
+      setUnreadCount(previousUnread);
+    }
+  }, [notifications, unreadCount]);
 
   return {
     unreadCount,

@@ -72,7 +72,8 @@
     "invitedBy": "par {organizer}",
     "scheduleConflict": "Conflit d'horaire",
     "accept": "Accepter",
-    "decline": "Refuser"
+    "decline": "Refuser",
+    "respondFailed": "Impossible d'envoyer votre réponse. Réessayez."
   },
   "StudentHomeworkDashboard": {
     "homework": "Devoirs",
@@ -488,7 +489,8 @@
   "ArticleActionModals": {
     "saveChangesLabel": "Enregistrer les modifications",
     "deleteArticleTitle": "Supprimer l'article",
-    "deleteArticleDescription": "Supprimer « {title} » ? Cette action est irréversible."
+    "deleteArticleDescription": "Supprimer « {title} » ? Cette action est irréversible.",
+    "actionFailed": "Impossible d'effectuer cette action. Réessayez."
   },
   "ArticleFormModal": {
     "title": "Modifier l'article",
@@ -2195,7 +2197,8 @@
     "cannotReturnToDraft": "Impossible de repasser en brouillon",
     "noLongerRejected": "Ce cours n'est plus rejeté.",
     "currentStatus": "Statut actuel :",
-    "ok": "OK"
+    "ok": "OK",
+    "errorAction": "Impossible d'effectuer cette action. Réessayez."
   },
   "TeacherCourseCard": {
     "courseOptionsAriaLabel": "Options du cours",

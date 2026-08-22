@@ -72,7 +72,8 @@
     "invitedBy": "por {organizer}",
     "scheduleConflict": "Conflicto de horario",
     "accept": "Aceptar",
-    "decline": "Rechazar"
+    "decline": "Rechazar",
+    "respondFailed": "No se pudo enviar tu respuesta. Inténtalo de nuevo."
   },
   "StudentHomeworkDashboard": {
     "homework": "Tareas",
@@ -488,7 +489,8 @@
   "ArticleActionModals": {
     "saveChangesLabel": "Guardar cambios",
     "deleteArticleTitle": "Eliminar artículo",
-    "deleteArticleDescription": "¿Eliminar \"{title}\"? Esta acción no se puede deshacer."
+    "deleteArticleDescription": "¿Eliminar \"{title}\"? Esta acción no se puede deshacer.",
+    "actionFailed": "No se pudo completar la acción. Inténtalo de nuevo."
   },
   "ArticleFormModal": {
     "title": "Editar artículo",
@@ -2195,7 +2197,8 @@
     "cannotReturnToDraft": "No se puede volver a borrador",
     "noLongerRejected": "Este curso ya no está rechazado.",
     "currentStatus": "Estado actual:",
-    "ok": "Aceptar"
+    "ok": "Aceptar",
+    "errorAction": "No se pudo completar la acción. Inténtalo de nuevo."
   },
   "TeacherCourseCard": {
     "courseOptionsAriaLabel": "Opciones del curso",

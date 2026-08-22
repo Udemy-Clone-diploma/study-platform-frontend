@@ -53,18 +53,18 @@ export async function updateStudentProfile(data: Partial<StudentProfile>): Promi
   return response.data.profile as StudentProfile;
 }
 
+/**
+ * File uploads need far longer than the 10s default on `api`: a phone camera
+ * photo is several MB and routinely takes longer than that on mobile uplink.
+ */
+const UPLOAD_TIMEOUT_MS = 60000;
+
 export async function updateModeratorProfile(
   data: Partial<ModeratorProfile>,
 ): Promise<ModeratorProfile> {
   const response = await api.patch<UserData>("auth/me/profile/moderator/", data);
   return response.data.profile as ModeratorProfile;
 }
-
-/**
- * File uploads need far longer than the 10s default on `api`: a phone camera
- * photo is several MB and routinely takes longer than that on mobile uplink.
- */
-const UPLOAD_TIMEOUT_MS = 60000;
 
 export async function uploadAvatar(file: File): Promise<UserData> {
   const form = new FormData();

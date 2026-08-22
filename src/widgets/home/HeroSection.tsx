@@ -40,15 +40,12 @@ export async function HeroSection() {
             zIndex: 1,
           }}
         >
-          {/* Main content block */}
           <div
             style={{ display: "flex", flexDirection: "column", gap: "clamp(20px, 3.2vw, 46px)" }}
           >
-            {/* Tag + heading + rating */}
             <div
               style={{ display: "flex", flexDirection: "column", gap: "clamp(12px, 1.4vw, 20px)" }}
             >
-              {/* Tag pill */}
               <div
                 style={{
                   display: "inline-flex",
@@ -75,7 +72,6 @@ export async function HeroSection() {
                 ))}
               </div>
 
-              {/* H1 + subtitle */}
               <div
                 style={{
                   display: "flex",
@@ -109,7 +105,6 @@ export async function HeroSection() {
                 </p>
               </div>
 
-              {/* Rating */}
               <div
                 className="flex items-center justify-center lg:justify-start"
                 style={{ gap: "clamp(6px, 0.42vw, 8px)" }}
@@ -149,7 +144,6 @@ export async function HeroSection() {
               </div>
             </div>
 
-            {/* Button */}
             {!isTeacher && (
               <div className="self-center lg:self-start">
                 {isLoggedIn ? (
@@ -165,7 +159,6 @@ export async function HeroSection() {
             )}
           </div>
 
-          {/* Partners */}
           <div
             className="items-center lg:items-start"
             style={{ display: "flex", flexDirection: "column", gap: "clamp(10px, 1.04vw, 15px)" }}

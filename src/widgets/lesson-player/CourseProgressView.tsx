@@ -319,7 +319,6 @@ function ScoreBar({ percent, passing }: { percent: number; passing: number }) {
             className="h-full rounded-full bg-(--color-blue) transition-[width]"
             style={{ width: `${percent}%` }}
           />
-          {/* Passing-score threshold tick. */}
           <span
             aria-hidden="true"
             className="absolute top-1/2 h-3 w-0.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-(--color-text-primary)"

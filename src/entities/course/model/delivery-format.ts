@@ -18,14 +18,11 @@ export type CourseDeliveryFormat = {
   id: number;
   format_type: DeliveryFormatType;
   chat_id?: number | null;
-  // self_paced
   start_type: DeliveryStartType | null;
   course_start_date: string | null;
   access_duration_days: number | null;
-  // scheduled / group
   start_date: string | null;
   unlock_mode: DeliveryUnlockMode | null;
-  // individual
   max_students: number | null;
   enrolled_count: number;
   /** How many of the enrolled students have a CourseCompletion record for this course. */

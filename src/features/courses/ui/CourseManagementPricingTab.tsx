@@ -17,11 +17,7 @@ import {
   updateDeliveryFormat,
 } from "@/entities/course";
 
-// ── constants ──────────────────────────────────────────────────────────────
-
 const ALL_FORMATS: DeliveryFormatType[] = ["self_paced", "scheduled", "individual", "group"];
-
-// ── Shared field styles ────────────────────────────────────────────────────
 
 const FIELD_LABEL: React.CSSProperties = {
   fontFamily: "var(--font-base)",
@@ -56,8 +52,6 @@ const PILL_INPUT_READONLY: React.CSSProperties = {
   borderColor: "var(--color-border-light)",
   cursor: "default",
 };
-
-// ── InstallmentToggle ──────────────────────────────────────────────────────
 
 function InstallmentToggle({
   value,
@@ -94,8 +88,6 @@ function InstallmentToggle({
     </div>
   );
 }
-
-// ── PricingFields ──────────────────────────────────────────────────────────
 
 type PricingFieldsProps = {
   price: string;
@@ -171,8 +163,6 @@ function PricingFields({
     </div>
   );
 }
-
-// ── RemoveFormatModal ──────────────────────────────────────────────────────────
 
 function RemoveFormatModal({
   fmt,
@@ -274,8 +264,6 @@ function RemoveFormatModal({
     </ModalShell>
   );
 }
-
-// ── FormatCard ─────────────────────────────────────────────────────────────
 
 type FormatCardProps = {
   fmt: CourseDeliveryFormat;
@@ -528,8 +516,6 @@ function FormatCard({ fmt, slug, onUpdated, onDeleted }: FormatCardProps) {
   );
 }
 
-// ── AddFormatPanel ─────────────────────────────────────────────────────────
-
 type AddFormatPanelProps = {
   slug: string;
   existingTypes: DeliveryFormatType[];
@@ -735,8 +721,6 @@ function AddFormatPanel({ slug, existingTypes, onCreated, onClose }: AddFormatPa
   );
 }
 
-// ── IconBtn ────────────────────────────────────────────────────────────────
-
 function IconBtn({
   children,
   onClick,
@@ -777,8 +761,6 @@ function IconBtn({
     </button>
   );
 }
-
-// ── Main export ────────────────────────────────────────────────────────────
 
 /** Pricing & delivery format configuration tab for the teacher course management page. */
 export function CourseManagementPricingTab({

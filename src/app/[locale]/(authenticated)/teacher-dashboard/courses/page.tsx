@@ -6,6 +6,7 @@ import { useRouter } from "@/i18n/navigation";
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { MoreVertical, RotateCcw } from "lucide-react";
+import { apiErrorMessage } from "@/shared/api/lib/apiErrorMessage";
 import { useAutoRefresh } from "@/shared/lib/useAutoRefresh";
 import { ModalShell } from "@/shared/ui/ModalShell";
 import { AccentButton } from "@/shared/ui/AccentButton";
@@ -99,8 +100,6 @@ function getCourseMonthLabel(course: CourseListItem, locale: string): string {
 
 type PendingEditStatus = NonNullable<CourseListItem["pending_edit_status"]>;
 
-// ── Rejected courses grid ─────────────────────────────────────────────────────
-
 const LEVEL_GRADIENT_R: Record<CourseLevel, string> = {
   beginner: "var(--gradient-card-blue)",
   intermediate: "var(--gradient-card-yellow)",
@@ -191,7 +190,6 @@ function RejectedCourseCard({
         <div aria-hidden className="shrink-0" style={{ width: "clamp(24px, 2.5vw, 40px)" }} />
       </button>
 
-      {/* ⋮ context menu — absolutely positioned over the card's right spacer */}
       <div
         style={{
           position: "absolute",
@@ -269,8 +267,6 @@ function RejectedCourseCard({
   );
 }
 
-// ── Main page ─────────────────────────────────────────────────────────────────
-
 export default function TeacherCoursesPage() {
   const t = useTranslations("TeacherCoursesPage");
   const locale = useLocale();
@@ -282,6 +278,7 @@ export default function TeacherCoursesPage() {
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState<Tab>("all");
   const [statusError, setStatusError] = useState<{ currentStatus: string } | null>(null);
+  const [actionError, setActionError] = useState("");
 
   const refresh = useCallback(() => {
     Promise.all([getTeacherCourses(), getTeacherRejectionRecords()])
@@ -334,51 +331,31 @@ export default function TeacherCoursesPage() {
     }
   }
 
+  function runAction(op: Promise<unknown>) {
+    setActionError("");
+    return op.catch((e: unknown) => setActionError(apiErrorMessage(e, t("errorAction"))));
+  }
+
   function makeHandlers(course: CourseListItem) {
     const { slug } = course;
     return {
       onEdit: () => router.push(`/teacher-dashboard/courses/${slug}/edit`),
       onPublish: () =>
-        submitCourseForReview(slug)
-          .then(() => updateStatus(slug, "review"))
-          .catch(() => {}),
+        runAction(submitCourseForReview(slug).then(() => updateStatus(slug, "review"))),
       onWithdraw: () =>
-        withdrawCourseFromReview(slug)
-          .then(() => updateStatus(slug, "draft"))
-          .catch(() => {}),
-      onArchive: () =>
-        archiveCourse(slug)
-          .then(() => updateStatus(slug, "archived"))
-          .catch(() => {}),
-      onUnarchive: () =>
-        unarchiveCourse(slug)
-          .then(() => updateStatus(slug, "draft"))
-          .catch(() => {}),
-      onDelete: () =>
-        deleteCourse(slug)
-          .then(() => removeCourse(slug))
-          .catch(() => {}),
-      onHide: () =>
-        hideCourse(slug)
-          .then(() => updateStatus(slug, "hidden"))
-          .catch(() => {}),
-      onOpen: () =>
-        openCourse(slug)
-          .then(() => updateStatus(slug, "published"))
-          .catch(() => {}),
+        runAction(withdrawCourseFromReview(slug).then(() => updateStatus(slug, "draft"))),
+      onArchive: () => runAction(archiveCourse(slug).then(() => updateStatus(slug, "archived"))),
+      onUnarchive: () => runAction(unarchiveCourse(slug).then(() => updateStatus(slug, "draft"))),
+      onDelete: () => runAction(deleteCourse(slug).then(() => removeCourse(slug))),
+      onHide: () => runAction(hideCourse(slug).then(() => updateStatus(slug, "hidden"))),
+      onOpen: () => runAction(openCourse(slug).then(() => updateStatus(slug, "published"))),
       onEditChanges: () => router.push(`/teacher-dashboard/courses/${slug}/edit`),
       onSubmitChanges: () =>
-        submitPendingEdit(slug)
-          .then(() => updatePendingStatus(slug, "pending"))
-          .catch(() => {}),
+        runAction(submitPendingEdit(slug).then(() => updatePendingStatus(slug, "pending"))),
       onWithdrawEdit: () =>
-        withdrawPendingEdit(slug)
-          .then(() => updatePendingStatus(slug, "draft"))
-          .catch(() => {}),
+        runAction(withdrawPendingEdit(slug).then(() => updatePendingStatus(slug, "draft"))),
       onDiscardChanges: () =>
-        discardPendingEdit(slug)
-          .then(() => updatePendingStatus(slug, null))
-          .catch(() => {}),
+        runAction(discardPendingEdit(slug).then(() => updatePendingStatus(slug, null))),
     };
   }
 
@@ -439,7 +416,6 @@ export default function TeacherCoursesPage() {
   return (
     <PageShell className="bg-my-courses">
       <div style={{ maxWidth: "1648px", margin: "0 auto" }}>
-        {/* Tabs */}
         <nav
           aria-label={t("courseFilterAriaLabel")}
           className="-mx-4 flex items-center overflow-x-auto px-4 [-ms-overflow-style:none] [scrollbar-width:none] lg:mx-0 lg:flex-wrap lg:overflow-visible lg:px-0 [&::-webkit-scrollbar]:hidden"
@@ -470,6 +446,15 @@ export default function TeacherCoursesPage() {
             {addCourseButton}
           </div>
         ) : null}
+
+        {actionError && (
+          <p
+            role="alert"
+            className="mt-4 rounded-md bg-(--color-error-surface) px-4 py-2 text-sm font-medium text-(--color-danger)"
+          >
+            {actionError}
+          </p>
+        )}
 
         {loading ? (
           <p className="mt-16 text-center text-lg text-(--color-text-secondary)">{t("loading")}</p>

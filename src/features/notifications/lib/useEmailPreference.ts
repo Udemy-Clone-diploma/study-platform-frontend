@@ -27,13 +27,19 @@ export function useEmailPreference() {
   }, []);
 
   const toggle = useCallback(async () => {
+    const previous = emailEnabled;
     const next = !emailEnabled;
     setEmailEnabled(next);
     setSaving(true);
     const patch: Partial<Record<NotificationType, Partial<NotificationChannelPrefs>>> = {};
     for (const t of EMAIL_TYPES) patch[t] = { email: next };
-    await updateNotificationPreferences(patch).catch(() => null);
-    setSaving(false);
+    try {
+      await updateNotificationPreferences(patch);
+    } catch {
+      setEmailEnabled(previous);
+    } finally {
+      setSaving(false);
+    }
   }, [emailEnabled]);
 
   return { emailEnabled, saving, load, toggle };

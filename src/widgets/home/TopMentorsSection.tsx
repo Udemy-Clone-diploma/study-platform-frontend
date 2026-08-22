@@ -79,7 +79,6 @@ export function TopMentorsSection({ teachers }: Props) {
             paddingBottom: "6.25vw",
           }}
         >
-          {/* Left column */}
           <div
             style={{
               display: "flex",
@@ -88,7 +87,6 @@ export function TopMentorsSection({ teachers }: Props) {
               flex: 1,
             }}
           >
-            {/* EXPERTISE badge + heading + description */}
             <div
               className="w-full min-[1024px]:max-[1439px]:max-w-[max(420px,36.46vw)] min-[1440px]:max-w-[max(600px,36.46vw)]"
               style={{ display: "flex", flexDirection: "column", gap: "clamp(12px, 1.46vw, 21px)" }}
@@ -151,7 +149,6 @@ export function TopMentorsSection({ teachers }: Props) {
               </div>
             </div>
 
-            {/* Feature columns: Experience / Support / Practice */}
             <div
               className="flex flex-col items-center sm:flex-row sm:flex-wrap sm:items-start lg:items-start"
               style={{
@@ -191,7 +188,6 @@ export function TopMentorsSection({ teachers }: Props) {
             </div>
           </div>
 
-          {/* Right column */}
           <div
             style={{
               display: "flex",
@@ -234,7 +230,6 @@ export function TopMentorsSection({ teachers }: Props) {
                 </div>
               )}
 
-              {/* Incoming card  */}
               <div
                 key={`in-${current}`}
                 style={{

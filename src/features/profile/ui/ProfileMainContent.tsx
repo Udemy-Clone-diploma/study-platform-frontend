@@ -28,7 +28,6 @@ export function ProfileMainContent({
   const t = useTranslations("Profile");
   return (
     <div className="flex flex-col gap-6 lg:gap-[1.5vw]">
-      {/* Heading */}
       <div>
         <h1
           className="text-center lg:text-left"
@@ -60,7 +59,6 @@ export function ProfileMainContent({
         )}
       </div>
 
-      {/* Progress bar */}
       <div>
         <div
           className="mb-5 flex items-baseline justify-between lg:mb-[0.417vw]"
@@ -112,10 +110,8 @@ export function ProfileMainContent({
         </div>
       </div>
 
-      {/* Role-specific fields */}
       {children}
 
-      {/* Save button */}
       {editing && showSaveButton && (
         <div className="flex flex-col items-center gap-3 lg:items-start">
           {saveError && (

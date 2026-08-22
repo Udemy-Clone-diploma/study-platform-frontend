@@ -1,9 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { LoadingLogo } from "@/shared/ui/LoadingLogo";
+import { LoadingScreen } from "@/shared/ui/LoadingScreen";
 import { subscribePageLoading } from "@/shared/lib/pageLoadingSignal";
 
 const SHOW_DELAY = 150;
@@ -155,20 +154,5 @@ export function NavigationLoadingOverlay() {
 
   if (!visible) return null;
 
-  return (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden"
-      style={{ background: "var(--gradient-brand)" }}
-    >
-      <Image
-        src="/backgrounds/learn-page-bg.png"
-        alt=""
-        fill
-        sizes="100vw"
-        priority
-        className="object-cover"
-      />
-      <LoadingLogo />
-    </div>
-  );
+  return <LoadingScreen className="fixed inset-0 z-[100]" />;
 }

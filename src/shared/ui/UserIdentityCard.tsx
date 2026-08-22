@@ -129,7 +129,7 @@ export function UserIdentityCard({
       </div>
 
       <div className={`relative w-full min-w-0 ${compact ? "mt-4 sm:mt-6" : "mt-6"}`}>
-        {/* Невидимый текст всегда измеряется с базовым размером 40px */}
+        {/* Measured at the full PROFILE_CARD_NAME_SIZE so the shrink ratio is derived from the unconstrained width, not the already-fitted one. */}
         <span
           ref={measureRef}
           aria-hidden="true"

@@ -55,7 +55,6 @@ export function PasswordChangeModal({ onClose }: Props) {
   return (
     <ModalShell onClose={onClose} width="clamp(300px, 36vw, 520px)" maxHeight={undefined}>
       <div style={{ display: "flex", flexDirection: "column", gap: "clamp(20px, 1.667vw, 32px)" }}>
-        {/* Old Password */}
         <div style={{ display: "flex", flexDirection: "column", gap: "clamp(8px, 0.625vw, 12px)" }}>
           <span style={LABEL_STYLE}>{t("oldPassword")}</span>
           <div style={{ position: "relative" }}>
@@ -89,7 +88,6 @@ export function PasswordChangeModal({ onClose }: Props) {
           </div>
         </div>
 
-        {/* New Password */}
         <div style={{ display: "flex", flexDirection: "column", gap: "clamp(8px, 0.625vw, 12px)" }}>
           <span style={LABEL_STYLE}>{t("newPassword")}</span>
           <div style={{ position: "relative" }}>
@@ -135,7 +133,6 @@ export function PasswordChangeModal({ onClose }: Props) {
           </span>
         )}
 
-        {/* Save button */}
         <div style={{ display: "flex", justifyContent: "center", marginTop: "0.417vw" }}>
           <button
             type="button"

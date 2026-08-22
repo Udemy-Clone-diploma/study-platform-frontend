@@ -79,9 +79,7 @@ export function TeacherFields({
 
   return (
     <div className="flex flex-col gap-5 lg:gap-[1.25vw]">
-      {/* 3-column grid */}
       <div className={GRID_3_CLASS}>
-        {/* Row 1 */}
         <div className="order-1 lg:order-none">
           <ProfileField
             label={t("firstName")}
@@ -104,7 +102,6 @@ export function TeacherFields({
           <ProfileField label={t("email")} value={email} />
         </div>
 
-        {/* Row 2 */}
         <div className="order-2 lg:order-none">
           <ProfileField
             label={t("lastName")}
@@ -126,7 +123,6 @@ export function TeacherFields({
           <ProfileField label={t("dateOfRegistration")} value={formatDate(dateJoined, locale)} />
         </div>
 
-        {/* Row 3 */}
         <div className="order-3 lg:order-none">
           <ProfileField
             label={t("workExperience")}
@@ -144,7 +140,6 @@ export function TeacherFields({
           />
         </div>
 
-        {/* Password cell */}
         <div className="order-9 flex flex-col gap-1 lg:order-none lg:gap-[0.208vw]">
           {/* While editing the label is only a spacer keeping the desktop grid row aligned; on mobile it would just be dead space. */}
           <span
@@ -199,7 +194,6 @@ export function TeacherFields({
         </div>
       </div>
 
-      {/* Bio — full width below the grid */}
       <div style={{ display: "flex", flexDirection: "column", gap: FIELD_GAP }}>
         <span style={LABEL_STYLE}>{t("bio")}</span>
         {editing ? (

@@ -10,8 +10,6 @@ import type {
 } from "../model/schedule";
 import type { EnrolledStudent } from "../model/cohortGroup";
 
-// ── Individual delivery format schedule slots ─────────────────────────────────
-
 export async function getScheduleSlots(slug: string, formatId: number): Promise<ScheduleSlot[]> {
   const res = await api.get<ScheduleSlot[]>(
     `/courses/${slug}/delivery-formats/${formatId}/schedule-slots/`,
@@ -77,8 +75,6 @@ export async function updateEnrollmentPeriod(
   );
   return res.data;
 }
-
-// ── Cohort schedule entries ────────────────────────────────────────────────────
 
 export async function getCohortSchedules(
   slug: string,
@@ -188,8 +184,6 @@ export async function checkSlotRescheduleConflicts(
   );
   return res.data;
 }
-
-// ── Teacher unavailability ────────────────────────────────────────────────────
 
 export async function getTeacherUnavailabilities(): Promise<TeacherUnavailability[]> {
   const res = await api.get<TeacherUnavailability[]>("/teacher/unavailability/");

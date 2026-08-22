@@ -53,7 +53,6 @@ export function SidePanel({
           boxSizing: "border-box",
         }}
       >
-        {/* Header */}
         <div
           style={{
             display: "flex",
@@ -93,7 +92,6 @@ export function SidePanel({
           </button>
         </div>
 
-        {/* Content */}
         <div style={{ flex: 1, minHeight: 0 }}>{children}</div>
       </div>
     </aside>

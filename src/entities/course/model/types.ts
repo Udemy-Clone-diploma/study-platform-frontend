@@ -19,7 +19,6 @@ export type CourseLanguage = "english" | "ukrainian" | "spanish";
 export type CourseMode = "self_learning" | "with_teacher";
 export type CourseDeliveryType = "self_paced" | "scheduled" | "individual" | "group";
 export type CourseType = "profession" | "qualification" | "knowledge";
-export type CoursePricingType = "free" | "full_payment" | "installment";
 export type CourseStatus =
   | "draft"
   | "review"
@@ -90,15 +89,12 @@ type ItemStatusValue = "approved" | "rejected" | "needs_revision";
 type StepAction = "approved" | "needs_revision" | "rejected" | "";
 
 export type ModerationReview = {
-  // Step 1 — Basics
   basics_field_statuses: Record<string, ItemStatusValue>;
   basics_action: StepAction;
   basics_comment: string;
-  // Step 2 — Content
   content_item_statuses: Record<string, ItemStatusValue>;
   content_action: StepAction;
   content_comment: string;
-  // Step 3 — Review & Publish
   final_action: StepAction;
   final_comment: string;
   updated_at: string;

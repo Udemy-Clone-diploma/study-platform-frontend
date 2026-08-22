@@ -87,8 +87,6 @@ export default function EditCourseBasicsPage() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [generalError, setGeneralError] = useState("");
   const [form, setForm] = useState<CourseBasicsFormValues>(EMPTY_FORM);
-  /** True when editing a published course — saves go to the hidden draft course, not the live one. */
-  const [isPendingEditMode, setIsPendingEditMode] = useState(false);
   /** Pending edit is locked (submitted for moderation) — show read-only. */
   const [isLocked, setIsLocked] = useState(false);
   /** The slug every save targets: the live course's slug for a normal draft,
@@ -112,7 +110,6 @@ export default function EditCourseBasicsPage() {
     getCourseBySlug(slug)
       .then(async (course) => {
         const isPublished = PUBLISHED_STATUSES.has(course.status);
-        setIsPendingEditMode(isPublished);
 
         if (isPublished) {
           const pendingEdit = await getPendingEdit(slug);

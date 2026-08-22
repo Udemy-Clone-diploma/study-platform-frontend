@@ -7,8 +7,7 @@ import { getCalendarEvents, getIncomingInvitations, respondToInvitation } from "
 import type { CalendarDeadline, CalendarEvent } from "@/entities/course/model/calendar";
 import type { IncomingInvitation, InvitationConflict } from "@/entities/course/api/calendarApi";
 import { getWeekdayNames } from "@/shared/lib/time";
-
-// ── Helpers ──────────────────────────────────────────────────────────────────
+import { apiErrorMessage } from "@/shared/api/lib/apiErrorMessage";
 
 function pad(n: number) {
   return String(n).padStart(2, "0");
@@ -42,8 +41,6 @@ function upcomingWeekStarts(n: number): string[] {
     return toISO(d);
   });
 }
-
-// ── Visuals ───────────────────────────────────────────────────────────────────
 
 const GRADIENT = "linear-gradient(135deg, #a7bafa 0%, #fcc4c3 55%, #fff4da 100%)";
 // Fits 7 day-cells inside the dashboard's calendar column down to a 1024px viewport, unchanged above ~1259px.
@@ -84,8 +81,6 @@ function ChevRight() {
     />
   );
 }
-
-// ── Day cell ──────────────────────────────────────────────────────────────────
 
 function DeadlineDot() {
   return (
@@ -188,8 +183,6 @@ function DayCell({
   );
 }
 
-// ── Tab button ────────────────────────────────────────────────────────────────
-
 function TabBtn({
   active,
   onClick,
@@ -239,8 +232,6 @@ function TabBtn({
     </button>
   );
 }
-
-// ── Event card ────────────────────────────────────────────────────────────────
 
 function EventCard({ event, badge }: { event: CalendarEvent; badge?: string }) {
   const t = useTranslations("ScheduleRail");
@@ -302,8 +293,6 @@ function EventCard({ event, badge }: { event: CalendarEvent; badge?: string }) {
   );
 }
 
-// ── Deadline card ─────────────────────────────────────────────────────────────
-
 function DeadlineCard({ deadline, badge }: { deadline: CalendarDeadline; badge?: string }) {
   const t = useTranslations("ScheduleRail");
   return (
@@ -322,8 +311,6 @@ function DeadlineCard({ deadline, badge }: { deadline: CalendarDeadline; badge?:
   );
 }
 
-// ── Invitation card ───────────────────────────────────────────────────────────
-
 function conflictLabel(c: InvitationConflict, t: (key: string) => string): string {
   const prefix =
     c.type === "session"
@@ -337,15 +324,18 @@ function conflictLabel(c: InvitationConflict, t: (key: string) => string): strin
 function InvitationCard({ inv, onRespond }: { inv: IncomingInvitation; onRespond: () => void }) {
   const t = useTranslations("ScheduleRail");
   const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
 
   const hasConflicts = inv.conflicts.length > 0;
 
   async function respond(action: "accept" | "decline") {
     setBusy(true);
+    setErr("");
     try {
       await respondToInvitation(inv.id, action);
       onRespond();
-    } catch {
+    } catch (e) {
+      setErr(apiErrorMessage(e, t("respondFailed")));
     } finally {
       setBusy(false);
     }
@@ -401,11 +391,15 @@ function InvitationCard({ inv, onRespond }: { inv: IncomingInvitation; onRespond
           {t("decline")}
         </button>
       </div>
+
+      {err && (
+        <p role="alert" className="mt-2 text-[11px] font-medium text-(--color-danger)">
+          {err}
+        </p>
+      )}
     </div>
   );
 }
-
-// ── Main ──────────────────────────────────────────────────────────────────────
 
 type Tab = "day" | "upcoming" | "invitations";
 
@@ -435,7 +429,6 @@ export function ScheduleRail() {
   const [loading, setLoading] = useState(false);
   const [invitations, setInvitations] = useState<IncomingInvitation[]>([]);
 
-  // 35- or 42-cell grid
   const days = useMemo(() => {
     const first = new Date(viewMonth.getFullYear(), viewMonth.getMonth(), 1);
     const daysInMonth = new Date(viewMonth.getFullYear(), viewMonth.getMonth() + 1, 0).getDate();
@@ -449,7 +442,6 @@ export function ScheduleRail() {
     });
   }, [viewMonth]);
 
-  // Fetch weeks covering the visible month grid
   const fetchMonth = useCallback(async (grid: Date[]) => {
     const weekStarts = weekStartsForGrid(grid);
     setLoading(true);
@@ -499,9 +491,8 @@ export function ScheduleRail() {
       setEventMap((prev) => ({ ...prev, ...merged }));
       setDeadlineMap((prev) => ({ ...prev, ...mergedDeadlines }));
     });
-  }, []); // once on mount
+  }, []);
 
-  // Fetch pending invitations
   function loadInvitations() {
     getIncomingInvitations()
       .then((data) => setInvitations(data.filter((i) => i.status === "pending")))
@@ -549,12 +540,10 @@ export function ScheduleRail() {
 
   return (
     <aside className="flex h-[620px] flex-col rounded-xl gap-4 bg-[linear-gradient(180deg,#fff4da_0%,#fcc4c3_45%,#a7bafa_100%)] lg:h-[var(--schedule-height,calc(100vh-76px))]">
-      {/* ── Calendar card ── */}
       <div
         className="shrink-0 rounded-xl bg-[#fafafa] shadow-[0px_0px_17px_rgba(0,0,0,0.16)]"
         style={{ padding: CARD_PADDING }}
       >
-        {/* Month nav */}
         <div className="mb-4 flex items-center justify-between">
           <button
             type="button"
@@ -577,7 +566,6 @@ export function ScheduleRail() {
           </button>
         </div>
 
-        {/* Day grid */}
         <div className="grid grid-cols-7 gap-y-3 text-center">
           {weekDays.map((d, i) => (
             <span
@@ -615,7 +603,6 @@ export function ScheduleRail() {
         )}
       </div>
 
-      {/* ── Tabs ── */}
       <div className="shrink-0 flex flex-wrap gap-1.5 px-4">
         <TabBtn active={tab === "day"} onClick={() => setTab("day")}>
           {dayLabel}
@@ -632,7 +619,6 @@ export function ScheduleRail() {
         </TabBtn>
       </div>
 
-      {/* ── Content ── */}
       <div
         className="mx-2 mb-4 flex min-h-[180px] flex-1 flex-col gap-2 overflow-y-auto rounded-2xl   p-3 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/50"
         style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(255,255,255,0.5) transparent" }}

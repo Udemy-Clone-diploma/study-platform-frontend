@@ -69,7 +69,6 @@ export async function CategoriesSection() {
 
   return (
     <section style={{ position: "relative", overflow: "hidden" }}>
-      {/* left sphere */}
       <Image
         src="/backgrounds/00 3.svg"
         alt=""
@@ -88,7 +87,6 @@ export async function CategoriesSection() {
         }}
       />
 
-      {/* right sphere */}
       <Image
         src="/backgrounds/00 2.svg"
         alt=""
@@ -108,7 +106,6 @@ export async function CategoriesSection() {
       />
 
       <SectionContainer style={{ position: "relative", zIndex: 1, paddingBottom: "6vw" }}>
-        {/* Header */}
         <div
           className="flex flex-col items-start lg:flex-row lg:items-end lg:justify-between"
           style={{
@@ -173,7 +170,6 @@ export async function CategoriesSection() {
           <div className="hidden lg:block">{toCatalogButton}</div>
         </div>
 
-        {/* Staggered grid */}
         <div style={{ display: "flex", flexDirection: "column", gap: "clamp(16px, 2.08vw, 30px)" }}>
           <div
             className="flex flex-wrap justify-center lg:flex-nowrap lg:justify-start"

@@ -27,8 +27,6 @@ import { CompletionBadge } from "@/features/courses/ui/CourseManagementStudentsB
 import { CourseConfirmModal } from "@/features/courses/ui/CourseConfirmModal";
 import type { ApiError } from "@/shared/api/base";
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
 function formatEntryDate(iso: string): string {
   const d = new Date(iso);
   return [
@@ -43,8 +41,6 @@ type Translator = (key: string, values?: Record<string, string | number>) => str
 function cohortLabel(cohort: CourseCohort, index: number, t: Translator): string {
   return cohort.name ?? t("groupFallback", { number: index + 1 });
 }
-
-// ── Page ──────────────────────────────────────────────────────────────────────
 
 const ALL_COURSES = "__all__";
 const ALL_FORMATS = "__all__";
@@ -177,7 +173,6 @@ export default function TeacherStudentsPage() {
     formats.find((f) => String(f.id) === selectedFormat)?.format_type ?? null;
   const isGroupFormat = selectedFormatType === "group";
 
-  // enrollment_id → cohort label
   const enrollmentToGroup = useMemo<Map<number, string>>(() => {
     const map = new Map<number, string>();
     cohorts.forEach((c, idx) => {
@@ -194,8 +189,6 @@ export default function TeacherStudentsPage() {
     if (!cohort) return null;
     return new Set((cohort.members ?? []).map((m) => m.enrollment_id));
   }, [cohorts, selectedGroup, isGroupFormat]);
-
-  // ── Options ──────────────────────────────────────────────────────────────────
 
   const courseOptions = [
     { value: ALL_COURSES, label: tCommon("allCourses") },
@@ -217,8 +210,6 @@ export default function TeacherStudentsPage() {
       label: cohortLabel(c, idx, tStudentsPanel),
     })),
   ];
-
-  // ── Handlers ─────────────────────────────────────────────────────────────────
 
   function handleCourseChange(slug: string) {
     // Reset child selections synchronously so the effect fires with clean state
@@ -257,8 +248,6 @@ export default function TeacherStudentsPage() {
       setCompleting(false);
     }
   }
-
-  // ── Derived ──────────────────────────────────────────────────────────────────
 
   const filtered = students.filter((s) => {
     if (groupMemberIds && !groupMemberIds.has(s.enrollment_id)) return false;
@@ -374,8 +363,6 @@ export default function TeacherStudentsPage() {
       ? t("noStudentsEnrolledYet")
       : t("noStudentsInThisCourse");
 
-  // ── Render ───────────────────────────────────────────────────────────────────
-
   return (
     <PageShell className="bg-my-courses" fixedHeight>
       <div
@@ -389,12 +376,10 @@ export default function TeacherStudentsPage() {
           minHeight: 0,
         }}
       >
-        {/* Top bar */}
         <div
           className="flex flex-wrap items-center justify-between gap-4 shrink-0"
           style={{ marginBottom: "clamp(16px, 1.67vw, 24px)" }}
         >
-          {/* Left: title + dropdowns */}
           <div className="flex flex-wrap items-center" style={{ gap: "clamp(12px, 1.67vw, 24px)" }}>
             <h1
               className="font-semibold text-(--color-text-primary)"
@@ -407,7 +392,6 @@ export default function TeacherStudentsPage() {
               {tSidebar("students")}
             </h1>
 
-            {/* Course */}
             <PillSelect
               value={selectedCourse}
               options={courseOptions}
@@ -445,7 +429,6 @@ export default function TeacherStudentsPage() {
             )}
           </div>
 
-          {/* Right: search */}
           <label
             className="flex cursor-text items-center gap-2 bg-white"
             style={{
@@ -493,7 +476,6 @@ export default function TeacherStudentsPage() {
           </p>
         )}
 
-        {/* Table */}
         <DataTable<EnrolledStudent>
           columns={columns}
           rows={filtered}

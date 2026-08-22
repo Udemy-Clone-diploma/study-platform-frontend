@@ -100,7 +100,6 @@ export function ModuleCard({
         padding: "clamp(14px, 1.04vw, 20px) clamp(16px, 1.25vw, 24px)",
       }}
     >
-      {/* Header row */}
       <div className="flex items-center justify-between" style={{ gap: 8 }}>
         <div className="flex min-w-0 items-center" style={{ gap: 8 }}>
           <span style={{ ...metaSt, color: "var(--color-text-secondary)", flexShrink: 0 }}>
@@ -149,7 +148,6 @@ export function ModuleCard({
         </button>
       </div>
 
-      {/* Edit / delete */}
       <div className="flex items-center" style={{ gap: 8, marginTop: 8 }}>
         <button
           type="button"
@@ -185,7 +183,6 @@ export function ModuleCard({
         </button>
       </div>
 
-      {/* Expanded content */}
       {open && (
         <div
           style={{

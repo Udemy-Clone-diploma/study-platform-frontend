@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { BookOpen, Check, ChevronDown, Clock, User, Users } from "lucide-react";
-// ChevronDown used inside CohortPicker and IndividualSlotPicker collapsible headers
 import { addCartItem } from "@/entities/cart";
 import type {
   DeliveryFormatType,
@@ -190,7 +189,6 @@ function IndividualSlotPicker({
       .finally(() => setLoading(false));
   }, [slug, formatId]);
 
-  // Group by day_of_week, sorted Mon→Sun
   const byDay = slots.reduce<Record<number, ScheduleSlot[]>>((acc, s) => {
     (acc[s.day_of_week] ??= []).push(s);
     return acc;

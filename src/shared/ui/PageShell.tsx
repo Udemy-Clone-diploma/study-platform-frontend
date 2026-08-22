@@ -1,11 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
 
-/** Left/right gap between the sidebar and page content, shared by every main dashboard page. */
-export const SIDEBAR_GAP = "clamp(40px, calc(-110px + 10.42vw), 90px)";
-/** Top/bottom padding shared by every main dashboard page. */
-export const PAGE_PADDING_TOP = "clamp(16px, 3.06vw, 44px)";
-export const PAGE_PADDING_BOTTOM = PAGE_PADDING_TOP;
-
 type PageShellProps = {
   children: ReactNode;
   className?: string;

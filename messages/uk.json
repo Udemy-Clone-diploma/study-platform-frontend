@@ -72,7 +72,8 @@
     "invitedBy": "від {organizer}",
     "scheduleConflict": "Конфлікт розкладу",
     "accept": "Прийняти",
-    "decline": "Відхилити"
+    "decline": "Відхилити",
+    "respondFailed": "Не вдалося надіслати відповідь. Спробуйте ще раз."
   },
   "StudentHomeworkDashboard": {
     "homework": "Домашні завдання",
@@ -488,7 +489,8 @@
   "ArticleActionModals": {
     "saveChangesLabel": "Зберегти зміни",
     "deleteArticleTitle": "Видалити статтю",
-    "deleteArticleDescription": "Видалити «{title}»? Це неможливо скасувати."
+    "deleteArticleDescription": "Видалити «{title}»? Це неможливо скасувати.",
+    "actionFailed": "Не вдалося виконати дію. Спробуйте ще раз."
   },
   "ArticleFormModal": {
     "title": "Редагувати статтю",
@@ -2195,7 +2197,8 @@
     "cannotReturnToDraft": "Неможливо повернути в чернетки",
     "noLongerRejected": "Цей курс більше не відхилений.",
     "currentStatus": "Поточний статус:",
-    "ok": "OK"
+    "ok": "OK",
+    "errorAction": "Не вдалося виконати дію. Спробуйте ще раз."
   },
   "TeacherCourseCard": {
     "courseOptionsAriaLabel": "Опції курсу",

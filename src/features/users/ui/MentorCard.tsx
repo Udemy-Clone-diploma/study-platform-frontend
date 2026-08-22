@@ -31,7 +31,6 @@ export function MentorCard({ mentor, current, total, onPrev, onNext, onInfoClick
         flexShrink: 0,
       }}
     >
-      {/* Photo card */}
       <div
         style={{
           position: "relative",
@@ -42,7 +41,6 @@ export function MentorCard({ mentor, current, total, onPrev, onNext, onInfoClick
           flexShrink: 0,
         }}
       >
-        {/* Background photo */}
         {mentor.image ? (
           <Image
             src={mentor.image}
@@ -62,7 +60,6 @@ export function MentorCard({ mentor, current, total, onPrev, onNext, onInfoClick
           />
         )}
 
-        {/* Role badge*/}
         {mentor.role && (
           <div
             style={{
@@ -93,7 +90,6 @@ export function MentorCard({ mentor, current, total, onPrev, onNext, onInfoClick
           </div>
         )}
 
-        {/* Click zones */}
         <div
           style={{
             position: "absolute",
@@ -119,7 +115,6 @@ export function MentorCard({ mentor, current, total, onPrev, onNext, onInfoClick
           onClick={onNext}
         />
 
-        {/* Bottom section: progress bar + gradient info panel */}
         <div
           style={{
             position: "absolute",
@@ -132,7 +127,6 @@ export function MentorCard({ mentor, current, total, onPrev, onNext, onInfoClick
             flexDirection: "column",
           }}
         >
-          {/* Progress bar */}
           <div
             style={{
               display: "flex",

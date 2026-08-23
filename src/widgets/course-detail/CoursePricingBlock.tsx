@@ -303,9 +303,6 @@ export function CoursePricingBlock({ courseId, formats, slug, cohorts = [], disc
   const today = getLocalIsoDate();
   const pricedFormats = formats.filter((f) => f.pricing);
 
-  const isEnrollmentClosed = (fmt: PublicCourseDeliveryFormat) =>
-    !!fmt.enrollment_deadline && fmt.enrollment_deadline < today;
-
   const getAvailableCohorts = (formatId: number) =>
     cohorts.filter(
       (c) =>
@@ -427,9 +424,6 @@ export function CoursePricingBlock({ courseId, formats, slug, cohorts = [], disc
           const isGroup = fmt.format_type === "group";
           const isIndividual = fmt.format_type === "individual";
           const availableCohorts = isGroup ? getAvailableCohorts(fmt.id) : [];
-
-          // Hide when enrollment deadline has passed (teacher closed enrollment)
-          if (isEnrollmentClosed(fmt)) return null;
 
           // Hide group card when every cohort is full / closed
           if (isGroup && availableCohorts.length === 0) return null;

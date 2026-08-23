@@ -81,7 +81,6 @@ function FormatStatsBar({ fmt, slug, course, slotsKey, onMemberCompleted, onMemb
 
   if (fmt.start_date)          extras.push({ label: t("starts"),   value: fmtDate(fmt.start_date) });
   if (fmt.course_start_date)   extras.push({ label: t("starts"),   value: fmtDate(fmt.course_start_date) });
-  if (fmt.enrollment_deadline) extras.push({ label: t("enrollBy"), value: fmtDate(fmt.enrollment_deadline) });
   if (fmt.access_duration_days != null)
     extras.push({ label: t("access"), value: t("daysCount", { count: fmt.access_duration_days }) });
   else if (fmt.format_type === "self_paced")

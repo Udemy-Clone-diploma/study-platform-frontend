@@ -2,10 +2,7 @@ import { api } from "@/shared/api/base";
 
 const TEACHER_FINANCE_ENDPOINT = "teacher/finance/";
 
-export type TeacherFinanceCurrency =
-  | "UAH"
-  | "USD"
-  | "EUR";
+export type TeacherFinanceCurrency = "USD";
 
 export type TeacherFinanceBalance = {
   currency: TeacherFinanceCurrency;
@@ -115,23 +112,16 @@ export type PaginatedResponse<T> = {
   results: T[];
 };
 
-export async function getTeacherFinanceBalance(
-  currency: TeacherFinanceCurrency = "UAH",
-): Promise<TeacherFinanceBalance> {
+export async function getTeacherFinanceBalance(): Promise<TeacherFinanceBalance> {
   const { data } =
     await api.get<TeacherFinanceBalance>(
       `${TEACHER_FINANCE_ENDPOINT}balance/`,
-      {
-        params: { currency },
-      },
     );
 
   return data;
 }
 
-export async function getTeacherFinanceLedger(
-  currency: TeacherFinanceCurrency = "UAH",
-): Promise<PaginatedResponse<TeacherLedgerEntry>> {
+export async function getTeacherFinanceLedger(): Promise<PaginatedResponse<TeacherLedgerEntry>> {
   const { data } =
     await api.get<
       PaginatedResponse<TeacherLedgerEntry>
@@ -139,7 +129,6 @@ export async function getTeacherFinanceLedger(
       `${TEACHER_FINANCE_ENDPOINT}ledger/`,
       {
         params: {
-          currency,
           page_size: 100,
         },
       },
@@ -148,9 +137,7 @@ export async function getTeacherFinanceLedger(
   return data;
 }
 
-export async function getTeacherFinancePayouts(
-  currency: TeacherFinanceCurrency = "UAH",
-): Promise<
+export async function getTeacherFinancePayouts(): Promise<
   PaginatedResponse<TeacherFinancePayout>
 > {
   const { data } =
@@ -160,7 +147,6 @@ export async function getTeacherFinancePayouts(
       `${TEACHER_FINANCE_ENDPOINT}payouts/`,
       {
         params: {
-          currency,
           page_size: 100,
         },
       },

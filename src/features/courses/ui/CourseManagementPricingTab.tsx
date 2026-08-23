@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { ChevronDown, X, Check, Lock, LockOpen } from "lucide-react";
+import { X, Check } from "lucide-react";
 import { AddButton } from "@/shared/ui/AddButton";
 import { ModalShell } from "@/shared/ui/ModalShell";
 import type { CourseDetail } from "@/entities/course";
@@ -20,20 +20,6 @@ import {
 // ── constants ──────────────────────────────────────────────────────────────
 
 const ALL_FORMATS: DeliveryFormatType[] = ["self_paced", "scheduled", "individual", "group"];
-const CURRENCY_OPTIONS: Array<{ value: "USD" | "EUR" | "UAH"; label: string }> = [
-  { value: "USD", label: "USD" },
-  { value: "EUR", label: "EUR" },
-  { value: "UAH", label: "UAH" },
-];
-
-function getLocalIsoDate(offsetDays = 0): string {
-  const date = new Date();
-  date.setDate(date.getDate() + offsetDays);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
 
 // ── Shared field styles ────────────────────────────────────────────────────
 
@@ -71,54 +57,6 @@ const PILL_INPUT_READONLY: React.CSSProperties = {
   cursor: "default",
 };
 
-// ── CurrencySelect ─────────────────────────────────────────────────────────
-
-function CurrencySelect({
-  value,
-  onChange,
-}: {
-  value: "USD" | "EUR" | "UAH";
-  onChange: (v: "USD" | "EUR" | "UAH") => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function onOutside(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener("mousedown", onOutside);
-    return () => document.removeEventListener("mousedown", onOutside);
-  }, []);
-
-  return (
-    <div ref={ref} style={{ position: "relative", width: 110 }}>
-      <button
-        type="button"
-        onClick={() => setOpen(o => !o)}
-        style={{ ...PILL_INPUT, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}
-      >
-        <span>{value}</span>
-        <ChevronDown size={13} style={{ flexShrink: 0, transform: open ? "rotate(180deg)" : "none", transition: "transform 0.15s" }} />
-      </button>
-      {open && (
-        <div style={{ position: "absolute", top: "calc(100% + 6px)", left: 0, right: 0, zIndex: 100, background: "#fff", borderRadius: 14, padding: "8px 0", boxShadow: "var(--shadow-card)", border: "1px solid var(--color-border-light)" }}>
-          {CURRENCY_OPTIONS.map(opt => (
-            <button
-              key={opt.value}
-              type="button"
-              onClick={() => { onChange(opt.value); setOpen(false); }}
-              style={{ display: "block", width: "100%", background: "none", border: "none", padding: "6px 16px", cursor: "pointer", textAlign: "left", fontFamily: "var(--font-base)", fontSize: "clamp(13px, 1.04vw, 15px)", color: opt.value === value ? "var(--color-blue)" : "var(--color-text-primary)", fontWeight: opt.value === value ? 600 : 400 }}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ── InstallmentToggle ──────────────────────────────────────────────────────
 
 function InstallmentToggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
@@ -151,7 +89,7 @@ function InstallmentToggle({ value, onChange }: { value: boolean; onChange: (v: 
 
 type PricingFieldsProps = {
   price: string;
-  currency: "USD" | "EUR" | "UAH";
+  currency: "USD";
   installments: boolean;
   installmentCount: string;
   installmentAmount: string;
@@ -177,7 +115,7 @@ function PricingFields({
         </div>
         <div style={{ paddingBottom: 0 }}>
           <label style={FIELD_LABEL}>{t("currency")}</label>
-          <CurrencySelect value={currency} onChange={v => onChange("currency", v)} />
+          <input value={currency} readOnly aria-label={t("currency")} style={{ ...PILL_INPUT_READONLY, width: 110 }} />
         </div>
       </div>
 
@@ -216,12 +154,10 @@ function PricingFields({
 function RemoveFormatModal({
   fmt,
   onDelete,
-  onCloseEnrollment,
   onCancel,
 }: {
   fmt: CourseDeliveryFormat;
   onDelete: () => Promise<void>;
-  onCloseEnrollment: () => Promise<void>;
   onCancel: () => void;
 }) {
   const t = useTranslations("CourseManagementPricingTab");
@@ -234,11 +170,7 @@ function RemoveFormatModal({
     setBusy(true);
     setError(null);
     try {
-      if (hasStudents) {
-        await onCloseEnrollment();
-      } else {
-        await onDelete();
-      }
+      await onDelete();
     } catch (err: unknown) {
       setError((err as { message?: string })?.message ?? t("errorGeneric"));
     } finally {
@@ -278,12 +210,14 @@ function RemoveFormatModal({
         >
           {t("cancel")}
         </button>
-        <button
-          type="button" onClick={handleAction} disabled={busy}
-          style={{ ...BTN_BASE, background: "var(--color-text-primary)", color: "#fff" }}
-        >
-          {busy ? t("saving") : hasStudents ? t("closeEnrollment") : t("remove")}
-        </button>
+        {!hasStudents && (
+          <button
+            type="button" onClick={handleAction} disabled={busy}
+            style={{ ...BTN_BASE, background: "var(--color-text-primary)", color: "#fff" }}
+          >
+            {busy ? t("saving") : t("remove")}
+          </button>
+        )}
       </div>
     </ModalShell>
   );
@@ -304,28 +238,10 @@ function FormatCard({ fmt, slug, onUpdated, onDeleted }: FormatCardProps) {
   const [saving, setSaving]     = useState(false);
   const [error, setError]       = useState<string | null>(null);
   const [showRemoveModal, setShowRemoveModal] = useState(false);
-  const [toggling, setToggling] = useState(false);
-  const [enrollmentDeadline, setEnrollmentDeadline] = useState(fmt.enrollment_deadline ?? "");
-
-  const today   = getLocalIsoDate();
-  const isClosed = !!fmt.enrollment_deadline && fmt.enrollment_deadline < today;
   const isFull   = fmt.max_students != null && fmt.enrolled_count >= fmt.max_students;
 
-  async function handleToggleEnrollment() {
-    setToggling(true);
-    try {
-      const updated = await updateDeliveryFormat(slug, fmt.id, {
-        enrollment_deadline: isClosed ? null : getLocalIsoDate(-1),
-      });
-      setEnrollmentDeadline(updated.enrollment_deadline ?? "");
-      onUpdated(updated);
-    } finally {
-      setToggling(false);
-    }
-  }
-
   const [price, setPrice]                         = useState(fmt.pricing?.price ?? "");
-  const [currency, setCurrency]                   = useState<"USD"|"EUR"|"UAH">(fmt.pricing?.currency ?? "USD");
+  const currency = "USD" as const;
   const [installments, setInstallments]           = useState(fmt.pricing?.installment_count != null);
   const [installmentCount, setInstallmentCount]   = useState(String(fmt.pricing?.installment_count ?? ""));
   const [installmentAmount, setInstallmentAmount] = useState(fmt.pricing?.installment_amount ?? "");
@@ -338,8 +254,6 @@ function FormatCard({ fmt, slug, onUpdated, onDeleted }: FormatCardProps) {
         const count = Number(installmentCount);
         if (count >= 2) setInstallmentAmount((Number(value) / count).toFixed(2));
       }
-    } else if (key === "currency") {
-      setCurrency(value as "USD"|"EUR"|"UAH");
     } else if (key === "installments") {
       setInstallments(value as boolean);
     } else if (key === "installmentCount") {
@@ -364,9 +278,6 @@ function FormatCard({ fmt, slug, onUpdated, onDeleted }: FormatCardProps) {
       if (fmt.format_type === "individual") {
         payload.max_students = maxStudents.trim() !== "" ? Number(maxStudents) : null;
       }
-      if (fmt.format_type === "group") {
-        payload.enrollment_deadline = enrollmentDeadline || null;
-      }
       const updated = await updateDeliveryFormat(slug, fmt.id, payload);
       onUpdated(updated);
       setEditing(false);
@@ -382,15 +293,6 @@ function FormatCard({ fmt, slug, onUpdated, onDeleted }: FormatCardProps) {
     onDeleted(fmt.id);
   }
 
-  async function handleCloseEnrollment() {
-    const updated = await updateDeliveryFormat(slug, fmt.id, {
-      enrollment_deadline: getLocalIsoDate(-1),
-    });
-    setEnrollmentDeadline(updated.enrollment_deadline ?? "");
-    onUpdated(updated);
-    setShowRemoveModal(false);
-  }
-
   return (
     <div style={{ background: "#fff", border: "1.5px solid var(--color-border-light)", borderRadius: 16, padding: "clamp(16px, 1.25vw, 22px)", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: editing ? 16 : 0 }}>
@@ -399,11 +301,11 @@ function FormatCard({ fmt, slug, onUpdated, onDeleted }: FormatCardProps) {
             <span style={{ fontFamily: "var(--font-base)", fontWeight: 700, fontSize: "clamp(14px, 0.94vw, 17px)", color: "var(--color-text-primary)" }}>
               {t(`formatLabel.${fmt.format_type}`)}
             </span>
-            {!editing && (() => {
-              const label = isFull ? t("statusFull") : isClosed ? t("statusClosed") : t("statusOpen");
-              const color = isFull ? "var(--color-text-muted)" : isClosed ? "var(--color-rejected)" : "var(--color-success)";
-              const bg    = isFull ? "var(--color-bg)" : isClosed ? "#fff3f3" : "#f0faf0";
-              const bdr   = isFull ? "var(--color-border-light)" : isClosed ? "#ffc5c5" : "#b8e6b8";
+            {!editing && fmt.format_type === "individual" && (() => {
+              const label = isFull ? t("statusFull") : t("statusOpen");
+              const color = isFull ? "var(--color-text-muted)" : "var(--color-success)";
+              const bg    = isFull ? "var(--color-bg)" : "#f0faf0";
+              const bdr   = isFull ? "var(--color-border-light)" : "#b8e6b8";
               return (
                 <span style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(10px, 0.63vw, 12px)", color, background: bg, border: `1px solid ${bdr}`, borderRadius: 999, padding: "2px 10px" }}>
                   {label}
@@ -419,22 +321,12 @@ function FormatCard({ fmt, slug, onUpdated, onDeleted }: FormatCardProps) {
               {fmt.format_type === "individual" && fmt.max_students != null && (
                 <span style={{ marginLeft: 8 }}>&middot; {t("spotsCount", { count: fmt.max_students })}</span>
               )}
-              {fmt.format_type === "group" && fmt.enrollment_deadline && (
-                <span style={{ marginLeft: 8, color: isClosed ? "var(--color-rejected)" : undefined }}>&middot; {t("deadline", { date: fmt.enrollment_deadline })}</span>
-              )}
             </div>
           )}
         </div>
         <div style={{ display: "flex", gap: 6 }}>
           {!editing ? (
             <>
-              <IconBtn
-                onClick={handleToggleEnrollment}
-                title={isFull ? t("formatIsFull") : isClosed ? t("reopenEnrollment") : t("closeEnrollment")}
-                disabled={toggling || isFull}
-              >
-                {isClosed ? <LockOpen size={14} /> : <Lock size={14} />}
-              </IconBtn>
               <IconBtn onClick={() => setEditing(true)} title={t("editPricing")}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -479,20 +371,6 @@ function FormatCard({ fmt, slug, onUpdated, onDeleted }: FormatCardProps) {
               />
             </div>
           )}
-          {fmt.format_type === "group" && (
-            <div className="mt-3 max-w-xs">
-              <label style={FIELD_LABEL}>{t("enrollmentDeadline")}</label>
-              <input
-                type="date"
-                value={enrollmentDeadline}
-                onChange={e => setEnrollmentDeadline(e.target.value)}
-                style={PILL_INPUT}
-              />
-              <p className="mt-1.5 mb-0 font-(family-name:--font-base) text-xs text-(--color-text-muted)">
-                {t("enrollmentDeadlineHint")}
-              </p>
-            </div>
-          )}
           {error && (
             <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.72vw, 13px)", color: "var(--color-rejected)", marginTop: 8, marginBottom: 0 }}>
               {error}
@@ -505,7 +383,6 @@ function FormatCard({ fmt, slug, onUpdated, onDeleted }: FormatCardProps) {
         <RemoveFormatModal
           fmt={fmt}
           onDelete={handleDelete}
-          onCloseEnrollment={handleCloseEnrollment}
           onCancel={() => setShowRemoveModal(false)}
         />
       )}
@@ -527,15 +404,13 @@ function AddFormatPanel({ slug, existingTypes, onCreated, onClose }: AddFormatPa
   const available = ALL_FORMATS.filter(f => !existingTypes.includes(f));
   const [selected, setSelected]                   = useState<DeliveryFormatType>(available[0] ?? "self_paced");
   const [price, setPrice]                         = useState("");
-  const [currency, setCurrency]                   = useState<"USD"|"EUR"|"UAH">("USD");
+  const currency = "USD" as const;
   const [installments, setInstallments]           = useState(false);
   const [installmentCount, setInstallmentCount]   = useState("");
   const [installmentAmount, setInstallmentAmount] = useState("");
-  const [enrollmentDeadline, setEnrollmentDeadline] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError]   = useState<string | null>(null);
-  const isGroupDeadlineMissing = selected === "group" && !enrollmentDeadline;
-  const createDisabled = saving || isGroupDeadlineMissing;
+  const createDisabled = saving;
 
   function handleChange(key: string, value: string | boolean) {
     if (key === "price") {
@@ -544,8 +419,6 @@ function AddFormatPanel({ slug, existingTypes, onCreated, onClose }: AddFormatPa
         const count = Number(installmentCount);
         if (count >= 2) setInstallmentAmount((Number(value) / count).toFixed(2));
       }
-    } else if (key === "currency") {
-      setCurrency(value as "USD"|"EUR"|"UAH");
     } else if (key === "installments") {
       setInstallments(value as boolean);
     } else if (key === "installmentCount") {
@@ -561,9 +434,6 @@ function AddFormatPanel({ slug, existingTypes, onCreated, onClose }: AddFormatPa
     try {
       const payload: CourseDeliveryFormatPayload = {
         format_type: selected,
-        ...(selected === "group" ? {
-          enrollment_deadline: enrollmentDeadline,
-        } : {}),
         ...(price ? {
           pricing: {
             price,
@@ -635,22 +505,6 @@ function AddFormatPanel({ slug, existingTypes, onCreated, onClose }: AddFormatPa
             installmentAmount={installmentAmount}
             onChange={handleChange}
           />
-
-          {selected === "group" && (
-            <div className="max-w-xs">
-              <label style={FIELD_LABEL}>{t("enrollmentDeadline")}</label>
-              <input
-                type="date"
-                value={enrollmentDeadline}
-                onChange={e => setEnrollmentDeadline(e.target.value)}
-                required
-                style={PILL_INPUT}
-              />
-              <p className="mt-1.5 mb-0 font-(family-name:--font-base) text-xs text-(--color-text-muted)">
-                {t("enrollmentDeadlineRequiredHint")}
-              </p>
-            </div>
-          )}
 
           {error && (
             <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.72vw, 13px)", color: "var(--color-rejected)", margin: 0 }}>

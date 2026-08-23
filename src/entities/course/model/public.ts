@@ -76,7 +76,6 @@ export type PublicCourseDeliveryFormat = {
   course_start_date: string | null;
   access_duration_days: number | null;
   start_date: string | null;
-  enrollment_deadline: string | null;
   unlock_mode: DeliveryUnlockMode | null;
   max_students: number | null;
   enrolled_count: number;

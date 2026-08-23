@@ -16,7 +16,7 @@ const TRANSITION_MS = 500;
 
 function toMentor(t: TopTeacher): Mentor {
   return {
-    id: t.teacher_id,
+    id: t.id,
     name: t.name,
     role: t.specialization ?? "",
     bio: t.experience ?? "",

@@ -38,7 +38,7 @@ export type UserNote = {
 };
 
 export type TopTeacher = {
-  teacher_id: number;
+  id: number;
   name: string;
   avatar: string | null;
   specialization: string | null;

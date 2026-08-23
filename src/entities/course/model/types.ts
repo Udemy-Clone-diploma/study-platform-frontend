@@ -143,8 +143,9 @@ export type CourseDetail = Omit<
   CourseListItem,
   "teacher_name" | "price" | "original_price" | "currency"
 > & {
-  /** Course-specific pull-quote. Belongs on the course, not the teacher (one teacher, many courses). */
-  quote: string | null;
+  /** Course-specific pull-quote. Optional: no serializer on the backend returns it today,
+   *  so consumers must handle its absence. */
+  quote?: string | null;
   full_description: string;
   /** Content hash of the course image, if any — see the moderator review diff logic
    *  for why this exists (cloning gives byte-identical images different URLs). */

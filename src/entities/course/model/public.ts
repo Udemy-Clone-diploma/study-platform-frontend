@@ -32,15 +32,17 @@ export type PublicCourseListItem = {
   course_type: CourseType;
   /** Cheapest pricing plan's price (after discount, if any). Null when the course is free. */
   price: string | null;
-  /** Cheapest pricing plan's pre-discount price. Null unless is_on_sale actually lowers the price. */
-  original_price: string | null;
+  /** Cheapest pricing plan's pre-discount price. Optional: the PublicCourseList serializer
+   *  does not return it, only the authenticated CourseList does. */
+  original_price?: string | null;
   currency: DeliveryFormatPricing["currency"] | null;
   duration_hours: number | null;
   lessons_count: number;
   with_certificate: boolean;
   is_on_sale: boolean;
-  /** 1-99. Set only when is_on_sale is true. */
-  discount_percent: number | null;
+  /** 1-99, set only when is_on_sale is true. Optional for the same reason as
+   *  original_price: absent from the PublicCourseList payload. */
+  discount_percent?: number | null;
   rating_avg: string;
   rating_count: number;
   students_count: number;

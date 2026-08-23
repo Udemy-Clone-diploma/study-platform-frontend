@@ -34,6 +34,9 @@ export type StaffFinancePayout = {
 
   teacher_id: number;
   teacher_email: string;
+  teacher_name: string;
+  destination_id: number;
+  destination_display: string;
 
   created_by_id: number | null;
   created_by_email: string | null;
@@ -43,13 +46,11 @@ export type CreateStaffPayoutInput = {
   teacher_id: number;
   destination_id?: number;
   amount: string;
-  currency: TeacherFinanceCurrency;
   idempotency_key: string;
 };
 
 export type StaffPayoutListParams = {
   teacher?: number;
-  currency?: TeacherFinanceCurrency;
   status?: TeacherFinancePayoutStatus;
   page?: number;
   page_size?: number;
@@ -76,14 +77,17 @@ export async function getStaffPayouts(
 
 export async function getStaffTeacherBalance(
   teacherId: number,
-  currency: TeacherFinanceCurrency = "UAH",
-): Promise<TeacherFinanceBalance> {
+): Promise<TeacherFinanceBalance & {
+  teacher: { id: number; name: string; email: string };
+  destinations: import("./teacherFinanceApi").TeacherPayoutDestination[];
+}> {
+  type StaffTeacherBalance = TeacherFinanceBalance & {
+    teacher: { id: number; name: string; email: string };
+    destinations: import("./teacherFinanceApi").TeacherPayoutDestination[];
+  };
   const { data } =
-    await api.get<TeacherFinanceBalance>(
+    await api.get<StaffTeacherBalance>(
       `staff/finance/teachers/${teacherId}/balance/`,
-      {
-        params: { currency },
-      },
     );
 
   return data;

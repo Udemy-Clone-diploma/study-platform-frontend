@@ -7,7 +7,7 @@ export type DeliveryFormatPricing = {
   price: string;
   /** Discounted price when the course is on sale; equals `price` otherwise. */
   final_price: string;
-  currency: "USD" | "EUR" | "UAH";
+  currency: "USD";
   installment_count: number | null;
   installment_amount: string | null;
   /** Discounted installment amount when the course is on sale; equals `installment_amount` otherwise. */
@@ -24,7 +24,6 @@ export type CourseDeliveryFormat = {
   access_duration_days: number | null;
   // scheduled / group
   start_date: string | null;
-  enrollment_deadline: string | null;
   unlock_mode: DeliveryUnlockMode | null;
   // individual
   max_students: number | null;
@@ -41,12 +40,11 @@ export type CourseDeliveryFormatPayload = {
   course_start_date?: string | null;
   access_duration_days?: number | null;
   start_date?: string | null;
-  enrollment_deadline?: string | null;
   unlock_mode?: DeliveryUnlockMode | null;
   max_students?: number | null;
   pricing?: {
     price: string;
-    currency: "USD" | "EUR" | "UAH";
+    currency: "USD";
     installment_count?: number | null;
     installment_amount?: string | null;
   } | null;

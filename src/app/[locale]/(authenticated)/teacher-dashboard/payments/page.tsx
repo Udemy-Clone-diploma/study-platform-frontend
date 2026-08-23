@@ -1022,9 +1022,9 @@ export default function TeacherPaymentsPage() {
         payouts,
         destinations,
       ] = await Promise.all([
-        getTeacherFinanceBalance("UAH"),
-        getTeacherFinanceLedger("UAH"),
-        getTeacherFinancePayouts("UAH"),
+        getTeacherFinanceBalance(),
+        getTeacherFinanceLedger(),
+        getTeacherFinancePayouts(),
         getTeacherPayoutDestinations(),
       ]);
 
@@ -1528,7 +1528,7 @@ async function reloadLiqPayDestinations() {
                     Earned
                   </p>
                   <p className="mt-1 font-semibold">
-                    {liqPayBalance?.earned ?? "0.00"} UAH
+                    ${liqPayBalance?.earned ?? "0.00"}
                   </p>
                 </div>
 
@@ -1537,7 +1537,7 @@ async function reloadLiqPayDestinations() {
                     Available
                   </p>
                   <p className="mt-1 font-semibold">
-                    {liqPayBalance?.available ?? "0.00"} UAH
+                    ${liqPayBalance?.available ?? "0.00"}
                   </p>
                 </div>
 
@@ -1546,7 +1546,7 @@ async function reloadLiqPayDestinations() {
                     Reserved
                   </p>
                   <p className="mt-1 font-semibold">
-                    {liqPayBalance?.reserved ?? "0.00"} UAH
+                    ${liqPayBalance?.reserved ?? "0.00"}
                   </p>
                 </div>
 
@@ -1555,7 +1555,7 @@ async function reloadLiqPayDestinations() {
                     Paid
                   </p>
                   <p className="mt-1 font-semibold">
-                    {liqPayBalance?.paid ?? "0.00"} UAH
+                    ${liqPayBalance?.paid ?? "0.00"}
                   </p>
                 </div>
               </div>

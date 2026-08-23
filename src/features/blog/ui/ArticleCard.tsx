@@ -37,7 +37,7 @@ export function ArticleCard({ article, currentUserId, currentUserRole, onAction 
 
   return (
     <div
-      className="relative flex shrink-0 snap-start flex-col justify-between overflow-hidden rounded-[14px] lg:rounded-[24px]"
+      className="relative flex shrink-0 flex-col justify-between overflow-hidden rounded-[14px] lg:rounded-[24px]"
       style={{
         width: fluid3(375, 300, 1024, 400, 1920, 460),
         maxWidth: "80vw",

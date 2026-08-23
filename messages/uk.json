@@ -2162,7 +2162,19 @@
     "finalScore": "Підсумковий бал",
     "certificate": "Сертифікат",
     "download": "Завантажити",
-    "notAvailable": "Недоступно для цього курсу"
+    "notAvailable": "Недоступно для цього курсу",
+    "review": "Відгук",
+    "loadingReview": "Завантаження вашого відгуку…",
+    "leaveReviewPrompt": "Як вам цей курс? Залиште оцінку та відгук.",
+    "ratingAriaLabel": "Оцінка",
+    "reviewPlaceholder": "Поділіться враженнями про курс (необов'язково)",
+    "reviewErrorGeneric": "Не вдалося надіслати відгук.",
+    "submittingReview": "Надсилання…",
+    "submitReview": "Надіслати відгук",
+    "editReview": "Редагувати відгук",
+    "cancelEdit": "Скасувати",
+    "saveReviewChanges": "Зберегти зміни",
+    "savingReview": "Збереження…"
   },
   "TeacherCoursesPage": {
     "tabAll": "Усі",

@@ -2162,7 +2162,19 @@
     "finalScore": "Final score",
     "certificate": "Certificate",
     "download": "Download",
-    "notAvailable": "Not available for this course"
+    "notAvailable": "Not available for this course",
+    "review": "Review",
+    "loadingReview": "Loading your review…",
+    "leaveReviewPrompt": "How was this course? Leave a rating and a review.",
+    "ratingAriaLabel": "Rating",
+    "reviewPlaceholder": "Share your thoughts about the course (optional)",
+    "reviewErrorGeneric": "Could not submit your review.",
+    "submittingReview": "Submitting…",
+    "submitReview": "Submit review",
+    "editReview": "Edit review",
+    "cancelEdit": "Cancel",
+    "saveReviewChanges": "Save changes",
+    "savingReview": "Saving…"
   },
   "TeacherCoursesPage": {
     "tabAll": "All",

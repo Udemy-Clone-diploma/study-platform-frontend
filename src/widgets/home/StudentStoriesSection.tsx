@@ -8,7 +8,8 @@ import type { ArticleListItem, BlogCategory } from "@/entities/blog";
 type Props = { articles: ArticleListItem[]; category: BlogCategory | null };
 
 export function StudentStoriesSection({ articles, category }: Props) {
-    const { scrollRef, onPointerDown, onPointerMove, onPointerUp } = useDragScroll<HTMLDivElement>();
+    const { scrollRef, onPointerDown, onPointerMove, onPointerUp, onPointerCancel, onDragStart } =
+        useDragScroll<HTMLDivElement>();
 
     if (articles.length === 0 || !category) return null;
 
@@ -91,6 +92,8 @@ export function StudentStoriesSection({ articles, category }: Props) {
                 onPointerDown={onPointerDown}
                 onPointerMove={onPointerMove}
                 onPointerUp={onPointerUp}
+                onPointerCancel={onPointerCancel}
+                onDragStart={onDragStart}
             >
                 <div style={{ display: "flex", gap: "1.04vw", width: "max-content", paddingRight: "clamp(16px, 13vw, 187px)" }}>
                     {articles.map((article) => (

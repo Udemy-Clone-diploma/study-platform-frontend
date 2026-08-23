@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Download } from "lucide-react";
+import { Download, Star } from "lucide-react";
 import { ModalShell } from "@/shared/ui/ModalShell";
-import { getCourseBySlug } from "@/entities/course";
-import type { CourseCompletion, CourseDetail } from "@/entities/course";
+import { GradientButton } from "@/shared/ui/GradientButton";
+import { getCourseBySlug, getMyCourseReview, submitCourseReview, updateCourseReview } from "@/entities/course";
+import type { CourseCompletion, CourseDetail, CourseReview } from "@/entities/course";
+import type { ApiError } from "@/shared/api/base";
 
 // ── helpers ────────────────────────────────────────────────────────────────────
 
@@ -51,6 +53,58 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
+function StarRow({
+  rating,
+  interactive,
+  hoverRating,
+  onHover,
+  onPick,
+  ariaLabel,
+}: {
+  rating: number;
+  interactive?: boolean;
+  hoverRating?: number;
+  onHover?: (value: number) => void;
+  onPick?: (value: number) => void;
+  ariaLabel?: string;
+}) {
+  const displayRating = interactive ? (hoverRating || rating) : rating;
+  return (
+    <div
+      style={{ display: "flex", alignItems: "center", gap: interactive ? 2 : 4 }}
+      role={interactive ? "radiogroup" : undefined}
+      aria-label={interactive ? ariaLabel : undefined}
+    >
+      {Array.from({ length: 5 }).map((_, i) => {
+        const value = i + 1;
+        const star = (
+          <Star
+            className={interactive ? "h-7 w-7" : "h-4 w-4"}
+            fill={value <= displayRating ? "var(--color-gold)" : "transparent"}
+            stroke="var(--color-gold)"
+            strokeWidth={1.5}
+          />
+        );
+        if (!interactive) return <span key={value}>{star}</span>;
+        return (
+          <button
+            key={value}
+            type="button"
+            onClick={() => onPick?.(value)}
+            onMouseEnter={() => onHover?.(value)}
+            onMouseLeave={() => onHover?.(0)}
+            aria-pressed={rating === value}
+            className="p-0.5"
+            style={{ background: "transparent", border: "none", cursor: "pointer" }}
+          >
+            {star}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 // ── component ──────────────────────────────────────────────────────────────────
 
 type Props = {
@@ -65,6 +119,16 @@ export function CompletionResultModal({ completion, onClose }: Props) {
   const [detail, setDetail] = useState<CourseDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(!!completion.slug);
 
+  const [myReview, setMyReview] = useState<CourseReview | null>(null);
+  const [reviewLoading, setReviewLoading] = useState(!!completion.slug);
+  const [reviewLoadFailed, setReviewLoadFailed] = useState(false);
+  const [isEditingReview, setIsEditingReview] = useState(false);
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewHoverRating, setReviewHoverRating] = useState(0);
+  const [reviewText, setReviewText] = useState("");
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [reviewError, setReviewError] = useState<string | null>(null);
+
   useEffect(() => {
     if (!completion.slug) return;
     setDetailLoading(true);
@@ -73,6 +137,60 @@ export function CompletionResultModal({ completion, onClose }: Props) {
       .catch(() => {})
       .finally(() => setDetailLoading(false));
   }, [completion.slug]);
+
+  useEffect(() => {
+    if (!completion.slug) return;
+    setReviewLoading(true);
+    setReviewLoadFailed(false);
+    getMyCourseReview(completion.slug)
+      .then(setMyReview)
+      .catch(() => setReviewLoadFailed(true))
+      .finally(() => setReviewLoading(false));
+  }, [completion.slug]);
+
+  function handleStartEditReview() {
+    if (!myReview) return;
+    setReviewRating(myReview.rating);
+    setReviewText(myReview.text);
+    setReviewError(null);
+    setIsEditingReview(true);
+  }
+
+  function handleCancelEditReview() {
+    setIsEditingReview(false);
+    setReviewError(null);
+  }
+
+  async function handleSubmitReview() {
+    if (!completion.slug || reviewRating === 0) return;
+    setReviewSubmitting(true);
+    setReviewError(null);
+    try {
+      const review = isEditingReview
+        ? await updateCourseReview(completion.slug, {
+            rating: reviewRating,
+            text: reviewText.trim(),
+          })
+        : await submitCourseReview(completion.slug, {
+            rating: reviewRating,
+            text: reviewText.trim(),
+          });
+      setMyReview(review);
+      setIsEditingReview(false);
+    } catch (err) {
+      const apiError = err as Partial<ApiError>;
+      if (!isEditingReview && apiError.status === 409 && completion.slug) {
+        const existing = await getMyCourseReview(completion.slug).catch(() => null);
+        if (existing) {
+          setMyReview(existing);
+          return;
+        }
+      }
+      setReviewError(apiError.message || t("reviewErrorGeneric"));
+    } finally {
+      setReviewSubmitting(false);
+    }
+  }
 
   const level = (detail?.level ?? completion.level ?? "").replace(/^\w/, (c) => c.toUpperCase());
   const category = detail?.category?.name ?? completion.category ?? null;
@@ -215,6 +333,92 @@ export function CompletionResultModal({ completion, onClose }: Props) {
             }
           />
         </Section>
+
+        {/* ── Review ────────────────────────────────────────────── */}
+        {completion.slug && !reviewLoadFailed && (
+          <Section title={t("review")}>
+            {reviewLoading ? (
+              <p style={{ fontFamily: bf, fontSize: 13, color: "var(--color-text-secondary)", padding: "10px 0", margin: 0 }}>
+                {t("loadingReview")}
+              </p>
+            ) : myReview && !isEditingReview ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: "10px 0" }}>
+                <StarRow rating={myReview.rating} />
+                {myReview.text && (
+                  <p style={{ fontFamily: bf, fontSize: 14, color: "var(--color-text-primary)", margin: 0, lineHeight: "20px" }}>
+                    {myReview.text}
+                  </p>
+                )}
+                <div>
+                  <button
+                    type="button"
+                    onClick={handleStartEditReview}
+                    style={{
+                      fontFamily: bf, fontWeight: 600, fontSize: 13,
+                      color: "var(--color-blue)", background: "transparent",
+                      border: "none", padding: 0, cursor: "pointer",
+                    }}
+                  >
+                    {t("editReview")}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: "10px 0" }}>
+                {!isEditingReview && (
+                  <p style={{ fontFamily: bf, fontSize: 13, color: "var(--color-text-secondary)", margin: 0 }}>
+                    {t("leaveReviewPrompt")}
+                  </p>
+                )}
+                <StarRow
+                  rating={reviewRating}
+                  interactive
+                  hoverRating={reviewHoverRating}
+                  onHover={setReviewHoverRating}
+                  onPick={setReviewRating}
+                  ariaLabel={t("ratingAriaLabel")}
+                />
+                <textarea
+                  value={reviewText}
+                  onChange={(e) => setReviewText(e.target.value)}
+                  placeholder={t("reviewPlaceholder")}
+                  rows={3}
+                  className="w-full resize-none rounded-2xl border border-(--color-border-light) p-3 font-(family-name:--font-base) text-sm text-(--color-text-primary) outline-none focus:border-(--color-blue)"
+                />
+                {reviewError && (
+                  <p role="status" style={{ fontFamily: bf, fontSize: 13, color: "var(--color-pink-dark)", margin: 0 }}>
+                    {reviewError}
+                  </p>
+                )}
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <GradientButton
+                    type="button"
+                    onClick={handleSubmitReview}
+                    disabled={reviewSubmitting || reviewRating === 0}
+                  >
+                    {reviewSubmitting
+                      ? (isEditingReview ? t("savingReview") : t("submittingReview"))
+                      : (isEditingReview ? t("saveReviewChanges") : t("submitReview"))}
+                  </GradientButton>
+                  {isEditingReview && (
+                    <button
+                      type="button"
+                      onClick={handleCancelEditReview}
+                      disabled={reviewSubmitting}
+                      style={{
+                        fontFamily: bf, fontWeight: 600, fontSize: 13,
+                        color: "var(--color-text-secondary)", background: "transparent",
+                        border: "none", padding: 0, cursor: "pointer",
+                      }}
+                    >
+                      {t("cancelEdit")}
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+          </Section>
+        )}
 
       </div>
     </ModalShell>

@@ -9,9 +9,15 @@ type RetryableRequestConfig = InternalAxiosRequestConfig & {
   _retry?: boolean;
 };
 
+const REQUEST_TIMEOUT_MS = 10_000;
+
+/** File uploads travel over the network in deployed environments, where a few megabytes
+ *  routinely take longer than the 10s that suits a JSON round trip. */
+const UPLOAD_TIMEOUT_MS = 120_000;
+
 export const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: REQUEST_TIMEOUT_MS,
 });
 
 let refreshPromise: Promise<string | null> | null = null;
@@ -49,6 +55,7 @@ api.interceptors.request.use((config) => {
 
   if (typeof FormData !== "undefined" && config.data instanceof FormData) {
     headers.delete("Content-Type");
+    config.timeout = UPLOAD_TIMEOUT_MS;
   } else if (!headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }

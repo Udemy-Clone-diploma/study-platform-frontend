@@ -2339,7 +2339,9 @@
     "backToBasics": "Back to Basics",
     "discardChanges": "Discard Changes",
     "backToMyCourses": "Back to My Courses",
-    "continueToReviewAndPublish": "Continue to Review & Publish"
+    "continueToReviewAndPublish": "Continue to Review & Publish",
+    "documentsUploadFailed": "Could not upload {files}. The lesson was saved, add the files again.",
+    "documentsDeleteFailed": "Some materials could not be removed. Refresh the page and try again."
   },
   "ModuleCard": {
     "moduleNumber": "Module {order}",
@@ -2411,7 +2413,8 @@
     "minimumScoreLabel": "Minimum Score (optional)",
     "requiredToComplete": "Required to complete the course",
     "requiredToCompleteHint": "If this lesson has a test, students must pass it before they can finish the course (e.g. a final exam).",
-    "saveLesson": "Save Lesson"
+    "saveLesson": "Save Lesson",
+    "saveFailed": "Could not save the lesson. Try again."
   },
   "TestFormModal": {
     "questionNumber": "Question {order}",

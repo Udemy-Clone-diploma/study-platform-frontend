@@ -2339,7 +2339,9 @@
     "backToBasics": "Volver a lo básico",
     "discardChanges": "Descartar cambios",
     "backToMyCourses": "Volver a Mis cursos",
-    "continueToReviewAndPublish": "Continuar a revisión y publicación"
+    "continueToReviewAndPublish": "Continuar a revisión y publicación",
+    "documentsUploadFailed": "No se pudieron subir {files}. La lección se guardó, vuelve a añadir los archivos.",
+    "documentsDeleteFailed": "No se pudieron eliminar algunos materiales. Actualiza la página e inténtalo de nuevo."
   },
   "ModuleCard": {
     "moduleNumber": "Módulo {order}",
@@ -2411,7 +2413,8 @@
     "minimumScoreLabel": "Puntuación mínima (opcional)",
     "requiredToComplete": "Obligatorio para completar el curso",
     "requiredToCompleteHint": "Si esta lección tiene una prueba, los estudiantes deben aprobarla antes de poder terminar el curso (por ejemplo, un examen final).",
-    "saveLesson": "Guardar lección"
+    "saveLesson": "Guardar lección",
+    "saveFailed": "No se pudo guardar la lección. Inténtalo de nuevo."
   },
   "TestFormModal": {
     "questionNumber": "Pregunta {order}",

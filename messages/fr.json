@@ -2339,7 +2339,9 @@
     "backToBasics": "Retour aux informations de base",
     "discardChanges": "Annuler les changements",
     "backToMyCourses": "Retour à Mes cours",
-    "continueToReviewAndPublish": "Continuer vers la vérification et la publication"
+    "continueToReviewAndPublish": "Continuer vers la vérification et la publication",
+    "documentsUploadFailed": "Impossible de téléverser {files}. La leçon est enregistrée, ajoutez à nouveau les fichiers.",
+    "documentsDeleteFailed": "Certains supports n'ont pas pu être supprimés. Actualisez la page et réessayez."
   },
   "ModuleCard": {
     "moduleNumber": "Module {order}",
@@ -2411,7 +2413,8 @@
     "minimumScoreLabel": "Score minimum (facultatif)",
     "requiredToComplete": "Requis pour terminer le cours",
     "requiredToCompleteHint": "Si cette leçon contient un test, les étudiants doivent le réussir avant de pouvoir terminer le cours (par exemple, un examen final).",
-    "saveLesson": "Enregistrer la leçon"
+    "saveLesson": "Enregistrer la leçon",
+    "saveFailed": "Impossible d'enregistrer la leçon. Réessayez."
   },
   "TestFormModal": {
     "questionNumber": "Question {order}",

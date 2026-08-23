@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { apiErrorMessage } from "@/shared/api/lib/apiErrorMessage";
 import { useTranslations } from "next-intl";
 import {
   Clock,
@@ -991,6 +992,7 @@ export function LessonFormModal({
 
   const [values, setValues] = useState<LessonFormValues>({ ...EMPTY, ...initialValues });
   const [loading, setLoading] = useState(false);
+  const [saveError, setSaveError] = useState("");
   const [testPanel, setTestPanel] = useState<TestPanelConfig | null>(null);
   const titleRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
@@ -1008,8 +1010,11 @@ export function LessonFormModal({
     e.preventDefault();
     if (!values.title.trim() || !onSave) return;
     setLoading(true);
+    setSaveError("");
     try {
       await onSave(values);
+    } catch (error) {
+      setSaveError(apiErrorMessage(error, t("saveFailed")));
     } finally {
       setLoading(false);
     }
@@ -1330,6 +1335,12 @@ export function LessonFormModal({
             <p style={hintSt}>{t("requiredToCompleteHint")}</p>
           </div>
         </div>
+
+        {saveError && (
+          <p role="alert" style={{ ...hintSt, color: "var(--color-danger)" }}>
+            {saveError}
+          </p>
+        )}
 
         {!readOnly && (
           <ModalFooter

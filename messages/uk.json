@@ -2339,7 +2339,9 @@
     "backToBasics": "Назад до основного",
     "discardChanges": "Скасувати зміни",
     "backToMyCourses": "Назад до моїх курсів",
-    "continueToReviewAndPublish": "Перейти до перевірки й публікації"
+    "continueToReviewAndPublish": "Перейти до перевірки й публікації",
+    "documentsUploadFailed": "Не вдалося завантажити {files}. Урок збережено, додайте файли ще раз.",
+    "documentsDeleteFailed": "Не вдалося видалити деякі матеріали. Оновіть сторінку і спробуйте ще раз."
   },
   "ModuleCard": {
     "moduleNumber": "Модуль {order}",
@@ -2411,7 +2413,8 @@
     "minimumScoreLabel": "Мінімальний бал (необов'язково)",
     "requiredToComplete": "Обов'язково для завершення курсу",
     "requiredToCompleteHint": "Якщо в цьому уроці є тест, студенти повинні скласти його, перш ніж завершити курс (наприклад, фінальний іспит).",
-    "saveLesson": "Зберегти урок"
+    "saveLesson": "Зберегти урок",
+    "saveFailed": "Не вдалося зберегти урок. Спробуйте ще раз."
   },
   "TestFormModal": {
     "questionNumber": "Питання {order}",

@@ -50,10 +50,7 @@ export default function ForgotPasswordPage() {
         })}
       >
         <div className="space-y-5">
-          <AccentButton
-            type="button"
-            onClick={() => setIsSent(false)}
-          >
+          <AccentButton type="button" onClick={() => setIsSent(false)}>
             {tCommon("sendAgain")}
           </AccentButton>
 
@@ -68,10 +65,7 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <AuthPanel
-      title={t("resetTitle")}
-      description={t("resetDescription")}
-    >
+    <AuthPanel title={t("resetTitle")} description={t("resetDescription")}>
       <form onSubmit={handleSubmit} className="space-y-7">
         <AuthField
           id="email"
@@ -89,10 +83,7 @@ export default function ForgotPasswordPage() {
         />
 
         <div className="flex flex-col items-center gap-5">
-          <AccentButton
-            type="submit"
-            disabled={isSubmitting}
-          >
+          <AccentButton type="submit" disabled={isSubmitting}>
             {isSubmitting ? tCommon("sending") : t("sendLink")}
           </AccentButton>
 

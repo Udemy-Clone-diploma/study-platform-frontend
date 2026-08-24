@@ -1,8 +1,4 @@
-export default function AuthenticationLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AuthenticationLayout({ children }: { children: React.ReactNode }) {
   return (
     <main className="relative isolate flex min-h-screen w-full items-center justify-center overflow-hidden px-6 py-10">
       <div

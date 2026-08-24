@@ -96,21 +96,31 @@ export default function CourseContentPage() {
 
   async function syncCourseDuration(modules: CourseModule[]) {
     if (!contentSlug) return;
-    const totalMin = modules.flatMap((m) => m.lessons).reduce((s, l) => s + (l.duration_minutes ?? 0), 0);
+    const totalMin = modules
+      .flatMap((m) => m.lessons)
+      .reduce((s, l) => s + (l.duration_minutes ?? 0), 0);
     if (totalMin <= 0) return;
     const hours = Math.max(1, Math.ceil(totalMin / 60));
     try {
       await updateCourse(contentSlug, { duration_hours: hours });
-    } catch { /* best-effort */ }
+    } catch {
+      /* best-effort */
+    }
   }
 
   const title = course?.title || t("untitledCourse");
   const hasModules = moduleList.length > 0;
   const hasLesson = moduleList.some((m) => m.lessons.length > 0);
 
-  function openAddModal() { setModal({ open: true, mode: "add" }); }
-  function openEditModal(mod: CourseModule) { setModal({ open: true, mode: "edit", moduleId: mod.id, initialTitle: mod.title }); }
-  function closeModal() { setModal({ open: false }); }
+  function openAddModal() {
+    setModal({ open: true, mode: "add" });
+  }
+  function openEditModal(mod: CourseModule) {
+    setModal({ open: true, mode: "edit", moduleId: mod.id, initialTitle: mod.title });
+  }
+  function closeModal() {
+    setModal({ open: false });
+  }
 
   async function handleSaveModule(moduleTitle: string) {
     if (!contentSlug) return;
@@ -134,17 +144,27 @@ export default function CourseContentPage() {
 
   // ── Lesson handlers ───────────────────────────────────────────────────
 
-  function openAddLessonModal(moduleId: number) { setLessonModal({ open: true, mode: "add", moduleId }); }
-  function openEditLessonModal(moduleId: number, lesson: CourseLesson) { setLessonModal({ open: true, mode: "edit", moduleId, lesson }); }
-  function closeLessonModal() { setLessonModal({ open: false }); }
+  function openAddLessonModal(moduleId: number) {
+    setLessonModal({ open: true, mode: "add", moduleId });
+  }
+  function openEditLessonModal(moduleId: number, lesson: CourseLesson) {
+    setLessonModal({ open: true, mode: "edit", moduleId, lesson });
+  }
+  function closeLessonModal() {
+    setLessonModal({ open: false });
+  }
 
   async function _syncDocuments(moduleId: number, lessonId: number, values: LessonFormValues) {
     if (!contentSlug) return;
     await Promise.all(
-      values.deleted_document_ids.map((id) => deleteLessonDocument(contentSlug, moduleId, lessonId, id)),
+      values.deleted_document_ids.map((id) =>
+        deleteLessonDocument(contentSlug, moduleId, lessonId, id),
+      ),
     );
     const uploaded = await Promise.all(
-      values.new_documents.map((file) => uploadLessonDocument(contentSlug, moduleId, lessonId, file)),
+      values.new_documents.map((file) =>
+        uploadLessonDocument(contentSlug, moduleId, lessonId, file),
+      ),
     );
     setModuleList((prev) =>
       prev.map((m) =>
@@ -153,7 +173,9 @@ export default function CourseContentPage() {
               ...m,
               lessons: m.lessons.map((l) => {
                 if (l.id !== lessonId) return l;
-                const kept = (l.documents ?? []).filter((d) => !values.deleted_document_ids.includes(d.id));
+                const kept = (l.documents ?? []).filter(
+                  (d) => !values.deleted_document_ids.includes(d.id),
+                );
                 return { ...l, documents: [...kept, ...uploaded] };
               }),
             }
@@ -272,7 +294,9 @@ export default function CourseContentPage() {
         </p>
 
         <SectionCard>
-          <div style={{ display: "flex", flexDirection: "column", gap: "clamp(16px, 1.25vw, 20px)" }}>
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "clamp(16px, 1.25vw, 20px)" }}
+          >
             <div className="flex items-center justify-between">
               <span
                 style={{
@@ -299,12 +323,36 @@ export default function CourseContentPage() {
               >
                 <div className="flex flex-col items-center" style={{ gap: "24px" }}>
                   <div className="flex flex-col items-center" style={{ gap: "16px" }}>
-                    <Image src="/icons/moduls.svg" alt="" width={100} height={100} unoptimized aria-hidden="true" />
+                    <Image
+                      src="/icons/moduls.svg"
+                      alt=""
+                      width={100}
+                      height={100}
+                      unoptimized
+                      aria-hidden="true"
+                    />
                     <div className="flex flex-col items-center" style={{ gap: "8px" }}>
-                      <span style={{ fontFamily: "var(--font-base)", fontWeight: 700, fontSize: "clamp(14px, 1.04vw, 20px)", color: "var(--color-text-primary)", textAlign: "center" }}>
+                      <span
+                        style={{
+                          fontFamily: "var(--font-base)",
+                          fontWeight: 700,
+                          fontSize: "clamp(14px, 1.04vw, 20px)",
+                          color: "var(--color-text-primary)",
+                          textAlign: "center",
+                        }}
+                      >
                         {t("noModulesYet")}
                       </span>
-                      <span style={{ fontFamily: "var(--font-base)", fontWeight: 500, fontSize: "clamp(13px, 1.04vw, 20px)", color: "var(--color-text-secondary)", letterSpacing: "-0.011em", textAlign: "center" }}>
+                      <span
+                        style={{
+                          fontFamily: "var(--font-base)",
+                          fontWeight: 500,
+                          fontSize: "clamp(13px, 1.04vw, 20px)",
+                          color: "var(--color-text-secondary)",
+                          letterSpacing: "-0.011em",
+                          textAlign: "center",
+                        }}
+                      >
                         {t("noModulesDescription")}
                       </span>
                     </div>
@@ -318,7 +366,13 @@ export default function CourseContentPage() {
                 </div>
               </div>
             ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: "clamp(12px, 0.83vw, 16px)" }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "clamp(12px, 0.83vw, 16px)",
+                }}
+              >
                 {moduleList.map((mod, i) => (
                   <ModuleCard
                     key={mod.id}
@@ -327,8 +381,12 @@ export default function CourseContentPage() {
                     onEdit={isLocked ? () => {} : () => openEditModal(mod)}
                     onDelete={isLocked ? () => {} : () => handleDeleteModule(mod.id)}
                     onAddLesson={isLocked ? () => {} : () => openAddLessonModal(mod.id)}
-                    onEditLesson={isLocked ? () => {} : (lesson) => openEditLessonModal(mod.id, lesson)}
-                    onDeleteLesson={isLocked ? () => {} : (lessonId) => handleDeleteLesson(mod.id, lessonId)}
+                    onEditLesson={
+                      isLocked ? () => {} : (lesson) => openEditLessonModal(mod.id, lesson)
+                    }
+                    onDeleteLesson={
+                      isLocked ? () => {} : (lessonId) => handleDeleteLesson(mod.id, lessonId)
+                    }
                     itemStatuses={moderationReview?.content_item_statuses}
                   />
                 ))}
@@ -336,21 +394,27 @@ export default function CourseContentPage() {
             )}
 
             {/* Moderator content feedback */}
-            {moderationReview && (() => {
-              const ACTION_MAP: Record<string, { label: string; color: string }> = {
-                approved:       { label: t("statusApproved"),      color: "var(--color-success)" },
-                needs_revision: { label: t("statusNeedsRevision"), color: "var(--color-warning)" },
-                rejected:       { label: t("statusRejected"),      color: "var(--color-rejected)" },
-              };
-              const actionInfo = moderationReview.content_action ? ACTION_MAP[moderationReview.content_action] : undefined;
-              return (
-                <ModeratorNoteBanner
-                  comment={moderationReview.content_comment || undefined}
-                  actionLabel={actionInfo?.label}
-                  actionColor={actionInfo?.color}
-                />
-              );
-            })()}
+            {moderationReview &&
+              (() => {
+                const ACTION_MAP: Record<string, { label: string; color: string }> = {
+                  approved: { label: t("statusApproved"), color: "var(--color-success)" },
+                  needs_revision: {
+                    label: t("statusNeedsRevision"),
+                    color: "var(--color-warning)",
+                  },
+                  rejected: { label: t("statusRejected"), color: "var(--color-rejected)" },
+                };
+                const actionInfo = moderationReview.content_action
+                  ? ACTION_MAP[moderationReview.content_action]
+                  : undefined;
+                return (
+                  <ModeratorNoteBanner
+                    comment={moderationReview.content_comment || undefined}
+                    actionLabel={actionInfo?.label}
+                    actionColor={actionInfo?.color}
+                  />
+                );
+              })()}
 
             <div
               className="flex items-center justify-between"
@@ -363,12 +427,14 @@ export default function CourseContentPage() {
               {isPendingEditMode ? (
                 <div className="flex items-center" style={{ gap: "clamp(8px, 0.83vw, 12px)" }}>
                   {!isLocked && (
-                    <WhiteButton onClick={handleDiscardChanges}>
-                      {t("discardChanges")}
-                    </WhiteButton>
+                    <WhiteButton onClick={handleDiscardChanges}>{t("discardChanges")}</WhiteButton>
                   )}
                   {isLocked ? (
-                    <GradientButton type="button" onClick={() => router.push("/teacher-dashboard/courses")} style={{ gap: 12 }}>
+                    <GradientButton
+                      type="button"
+                      onClick={() => router.push("/teacher-dashboard/courses")}
+                      style={{ gap: 12 }}
+                    >
                       {t("backToMyCourses")}
                     </GradientButton>
                   ) : (
@@ -412,32 +478,51 @@ export default function CourseContentPage() {
         <LessonFormModal
           key={lessonModal.mode === "edit" ? lessonModal.lesson.id : "add"}
           mode={lessonModal.mode}
-          initialValues={lessonModal.mode === "edit" ? {
-            title: lessonModal.lesson.title,
-            duration_minutes: lessonModal.lesson.duration_minutes != null ? String(lessonModal.lesson.duration_minutes) : "",
-            min_score: lessonModal.lesson.min_score != null ? String(lessonModal.lesson.min_score) : "",
-            is_mandatory: lessonModal.lesson.is_mandatory ?? false,
-            existing_documents: lessonModal.lesson.documents ?? [],
-            new_documents: [],
-            deleted_document_ids: [],
-            items: lessonModal.lesson.items ?? [],
-          } : undefined}
+          initialValues={
+            lessonModal.mode === "edit"
+              ? {
+                  title: lessonModal.lesson.title,
+                  duration_minutes:
+                    lessonModal.lesson.duration_minutes != null
+                      ? String(lessonModal.lesson.duration_minutes)
+                      : "",
+                  min_score:
+                    lessonModal.lesson.min_score != null
+                      ? String(lessonModal.lesson.min_score)
+                      : "",
+                  is_mandatory: lessonModal.lesson.is_mandatory ?? false,
+                  existing_documents: lessonModal.lesson.documents ?? [],
+                  new_documents: [],
+                  deleted_document_ids: [],
+                  items: lessonModal.lesson.items ?? [],
+                }
+              : undefined
+          }
           courseSlug={lessonModal.mode === "edit" ? (contentSlug ?? undefined) : undefined}
           moduleId={lessonModal.mode === "edit" ? lessonModal.moduleId : undefined}
           lessonId={lessonModal.mode === "edit" ? lessonModal.lesson.id : undefined}
           hideDocuments={isPendingEditMode}
           onClose={closeLessonModal}
           onSave={handleSaveLesson}
-          onItemsChange={lessonModal.mode === "edit" ? (items) => {
-            const { moduleId, lesson } = lessonModal;
-            setModuleList((prev) =>
-              prev.map((m) =>
-                m.id === moduleId
-                  ? { ...m, lessons: m.lessons.map((l) => l.id === lesson.id ? { ...l, items } : l) }
-                  : m,
-              ),
-            );
-          } : undefined}
+          onItemsChange={
+            lessonModal.mode === "edit"
+              ? (items) => {
+                  const { moduleId, lesson } = lessonModal;
+                  setModuleList((prev) =>
+                    prev.map((m) =>
+                      m.id === moduleId
+                        ? {
+                            ...m,
+                            lessons: m.lessons.map((l) =>
+                              l.id === lesson.id ? { ...l, items } : l,
+                            ),
+                          }
+                        : m,
+                    ),
+                  );
+                }
+              : undefined
+          }
         />
       )}
     </CourseCreationLayout>

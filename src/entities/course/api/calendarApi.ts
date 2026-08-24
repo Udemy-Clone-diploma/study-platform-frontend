@@ -45,7 +45,10 @@ export async function createPersonalEvent(payload: PersonalEventPayload): Promis
   return data;
 }
 
-export async function updatePersonalEvent(pk: number, payload: Partial<PersonalEventPayload>): Promise<void> {
+export async function updatePersonalEvent(
+  pk: number,
+  payload: Partial<PersonalEventPayload>,
+): Promise<void> {
   await api.patch(`/calendar/events/personal/${pk}/`, payload);
 }
 
@@ -63,7 +66,13 @@ export type PersonalEventConflictItem = {
 };
 
 export type PersonalEventConflicts = {
-  sessions: Array<{ id: number | string; title: string; type: "group" | "individual" | "extra"; start_time: string; end_time: string }>;
+  sessions: Array<{
+    id: number | string;
+    title: string;
+    type: "group" | "individual" | "extra";
+    start_time: string;
+    end_time: string;
+  }>;
   personal_events: PersonalEventConflictItem[];
 };
 
@@ -74,7 +83,9 @@ export async function checkPersonalEventConflicts(params: {
   exclude_id?: number;
   include_free_slots?: boolean;
 }): Promise<PersonalEventConflicts> {
-  const { data } = await api.get<PersonalEventConflicts>("/calendar/events/personal/conflicts/", { params });
+  const { data } = await api.get<PersonalEventConflicts>("/calendar/events/personal/conflicts/", {
+    params,
+  });
   return data;
 }
 

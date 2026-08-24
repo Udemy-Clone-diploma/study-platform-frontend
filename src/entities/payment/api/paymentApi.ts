@@ -34,13 +34,7 @@ export type StripeConnectedPayout = {
   id: string;
   amount: string;
   currency: string;
-  status:
-    | "paid"
-    | "pending"
-    | "in_transit"
-    | "failed"
-    | "canceled"
-    | string;
+  status: "paid" | "pending" | "in_transit" | "failed" | "canceled" | string;
   method: string;
   type: string;
   created: number | null;
@@ -57,19 +51,21 @@ export type TeacherStripeFinance = {
 };
 
 export async function getTeacherStripeFinance(): Promise<TeacherStripeFinance> {
-  return (
-    await api.get<TeacherStripeFinance>(
-      `${PAYOUTS_ENDPOINT}finance/`,
-    )
-  ).data;
+  return (await api.get<TeacherStripeFinance>(`${PAYOUTS_ENDPOINT}finance/`)).data;
 }
 
 export async function getTeacherPayoutStatus(): Promise<TeacherPayoutStatus> {
   return (await api.get<TeacherPayoutStatus>(PAYOUTS_ENDPOINT)).data;
 }
 
-export async function startTeacherPayoutOnboarding(): Promise<TeacherPayoutStatus & { onboarding_url: string }> {
-  return (await api.post<TeacherPayoutStatus & { onboarding_url: string }>(`${PAYOUTS_ENDPOINT}onboarding/`)).data;
+export async function startTeacherPayoutOnboarding(): Promise<
+  TeacherPayoutStatus & { onboarding_url: string }
+> {
+  return (
+    await api.post<TeacherPayoutStatus & { onboarding_url: string }>(
+      `${PAYOUTS_ENDPOINT}onboarding/`,
+    )
+  ).data;
 }
 
 export async function refreshTeacherPayoutStatus(): Promise<TeacherPayoutStatus> {
@@ -176,7 +172,9 @@ export type TeacherOrdersParams = {
   search?: string;
 };
 
-export async function getTeacherOrders(params: TeacherOrdersParams = {}): Promise<TeacherOrdersData> {
+export async function getTeacherOrders(
+  params: TeacherOrdersParams = {},
+): Promise<TeacherOrdersData> {
   const { data } = await api.get<TeacherOrdersData>(`${ORDERS_ENDPOINT}teacher/`, { params });
   return data;
 }

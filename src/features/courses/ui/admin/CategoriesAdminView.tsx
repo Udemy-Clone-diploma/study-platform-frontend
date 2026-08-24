@@ -99,7 +99,9 @@ export function CategoriesAdminView() {
     try {
       const updated = await updateCategory(category.id, { featured_order: order });
       setCategories((prev) =>
-        prev.map((c) => (c.id === updated.id ? { ...c, featured_order: updated.featured_order } : c)),
+        prev.map((c) =>
+          c.id === updated.id ? { ...c, featured_order: updated.featured_order } : c,
+        ),
       );
     } catch (err) {
       setFeaturedError((err as ApiError).message ?? t("featuredUpdateError"));
@@ -128,7 +130,10 @@ export function CategoriesAdminView() {
 
   const deleteDescription = deleteTarget
     ? deleteTarget.courses_count
-      ? t("deleteConfirmWithCourses", { name: deleteTarget.name, count: deleteTarget.courses_count })
+      ? t("deleteConfirmWithCourses", {
+          name: deleteTarget.name,
+          count: deleteTarget.courses_count,
+        })
       : t("deleteConfirmSimple", { name: deleteTarget.name })
     : "";
 

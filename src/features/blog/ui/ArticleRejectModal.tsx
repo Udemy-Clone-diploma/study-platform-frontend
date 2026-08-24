@@ -41,7 +41,14 @@ export function ArticleRejectModal({ onConfirm, onCancel }: Props) {
     >
       <label
         htmlFor="reject-comment"
-        style={{ display: "block", fontFamily: "var(--font-base)", fontWeight: 700, fontSize: 14, color: "var(--color-text-primary)", marginBottom: 8 }}
+        style={{
+          display: "block",
+          fontFamily: "var(--font-base)",
+          fontWeight: 700,
+          fontSize: 14,
+          color: "var(--color-text-primary)",
+          marginBottom: 8,
+        }}
       >
         {t("reasonLabel")}
       </label>
@@ -68,13 +75,32 @@ export function ArticleRejectModal({ onConfirm, onCancel }: Props) {
         }}
       />
       {error && (
-        <p style={{ fontFamily: "var(--font-base)", fontSize: 13, color: "var(--color-danger)", margin: "0 0 12px" }}>{error}</p>
+        <p
+          style={{
+            fontFamily: "var(--font-base)",
+            fontSize: 13,
+            color: "var(--color-danger)",
+            margin: "0 0 12px",
+          }}
+        >
+          {error}
+        </p>
       )}
       <div className="flex items-center justify-end" style={{ gap: 12 }}>
-        <WhiteButton icon={null} onClick={onCancel} disabled={loading} style={{ minWidth: 120, height: 44 }}>
+        <WhiteButton
+          icon={null}
+          onClick={onCancel}
+          disabled={loading}
+          style={{ minWidth: 120, height: 44 }}
+        >
           {tCommon("cancel")}
         </WhiteButton>
-        <AccentButton size="md" onClick={handleConfirm} disabled={loading || !comment.trim()} style={{ minWidth: 120, height: 44 }}>
+        <AccentButton
+          size="md"
+          onClick={handleConfirm}
+          disabled={loading || !comment.trim()}
+          style={{ minWidth: 120, height: 44 }}
+        >
           {loading ? t("rejecting") : t("reject")}
         </AccentButton>
       </div>

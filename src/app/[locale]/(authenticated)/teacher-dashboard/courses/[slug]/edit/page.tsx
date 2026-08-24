@@ -4,7 +4,13 @@ import { useState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
 import { useRouter } from "@/i18n/navigation";
-import { getCategories, getCourseBySlug, updateCourse, uploadCourseIcon, getPendingEdit } from "@/entities/course";
+import {
+  getCategories,
+  getCourseBySlug,
+  updateCourse,
+  uploadCourseIcon,
+  getPendingEdit,
+} from "@/entities/course";
 import type { Category } from "@/entities/course";
 import {
   CourseCreationLayout,
@@ -39,15 +45,21 @@ async function matchIconToImage(imageUrl: string): Promise<string | null> {
   }
 }
 
-const EMPTY_FORM: CourseBasicsFormValues = { title: "", short_description: "", full_description: "", category_id: "", level: "" };
+const EMPTY_FORM: CourseBasicsFormValues = {
+  title: "",
+  short_description: "",
+  full_description: "",
+  category_id: "",
+  level: "",
+};
 
 const UI_KEY_TO_FIELD: Record<string, string> = {
-  "field-title":             "title",
+  "field-title": "title",
   "field-short-description": "short_description",
-  "field-full-description":  "full_description",
-  "field-icon":              "icon",
-  "field-category":          "category_id",
-  "field-level":             "level",
+  "field-full-description": "full_description",
+  "field-icon": "icon",
+  "field-category": "category_id",
+  "field-level": "level",
 };
 
 /** Returns the set of field names that are read-only (approved by moderator, no revision needed). */
@@ -82,11 +94,17 @@ export default function EditCourseBasicsPage() {
   /** The slug every save targets: the live course's slug for a normal draft,
    *  or the hidden PENDING_EDIT shadow course's slug when editing a published course. */
   const [contentSlug, setContentSlug] = useState<string | null>(null);
-  const [moderationReview, setModerationReview] = useState<import("@/entities/course").ModerationReview | null>(null);
+  const [moderationReview, setModerationReview] = useState<
+    import("@/entities/course").ModerationReview | null
+  >(null);
   /** Fields approved by moderator — read-only when pending edit is in needs_revision state. */
   const [readonlyFields, setReadonlyFields] = useState<Set<string> | undefined>(undefined);
 
-  useEffect(() => { getCategories().then(setCategories).catch(() => {}); }, []);
+  useEffect(() => {
+    getCategories()
+      .then(setCategories)
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!slug) return;
@@ -111,7 +129,9 @@ export default function EditCourseBasicsPage() {
           if (course.moderation_review) {
             setModerationReview(course.moderation_review);
             if (pendingEdit.status === "needs_revision") {
-              setReadonlyFields(buildReadonlyFields(course.moderation_review.basics_field_statuses));
+              setReadonlyFields(
+                buildReadonlyFields(course.moderation_review.basics_field_statuses),
+              );
             }
           }
           if (draft.image) {
@@ -140,7 +160,9 @@ export default function EditCourseBasicsPage() {
           if (course.moderation_review) {
             setModerationReview(course.moderation_review);
             if (course.status === "needs_revision") {
-              setReadonlyFields(buildReadonlyFields(course.moderation_review.basics_field_statuses));
+              setReadonlyFields(
+                buildReadonlyFields(course.moderation_review.basics_field_statuses),
+              );
             }
           }
         }
@@ -149,7 +171,9 @@ export default function EditCourseBasicsPage() {
       .finally(() => setLoading(false));
   }, [slug, router]);
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
+  function handleChange(
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+  ) {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
     setFieldErrors((prev) => ({ ...prev, [name]: "" }));
@@ -157,14 +181,15 @@ export default function EditCourseBasicsPage() {
 
   async function doIconUpload() {
     const icon = COURSE_ICONS.find((i) => i.name === selectedIcon);
-    if (icon && contentSlug && selectedIcon !== loadedIconRef.current) await uploadCourseIcon(contentSlug, icon.src, icon.name);
+    if (icon && contentSlug && selectedIcon !== loadedIconRef.current)
+      await uploadCourseIcon(contentSlug, icon.src, icon.name);
   }
 
   function buildPayload(fallback = false): Record<string, unknown> {
-    const title            = form.title            || (fallback ? "Untitled Course" : form.title);
+    const title = form.title || (fallback ? "Untitled Course" : form.title);
     const short_description = form.short_description || (fallback ? "-" : form.short_description);
-    const full_description  = form.full_description  || (fallback ? "-" : form.full_description);
-    const level            = form.level            || (fallback ? "beginner" : form.level);
+    const full_description = form.full_description || (fallback ? "-" : form.full_description);
+    const level = form.level || (fallback ? "beginner" : form.level);
 
     const payload: Record<string, unknown> = { title, short_description, full_description, level };
     if (form.category_id) payload.category_id = parseInt(form.category_id, 10);
@@ -221,7 +246,16 @@ export default function EditCourseBasicsPage() {
         onSaveDraft={isLocked ? () => router.push("/teacher-dashboard/courses") : handleSaveDraft}
       />
       <CourseCreationStepper currentStep={0} />
-      <CourseBasicsCard onSubmit={isLocked ? (e) => { e.preventDefault(); router.push(`/teacher-dashboard/courses/${slug}/content`); } : handleSubmit}>
+      <CourseBasicsCard
+        onSubmit={
+          isLocked
+            ? (e) => {
+                e.preventDefault();
+                router.push(`/teacher-dashboard/courses/${slug}/content`);
+              }
+            : handleSubmit
+        }
+      >
         <CourseBasicsForm
           form={form}
           onChange={handleChange}

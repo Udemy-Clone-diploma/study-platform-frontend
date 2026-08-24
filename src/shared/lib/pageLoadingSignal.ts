@@ -24,7 +24,9 @@ export function endPageLoading() {
 
 export function subscribePageLoading(listener: Listener) {
   listeners.add(listener);
-  return () => { listeners.delete(listener); };
+  return () => {
+    listeners.delete(listener);
+  };
 }
 
 /**

@@ -18,12 +18,8 @@ export default async function LessonPage({
   if (!Number.isFinite(id) || id <= 0) notFound();
 
   if (process.env.NODE_ENV !== "production") {
-    const {
-      MOCK_COURSE_DETAIL_SLUG,
-      mockCourseDetail,
-      mockCourseProgress,
-      mockLessonDetails,
-    } = await import("@/entities/course/mocks/courseDetail");
+    const { MOCK_COURSE_DETAIL_SLUG, mockCourseDetail, mockCourseProgress, mockLessonDetails } =
+      await import("@/entities/course/mocks/courseDetail");
     if (slug === MOCK_COURSE_DETAIL_SLUG) {
       const mockLesson = mockLessonDetails[id];
       if (!mockLesson) notFound();

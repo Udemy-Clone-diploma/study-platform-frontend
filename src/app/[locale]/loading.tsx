@@ -19,7 +19,13 @@ export default function Loading() {
 function LoadingBackground() {
   return (
     <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-      <Image src="/backgrounds/learn-page-bg.png" alt="" fill sizes="100vw" className="object-cover" />
+      <Image
+        src="/backgrounds/learn-page-bg.png"
+        alt=""
+        fill
+        sizes="100vw"
+        className="object-cover"
+      />
     </div>
   );
 }

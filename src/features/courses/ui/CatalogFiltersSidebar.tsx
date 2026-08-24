@@ -62,12 +62,20 @@ export async function CatalogFiltersSidebar({
             label={tEnums("mode.self_learning")}
           />
           <ToggleOption
-            option={{ label: FORMAT_TYPE_LABELS.self_paced, param: "format_type", value: "self_paced" }}
+            option={{
+              label: FORMAT_TYPE_LABELS.self_paced,
+              param: "format_type",
+              value: "self_paced",
+            }}
             state={state}
             inset
           />
           <ToggleOption
-            option={{ label: FORMAT_TYPE_LABELS.scheduled, param: "format_type", value: "scheduled" }}
+            option={{
+              label: FORMAT_TYPE_LABELS.scheduled,
+              param: "format_type",
+              value: "scheduled",
+            }}
             state={state}
             inset
           />
@@ -77,7 +85,11 @@ export async function CatalogFiltersSidebar({
             label={tEnums("mode.with_teacher")}
           />
           <ToggleOption
-            option={{ label: FORMAT_TYPE_LABELS.individual, param: "format_type", value: "individual" }}
+            option={{
+              label: FORMAT_TYPE_LABELS.individual,
+              param: "format_type",
+              value: "individual",
+            }}
             state={state}
             inset
           />
@@ -129,13 +141,23 @@ export async function CatalogFiltersSidebar({
 
         <CollapsibleFilterSection title={t("difficultyLevel")}>
           {Object.entries(LEVEL_LABELS).map(([value, label]) => (
-            <ToggleOption key={value} option={{ label, param: "level", value }} state={state} inset />
+            <ToggleOption
+              key={value}
+              option={{ label, param: "level", value }}
+              state={state}
+              inset
+            />
           ))}
         </CollapsibleFilterSection>
 
         <CollapsibleFilterSection title={t("courseLanguage")}>
           {Object.entries(LANGUAGE_LABELS).map(([value, label]) => (
-            <ToggleOption key={value} option={{ label, param: "language", value }} state={state} inset />
+            <ToggleOption
+              key={value}
+              option={{ label, param: "language", value }}
+              state={state}
+              inset
+            />
           ))}
         </CollapsibleFilterSection>
 

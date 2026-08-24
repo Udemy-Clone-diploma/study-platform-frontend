@@ -32,28 +32,22 @@ export default function ResetPasswordPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const {
-    formData,
-    errors,
-    isSubmitting,
-    handleChange,
-    handleSubmit,
-    setFormData,
-  } = useAuthForm<PasswordResetFormData>({
-    initial: initialForm,
-    validate: (data) => validatePasswordResetForm(data, tValidation),
-    fieldKeys: ["password", "confirmPassword"],
-    submit: async (data) => {
-      try {
-        await confirmPasswordReset(uidb64, token, { password: data.password });
-        setPageStatus("success");
-      } catch (err: unknown) {
-        const e = err as { detail?: string; message?: string };
-        setPageStatus("error");
-        setPageMessage(e?.detail || e?.message || t("fallbackError"));
-      }
-    },
-  });
+  const { formData, errors, isSubmitting, handleChange, handleSubmit, setFormData } =
+    useAuthForm<PasswordResetFormData>({
+      initial: initialForm,
+      validate: (data) => validatePasswordResetForm(data, tValidation),
+      fieldKeys: ["password", "confirmPassword"],
+      submit: async (data) => {
+        try {
+          await confirmPasswordReset(uidb64, token, { password: data.password });
+          setPageStatus("success");
+        } catch (err: unknown) {
+          const e = err as { detail?: string; message?: string };
+          setPageStatus("error");
+          setPageMessage(e?.detail || e?.message || t("fallbackError"));
+        }
+      },
+    });
 
   useEffect(() => {
     if (!uidb64 || !token) return;
@@ -102,9 +96,7 @@ export default function ResetPasswordPage() {
   if (pageStatus === "success") {
     return (
       <AuthPanel title={t("successTitle")} description={t("successDescription")}>
-        <AccentButton href="/login">
-          {tCommon("signIn")}
-        </AccentButton>
+        <AccentButton href="/login">{tCommon("signIn")}</AccentButton>
       </AuthPanel>
     );
   }
@@ -126,10 +118,7 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <AuthPanel
-      title={t("newPasswordTitle")}
-      description={t("newPasswordDescription")}
-    >
+    <AuthPanel title={t("newPasswordTitle")} description={t("newPasswordDescription")}>
       <form onSubmit={handleSubmit} className="space-y-7">
         <AuthField
           id="password"
@@ -159,10 +148,7 @@ export default function ResetPasswordPage() {
           onTogglePassword={() => setShowConfirmPassword((prev) => !prev)}
         />
 
-        <AccentButton
-          type="submit"
-          disabled={isSubmitting}
-        >
+        <AccentButton type="submit" disabled={isSubmitting}>
           {isSubmitting ? tCommon("saving") : t("savePassword")}
         </AccentButton>
       </form>

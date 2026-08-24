@@ -19,7 +19,11 @@ export function CourseStatsGrid({ stats }: { stats: Stat[] }) {
           }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={icon} alt="" style={{ width: "clamp(24px, 2.08vw, 40px)", height: "clamp(24px, 2.08vw, 40px)" }} />
+          <img
+            src={icon}
+            alt=""
+            style={{ width: "clamp(24px, 2.08vw, 40px)", height: "clamp(24px, 2.08vw, 40px)" }}
+          />
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
             <span
               style={{

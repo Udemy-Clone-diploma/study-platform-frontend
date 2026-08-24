@@ -129,11 +129,7 @@ export function UsersTable({
             </ActionButton>
             <ActionButton
               title={
-                isSelf
-                  ? t("cannotBlockSelf")
-                  : row.is_blocked
-                    ? t("unblockUser")
-                    : t("blockUser")
+                isSelf ? t("cannotBlockSelf") : row.is_blocked ? t("unblockUser") : t("blockUser")
               }
               onClick={() => onToggleBlock(row)}
               danger={!row.is_blocked}

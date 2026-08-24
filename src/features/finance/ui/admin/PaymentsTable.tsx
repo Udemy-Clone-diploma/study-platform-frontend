@@ -29,10 +29,7 @@ export function paymentCourses(payment: AdminPayment, t: Translator): string {
   return `${titles[0]} ${t("moreCourses", { count: titles.length - 1 })}`;
 }
 
-export function methodLabel(
-  method: AdminPayment["payment_method"],
-  t: Translator,
-): string {
+export function methodLabel(method: AdminPayment["payment_method"], t: Translator): string {
   if (method === "stripe") return t("methodStripe");
   if (method === "liqpay") return t("methodLiqPay");
   return t("methodManual");
@@ -137,7 +134,9 @@ export function PaymentsTable({
               className="whitespace-nowrap text-(--color-text-secondary)"
               style={{ fontSize: "clamp(11px, 0.83vw, 13px)" }}
             >
-              {t("refundedAmount", { amount: formatMoney(row.refunded_amount, row.currency, locale) })}
+              {t("refundedAmount", {
+                amount: formatMoney(row.refunded_amount, row.currency, locale),
+              })}
             </span>
           )}
         </div>

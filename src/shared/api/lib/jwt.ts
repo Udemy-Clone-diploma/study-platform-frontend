@@ -25,7 +25,10 @@ export function decodeJwtPayload<T extends JwtPayload = JwtPayload>(token: strin
   }
 }
 
-export function getJwtMaxAge(token: string, nowSeconds = Math.floor(Date.now() / 1000)): number | undefined {
+export function getJwtMaxAge(
+  token: string,
+  nowSeconds = Math.floor(Date.now() / 1000),
+): number | undefined {
   const payload = decodeJwtPayload(token);
   if (!payload?.exp) return undefined;
 

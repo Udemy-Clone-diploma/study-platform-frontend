@@ -126,7 +126,11 @@ export default function StudentCoursesPage() {
                   ? "text-(--color-text-primary) underline underline-offset-4"
                   : "text-(--color-text-primary)",
               ].join(" ")}
-              style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(20px, 1.39vw, 24px)" }}
+              style={{
+                fontFamily: "var(--font-base)",
+                fontWeight: 600,
+                fontSize: "clamp(20px, 1.39vw, 24px)",
+              }}
             >
               {tabLabel(tab, t, tCommon)}
             </button>

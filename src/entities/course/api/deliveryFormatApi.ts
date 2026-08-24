@@ -3,7 +3,9 @@ import type { CourseDeliveryFormat, CourseDeliveryFormatPayload } from "../model
 import type { Paginated } from "../model/types";
 
 export async function getDeliveryFormats(slug: string): Promise<CourseDeliveryFormat[]> {
-  const res = await api.get<CourseDeliveryFormat[] | Paginated<CourseDeliveryFormat>>(`/courses/${slug}/delivery-formats/`);
+  const res = await api.get<CourseDeliveryFormat[] | Paginated<CourseDeliveryFormat>>(
+    `/courses/${slug}/delivery-formats/`,
+  );
   return Array.isArray(res.data) ? res.data : res.data.results;
 }
 

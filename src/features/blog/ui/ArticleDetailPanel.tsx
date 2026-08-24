@@ -21,7 +21,13 @@ type Props = {
 
 /** Side panel shown next to the article list (dashboard tabs) — same glass-panel treatment as
  * TeacherApplicationDetailPanel: info sections plus the available action buttons. */
-export function ArticleDetailPanel({ article, currentUserId, currentUserRole, onClose, onAction }: Props) {
+export function ArticleDetailPanel({
+  article,
+  currentUserId,
+  currentUserRole,
+  onClose,
+  onAction,
+}: Props) {
   const locale = useLocale();
   const t = useTranslations("ArticleDetailPanel");
   const tMenu = useTranslations("ArticleCardMenu");
@@ -59,7 +65,11 @@ export function ArticleDetailPanel({ article, currentUserId, currentUserRole, on
       <div className="flex items-center justify-between" style={{ gap: 12 }}>
         <h2
           className="overflow-hidden font-bold text-ellipsis whitespace-nowrap text-(--color-text-primary)"
-          style={{ fontFamily: "var(--font-base)", fontSize: "clamp(16px, 1.25vw, 18px)", margin: 0 }}
+          style={{
+            fontFamily: "var(--font-base)",
+            fontSize: "clamp(16px, 1.25vw, 18px)",
+            margin: 0,
+          }}
         >
           {article.title}
         </h2>
@@ -92,7 +102,15 @@ export function ArticleDetailPanel({ article, currentUserId, currentUserRole, on
       </span>
 
       {article.cover_image && (
-        <div style={{ position: "relative", width: "100%", aspectRatio: "16 / 9", borderRadius: 12, overflow: "hidden" }}>
+        <div
+          style={{
+            position: "relative",
+            width: "100%",
+            aspectRatio: "16 / 9",
+            borderRadius: 12,
+            overflow: "hidden",
+          }}
+        >
           <Image src={article.cover_image} alt="" fill unoptimized style={{ objectFit: "cover" }} />
         </div>
       )}
@@ -105,7 +123,9 @@ export function ArticleDetailPanel({ article, currentUserId, currentUserRole, on
         </DetailRow>
       </PanelSection>
 
-      {article.subtitle && <DetailTextRow label={t("descriptionLabel")}>{article.subtitle}</DetailTextRow>}
+      {article.subtitle && (
+        <DetailTextRow label={t("descriptionLabel")}>{article.subtitle}</DetailTextRow>
+      )}
 
       {menuItems.length > 0 && (
         <div className="flex flex-wrap items-center" style={{ gap: 10 }}>
@@ -183,11 +203,20 @@ function PanelSection({ title, children }: { title: string; children: React.Reac
 
 function DetailRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-baseline" style={{ gap: 12, fontFamily: "var(--font-base)", fontSize: "clamp(13px, 0.97vw, 15px)" }}>
-      <dt className="shrink-0 text-(--color-text-secondary)" style={{ width: "clamp(90px, 7vw, 110px)" }}>
+    <div
+      className="flex items-baseline"
+      style={{ gap: 12, fontFamily: "var(--font-base)", fontSize: "clamp(13px, 0.97vw, 15px)" }}
+    >
+      <dt
+        className="shrink-0 text-(--color-text-secondary)"
+        style={{ width: "clamp(90px, 7vw, 110px)" }}
+      >
         {label}
       </dt>
-      <dd className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-(--color-text-primary)" style={{ margin: 0 }}>
+      <dd
+        className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-(--color-text-primary)"
+        style={{ margin: 0 }}
+      >
         {children}
       </dd>
     </div>

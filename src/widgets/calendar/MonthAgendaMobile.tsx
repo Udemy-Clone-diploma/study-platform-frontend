@@ -10,8 +10,12 @@ import { chipColors } from "./WeekCalendar";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function pad(n: number) { return String(n).padStart(2, "0"); }
-function toISO(d: Date)  { return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; }
+function pad(n: number) {
+  return String(n).padStart(2, "0");
+}
+function toISO(d: Date) {
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
 
 function weekStartsForGrid(days: Date[]): string[] {
   const seen = new Set<string>();
@@ -25,7 +29,15 @@ const GRADIENT = "linear-gradient(90deg, #A7BAFA 0%, #FCC4C3 50.96%, #FFF4DA 100
 
 // ── Month nav arrow ──────────────────────────────────────────────────────────
 
-function NavArrow({ direction, onClick, label }: { direction: "left" | "right"; onClick: () => void; label: string }) {
+function NavArrow({
+  direction,
+  onClick,
+  label,
+}: {
+  direction: "left" | "right";
+  onClick: () => void;
+  label: string;
+}) {
   return (
     <button
       type="button"
@@ -56,7 +68,12 @@ function NavArrow({ direction, onClick, label }: { direction: "left" | "right"; 
 // ── Day cell ─────────────────────────────────────────────────────────────────
 
 function DayCell({
-  day, inMonth, isSelected, isToday, dotColors, onClick,
+  day,
+  inMonth,
+  isSelected,
+  isToday,
+  dotColors,
+  onClick,
 }: {
   day: number;
   inMonth: boolean;
@@ -98,7 +115,9 @@ function DayCell({
           width: circleSize,
           height: circleSize,
           fontSize: cellFont,
-          ...(highlighted ? { background: isSelected ? "var(--color-brand-lavender)" : GRADIENT } : {}),
+          ...(highlighted
+            ? { background: isSelected ? "var(--color-brand-lavender)" : GRADIENT }
+            : {}),
         }}
       >
         {day}
@@ -167,7 +186,10 @@ function AgendaEventCard({ event, onClick }: { event: CalendarEvent; onClick: ()
         {isCancelled && (
           <span
             className="font-bold uppercase tracking-wide"
-            style={{ color: "rgba(120,0,0,0.8)", fontSize: "clamp(9px, calc(7.24px + 0.31vw), 11px)" }}
+            style={{
+              color: "rgba(120,0,0,0.8)",
+              fontSize: "clamp(9px, calc(7.24px + 0.31vw), 11px)",
+            }}
           >
             ✕ {t("cancelled")}
           </span>
@@ -175,7 +197,10 @@ function AgendaEventCard({ event, onClick }: { event: CalendarEvent; onClick: ()
         {isRescheduled && (
           <span
             className="font-bold uppercase tracking-wide"
-            style={{ color: "rgba(180,90,0,0.9)", fontSize: "clamp(9px, calc(7.24px + 0.31vw), 11px)" }}
+            style={{
+              color: "rgba(180,90,0,0.9)",
+              fontSize: "clamp(9px, calc(7.24px + 0.31vw), 11px)",
+            }}
           >
             {event.rescheduled_to_date
               ? `→ ${event.rescheduled_to_date.slice(5).split("-").reverse().join(".")}`
@@ -217,7 +242,9 @@ export function MonthAgendaMobile({
   const todayDate = useMemo(() => new Date(), []);
   const todayISO = useMemo(() => toISO(todayDate), [todayDate]);
 
-  const [viewMonth, setViewMonth] = useState(() => new Date(todayDate.getFullYear(), todayDate.getMonth(), 1));
+  const [viewMonth, setViewMonth] = useState(
+    () => new Date(todayDate.getFullYear(), todayDate.getMonth(), 1),
+  );
   const [selectedISO, setSelectedISO] = useState(todayISO);
   const [eventMap, setEventMap] = useState<Record<string, CalendarEvent[]>>({});
   const [deadlineMap, setDeadlineMap] = useState<Record<string, CalendarDeadline[]>>({});
@@ -225,7 +252,7 @@ export function MonthAgendaMobile({
   const days = useMemo(() => {
     const first = new Date(viewMonth.getFullYear(), viewMonth.getMonth(), 1);
     const daysInMonth = new Date(viewMonth.getFullYear(), viewMonth.getMonth() + 1, 0).getDate();
-    const totalCells = (first.getDay() + daysInMonth) > 35 ? 42 : 35;
+    const totalCells = first.getDay() + daysInMonth > 35 ? 42 : 35;
     const start = new Date(first);
     start.setDate(first.getDate() - first.getDay());
     return Array.from({ length: totalCells }, (_, i) => {
@@ -237,7 +264,9 @@ export function MonthAgendaMobile({
 
   const fetchMonth = useCallback(async (grid: Date[]) => {
     const weekStarts = weekStartsForGrid(grid);
-    const results = await Promise.all(weekStarts.map((ws) => getCalendarEvents(ws).catch(() => null)));
+    const results = await Promise.all(
+      weekStarts.map((ws) => getCalendarEvents(ws).catch(() => null)),
+    );
     const merged: Record<string, CalendarEvent[]> = {};
     const mergedDeadlines: Record<string, CalendarDeadline[]> = {};
     for (const res of results) {
@@ -268,7 +297,9 @@ export function MonthAgendaMobile({
     const hiddenIds = new Set(
       all
         .filter((e) => e.event_status)
-        .filter((pe) => active.some((ae) => ae.start_time < pe.end_time && pe.start_time < ae.end_time))
+        .filter((pe) =>
+          active.some((ae) => ae.start_time < pe.end_time && pe.start_time < ae.end_time),
+        )
         .map((e) => e.id),
     );
     return all.filter((e) => !hiddenIds.has(e.id));
@@ -288,7 +319,10 @@ export function MonthAgendaMobile({
           onClick={() => setViewMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1))}
         />
         <h2 className="flex flex-col items-center font-semibold text-black">
-          <span className="capitalize" style={{ fontSize: "clamp(18px, calc(11.88px + 1.57vw), 26px)" }}>
+          <span
+            className="capitalize"
+            style={{ fontSize: "clamp(18px, calc(11.88px + 1.57vw), 26px)" }}
+          >
             {monthOnlyFmt.format(viewMonth)}
           </span>
           <span

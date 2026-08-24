@@ -8,7 +8,12 @@ import { Check, ChevronDown, PartyPopper, TriangleAlert } from "lucide-react";
 import type { ApiError } from "@/shared/api/base";
 import { GradientButton } from "@/shared/ui/GradientButton";
 import type { CourseDetail, CourseProgress } from "@/entities/course";
-import { byOrder, completeCourse, useCompletionRedirect, useCourseProgress } from "@/entities/course";
+import {
+  byOrder,
+  completeCourse,
+  useCompletionRedirect,
+  useCourseProgress,
+} from "@/entities/course";
 import { CompleteCourseReviewModal } from "@/features/courses";
 import { LearnPageDecor } from "./LearnPageDecor";
 import { LearnTabs } from "./LearnTabs";
@@ -179,7 +184,11 @@ export function CourseProgressView({ course, initialProgress = null, isMock = fa
               {t("lessonCompletion")}
             </h2>
             <p className="font-(family-name:--font-base) text-base text-(--color-text-secondary)">
-              {t("lessonsCompletedSummary", { completed: completedCount, total: lessonsTotal, percent })}
+              {t("lessonsCompletedSummary", {
+                completed: completedCount,
+                total: lessonsTotal,
+                percent,
+              })}
             </p>
           </header>
 

@@ -111,7 +111,9 @@ export function CertificateDetailPanel({ certificate, onClose, onVisibilityChang
           </DetailRow>
         )}
         {certificate.restored_by && (
-          <DetailRow label={t("fieldRestoredBy")}>{actorName(certificate.restored_by, t)}</DetailRow>
+          <DetailRow label={t("fieldRestoredBy")}>
+            {actorName(certificate.restored_by, t)}
+          </DetailRow>
         )}
       </dl>
 

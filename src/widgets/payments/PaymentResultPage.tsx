@@ -164,9 +164,7 @@ export function PaymentResultPage({ mode }: { mode: ResultMode }) {
   return (
     <main className="min-h-[calc(100vh-76px)] bg-[linear-gradient(120deg,#FFFFFF_0%,#FFF7F2_32%,rgba(252,196,195,0.38)_58%,#FFFFFF_100%)] px-4 py-8 sm:px-10">
       <section className="mx-auto flex min-h-[460px] w-full max-w-[720px] flex-col justify-center rounded-[16px] bg-white px-6 py-10 shadow-[0_0_15px_rgba(0,0,0,0.18)] md:px-[60px]">
-        <p className="mb-3 font-mono text-[11px] uppercase text-[#6A6A6A]">
-          {t("tuitionPayment")}
-        </p>
+        <p className="mb-3 font-mono text-[11px] uppercase text-[#6A6A6A]">{t("tuitionPayment")}</p>
         <h1 className="font-mono text-[22px] font-semibold text-[#121212]">{title}</h1>
         <p className="mt-4 max-w-[560px] font-mono text-[13px] leading-5 text-[#121212]">
           {description}

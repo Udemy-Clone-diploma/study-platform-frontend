@@ -16,9 +16,7 @@ export const OTHERS_HREF = "/others";
 export function getBottomNavSplit(role: UserRole, items: SidebarItem[]) {
   const ids = BOTTOM_NAV_PRIMARY_IDS[role];
   const byId = new Map(items.map((item) => [item.id, item]));
-  const primary = ids
-    .map((id) => byId.get(id))
-    .filter((item): item is SidebarItem => item != null);
+  const primary = ids.map((id) => byId.get(id)).filter((item): item is SidebarItem => item != null);
   const overflow = items.filter((item) => !ids.includes(item.id));
   return { primary, overflow };
 }

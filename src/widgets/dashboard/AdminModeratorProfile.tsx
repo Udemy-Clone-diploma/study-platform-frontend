@@ -49,10 +49,7 @@ export function AdminModeratorProfile({ moderatorId }: { moderatorId: number }) 
         setResult({
           moderatorId,
           data: null,
-          error:
-            apiError.status === 404
-              ? t("notFoundError")
-              : apiError.message || t("loadError"),
+          error: apiError.status === 404 ? t("notFoundError") : apiError.message || t("loadError"),
         });
       });
 
@@ -105,7 +102,9 @@ export function AdminModeratorProfile({ moderatorId }: { moderatorId: number }) 
               </h1>
               <p className="mt-1 text-sm text-(--color-text-secondary)">
                 {data.moderator.email} ·{" "}
-                {t("joined", { date: new Date(data.moderator.date_joined).toLocaleDateString(locale) })}
+                {t("joined", {
+                  date: new Date(data.moderator.date_joined).toLocaleDateString(locale),
+                })}
               </p>
             </header>
 

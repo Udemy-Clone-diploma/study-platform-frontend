@@ -47,7 +47,10 @@ type Props = {
 export function BlogCategoryFormModal({ category, onClose, onSave }: Props) {
   const t = useTranslations("BlogCategoryFormModal");
   const tCommon = useTranslations("Common");
-  const [name, setName] = useState<LocaleFields>({ ...EMPTY_LOCALE_FIELDS, en: category?.name ?? "" });
+  const [name, setName] = useState<LocaleFields>({
+    ...EMPTY_LOCALE_FIELDS,
+    en: category?.name ?? "",
+  });
   const [headline, setHeadline] = useState<LocaleFields>({
     ...EMPTY_LOCALE_FIELDS,
     en: category?.headline ?? "",
@@ -141,7 +144,8 @@ export function BlogCategoryFormModal({ category, onClose, onSave }: Props) {
     de: !!name.de.trim(),
   };
 
-  const submitDisabled = !name.en.trim() || !headline.en.trim() || loading || detailLoading || !!detailError;
+  const submitDisabled =
+    !name.en.trim() || !headline.en.trim() || loading || detailLoading || !!detailError;
 
   return (
     <ModalShell
@@ -153,7 +157,11 @@ export function BlogCategoryFormModal({ category, onClose, onSave }: Props) {
     >
       <form onSubmit={handleSubmit}>
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          <LocaleTabs active={activeLocale} onChange={(l) => setActiveLocale(l as Locale)} filled={filled} />
+          <LocaleTabs
+            active={activeLocale}
+            onChange={(l) => setActiveLocale(l as Locale)}
+            filled={filled}
+          />
           {activeLocale !== "en" && (
             <p style={{ fontSize: 12, color: "var(--color-text-secondary)", margin: 0 }}>
               {t("localeHint")}
@@ -162,7 +170,8 @@ export function BlogCategoryFormModal({ category, onClose, onSave }: Props) {
 
           <div>
             <label htmlFor="category-name" style={labelSt}>
-              {t("nameLabel")}{activeLocale === "en" ? "*" : ""}
+              {t("nameLabel")}
+              {activeLocale === "en" ? "*" : ""}
             </label>
             <input
               id="category-name"
@@ -177,7 +186,8 @@ export function BlogCategoryFormModal({ category, onClose, onSave }: Props) {
           </div>
           <div>
             <label htmlFor="category-headline" style={labelSt}>
-              {t("headlineLabel")}{activeLocale === "en" ? "*" : ""}
+              {t("headlineLabel")}
+              {activeLocale === "en" ? "*" : ""}
             </label>
             <input
               id="category-headline"

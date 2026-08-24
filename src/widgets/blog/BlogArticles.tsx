@@ -26,7 +26,11 @@ export function BlogArticles({ categories, articles, role }: Props) {
       <BlogHeroSection role={role} />
 
       {categories.map((category) => (
-        <BlogCategorySection key={category.id} category={category} articles={byCategory.get(category.id) ?? []} />
+        <BlogCategorySection
+          key={category.id}
+          category={category}
+          articles={byCategory.get(category.id) ?? []}
+        />
       ))}
     </>
   );

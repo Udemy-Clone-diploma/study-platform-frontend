@@ -2949,11 +2949,7 @@
     "chooseLanguage": "Elige un idioma"
   },
   "HomeHero": {
-    "tags": [
-      "Habilidades",
-      "Networking",
-      "Crecimiento"
-    ],
+    "tags": ["Habilidades", "Networking", "Crecimiento"],
     "title": "Educación de nueva generación",
     "subtitle": "Una plataforma donde el conocimiento se convierte en resultados reales. Simple, flexible y directa.",
     "rating": "Calificación de 4.9 con más de 10,000 estudiantes",
@@ -2993,13 +2989,7 @@
     }
   },
   "HomeBenefits": {
-    "tags": [
-      "Mejora",
-      "Práctica",
-      "Flow",
-      "Validado",
-      "Pro"
-    ],
+    "tags": ["Mejora", "Práctica", "Flow", "Validado", "Pro"],
     "heading": "Aprende. Conecta. Crece.",
     "description": "Donde el conocimiento se encuentra con la carrera profesional. Elige tu ritmo: estudio a tu propio paso o sesiones en vivo con mentores. Certificados, exámenes y un calendario inteligente, todo para mejorar en un solo lugar.",
     "cards": {

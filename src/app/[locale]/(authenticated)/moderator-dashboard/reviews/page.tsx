@@ -413,7 +413,9 @@ export default function ModeratorReviewsPage() {
           style={{ padding: "clamp(16px, 1.67vw, 24px)", marginTop: "clamp(16px, 1.67vw, 24px)" }}
         >
           {loading ? (
-            <p className="py-16 text-center text-lg text-(--color-text-secondary)">{tCommon("loading")}</p>
+            <p className="py-16 text-center text-lg text-(--color-text-secondary)">
+              {tCommon("loading")}
+            </p>
           ) : error ? (
             <p className="py-16 text-center text-lg text-red-500">{error}</p>
           ) : visible.length === 0 ? (

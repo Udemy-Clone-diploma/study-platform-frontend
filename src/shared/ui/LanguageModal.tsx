@@ -52,7 +52,9 @@ export function LanguageModal({ onClose, onLocaleChange }: Props) {
                 cursor: "pointer",
                 padding: "clamp(8px, 0.83vw, 12px)",
                 borderRadius: 8,
-                border: isSelected ? "1px solid var(--color-text-primary)" : "1px solid transparent",
+                border: isSelected
+                  ? "1px solid var(--color-text-primary)"
+                  : "1px solid transparent",
                 background: "none",
                 color: "var(--color-text-primary)",
               }}

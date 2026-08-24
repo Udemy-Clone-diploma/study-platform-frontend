@@ -1,0 +1,11 @@
+node_modules
+.next
+out
+build
+coverage
+next-env.d.ts
+
+# Lockfiles are generated; reformatting them creates noise and merge conflicts.
+package-lock.json
+pnpm-lock.yaml
+pnpm-workspace.yaml

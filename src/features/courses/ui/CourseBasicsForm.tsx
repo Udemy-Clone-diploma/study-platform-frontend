@@ -10,19 +10,23 @@ import { WhiteButton } from "@/shared/ui/WhiteButton";
 import { ModeratorNoteBanner } from "./ModeratorNoteBanner";
 
 export const COURSE_ICONS = [
-  { name: "automation",    src: "/cources-default-pic/automation-pic.svg" },
-  { name: "billing",       src: "/cources-default-pic/billing-pic.svg" },
+  { name: "automation", src: "/cources-default-pic/automation-pic.svg" },
+  { name: "billing", src: "/cources-default-pic/billing-pic.svg" },
   { name: "communication", src: "/cources-default-pic/communication-pic.svg" },
-  { name: "innovation",    src: "/cources-default-pic/innovation-pic.svg" },
-  { name: "intelligence",  src: "/cources-default-pic/intelligence-pic.svg" },
-  { name: "workspace",     src: "/cources-default-pic/workspace-pic.svg" },
+  { name: "innovation", src: "/cources-default-pic/innovation-pic.svg" },
+  { name: "intelligence", src: "/cources-default-pic/intelligence-pic.svg" },
+  { name: "workspace", src: "/cources-default-pic/workspace-pic.svg" },
 ];
 
 const LEVEL_VALUES = ["beginner", "intermediate", "advanced"] as const;
 
 const fieldCls = (err: boolean) =>
-  ["w-full rounded-xl outline-none transition focus:ring-2 focus:ring-(--color-blue)", err ? "ring-2 ring-red-500" : ""]
-    .filter(Boolean).join(" ");
+  [
+    "w-full rounded-xl outline-none transition focus:ring-2 focus:ring-(--color-blue)",
+    err ? "ring-2 ring-red-500" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
 const fieldSt = (err: boolean): React.CSSProperties => ({
   background: err ? "var(--color-error-surface)" : "var(--color-input-bg)",
@@ -57,7 +61,9 @@ type SectionActionValue = "approved" | "needs_revision" | "rejected" | "";
 
 type Props = {
   form: CourseBasicsFormValues;
-  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
+  onChange: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+  ) => void;
   categories: Category[];
   selectedIcon: string | null;
   onIconSelect: (name: string | null) => void;
@@ -81,26 +87,60 @@ type Props = {
 
 function FieldStatusBadge({ status }: { status: FieldStatusValue | undefined }) {
   if (!status) return null;
-  const src = status === "approved" ? "/icons/yes.svg" : status === "rejected" ? "/icons/no.svg" : "/icons/refine.svg";
+  const src =
+    status === "approved"
+      ? "/icons/yes.svg"
+      : status === "rejected"
+        ? "/icons/no.svg"
+        : "/icons/refine.svg";
   const alt = status;
   return (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={src} alt={alt} width={20} height={20} style={{ width: 20, height: 20, flexShrink: 0 }} />
+    <img
+      src={src}
+      alt={alt}
+      width={20}
+      height={20}
+      style={{ width: 20, height: 20, flexShrink: 0 }}
+    />
   );
 }
 
-function FieldLabelRow({ htmlFor, label, fieldKey, fieldStatuses }: { htmlFor?: string; label: string; fieldKey: string; fieldStatuses?: Record<string, FieldStatusValue> }) {
+function FieldLabelRow({
+  htmlFor,
+  label,
+  fieldKey,
+  fieldStatuses,
+}: {
+  htmlFor?: string;
+  label: string;
+  fieldKey: string;
+  fieldStatuses?: Record<string, FieldStatusValue>;
+}) {
   const status = fieldStatuses?.[fieldKey];
   return (
-    <div className="flex items-center justify-between" style={{ marginBottom: "clamp(8px, 0.63vw, 12px)" }}>
-      <label htmlFor={htmlFor} style={{ ...labelSt, marginBottom: 0 }}>{label}</label>
+    <div
+      className="flex items-center justify-between"
+      style={{ marginBottom: "clamp(8px, 0.63vw, 12px)" }}
+    >
+      <label htmlFor={htmlFor} style={{ ...labelSt, marginBottom: 0 }}>
+        {label}
+      </label>
       <FieldStatusBadge status={status} />
     </div>
   );
 }
 
 /** Custom dropdown styled to match the form's input fields. */
-function FormSelect({ name, value, options, placeholder, disabled, hasError, onSelect }: {
+function FormSelect({
+  name,
+  value,
+  options,
+  placeholder,
+  disabled,
+  hasError,
+  onSelect,
+}: {
   name: string;
   value: string;
   options: { value: string; label: string }[];
@@ -112,7 +152,7 @@ function FormSelect({ name, value, options, placeholder, disabled, hasError, onS
   const t = useTranslations("CourseBasicsForm");
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const selected = options.find(o => o.value === value);
+  const selected = options.find((o) => o.value === value);
 
   useEffect(() => {
     if (!open) return;
@@ -128,7 +168,7 @@ function FormSelect({ name, value, options, placeholder, disabled, hasError, onS
       <button
         type="button"
         disabled={disabled}
-        onClick={() => !disabled && setOpen(p => !p)}
+        onClick={() => !disabled && setOpen((p) => !p)}
         style={{
           display: "flex",
           alignItems: "center",
@@ -146,7 +186,9 @@ function FormSelect({ name, value, options, placeholder, disabled, hasError, onS
           gap: 8,
         }}
       >
-        <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        <span
+          style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+        >
           {selected?.label ?? placeholder ?? t("selectPlaceholder")}
         </span>
         <ChevronDown
@@ -178,11 +220,14 @@ function FormSelect({ name, value, options, placeholder, disabled, hasError, onS
             margin: 0,
           }}
         >
-          {options.map(opt => (
+          {options.map((opt) => (
             <li key={opt.value} role="option" aria-selected={opt.value === value}>
               <button
                 type="button"
-                onClick={() => { onSelect(name, opt.value); setOpen(false); }}
+                onClick={() => {
+                  onSelect(name, opt.value);
+                  setOpen(false);
+                }}
                 style={{
                   display: "block",
                   width: "100%",
@@ -226,14 +271,18 @@ export function CourseBasicsForm({
 }: Props) {
   const t = useTranslations("CourseBasicsForm");
   const LEVELS = LEVEL_VALUES.map((value) => ({ value, label: t(`level.${value}`) }));
-  const SECTION_ACTION_LABEL: Record<NonNullable<SectionActionValue>, { label: string; color: string }> = {
-    approved:       { label: t("statusApproved"),      color: "var(--color-success)" },
+  const SECTION_ACTION_LABEL: Record<
+    NonNullable<SectionActionValue>,
+    { label: string; color: string }
+  > = {
+    approved: { label: t("statusApproved"), color: "var(--color-success)" },
     needs_revision: { label: t("statusNeedsRevision"), color: "var(--color-warning)" },
-    rejected:       { label: t("statusRejected"),       color: "var(--color-rejected)" },
-    "":             { label: "",                        color: "" },
+    rejected: { label: t("statusRejected"), color: "var(--color-rejected)" },
+    "": { label: "", color: "" },
   };
   const ro = (field: string) => readonlyFields?.has(field) ?? false;
-  const roWrap = (field: string): React.CSSProperties => ro(field) ? { opacity: 0.5, pointerEvents: "none" } : {};
+  const roWrap = (field: string): React.CSSProperties =>
+    ro(field) ? { opacity: 0.5, pointerEvents: "none" } : {};
 
   function handleSelectChange(name: string, value: string) {
     onChange({ target: { name, value } } as React.ChangeEvent<HTMLSelectElement>);
@@ -251,38 +300,121 @@ export function CourseBasicsForm({
       </p>
 
       <div style={{ display: "flex", flexDirection: "column", gap: "clamp(14px, 1.25vw, 20px)" }}>
-
         {/* Title */}
         <div style={roWrap("title")}>
-          <FieldLabelRow htmlFor="title" label={t("courseTitle")} fieldKey="field-title" fieldStatuses={fieldStatuses} />
-          <input id="title" name="title" value={form.title} onChange={onChange} readOnly={ro("title")} required placeholder={t("untitledCourse")} className={fieldCls(!!fieldErrors.title)} style={fieldSt(!!fieldErrors.title)} />
+          <FieldLabelRow
+            htmlFor="title"
+            label={t("courseTitle")}
+            fieldKey="field-title"
+            fieldStatuses={fieldStatuses}
+          />
+          <input
+            id="title"
+            name="title"
+            value={form.title}
+            onChange={onChange}
+            readOnly={ro("title")}
+            required
+            placeholder={t("untitledCourse")}
+            className={fieldCls(!!fieldErrors.title)}
+            style={fieldSt(!!fieldErrors.title)}
+          />
           {fieldErrors.title && <p className="mt-1 text-xs text-red-500">{fieldErrors.title}</p>}
         </div>
 
         {/* Short Description */}
         <div style={roWrap("short_description")}>
-          <FieldLabelRow htmlFor="short_description" label={t("shortDescription")} fieldKey="field-short-description" fieldStatuses={fieldStatuses} />
-          <input id="short_description" name="short_description" value={form.short_description} onChange={onChange} readOnly={ro("short_description")} required maxLength={500} placeholder={t("shortDescriptionPlaceholder")} className={fieldCls(!!fieldErrors.short_description)} style={fieldSt(!!fieldErrors.short_description)} />
-          {fieldErrors.short_description && <p className="mt-1 text-xs text-red-500">{fieldErrors.short_description}</p>}
+          <FieldLabelRow
+            htmlFor="short_description"
+            label={t("shortDescription")}
+            fieldKey="field-short-description"
+            fieldStatuses={fieldStatuses}
+          />
+          <input
+            id="short_description"
+            name="short_description"
+            value={form.short_description}
+            onChange={onChange}
+            readOnly={ro("short_description")}
+            required
+            maxLength={500}
+            placeholder={t("shortDescriptionPlaceholder")}
+            className={fieldCls(!!fieldErrors.short_description)}
+            style={fieldSt(!!fieldErrors.short_description)}
+          />
+          {fieldErrors.short_description && (
+            <p className="mt-1 text-xs text-red-500">{fieldErrors.short_description}</p>
+          )}
         </div>
 
         {/* Full Description */}
         <div style={roWrap("full_description")}>
-          <FieldLabelRow htmlFor="full_description" label={t("fullDescription")} fieldKey="field-full-description" fieldStatuses={fieldStatuses} />
-          <textarea id="full_description" name="full_description" value={form.full_description} onChange={onChange} readOnly={ro("full_description")} required rows={5} placeholder={t("fullDescriptionPlaceholder")} className={fieldCls(!!fieldErrors.full_description)} style={{ ...fieldSt(!!fieldErrors.full_description), resize: "vertical" }} />
-          {fieldErrors.full_description && <p className="mt-1 text-xs text-red-500">{fieldErrors.full_description}</p>}
+          <FieldLabelRow
+            htmlFor="full_description"
+            label={t("fullDescription")}
+            fieldKey="field-full-description"
+            fieldStatuses={fieldStatuses}
+          />
+          <textarea
+            id="full_description"
+            name="full_description"
+            value={form.full_description}
+            onChange={onChange}
+            readOnly={ro("full_description")}
+            required
+            rows={5}
+            placeholder={t("fullDescriptionPlaceholder")}
+            className={fieldCls(!!fieldErrors.full_description)}
+            style={{ ...fieldSt(!!fieldErrors.full_description), resize: "vertical" }}
+          />
+          {fieldErrors.full_description && (
+            <p className="mt-1 text-xs text-red-500">{fieldErrors.full_description}</p>
+          )}
         </div>
 
         {/* Icon picker */}
         <div style={roWrap("icon")}>
-          <FieldLabelRow label={t("courseIcon")} fieldKey="field-icon" fieldStatuses={fieldStatuses} />
+          <FieldLabelRow
+            label={t("courseIcon")}
+            fieldKey="field-icon"
+            fieldStatuses={fieldStatuses}
+          />
           <div className="flex items-end" style={{ gap: "clamp(10px, 1.25vw, 20px)" }}>
             {COURSE_ICONS.map((icon) => {
               const isSelected = selectedIcon === icon.name;
               return (
-                <button key={icon.name} type="button" onClick={ro("icon") ? undefined : () => onIconSelect(icon.name)} aria-label={icon.name} aria-pressed={isSelected} className="transition-all" style={{ opacity: isSelected ? 1 : 0.5, background: "transparent", border: "none", padding: 0, cursor: ro("icon") ? "default" : "pointer", flexShrink: 0, width: "clamp(44px, 4.06vw, 78px)", height: "clamp(44px, 4.06vw, 78px)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <button
+                  key={icon.name}
+                  type="button"
+                  onClick={ro("icon") ? undefined : () => onIconSelect(icon.name)}
+                  aria-label={icon.name}
+                  aria-pressed={isSelected}
+                  className="transition-all"
+                  style={{
+                    opacity: isSelected ? 1 : 0.5,
+                    background: "transparent",
+                    border: "none",
+                    padding: 0,
+                    cursor: ro("icon") ? "default" : "pointer",
+                    flexShrink: 0,
+                    width: "clamp(44px, 4.06vw, 78px)",
+                    height: "clamp(44px, 4.06vw, 78px)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={icon.src} alt={icon.name} style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }} />
+                  <img
+                    src={icon.src}
+                    alt={icon.name}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "contain",
+                      display: "block",
+                    }}
+                  />
                 </button>
               );
             })}
@@ -292,21 +424,31 @@ export function CourseBasicsForm({
         {/* Category + Level */}
         <div className="grid grid-cols-2" style={{ gap: "clamp(16px, 2.08vw, 40px)" }}>
           <div style={roWrap("category_id")}>
-            <FieldLabelRow label={t("category")} fieldKey="field-category" fieldStatuses={fieldStatuses} />
+            <FieldLabelRow
+              label={t("category")}
+              fieldKey="field-category"
+              fieldStatuses={fieldStatuses}
+            />
             <FormSelect
               name="category_id"
               value={form.category_id}
-              options={categories.map(c => ({ value: String(c.id), label: c.name }))}
+              options={categories.map((c) => ({ value: String(c.id), label: c.name }))}
               onSelect={handleSelectChange}
               placeholder={t("selectCategory")}
               disabled={ro("category_id")}
               hasError={!!fieldErrors.category_id}
             />
-            {fieldErrors.category_id && <p className="mt-1 text-xs text-red-500">{fieldErrors.category_id}</p>}
+            {fieldErrors.category_id && (
+              <p className="mt-1 text-xs text-red-500">{fieldErrors.category_id}</p>
+            )}
           </div>
 
           <div style={roWrap("level")}>
-            <FieldLabelRow label={t("levelLabel")} fieldKey="field-level" fieldStatuses={fieldStatuses} />
+            <FieldLabelRow
+              label={t("levelLabel")}
+              fieldKey="field-level"
+              fieldStatuses={fieldStatuses}
+            />
             <FormSelect
               name="level"
               value={form.level}
@@ -323,18 +465,24 @@ export function CourseBasicsForm({
         {/* Moderator basics feedback */}
         <ModeratorNoteBanner
           comment={moderatorComment}
-          actionLabel={moderatorSectionAction ? SECTION_ACTION_LABEL[moderatorSectionAction].label : undefined}
-          actionColor={moderatorSectionAction ? SECTION_ACTION_LABEL[moderatorSectionAction].color : undefined}
+          actionLabel={
+            moderatorSectionAction ? SECTION_ACTION_LABEL[moderatorSectionAction].label : undefined
+          }
+          actionColor={
+            moderatorSectionAction ? SECTION_ACTION_LABEL[moderatorSectionAction].color : undefined
+          }
         />
 
         {/* Submit row */}
-        <div className={`flex items-center ${onCancel ? "justify-between" : "justify-end"}`} style={{ marginTop: "clamp(8px, 0.63vw, 12px)" }}>
+        <div
+          className={`flex items-center ${onCancel ? "justify-between" : "justify-end"}`}
+          style={{ marginTop: "clamp(8px, 0.63vw, 12px)" }}
+        >
           {onCancel && <WhiteButton onClick={onCancel}>{cancelLabel ?? t("cancel")}</WhiteButton>}
           <AccentButton type="submit" size="md" disabled={submitting}>
             {submitting ? t("saving") : (submitLabel ?? t("continueToCourseContent"))}
           </AccentButton>
         </div>
-
       </div>
     </SectionCard>
   );

@@ -2949,11 +2949,7 @@
     "chooseLanguage": "Choose a language"
   },
   "HomeHero": {
-    "tags": [
-      "Skills",
-      "Networking",
-      "Growth"
-    ],
+    "tags": ["Skills", "Networking", "Growth"],
     "title": "Next-gen education",
     "subtitle": "A platform where knowledge turns into real-world results. Simple, flexible, and straight to the point.",
     "rating": "4.9 rating from over 10,000 students",
@@ -2993,13 +2989,7 @@
     }
   },
   "HomeBenefits": {
-    "tags": [
-      "Upgrade",
-      "Hands-on",
-      "Flow",
-      "Validated",
-      "Pro"
-    ],
+    "tags": ["Upgrade", "Hands-on", "Flow", "Validated", "Pro"],
     "heading": "Learn. Connect. Grow.",
     "description": "Where knowledge meets career. Choose your flow: self-paced study or live sessions with mentors. Certificates, tests, and a smart calendar — everything for your upgrade in one tab.",
     "cards": {

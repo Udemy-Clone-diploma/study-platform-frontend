@@ -45,27 +45,37 @@ export function TeacherStudentsPanel() {
         if (!cancelled) setByCourse(Object.fromEntries(entries));
       })
       .catch(() => {})
-      .finally(() => { if (!cancelled) setLoaded(true); });
-    return () => { cancelled = true; };
+      .finally(() => {
+        if (!cancelled) setLoaded(true);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // Cohorts are always course-scoped, so fetch them lazily once a specific
   // course is selected, and reset the group filter whenever the course changes.
   useEffect(() => {
     setCohortId(ALL);
-    if (!courseSlug) { setCohorts([]); return; }
+    if (!courseSlug) {
+      setCohorts([]);
+      return;
+    }
     let cancelled = false;
     getCohorts(courseSlug)
-      .then((res) => { if (!cancelled) setCohorts(res); })
-      .catch(() => { if (!cancelled) setCohorts([]); });
-    return () => { cancelled = true; };
+      .then((res) => {
+        if (!cancelled) setCohorts(res);
+      })
+      .catch(() => {
+        if (!cancelled) setCohorts([]);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [courseSlug]);
 
   const allStudents = useMemo(() => Object.values(byCourse).flat(), [byCourse]);
-  const total = useMemo(
-    () => new Set(allStudents.map((s) => s.student_id)).size,
-    [allStudents],
-  );
+  const total = useMemo(() => new Set(allStudents.map((s) => s.student_id)).size, [allStudents]);
 
   const groupMemberIds = useMemo(() => {
     if (!cohortId) return null;
@@ -84,7 +94,10 @@ export function TeacherStudentsPanel() {
   ];
   const cohortOptions: Option[] = [
     { value: ALL, label: t("allGroups") },
-    ...cohorts.map((c, i) => ({ value: String(c.id), label: c.name ?? t("groupFallback", { number: i + 1 }) })),
+    ...cohorts.map((c, i) => ({
+      value: String(c.id),
+      label: c.name ?? t("groupFallback", { number: i + 1 }),
+    })),
   ];
 
   return (
@@ -119,7 +132,9 @@ export function TeacherStudentsPanel() {
               className="mb-2 flex min-h-[64px] items-center gap-3 rounded-md border border-black/5 bg-white px-3 shadow-[0_1px_8px_rgba(0,0,0,0.12)]"
             >
               <StudentAvatar name={s.student_name} avatar={s.student_avatar} />
-              <span className="min-w-0 flex-1 truncate text-xs text-[#5e5e5e]">{s.student_name}</span>
+              <span className="min-w-0 flex-1 truncate text-xs text-[#5e5e5e]">
+                {s.student_name}
+              </span>
               <ProgressRing value={s.progress_percent} />
             </div>
           ))}

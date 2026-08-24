@@ -18,7 +18,13 @@ export function LanguageSwitcher({ iconClassName = "h-6 w-6" }: { iconClassName?
         aria-label={t("selectLanguage")}
         aria-haspopup="dialog"
         className="flex items-center justify-center transition-opacity hover:opacity-70"
-        style={{ background: "none", border: "none", cursor: "pointer", padding: 0, color: "var(--color-text-primary)" }}
+        style={{
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          padding: 0,
+          color: "var(--color-text-primary)",
+        }}
       >
         <Globe className={iconClassName} aria-hidden />
       </button>

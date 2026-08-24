@@ -260,7 +260,8 @@ function DateRangeFilter({
     return () => document.removeEventListener("mousedown", onOutside);
   }, [open]);
 
-  const formatShort = (iso: string) => formatDate(iso, locale, { day: "2-digit", month: "2-digit", year: "2-digit" });
+  const formatShort = (iso: string) =>
+    formatDate(iso, locale, { day: "2-digit", month: "2-digit", year: "2-digit" });
 
   const label =
     from || to

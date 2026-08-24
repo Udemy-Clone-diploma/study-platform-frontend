@@ -21,16 +21,11 @@ function formatValue(metric: ModeratorMetric, locale: string): string {
   return metric.value.toLocaleString(locale);
 }
 
-function formatChange(
-  metric: ModeratorMetric,
-  t: (key: string) => string,
-  locale: string,
-): string {
+function formatChange(metric: ModeratorMetric, t: (key: string) => string, locale: string): string {
   if (metric.value === null) return t("noTimedReviewsThisWeek");
   if (metric.change === null || metric.change_kind === null) return t("currentWorkload");
   const sign = metric.change > 0 ? "+" : "";
-  const suffix =
-    metric.change_kind === "percentage_points" ? t("percentagePointsSuffix") : "%";
+  const suffix = metric.change_kind === "percentage_points" ? t("percentagePointsSuffix") : "%";
   return `${sign}${metric.change.toLocaleString(locale)}${suffix} ${t("vsLastWeek")}`;
 }
 

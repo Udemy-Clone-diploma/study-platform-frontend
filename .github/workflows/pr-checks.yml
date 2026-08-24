@@ -33,3 +33,6 @@ jobs:
 
       - name: Check types
         run: npx tsc --noEmit
+
+      - name: Check lint
+        run: npm run lint

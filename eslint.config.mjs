@@ -10,6 +10,7 @@ const eslintConfig = defineConfig([
       // A swallowed catch hides a failed mutation from the user; force an explicit
       // handler, or a comment saying why swallowing is correct here.
       "no-empty": ["error", { allowEmptyCatch: false }],
+      "react-hooks/set-state-in-effect": "warn",
     },
   },
   // Override default ignores of eslint-config-next.

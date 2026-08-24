@@ -11,6 +11,7 @@ const eslintConfig = defineConfig([
       // handler, or a comment saying why swallowing is correct here.
       "no-empty": ["error", { allowEmptyCatch: false }],
       "react-hooks/set-state-in-effect": "warn",
+      "react-hooks/preserve-manual-memoization": "warn",
     },
   },
   // Override default ignores of eslint-config-next.

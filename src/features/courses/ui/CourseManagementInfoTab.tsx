@@ -10,8 +10,6 @@ import { SectionCard } from "@/shared/ui/SectionCard";
 import { AccentButton } from "@/shared/ui/AccentButton";
 import { WhiteButton } from "@/shared/ui/WhiteButton";
 
-// ── Styles matching the profile edit page ─────────────────────────────────────
-
 const HEADING: React.CSSProperties = {
   fontFamily: "var(--font-base)",
   fontWeight: 700,
@@ -61,12 +59,8 @@ const INPUT: React.CSSProperties = {
   boxSizing: "border-box" as const,
 };
 
-// ── Select + option lists ──────────────────────────────────────────────────────
-
 const LANGUAGE_IDS: CourseLanguage[] = ["english", "ukrainian", "spanish"];
 const COURSE_TYPE_IDS: CourseType[] = ["profession", "qualification", "knowledge"];
-
-// ── Custom select (profile-style) ─────────────────────────────────────────────
 
 function CourseSelect({
   options,
@@ -178,8 +172,6 @@ function CourseSelect({
   );
 }
 
-// ── Primitives ─────────────────────────────────────────────────────────────────
-
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "clamp(3px, 0.21vw, 4px)" }}>
@@ -215,8 +207,6 @@ function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) =>
   );
 }
 
-// ── Form state ─────────────────────────────────────────────────────────────────
-
 type Form = {
   subtitle: string;
   language: string;
@@ -227,8 +217,6 @@ type Form = {
   discount_percent: string;
   passing_score: string;
 };
-
-// ── Main component ─────────────────────────────────────────────────────────────
 
 type Props = {
   course: CourseDetail;
@@ -343,7 +331,6 @@ export function CourseManagementInfoTab({ course, slug, onCourseUpdated }: Props
 
   return (
     <SectionCard>
-      {/* Header */}
       <div
         style={{
           display: "flex",
@@ -373,7 +360,6 @@ export function CourseManagementInfoTab({ course, slug, onCourseUpdated }: Props
         )}
       </div>
 
-      {/* Fields grid */}
       <div
         style={{
           display: "grid",
@@ -381,7 +367,6 @@ export function CourseManagementInfoTab({ course, slug, onCourseUpdated }: Props
           gap: "clamp(20px, 1.67vw, 32px) clamp(40px, 8.75vw, 140px)",
         }}
       >
-        {/* Row 1: Language | Course Type */}
         <Field label={t("language.label")}>
           {editing ? (
             <CourseSelect
@@ -408,7 +393,6 @@ export function CourseManagementInfoTab({ course, slug, onCourseUpdated }: Props
 
         {divider}
 
-        {/* Row 2: Certificate | On Sale */}
         <Field label={t("certificate")}>
           {editing ? (
             <Toggle value={form.with_certificate} onChange={(v) => set("with_certificate", v)} />
@@ -492,7 +476,6 @@ export function CourseManagementInfoTab({ course, slug, onCourseUpdated }: Props
 
         {divider}
 
-        {/* Row 3: Passing score */}
         <Field label={t("passingScore")}>
           {editing ? (
             <input
@@ -510,7 +493,6 @@ export function CourseManagementInfoTab({ course, slug, onCourseUpdated }: Props
 
         {divider}
 
-        {/* Subtitle — full width */}
         <div style={{ gridColumn: "1 / -1" }}>
           <Field label={t("subtitle")}>
             {editing ? (

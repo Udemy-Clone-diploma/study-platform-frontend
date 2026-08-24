@@ -23,7 +23,6 @@ export async function Footer() {
       }}
     >
       <div className="mx-auto flex w-full max-w-[1420px] flex-col items-center gap-6 px-4 pt-8 pb-8 md:px-6 xl:px-8 lg:flex-row lg:items-end lg:gap-0 lg:pt-10 lg:pb-10">
-        {/* Left */}
         <div
           className="flex w-full flex-col items-center gap-[18px] lg:w-auto lg:items-stretch lg:justify-center lg:gap-[clamp(12px,1.67vw,32px)]"
           style={{ flexBasis: "23.94%", flexShrink: 0, flexGrow: 0 }}
@@ -64,7 +63,6 @@ export async function Footer() {
 
         <div className="hidden lg:block" style={{ flexBasis: "9.86%", flexShrink: 0 }} />
 
-        {/* Right */}
         <div
           className="flex w-full flex-col items-center gap-5 lg:w-auto lg:flex-1 lg:flex-row lg:items-center lg:gap-[8%]"
           style={{ minWidth: 0 }}

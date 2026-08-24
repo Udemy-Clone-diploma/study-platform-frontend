@@ -72,7 +72,8 @@
     "invitedBy": "by {organizer}",
     "scheduleConflict": "Schedule conflict",
     "accept": "Accept",
-    "decline": "Decline"
+    "decline": "Decline",
+    "respondFailed": "Could not send your reply. Try again."
   },
   "StudentHomeworkDashboard": {
     "homework": "Homework",
@@ -488,7 +489,8 @@
   "ArticleActionModals": {
     "saveChangesLabel": "Save Changes",
     "deleteArticleTitle": "Delete Article",
-    "deleteArticleDescription": "Delete \"{title}\"? This cannot be undone."
+    "deleteArticleDescription": "Delete \"{title}\"? This cannot be undone.",
+    "actionFailed": "Could not complete that action. Try again."
   },
   "ArticleFormModal": {
     "title": "Edit Article",
@@ -2195,7 +2197,8 @@
     "cannotReturnToDraft": "Cannot return to draft",
     "noLongerRejected": "This course is no longer rejected.",
     "currentStatus": "Current status:",
-    "ok": "OK"
+    "ok": "OK",
+    "errorAction": "Could not complete that action. Try again."
   },
   "TeacherCourseCard": {
     "courseOptionsAriaLabel": "Course options",
@@ -2336,7 +2339,9 @@
     "backToBasics": "Back to Basics",
     "discardChanges": "Discard Changes",
     "backToMyCourses": "Back to My Courses",
-    "continueToReviewAndPublish": "Continue to Review & Publish"
+    "continueToReviewAndPublish": "Continue to Review & Publish",
+    "documentsUploadFailed": "Could not upload {files}. The lesson was saved, add the files again.",
+    "documentsDeleteFailed": "Some materials could not be removed. Refresh the page and try again."
   },
   "ModuleCard": {
     "moduleNumber": "Module {order}",
@@ -2408,7 +2413,8 @@
     "minimumScoreLabel": "Minimum Score (optional)",
     "requiredToComplete": "Required to complete the course",
     "requiredToCompleteHint": "If this lesson has a test, students must pass it before they can finish the course (e.g. a final exam).",
-    "saveLesson": "Save Lesson"
+    "saveLesson": "Save Lesson",
+    "saveFailed": "Could not save the lesson. Try again."
   },
   "TestFormModal": {
     "questionNumber": "Question {order}",

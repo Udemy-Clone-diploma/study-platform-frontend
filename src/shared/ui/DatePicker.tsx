@@ -4,8 +4,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { getWeekdayNames } from "@/shared/lib/time";
 
-// ── Utils ──────────────────────────────────────────────────────────────────────
-
 const YEARS_PER_PAGE = 12;
 
 function pad(n: number) {
@@ -86,8 +84,6 @@ function endOfMonth(y: number, m: number) {
   return new Date(y, m + 1, 0);
 }
 
-// ── Calendar icon ──────────────────────────────────────────────────────────────
-
 function CalIcon({ size = 15, color = "currentColor" }: { size?: number; color?: string }) {
   return (
     <svg
@@ -107,8 +103,6 @@ function CalIcon({ size = 15, color = "currentColor" }: { size?: number; color?:
     </svg>
   );
 }
-
-// ── Chevrons ───────────────────────────────────────────────────────────────────
 
 function ChevLeft() {
   return (
@@ -143,8 +137,6 @@ function ChevRight() {
   );
 }
 
-// ── Sizes ──────────────────────────────────────────────────────────────────────
-
 type Size = "sm" | "md";
 
 const SIZE: Record<Size, { font: string; padding: string; radius: number; labelFont: string }> = {
@@ -161,8 +153,6 @@ const SIZE: Record<Size, { font: string; padding: string; radius: number; labelF
     labelFont: "clamp(12px, 0.83vw, 14px)",
   },
 };
-
-// ── Props ──────────────────────────────────────────────────────────────────────
 
 type CalendarView = "days" | "months" | "years";
 
@@ -193,8 +183,6 @@ interface DatePickerProps {
   /** Fires whenever the displayed month changes (initial mount, navigation, or quick-jump). */
   onViewChange?: (year: number, month: number) => void;
 }
-
-// ── Component ──────────────────────────────────────────────────────────────────
 
 /** The single date picker used everywhere a date is chosen: brand calendar dropdown with optional month/year quick-jump and manual typing. */
 export function DatePicker({
@@ -244,7 +232,6 @@ export function DatePicker({
     setView("days");
   }
 
-  // Close on outside click
   useEffect(() => {
     function onDown(e: PointerEvent) {
       if (!rootRef.current?.contains(e.target as Node)) closeCalendar();
@@ -253,7 +240,6 @@ export function DatePicker({
     return () => document.removeEventListener("pointerdown", onDown);
   }, []);
 
-  // Sync viewMonth when value changes externally
   useEffect(() => {
     if (selected) setViewMonth(new Date(selected.getFullYear(), selected.getMonth(), 1));
   }, [value]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -263,7 +249,6 @@ export function DatePicker({
     onViewChange?.(viewMonth.getFullYear(), viewMonth.getMonth() + 1);
   }, [viewMonth]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 6-week grid
   const days = useMemo(() => {
     const first = new Date(viewMonth.getFullYear(), viewMonth.getMonth(), 1);
     const start = new Date(first);
@@ -345,8 +330,6 @@ export function DatePicker({
       onChange(next);
     }
   }
-
-  // ── Render ──────────────────────────────────────────────────────────────────
 
   const displayValue =
     variant === "underline" && allowTyping
@@ -508,7 +491,6 @@ export function DatePicker({
             padding: 16,
           }}
         >
-          {/* Header nav */}
           <div
             style={{
               display: "flex",

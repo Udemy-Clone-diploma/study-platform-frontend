@@ -19,7 +19,6 @@ export type CourseLanguage = "english" | "ukrainian" | "spanish";
 export type CourseMode = "self_learning" | "with_teacher";
 export type CourseDeliveryType = "self_paced" | "scheduled" | "individual" | "group";
 export type CourseType = "profession" | "qualification" | "knowledge";
-export type CoursePricingType = "free" | "full_payment" | "installment";
 export type CourseStatus =
   | "draft"
   | "review"
@@ -90,15 +89,12 @@ type ItemStatusValue = "approved" | "rejected" | "needs_revision";
 type StepAction = "approved" | "needs_revision" | "rejected" | "";
 
 export type ModerationReview = {
-  // Step 1 — Basics
   basics_field_statuses: Record<string, ItemStatusValue>;
   basics_action: StepAction;
   basics_comment: string;
-  // Step 2 — Content
   content_item_statuses: Record<string, ItemStatusValue>;
   content_action: StepAction;
   content_comment: string;
-  // Step 3 — Review & Publish
   final_action: StepAction;
   final_comment: string;
   updated_at: string;
@@ -147,8 +143,9 @@ export type CourseDetail = Omit<
   CourseListItem,
   "teacher_name" | "price" | "original_price" | "currency"
 > & {
-  /** Course-specific pull-quote. Belongs on the course, not the teacher (one teacher, many courses). */
-  quote: string | null;
+  /** Course-specific pull-quote. Optional: no serializer on the backend returns it today,
+   *  so consumers must handle its absence. */
+  quote?: string | null;
   full_description: string;
   /** Content hash of the course image, if any — see the moderator review diff logic
    *  for why this exists (cloning gives byte-identical images different URLs). */

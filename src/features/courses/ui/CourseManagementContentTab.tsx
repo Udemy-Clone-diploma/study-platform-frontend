@@ -21,11 +21,10 @@ import {
 import { SectionCard } from "@/shared/ui/SectionCard";
 import { GradientButton } from "@/shared/ui/GradientButton";
 import { MaterialPreviewModal } from "@/shared/ui/MaterialPreviewModal";
+import { sanitizeCourseHtml } from "@/shared/lib/sanitizeCourseHtml";
 
 const F = "var(--font-base)";
 const FA = "var(--font-accent)";
-
-// ── Modal scaffold ────────────────────────────────────────────────────────────
 
 function Modal({
   wide,
@@ -176,8 +175,6 @@ function ItemMeta({ item }: { item: LessonItem }) {
   );
 }
 
-// ── Text modal ────────────────────────────────────────────────────────────────
-
 function TextModal({ item, onClose }: { item: LessonItem; onClose: () => void }) {
   const t = useTranslations("CourseManagementContentTab");
   return (
@@ -192,7 +189,7 @@ function TextModal({ item, onClose }: { item: LessonItem; onClose: () => void })
             color: "var(--color-text-primary)",
             lineHeight: 1.75,
           }}
-          dangerouslySetInnerHTML={{ __html: item.body_html }}
+          dangerouslySetInnerHTML={{ __html: sanitizeCourseHtml(item.body_html) }}
         />
       ) : (
         <p style={{ fontFamily: F, color: "var(--color-text-muted)" }}>{t("noContent")}</p>
@@ -200,8 +197,6 @@ function TextModal({ item, onClose }: { item: LessonItem; onClose: () => void })
     </Modal>
   );
 }
-
-// ── Video modal ───────────────────────────────────────────────────────────────
 
 function VideoModal({ item, onClose }: { item: LessonItem; onClose: () => void }) {
   const t = useTranslations("CourseManagementContentTab");
@@ -226,8 +221,6 @@ function VideoModal({ item, onClose }: { item: LessonItem; onClose: () => void }
     </Modal>
   );
 }
-
-// ── Test modal ────────────────────────────────────────────────────────────────
 
 function TestModal({
   item,
@@ -435,23 +428,17 @@ function TestModal({
   );
 }
 
-// ── Modal state type ──────────────────────────────────────────────────────────
-
 type ModalState =
   | { kind: "text"; item: LessonItem }
   | { kind: "video"; item: LessonItem }
   | { kind: "test"; item: LessonItem; test: CourseTest }
   | null;
 
-// ── Item badge config ─────────────────────────────────────────────────────────
-
 const BADGE_STYLE: Record<string, { bg: string; color: string }> = {
   text: { bg: "var(--color-brand-lavender-soft)", color: "var(--color-blue-dark)" },
   video: { bg: "rgba(28,187,67,0.1)", color: "var(--color-success)" },
   test: { bg: "rgba(255,141,40,0.1)", color: "var(--color-warning)" },
 };
-
-// ── Item row (inside expanded lesson) ─────────────────────────────────────────
 
 function ItemRow({ item, onOpen }: { item: LessonItem; onOpen: () => void }) {
   const t = useTranslations("CourseManagementContentTab");
@@ -516,8 +503,6 @@ function ItemRow({ item, onOpen }: { item: LessonItem; onOpen: () => void }) {
     </button>
   );
 }
-
-// ── Materials (additional documents) section — manages the live lesson directly, no moderation ──
 
 function MaterialsSection({
   documents,
@@ -695,8 +680,6 @@ function MaterialsSection({
     </div>
   );
 }
-
-// ── Lesson row (expandable, lazy-loads items) ─────────────────────────────────
 
 function LessonAccordion({
   lesson,
@@ -913,8 +896,6 @@ function LessonAccordion({
   );
 }
 
-// ── Module row (expandable, public-detail style) ──────────────────────────────
-
 function ModuleAccordion({
   module,
   index,
@@ -1038,8 +1019,6 @@ function ModuleAccordion({
   );
 }
 
-// ── Main component ─────────────────────────────────────────────────────────────
-
 type Props = {
   course: CourseDetail;
   slug: string;
@@ -1057,14 +1036,14 @@ export function CourseManagementContentTab({ course, slug, onLessonUpdated }: Pr
   function toggleModule(id: number) {
     setOpenModules((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
   }
 
   return (
     <SectionCard>
-      {/* Header */}
       <div
         style={{
           display: "flex",
@@ -1107,7 +1086,6 @@ export function CourseManagementContentTab({ course, slug, onLessonUpdated }: Pr
         )}
       </div>
 
-      {/* Module list */}
       {course.modules.length === 0 ? (
         <p
           style={{
@@ -1135,7 +1113,6 @@ export function CourseManagementContentTab({ course, slug, onLessonUpdated }: Pr
         </div>
       )}
 
-      {/* Modals */}
       {modal?.kind === "text" && <TextModal item={modal.item} onClose={() => setModal(null)} />}
       {modal?.kind === "video" && <VideoModal item={modal.item} onClose={() => setModal(null)} />}
       {modal?.kind === "test" && (

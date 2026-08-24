@@ -300,7 +300,6 @@ export function CourseBasicsForm({
       </p>
 
       <div style={{ display: "flex", flexDirection: "column", gap: "clamp(14px, 1.25vw, 20px)" }}>
-        {/* Title */}
         <div style={roWrap("title")}>
           <FieldLabelRow
             htmlFor="title"
@@ -322,7 +321,6 @@ export function CourseBasicsForm({
           {fieldErrors.title && <p className="mt-1 text-xs text-red-500">{fieldErrors.title}</p>}
         </div>
 
-        {/* Short Description */}
         <div style={roWrap("short_description")}>
           <FieldLabelRow
             htmlFor="short_description"
@@ -347,7 +345,6 @@ export function CourseBasicsForm({
           )}
         </div>
 
-        {/* Full Description */}
         <div style={roWrap("full_description")}>
           <FieldLabelRow
             htmlFor="full_description"
@@ -372,7 +369,6 @@ export function CourseBasicsForm({
           )}
         </div>
 
-        {/* Icon picker */}
         <div style={roWrap("icon")}>
           <FieldLabelRow
             label={t("courseIcon")}
@@ -421,7 +417,6 @@ export function CourseBasicsForm({
           </div>
         </div>
 
-        {/* Category + Level */}
         <div className="grid grid-cols-2" style={{ gap: "clamp(16px, 2.08vw, 40px)" }}>
           <div style={roWrap("category_id")}>
             <FieldLabelRow
@@ -462,7 +457,6 @@ export function CourseBasicsForm({
           </div>
         </div>
 
-        {/* Moderator basics feedback */}
         <ModeratorNoteBanner
           comment={moderatorComment}
           actionLabel={
@@ -473,7 +467,6 @@ export function CourseBasicsForm({
           }
         />
 
-        {/* Submit row */}
         <div
           className={`flex items-center ${onCancel ? "justify-between" : "justify-end"}`}
           style={{ marginTop: "clamp(8px, 0.63vw, 12px)" }}

@@ -1,44 +1,10 @@
 import { notFound } from "next/navigation";
 import { getLocale } from "next-intl/server";
-import {
-  getCourseReviews,
-  getEnrolledCourses,
-  getPublicCourseBySlug,
-  type EnrollmentStatus,
-} from "@/entities/course";
+import { getCourseBySlug, getCourseReviews, getPublicCourseBySlug } from "@/entities/course";
 import { getAccessToken } from "@/shared/api/authCookies";
 import { CourseDetailView } from "@/widgets/course-detail";
 
 export const dynamic = "force-dynamic";
-
-/** "suspended" (overdue installment) still shows up in getEnrolledCourses (it stays
- *  visible so the student can see why and pay to restore it -- see
- *  Enrollment.with_visible_access on the backend), so isEnrolled here means
- *  specifically "active", matching is_enrolled everywhere else in the app. */
-async function findCurrentUserEnrollment(
-  slug: string,
-  accessToken: string,
-): Promise<{ isEnrolled: boolean; accessStatus: EnrollmentStatus | null }> {
-  let page = 1;
-
-  while (true) {
-    const enrolled = await getEnrolledCourses(page, accessToken);
-    const match = enrolled.results.find((course) => course.slug === slug);
-
-    if (match) {
-      return {
-        isEnrolled: match.enrollment_access_status === "active",
-        accessStatus: match.enrollment_access_status,
-      };
-    }
-
-    if (!enrolled.next) {
-      return { isEnrolled: false, accessStatus: null };
-    }
-
-    page += 1;
-  }
-}
 
 export default async function CourseDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -55,20 +21,29 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
   const course = await getPublicCourseBySlug(slug, locale).catch(() => null);
   if (!course) notFound();
 
-  const reviews = await getCourseReviews(slug)
-    .then((page) => page.results)
-    .catch(() => []);
+  /** The public payload is translated but anonymous, so it never carries enrollment state.
+   *  `/courses/{slug}/` derives is_enrolled from the bearer token, and every way it can
+   *  fail (no token, expired token, 403 on a course this user cannot open) means the same
+   *  thing to this page, so a null result renders as "not enrolled". */
+  const [reviews, enrollment] = await Promise.all([
+    getCourseReviews(slug)
+      .then((page) => page.results)
+      .catch(() => []),
+    accessToken ? getCourseBySlug(slug, accessToken).catch(() => null) : null,
+  ]);
 
-  const { isEnrolled, accessStatus } = accessToken
-    ? await findCurrentUserEnrollment(slug, accessToken).catch(() => ({
-        isEnrolled: false,
-        accessStatus: null,
-      }))
-    : { isEnrolled: false, accessStatus: null };
+  /** "suspended" (overdue installment) still counts as an enrollment the student can see
+   *  and pay to restore, so is_enrolled here means specifically "active", matching how the
+   *  flag is read everywhere else in the app. */
+  const accessStatus = enrollment?.enrollment_access_status ?? null;
 
   return (
     <CourseDetailView
-      course={{ ...course, is_enrolled: isEnrolled, enrollment_access_status: accessStatus }}
+      course={{
+        ...course,
+        is_enrolled: accessStatus === "active",
+        enrollment_access_status: accessStatus,
+      }}
       reviews={reviews}
     />
   );

@@ -125,7 +125,6 @@ export function CourseCardMenu({ status, onAction }: Props) {
         alignItems: "center",
       }}
     >
-      {/* ⋮ trigger */}
       <button
         ref={triggerRef}
         aria-label={t("courseOptionsAriaLabel")}
@@ -151,7 +150,6 @@ export function CourseCardMenu({ status, onAction }: Props) {
         />
       </button>
 
-      {/* Dropdown */}
       {open && items.length > 0 && (
         <div
           ref={dropdownRef}

@@ -16,7 +16,6 @@ export * from "./lib/useCourseProgress";
 export * from "./lib/useCompletionRedirect";
 export * from "./lib/mockProgress";
 export * from "./lib/mockAttempt";
-export * from "./lib/formatDuration";
 export * from "./lib/formatPrice";
 export * from "./lib/youtubeEmbed";
 export * from "./model/types";

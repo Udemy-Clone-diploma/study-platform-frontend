@@ -27,8 +27,6 @@ import type {
 import { DataTable } from "@/shared/ui/DataTable";
 import type { DataTableColumn } from "@/shared/ui/DataTable";
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
 function getInitials(name: string): string {
   return name
     .split(" ")
@@ -38,11 +36,7 @@ function getInitials(name: string): string {
     .toUpperCase();
 }
 
-// ── Types ─────────────────────────────────────────────────────────────────────
-
 type Mode = "group" | "individual";
-
-// ── StudentAvatar ─────────────────────────────────────────────────────────────
 
 function StudentAvatar({ name, avatar }: { name: string; avatar?: string | null }) {
   const size = "clamp(32px, 2.78vw, 40px)";
@@ -75,8 +69,6 @@ function StudentAvatar({ name, avatar }: { name: string; avatar?: string | null 
     </div>
   );
 }
-
-// ── AttendanceCheckbox ────────────────────────────────────────────────────────
 
 interface AttendanceCheckboxProps {
   checked: boolean;
@@ -118,8 +110,6 @@ function AttendanceCheckbox({ checked, disabled, onChange }: AttendanceCheckboxP
   );
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────────
-
 export default function TeacherAttendancePage() {
   const t = useTranslations("TeacherAttendancePage");
   const tCommon = useTranslations("Common");
@@ -159,7 +149,6 @@ export default function TeacherAttendancePage() {
   // Tracks which course+mode combo was last fetched to avoid redundant requests
   const metaFetchedFor = useRef<string>("");
 
-  // ── Load courses ───────────────────────────────────────────────────────────
   useEffect(() => {
     getTeacherCourses()
       .then((res) => {
@@ -170,7 +159,6 @@ export default function TeacherAttendancePage() {
       .finally(() => setLoadingCourses(false));
   }, []);
 
-  // ── Load delivery formats (independent of mode, used to know which types exist) ──
   useEffect(() => {
     if (!selectedCourse) {
       setFormats([]);
@@ -201,7 +189,6 @@ export default function TeacherAttendancePage() {
     };
   }, [selectedCourse]);
 
-  // ── Load cohorts (group mode) ──────────────────────────────────────────────
   useEffect(() => {
     if (!selectedCourse || mode !== "group") return;
     const key = `${selectedCourse}:group`;
@@ -218,7 +205,6 @@ export default function TeacherAttendancePage() {
       });
   }, [selectedCourse, mode]);
 
-  // ── Load individual enrollments ────────────────────────────────────────────
   useEffect(() => {
     if (!selectedCourse || mode !== "individual") return;
     const key = `${selectedCourse}:individual`;
@@ -235,7 +221,6 @@ export default function TeacherAttendancePage() {
       });
   }, [selectedCourse, mode]);
 
-  // ── Load session dates ─────────────────────────────────────────────────────
   useEffect(() => {
     if (!selectedCourse) return;
     const canFetch =
@@ -263,7 +248,6 @@ export default function TeacherAttendancePage() {
     };
   }, [selectedCourse, mode, selectedCohort, selectedEnrollment, calYear, calMonth]);
 
-  // ── Load attendance ────────────────────────────────────────────────────────
   useEffect(() => {
     if (!selectedCourse || !selectedDate) {
       setRecords([]);
@@ -300,7 +284,6 @@ export default function TeacherAttendancePage() {
     };
   }, [selectedCourse, mode, selectedCohort, selectedEnrollment, selectedDate]);
 
-  // ── Handlers ───────────────────────────────────────────────────────────────
   function resetCalToToday() {
     const t = new Date();
     setCalYear(t.getFullYear());
@@ -320,7 +303,7 @@ export default function TeacherAttendancePage() {
     setSelectedDate(null);
     setRecords([]);
     resetCalToToday();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleModeChange = useCallback((m: string) => {
     metaFetchedFor.current = "";
@@ -331,7 +314,7 @@ export default function TeacherAttendancePage() {
     setSelectedDate(null);
     setRecords([]);
     resetCalToToday();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleCohortChange = useCallback((id: string) => {
     setSelectedCohort(id);
@@ -339,7 +322,7 @@ export default function TeacherAttendancePage() {
     setSelectedDate(null);
     setRecords([]);
     resetCalToToday();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleEnrollmentChange = useCallback((id: string) => {
     setSelectedEnrollment(id);
@@ -347,7 +330,7 @@ export default function TeacherAttendancePage() {
     setSelectedDate(null);
     setRecords([]);
     resetCalToToday();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleCalendarViewChange = useCallback((y: number, m: number) => {
     setCalYear(y);
@@ -377,7 +360,6 @@ export default function TeacherAttendancePage() {
     [selectedCourse, mode, selectedCohort, selectedDate],
   );
 
-  // ── Dropdown options ───────────────────────────────────────────────────────
   const courseOptions = courses.map((c) => ({ value: c.slug, label: c.title }));
   const cohortOptions = cohorts.map((c, i) => ({
     value: String(c.id),
@@ -401,7 +383,6 @@ export default function TeacherAttendancePage() {
 
   const hasSession = records[0]?.has_session ?? false;
 
-  // ── Columns ────────────────────────────────────────────────────────────────
   const columns: DataTableColumn<AttendanceRecord>[] = [
     {
       key: "student",
@@ -470,7 +451,6 @@ export default function TeacherAttendancePage() {
         ? t("noStudentsInGroup")
         : t("noSessionForStudent");
 
-  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <PageShell className="bg-my-courses" fixedHeight>
       <div
@@ -484,12 +464,10 @@ export default function TeacherAttendancePage() {
           minHeight: 0,
         }}
       >
-        {/* Top bar */}
         <div
           className="flex flex-wrap items-center justify-between gap-4 shrink-0"
           style={{ marginBottom: "clamp(16px, 1.67vw, 24px)" }}
         >
-          {/* Left: title + selectors */}
           <div className="flex flex-wrap items-center" style={{ gap: "clamp(12px, 1.67vw, 24px)" }}>
             <h1
               className="font-semibold text-(--color-text-primary)"
@@ -532,7 +510,6 @@ export default function TeacherAttendancePage() {
             )}
           </div>
 
-          {/* Right: date picker dropdown */}
           <div style={{ width: "min(88vw, 220px)" }}>
             <DatePicker
               key={calendarResetKey}
@@ -548,7 +525,6 @@ export default function TeacherAttendancePage() {
           </div>
         </div>
 
-        {/* Table — full width, internally scrollable */}
         <DataTable<AttendanceRecord>
           columns={columns}
           rows={records}

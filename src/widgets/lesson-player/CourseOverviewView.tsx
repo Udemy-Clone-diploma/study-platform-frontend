@@ -106,7 +106,7 @@ export function CourseOverviewView({ course, initialProgress = null, isMock = fa
           <div className="mr-5 self-end lg:mr-24 xl:mr-[140px]">
             <TeacherTip
               teacherName={course.teacher.name}
-              quote={course.quote}
+              quote={course.quote ?? null}
               avatar={course.teacher.avatar}
             />
           </div>

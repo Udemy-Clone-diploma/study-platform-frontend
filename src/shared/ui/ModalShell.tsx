@@ -161,7 +161,6 @@ export function ModalShell({
         style={{ width, boxShadow: shadow, overflow: "clip" }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* inner scrollable wrapper */}
         <div
           style={{
             padding,

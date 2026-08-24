@@ -66,6 +66,8 @@ export default function CourseContentPage() {
    *  or the hidden PENDING_EDIT shadow course's slug when editing a published course. */
   const [contentSlug, setContentSlug] = useState<string | null>(null);
 
+  const [documentError, setDocumentError] = useState("");
+
   const [modal, setModal] = useState<ModalState>({ open: false });
   const [lessonModal, setLessonModal] = useState<LessonModalState>({ open: false });
 
@@ -142,8 +144,6 @@ export default function CourseContentPage() {
     void syncCourseDuration(updatedModules);
   }
 
-  // ── Lesson handlers ───────────────────────────────────────────────────
-
   function openAddLessonModal(moduleId: number) {
     setLessonModal({ open: true, mode: "add", moduleId });
   }
@@ -154,18 +154,30 @@ export default function CourseContentPage() {
     setLessonModal({ open: false });
   }
 
-  async function _syncDocuments(moduleId: number, lessonId: number, values: LessonFormValues) {
+  /** Settles every document call independently: one rejected upload must not discard the
+   *  files that did go through, and the lesson itself is already saved by this point. */
+  async function syncDocuments(moduleId: number, lessonId: number, values: LessonFormValues) {
     if (!contentSlug) return;
-    await Promise.all(
+
+    const deletions = await Promise.allSettled(
       values.deleted_document_ids.map((id) =>
         deleteLessonDocument(contentSlug, moduleId, lessonId, id),
       ),
     );
-    const uploaded = await Promise.all(
+    const removedIds = values.deleted_document_ids.filter(
+      (_, i) => deletions[i].status === "fulfilled",
+    );
+
+    const uploads = await Promise.allSettled(
       values.new_documents.map((file) =>
         uploadLessonDocument(contentSlug, moduleId, lessonId, file),
       ),
     );
+    const uploaded = uploads.flatMap((r) => (r.status === "fulfilled" ? [r.value] : []));
+    const failedNames = values.new_documents
+      .filter((_, i) => uploads[i].status === "rejected")
+      .map((file) => file.name);
+
     setModuleList((prev) =>
       prev.map((m) =>
         m.id === moduleId
@@ -173,15 +185,21 @@ export default function CourseContentPage() {
               ...m,
               lessons: m.lessons.map((l) => {
                 if (l.id !== lessonId) return l;
-                const kept = (l.documents ?? []).filter(
-                  (d) => !values.deleted_document_ids.includes(d.id),
-                );
+                const kept = (l.documents ?? []).filter((d) => !removedIds.includes(d.id));
                 return { ...l, documents: [...kept, ...uploaded] };
               }),
             }
           : m,
       ),
     );
+
+    if (failedNames.length > 0) {
+      setDocumentError(t("documentsUploadFailed", { files: failedNames.join(", ") }));
+    } else if (deletions.some((r) => r.status === "rejected")) {
+      setDocumentError(t("documentsDeleteFailed"));
+    } else {
+      setDocumentError("");
+    }
   }
 
   async function handleSaveLesson(values: LessonFormValues) {
@@ -203,7 +221,7 @@ export default function CourseContentPage() {
         m.id === moduleId ? { ...m, lessons: [...m.lessons, newLesson] } : m,
       );
       setModuleList(updatedModules);
-      await _syncDocuments(moduleId, newLesson.id, values);
+      await syncDocuments(moduleId, newLesson.id, values);
       void syncCourseDuration(updatedModules);
       // Switch to edit mode so the user can immediately add content blocks
       setLessonModal({ open: true, mode: "edit", moduleId, lesson: { ...newLesson, items: [] } });
@@ -216,7 +234,7 @@ export default function CourseContentPage() {
           : m,
       );
       setModuleList(updatedModules);
-      await _syncDocuments(moduleId, lessonId, values);
+      await syncDocuments(moduleId, lessonId, values);
       void syncCourseDuration(updatedModules);
     }
     closeLessonModal();
@@ -231,8 +249,6 @@ export default function CourseContentPage() {
     setModuleList(updatedModules);
     void syncCourseDuration(updatedModules);
   }
-
-  // ── Submit / discard for pending edit ────────────────────────────────
 
   function handleGoToReview() {
     router.push(`/teacher-dashboard/courses/${slug}/review`);
@@ -257,6 +273,20 @@ export default function CourseContentPage() {
     <CourseCreationLayout>
       <CoursePageHeader title={title} saving={false} onSaveDraft={handleSaveDraft} />
       <CourseCreationStepper currentStep={1} />
+
+      {documentError && (
+        <p
+          role="alert"
+          className="rounded-xl px-4 py-3 text-sm"
+          style={{
+            fontFamily: "var(--font-base)",
+            color: "var(--color-danger)",
+            border: "1px solid var(--color-danger)",
+          }}
+        >
+          {documentError}
+        </p>
+      )}
 
       <div
         className="rounded-2xl bg-white"
@@ -393,7 +423,6 @@ export default function CourseContentPage() {
               </div>
             )}
 
-            {/* Moderator content feedback */}
             {moderationReview &&
               (() => {
                 const ACTION_MAP: Record<string, { label: string; color: string }> = {

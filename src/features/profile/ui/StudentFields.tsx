@@ -60,7 +60,6 @@ export function StudentFields({
   return (
     <div className="flex flex-col gap-5 lg:gap-[1.25vw]">
       <div className={GRID_3_CLASS}>
-        {/* Row 1 */}
         <div className="order-1 lg:order-none">
           <ProfileField
             label={t("firstName")}
@@ -87,7 +86,6 @@ export function StudentFields({
           )}
         </div>
 
-        {/* Row 2 */}
         <div className="order-2 lg:order-none">
           <ProfileField
             label={t("lastName")}
@@ -114,7 +112,6 @@ export function StudentFields({
           )}
         </div>
 
-        {/* Row 3 */}
         <div className="order-3 lg:order-none">
           <ProfileLanguageField
             value={language}

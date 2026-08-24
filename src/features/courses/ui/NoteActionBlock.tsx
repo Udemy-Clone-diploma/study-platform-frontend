@@ -143,7 +143,6 @@ export function NoteActionBlock({
           </div>
         </div>
 
-        {/* Action panel */}
         <div
           style={{
             width: 274,

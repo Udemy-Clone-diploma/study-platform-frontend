@@ -30,8 +30,6 @@ export async function updateCalendarEvent(
   return data;
 }
 
-// ── Personal events ────────────────────────────────────────────────────────────
-
 export type PersonalEventPayload = {
   title: string;
   date: string;
@@ -101,8 +99,6 @@ export async function getEventInvitations(pk: number): Promise<EventInvitationSt
   return data;
 }
 
-// ── Participants (owner + invitee view) ───────────────────────────────────────
-
 export type EventParticipant = {
   name: string;
   email?: string;
@@ -125,8 +121,6 @@ export async function getEventParticipants(pk: number): Promise<EventParticipant
   const { data } = await api.get(`/calendar/events/personal/${pk}/participants/`);
   return data;
 }
-
-// ── Invitations ────────────────────────────────────────────────────────────────
 
 export type EventInvitationStatus = {
   id: number;
@@ -168,8 +162,6 @@ export async function respondToInvitation(pk: number, action: "accept" | "declin
   await api.patch(`/calendar/invitations/${pk}/`, { action });
 }
 
-// ── Extra sessions (teacher) ──────────────────────────────────────────────────
-
 export type ExtraSessionPayload = {
   date: string;
   start_time: string;
@@ -186,8 +178,6 @@ export async function createExtraSession(payload: ExtraSessionPayload): Promise<
   const { data } = await api.post("/calendar/events/extra/", payload);
   return data;
 }
-
-// ── User search ────────────────────────────────────────────────────────────────
 
 export type UserSearchResult = {
   email: string;

@@ -297,7 +297,6 @@ export default function CourseReviewPage() {
           gap: "clamp(16px, 1.25vw, 28px)",
         }}
       >
-        {/* Page heading */}
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <h2
             style={{
@@ -324,7 +323,6 @@ export default function CourseReviewPage() {
           </p>
         </div>
 
-        {/* Course Overview card */}
         <div
           style={{
             border: "2px solid var(--color-border-light)",
@@ -444,10 +442,8 @@ export default function CourseReviewPage() {
           </div>
         </div>
 
-        {/* Stats row */}
         <CourseStatsGrid stats={STATS} />
 
-        {/* Course Structure */}
         <div
           style={{
             border: "1px solid var(--color-draft)",
@@ -476,13 +472,11 @@ export default function CourseReviewPage() {
           </div>
         </div>
 
-        {/* Moderator final comment */}
         <ModeratorNoteBanner
           title={t("moderatorComment")}
           comment={course?.moderator_comment ?? undefined}
         />
 
-        {/* Bottom: back + submit */}
         <div className="flex items-center justify-between">
           <button
             type="button"

@@ -72,7 +72,8 @@
     "invitedBy": "par {organizer}",
     "scheduleConflict": "Conflit d'horaire",
     "accept": "Accepter",
-    "decline": "Refuser"
+    "decline": "Refuser",
+    "respondFailed": "Impossible d'envoyer votre réponse. Réessayez."
   },
   "StudentHomeworkDashboard": {
     "homework": "Devoirs",
@@ -488,7 +489,8 @@
   "ArticleActionModals": {
     "saveChangesLabel": "Enregistrer les modifications",
     "deleteArticleTitle": "Supprimer l'article",
-    "deleteArticleDescription": "Supprimer « {title} » ? Cette action est irréversible."
+    "deleteArticleDescription": "Supprimer « {title} » ? Cette action est irréversible.",
+    "actionFailed": "Impossible d'effectuer cette action. Réessayez."
   },
   "ArticleFormModal": {
     "title": "Modifier l'article",
@@ -2195,7 +2197,8 @@
     "cannotReturnToDraft": "Impossible de repasser en brouillon",
     "noLongerRejected": "Ce cours n'est plus rejeté.",
     "currentStatus": "Statut actuel :",
-    "ok": "OK"
+    "ok": "OK",
+    "errorAction": "Impossible d'effectuer cette action. Réessayez."
   },
   "TeacherCourseCard": {
     "courseOptionsAriaLabel": "Options du cours",
@@ -2336,7 +2339,9 @@
     "backToBasics": "Retour aux informations de base",
     "discardChanges": "Annuler les changements",
     "backToMyCourses": "Retour à Mes cours",
-    "continueToReviewAndPublish": "Continuer vers la vérification et la publication"
+    "continueToReviewAndPublish": "Continuer vers la vérification et la publication",
+    "documentsUploadFailed": "Impossible de téléverser {files}. La leçon est enregistrée, ajoutez à nouveau les fichiers.",
+    "documentsDeleteFailed": "Certains supports n'ont pas pu être supprimés. Actualisez la page et réessayez."
   },
   "ModuleCard": {
     "moduleNumber": "Module {order}",
@@ -2408,7 +2413,8 @@
     "minimumScoreLabel": "Score minimum (facultatif)",
     "requiredToComplete": "Requis pour terminer le cours",
     "requiredToCompleteHint": "Si cette leçon contient un test, les étudiants doivent le réussir avant de pouvoir terminer le cours (par exemple, un examen final).",
-    "saveLesson": "Enregistrer la leçon"
+    "saveLesson": "Enregistrer la leçon",
+    "saveFailed": "Impossible d'enregistrer la leçon. Réessayez."
   },
   "TestFormModal": {
     "questionNumber": "Question {order}",

@@ -175,13 +175,11 @@ export default function ModeratorReviewPage() {
         setDraftCourse(draft);
 
         if (pe && draft) {
-          // Compute locked keys from diff
           const fieldLocked = computeLockedFieldKeys(draft, c);
           const contentLocked = computeLockedContentKeys(c, draft);
           const allLocked = new Set([...fieldLocked, ...contentLocked]);
           setLockedKeys(allLocked);
 
-          // Pre-populate locked keys as "approved"
           const autoStatuses: ItemStatuses = {};
           for (const k of allLocked) autoStatuses[k] = "approved";
 
@@ -207,7 +205,6 @@ export default function ModeratorReviewPage() {
           return;
         }
 
-        // Regular (initial) review: restore from ModerationReview if present
         const mr = c.moderation_review;
         if (!mr) return;
         setComment(mr.basics_comment ?? "");
@@ -254,7 +251,6 @@ export default function ModeratorReviewPage() {
     if (computed !== null) setContentAction(computed);
   }, [itemStatuses, moduleList]);
 
-  // Auto-set final action from section actions.
   useEffect(() => {
     const computed = computeFinalAction(basicsAction, contentAction);
     if (computed !== null) setAction(computed);
@@ -424,7 +420,6 @@ export default function ModeratorReviewPage() {
 
   return (
     <CourseCreationLayout>
-      {/* Header */}
       <div
         className="flex flex-wrap items-center justify-between"
         style={{ marginBottom: "clamp(16px, 1.56vw, 30px)", gap: "clamp(10px, 0.83vw, 12px)" }}

@@ -292,34 +292,11 @@ export async function rejectReportedReview(reviewId: number): Promise<void> {
   await api.post(`reviews/${reviewId}/reject/`);
 }
 
-export type PricingPlanInput = Omit<PricingPlan, "id">;
-
-/**
- * Create a pricing plan on a course. Course-owner or admin only.
- * Backend constraints: at most one plan per `kind` (duplicate → 409),
- * installment fields must both be set or both null,
- * `installment_count * installment_amount >= price` when installments are used.
- */
-export async function createPricingPlan(
-  slug: string,
-  body: PricingPlanInput,
-): Promise<PricingPlan> {
-  const { data } = await api.post<PricingPlan>(`${COURSES}${slug}/pricing-plans/`, body);
-  return data;
-}
-
-export async function updatePricingPlan(
-  slug: string,
-  id: number,
-  body: Partial<PricingPlanInput>,
-): Promise<PricingPlan> {
-  const { data } = await api.patch<PricingPlan>(`${COURSES}${slug}/pricing-plans/${id}/`, body);
-  return data;
-}
-
 export async function deletePricingPlan(slug: string, id: number): Promise<void> {
   await api.delete(`${COURSES}${slug}/pricing-plans/${id}/`);
 }
+
+export type PricingPlanInput = Omit<PricingPlan, "id">;
 
 export type CohortInput = Omit<CourseCohort, "id" | "members_count" | "members">;
 
@@ -745,4 +722,27 @@ export async function getWishlistSlugs(): Promise<string[]> {
   } catch {
     return [];
   }
+}
+
+/**
+ * Create a pricing plan on a course. Course-owner or admin only.
+ * Backend constraints: at most one plan per `kind` (duplicate → 409),
+ * installment fields must both be set or both null,
+ * `installment_count * installment_amount >= price` when installments are used.
+ */
+export async function createPricingPlan(
+  slug: string,
+  body: PricingPlanInput,
+): Promise<PricingPlan> {
+  const { data } = await api.post<PricingPlan>(`${COURSES}${slug}/pricing-plans/`, body);
+  return data;
+}
+
+export async function updatePricingPlan(
+  slug: string,
+  id: number,
+  body: Partial<PricingPlanInput>,
+): Promise<PricingPlan> {
+  const { data } = await api.patch<PricingPlan>(`${COURSES}${slug}/pricing-plans/${id}/`, body);
+  return data;
 }

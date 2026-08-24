@@ -50,7 +50,6 @@ export async function StudentReviewsSection({ reviews }: Props) {
             paddingBottom: "7.24vw",
           }}
         >
-          {/* Header */}
           <div
             className="w-full min-[1024px]:max-[1439px]:max-w-[max(420px,36.46vw)] min-[1440px]:max-w-[max(600px,36.46vw)]"
             style={{

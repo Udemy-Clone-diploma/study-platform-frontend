@@ -78,8 +78,3 @@ export async function getUserRoleCookie(): Promise<string | undefined> {
   const jar = await cookies();
   return jar.get(AUTH_COOKIE_CONFIG.role.name)?.value;
 }
-
-export async function getRememberMeCookie(): Promise<boolean> {
-  const jar = await cookies();
-  return jar.get(AUTH_COOKIE_CONFIG.remember.name)?.value === "true";
-}

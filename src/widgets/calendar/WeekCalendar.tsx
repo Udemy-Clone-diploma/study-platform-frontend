@@ -450,7 +450,6 @@ export function WeekCalendar({
         background: "var(--color-calendar-bg)",
       }}
     >
-      {/* ── Toolbar ── */}
       <div
         style={{
           display: "flex",
@@ -461,7 +460,6 @@ export function WeekCalendar({
           gap: 12,
         }}
       >
-        {/* Left: arrows + month label — offset to align with day columns */}
         <div
           style={{
             display: "flex",
@@ -489,7 +487,6 @@ export function WeekCalendar({
           </span>
         </div>
 
-        {/* Right: Today + actions */}
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <button
             type="button"
@@ -512,7 +509,6 @@ export function WeekCalendar({
         </div>
       </div>
 
-      {/* ── Day header row ── */}
       <div style={{ display: "flex", flexShrink: 0, borderBottom: BORDER }}>
         <div style={{ width: TIME_W, flexShrink: 0, marginRight: TIME_GAP }} />
         {columns.map((d, i) => {
@@ -582,9 +578,7 @@ export function WeekCalendar({
         })}
       </div>
 
-      {/* ── Body ── */}
       <div style={{ display: "flex" }}>
-        {/* Time labels */}
         <div style={{ width: TIME_W, flexShrink: 0, marginRight: TIME_GAP }}>
           {HOURS.map((h) => (
             <div
@@ -614,7 +608,6 @@ export function WeekCalendar({
           ))}
         </div>
 
-        {/* Day columns */}
         {columns.map((d, i) => {
           const colISO = toISO(d);
           const activeHour = activeSlot?.date === colISO ? activeSlot.hour : undefined;

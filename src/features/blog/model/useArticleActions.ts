@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
+import { apiErrorMessage } from "@/shared/api/lib/apiErrorMessage";
 import {
   approveArticle,
   archiveArticle,
@@ -27,11 +29,13 @@ import type { ArticleMenuAction } from "../ui/ArticleCardMenu";
  * client state (e.g. dashboard tabs fetched client-side) must pass their own re-fetch function.
  */
 export function useArticleActions(onRefresh?: () => void) {
+  const t = useTranslations("ArticleActionModals");
   const router = useRouter();
   const [editingArticle, setEditingArticle] = useState<ArticleDetail | null>(null);
   const [rejectingArticle, setRejectingArticle] = useState<ArticleListItem | null>(null);
   const [deletingArticle, setDeletingArticle] = useState<ArticleListItem | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [actionError, setActionError] = useState("");
 
   function refresh() {
     if (onRefresh) onRefresh();
@@ -39,6 +43,7 @@ export function useArticleActions(onRefresh?: () => void) {
   }
 
   async function handleAction(action: ArticleMenuAction, article: ArticleListItem) {
+    setActionError("");
     switch (action) {
       case "edit": {
         const detail = await getArticleBySlug(article.slug);
@@ -52,25 +57,60 @@ export function useArticleActions(onRefresh?: () => void) {
         setDeletingArticle(article);
         return;
       case "submit":
-        await submitArticleForReview(article.slug).catch(() => {});
+        try {
+          await submitArticleForReview(article.slug);
+        } catch (e) {
+          setActionError(apiErrorMessage(e, t("actionFailed")));
+          return;
+        }
         break;
       case "publish":
-        await publishOwnArticle(article.slug).catch(() => {});
+        try {
+          await publishOwnArticle(article.slug);
+        } catch (e) {
+          setActionError(apiErrorMessage(e, t("actionFailed")));
+          return;
+        }
         break;
       case "withdraw":
-        await withdrawArticleToDraft(article.slug).catch(() => {});
+        try {
+          await withdrawArticleToDraft(article.slug);
+        } catch (e) {
+          setActionError(apiErrorMessage(e, t("actionFailed")));
+          return;
+        }
         break;
       case "archive":
-        await archiveArticle(article.slug).catch(() => {});
+        try {
+          await archiveArticle(article.slug);
+        } catch (e) {
+          setActionError(apiErrorMessage(e, t("actionFailed")));
+          return;
+        }
         break;
       case "restore":
-        await restoreArticleFromArchive(article.slug).catch(() => {});
+        try {
+          await restoreArticleFromArchive(article.slug);
+        } catch (e) {
+          setActionError(apiErrorMessage(e, t("actionFailed")));
+          return;
+        }
         break;
       case "assign":
-        await assignArticleModeratorSelf(article.slug).catch(() => {});
+        try {
+          await assignArticleModeratorSelf(article.slug);
+        } catch (e) {
+          setActionError(apiErrorMessage(e, t("actionFailed")));
+          return;
+        }
         break;
       case "approve":
-        await approveArticle(article.slug).catch(() => {});
+        try {
+          await approveArticle(article.slug);
+        } catch (e) {
+          setActionError(apiErrorMessage(e, t("actionFailed")));
+          return;
+        }
         break;
     }
     refresh();
@@ -103,6 +143,8 @@ export function useArticleActions(onRefresh?: () => void) {
     deletingArticle,
     setDeletingArticle,
     deleteLoading,
+    actionError,
+    setActionError,
     handleAction,
     confirmReject,
     confirmDelete,

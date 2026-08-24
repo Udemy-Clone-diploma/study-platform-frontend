@@ -15,7 +15,6 @@ export function StudentStoriesSection({ articles, category }: Props) {
 
   return (
     <section>
-      {/* Header */}
       <SectionContainer>
         <div
           className="w-full lg:w-auto min-[1024px]:max-[1439px]:max-w-[max(420px,36.46vw)] min-[1440px]:max-w-[max(600px,36.46vw)]"

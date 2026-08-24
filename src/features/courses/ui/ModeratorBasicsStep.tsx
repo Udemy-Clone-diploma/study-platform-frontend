@@ -77,7 +77,6 @@ export function ModeratorBasicsStep(props: StepProps) {
   const tRejection = useTranslations("RejectionDetailModal");
   const tBasics = useTranslations("CourseBasicsForm");
 
-  // For pending edits, show proposed values for changed fields
   const draft = draftCourse;
   const displayTitle = (!lockedKeys.has("field-title") && draft?.title) || course?.title || "—";
   const displayShortDesc =
@@ -146,7 +145,6 @@ export function ModeratorBasicsStep(props: StepProps) {
           {tBasics("courseInformation")}
         </p>
         <div style={{ display: "flex", flexDirection: "column", gap: "clamp(14px, 1.25vw, 20px)" }}>
-          {/* Course Title */}
           <FieldRow
             fieldKey="field-title"
             label={tBasics("courseTitle")}
@@ -157,7 +155,6 @@ export function ModeratorBasicsStep(props: StepProps) {
             <div style={valueWithBadgeSt}>{displayTitle}</div>
           </FieldRow>
 
-          {/* Short Description */}
           <FieldRow
             fieldKey="field-short-description"
             label={tBasics("shortDescription")}
@@ -168,7 +165,6 @@ export function ModeratorBasicsStep(props: StepProps) {
             <div style={valueWithBadgeSt}>{displayShortDesc}</div>
           </FieldRow>
 
-          {/* Full Description */}
           <FieldRow
             fieldKey="field-full-description"
             label={tBasics("fullDescription")}
@@ -179,7 +175,6 @@ export function ModeratorBasicsStep(props: StepProps) {
             <div style={{ ...valueWithBadgeSt, whiteSpace: "pre-wrap" }}>{displayFullDesc}</div>
           </FieldRow>
 
-          {/* Course Icon */}
           <FieldRow
             fieldKey="field-icon"
             label={tBasics("courseIcon")}
@@ -208,7 +203,6 @@ export function ModeratorBasicsStep(props: StepProps) {
             </div>
           </FieldRow>
 
-          {/* Category + Level */}
           <div className="grid grid-cols-2" style={{ gap: "clamp(16px, 2.08vw, 40px)" }}>
             <FieldRow
               fieldKey="field-category"

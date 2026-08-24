@@ -26,7 +26,6 @@ import { Tooltip } from "@/shared/ui/Tooltip";
 import { WhiteButton } from "@/shared/ui/WhiteButton";
 import { usePageLoadingOverlay } from "@/shared/lib/pageLoadingSignal";
 
-// ── Tab types ──────────────────────────────────────────────────────────────────
 type MainTab = "info" | "content" | "reviews" | "pricing";
 type FormatTab = "individual" | "group" | "scheduled" | "self_paced";
 type Tab = MainTab | FormatTab;
@@ -34,7 +33,6 @@ type Tab = MainTab | FormatTab;
 const MAIN_TAB_IDS: MainTab[] = ["info", "content", "reviews", "pricing"];
 const FORMAT_ORDER: FormatTab[] = ["individual", "group", "scheduled", "self_paced"];
 
-// ── TabBtn ─────────────────────────────────────────────────────────────────────
 function TabBtn({
   active,
   onClick,
@@ -69,7 +67,6 @@ function TabBtn({
   );
 }
 
-// ── FormatStatsBar ─────────────────────────────────────────────────────────────
 function FormatStatsBar({
   fmt,
   slug,
@@ -150,7 +147,6 @@ function FormatStatsBar({
           textAlign: "left",
         }}
       >
-        {/* Enrolled stat */}
         <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
           <span style={LABEL_ST}>{t("enrolled")}</span>
           <span style={VALUE_ST}>{enrolledValue}</span>
@@ -163,7 +159,6 @@ function FormatStatsBar({
           </div>
         ))}
 
-        {/* Chevron pushed to right */}
         <ChevronDown
           size={16}
           style={{
@@ -204,7 +199,6 @@ function FormatStatsBar({
   );
 }
 
-// ── InfoRow ────────────────────────────────────────────────────────────────────
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div
@@ -239,7 +233,6 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-// ── SelfPacedFormatTab ─────────────────────────────────────────────────────────
 function SelfPacedFormatTab({ fmt, slug }: { fmt: CourseDeliveryFormat; slug: string }) {
   const t = useTranslations("CourseManagementPage");
   return (
@@ -282,7 +275,6 @@ function SelfPacedFormatTab({ fmt, slug }: { fmt: CourseDeliveryFormat; slug: st
   );
 }
 
-// ── Page ───────────────────────────────────────────────────────────────────────
 export default function CourseManagementPage() {
   const t = useTranslations("CourseManagementPage");
   const { slug } = useParams<{ slug: string }>();
@@ -339,7 +331,6 @@ export default function CourseManagementPage() {
     );
   }
 
-  // Map format_type → CourseDeliveryFormat for O(1) lookup
   const fmtByType = useMemo(
     () =>
       Object.fromEntries(
@@ -349,14 +340,12 @@ export default function CourseManagementPage() {
   );
   const dynamicTabs = FORMAT_ORDER.filter((ft) => fmtByType[ft]);
 
-  // If the active format tab was removed, fall back to pricing
   useEffect(() => {
     if (FORMAT_ORDER.includes(tab as FormatTab) && !fmtByType[tab as FormatTab]) {
       setTab("pricing");
     }
   }, [fmtByType, tab]);
 
-  // ── Loading / error ──────────────────────────────────────────────────────────
   // NavigationLoadingOverlay already covers the load; avoid a second, plain-text one here.
   if (loading) {
     return <main className="bg-my-courses min-h-[calc(100vh-76px)]" />;
@@ -387,7 +376,6 @@ export default function CourseManagementPage() {
     );
   }
 
-  // ── Derived values ───────────────────────────────────────────────────────────
   const courseState = deriveCourseState(course);
   const statusBg = courseStateColor(courseState);
   const statusLabel =
@@ -421,14 +409,12 @@ export default function CourseManagementPage() {
   return (
     <PageShell className="bg-my-courses" style={{ paddingBottom: 360 }}>
       <div style={{ maxWidth: "1648px", margin: "0 auto" }}>
-        {/* Back nav */}
         <div style={{ marginBottom: "clamp(16px, 1.39vw, 24px)" }}>
           <WhiteButton onClick={() => router.push("/teacher-dashboard/courses")}>
             {t("myCourses")}
           </WhiteButton>
         </div>
 
-        {/* ── Course header ──────────────────────────────────────────────────────── */}
         <div style={{ marginBottom: "clamp(20px, 1.67vw, 32px)" }}>
           <div
             style={{
@@ -438,7 +424,6 @@ export default function CourseManagementPage() {
               marginBottom: "clamp(16px, 1.39vw, 24px)",
             }}
           >
-            {/* Gradient-bordered image */}
             <div
               style={{
                 background: "var(--gradient-brand)",
@@ -482,7 +467,6 @@ export default function CourseManagementPage() {
               </div>
             </div>
 
-            {/* Right column */}
             <div
               style={{
                 flex: 1,
@@ -492,7 +476,6 @@ export default function CourseManagementPage() {
                 gap: "clamp(10px, 0.83vw, 14px)",
               }}
             >
-              {/* Title + status */}
               <div
                 style={{
                   display: "flex",
@@ -532,7 +515,6 @@ export default function CourseManagementPage() {
                 </Tooltip>
               </div>
 
-              {/* Category + Level */}
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                 {course.category && (
                   <span
@@ -563,7 +545,6 @@ export default function CourseManagementPage() {
                 </span>
               </div>
 
-              {/* Short description */}
               <p
                 style={{
                   fontFamily: "var(--font-base)",
@@ -576,7 +557,6 @@ export default function CourseManagementPage() {
                 {course.short_description}
               </p>
 
-              {/* Stats */}
               <div
                 style={{
                   display: "flex",
@@ -641,7 +621,6 @@ export default function CourseManagementPage() {
             </div>
           </div>
 
-          {/* Full description (collapsible) */}
           {course.full_description && (
             <div
               style={{
@@ -695,7 +674,6 @@ export default function CourseManagementPage() {
           )}
         </div>
 
-        {/* ── Tab bar ────────────────────────────────────────────────────────────── */}
         <div
           className="flex overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] lg:flex-wrap lg:overflow-visible [&::-webkit-scrollbar]:hidden"
           style={{
@@ -729,9 +707,6 @@ export default function CourseManagementPage() {
           )}
         </div>
 
-        {/* ── Tab content ────────────────────────────────────────────────────────── */}
-
-        {/* Main tabs */}
         {tab === "info" && (
           <CourseManagementInfoTab
             course={course}
@@ -764,7 +739,6 @@ export default function CourseManagementPage() {
           />
         )}
 
-        {/* Format tabs */}
         {tab === "individual" && fmtByType.individual && (
           <div
             style={{ display: "flex", flexDirection: "column", gap: "clamp(16px, 1.39vw, 24px)" }}

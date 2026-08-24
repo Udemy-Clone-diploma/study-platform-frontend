@@ -1338,8 +1338,6 @@ export default function TeacherPaymentsPage() {
             icon={<Flag style={FILTER_ICON_SIZE} />}
           />
         </div>
-
-        {/* Search */}
         <label
           className="gradient-border flex shrink-0 cursor-text items-center gap-2"
           style={{
@@ -1372,8 +1370,6 @@ export default function TeacherPaymentsPage() {
             }}
           />
         </label>
-
-        {/* Payments table — LAST */}
         <DataTable<TeacherOrderRow>
           columns={columns}
           rows={rows}

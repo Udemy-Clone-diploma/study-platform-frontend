@@ -1,3 +1,13 @@
+import {
+  CategoriesSection,
+  HeroSection,
+  NewCoursesSection,
+  PlatformBenefitsSection,
+  PopularCoursesSection,
+  StudentReviewsSection,
+  StudentStoriesSection,
+  TopMentorsSection,
+} from "@/widgets/home";
 import Image from "next/image";
 import { getLocale } from "next-intl/server";
 import {
@@ -8,14 +18,6 @@ import {
 } from "@/entities/course";
 import { getTopTeachers } from "@/entities/user";
 import { getArticles, getBlogCategories } from "@/entities/blog";
-import { HeroSection } from "@/widgets/home/HeroSection";
-import { NewCoursesSection } from "@/widgets/home/NewCoursesSection";
-import { PopularCoursesSection } from "@/widgets/home/PopularCoursesSection";
-import { PlatformBenefitsSection } from "@/widgets/home/PlatformBenefitsSection";
-import { CategoriesSection } from "@/widgets/home/CategoriesSection";
-import { StudentReviewsSection } from "@/widgets/home/StudentReviewsSection";
-import { StudentStoriesSection } from "@/widgets/home/StudentStoriesSection";
-import { TopMentorsSection } from "@/widgets/home/TopMentorsSection";
 
 export const dynamic = "force-dynamic";
 
@@ -44,7 +46,6 @@ export default async function Home() {
     <main style={{ position: "relative", overflow: "hidden" }}>
       {/* Decorative layer — all vw so blobs + glitter scale as one unit */}
       <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
-        {/* Blob right top */}
         <div
           style={{
             position: "absolute",
@@ -58,7 +59,6 @@ export default async function Home() {
           }}
         />
 
-        {/* Blob right center */}
         <div
           style={{
             position: "absolute",
@@ -72,7 +72,6 @@ export default async function Home() {
           }}
         />
 
-        {/* Glitter texture */}
         <div
           style={{
             position: "absolute",

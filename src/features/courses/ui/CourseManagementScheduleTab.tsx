@@ -43,13 +43,12 @@ import {
   updatePersonalEvent,
 } from "@/entities/course/api/calendarApi";
 import type { ApiError } from "@/shared/api/model/types";
+import { apiErrorMessage } from "@/shared/api/lib/apiErrorMessage";
 import { ModalShell } from "@/shared/ui/ModalShell";
 
 type RescheduleConflictItem = { type: string; title: string; start_time: string; end_time: string };
 type RescheduleErr = { message: string; items: RescheduleConflictItem[] };
 import { AlertTriangle } from "lucide-react";
-
-// ── Shared styles ──────────────────────────────────────────────────────────────
 
 const CARD: React.CSSProperties = {
   background: "#fff",
@@ -128,8 +127,6 @@ function useDayOptions(): { value: DayOfWeek; label: string }[] {
   const tDays = useTranslations("Days");
   return DAY_VALUES.map((d) => ({ value: d, label: tDays(DAY_KEYS[d]) }));
 }
-
-// ── PillSelect ─────────────────────────────────────────────────────────────────
 
 function PillSelect<T extends string | number>({
   options,
@@ -240,8 +237,6 @@ function PillSelect<T extends string | number>({
   );
 }
 
-// ── TimePicker ─────────────────────────────────────────────────────────────────
-
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const MINUTES = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
 
@@ -321,7 +316,6 @@ export function TimePicker({ value, onChange }: { value: string; onChange: (v: s
             minWidth: 200,
           }}
         >
-          {/* Header */}
           <div
             style={{
               display: "flex",
@@ -347,7 +341,6 @@ export function TimePicker({ value, onChange }: { value: string; onChange: (v: s
           </div>
           <div style={{ height: 1, background: "var(--color-border-light)", marginBottom: 10 }} />
 
-          {/* Hours — 6-column grid, 4 rows */}
           <div
             style={{
               fontFamily: "var(--font-base)",
@@ -378,7 +371,6 @@ export function TimePicker({ value, onChange }: { value: string; onChange: (v: s
 
           <div style={{ height: 1, background: "var(--color-border-light)", marginBottom: 10 }} />
 
-          {/* Minutes — 6-column grid, 2 rows */}
           <div
             style={{
               fontFamily: "var(--font-base)",
@@ -404,8 +396,6 @@ export function TimePicker({ value, onChange }: { value: string; onChange: (v: s
     </div>
   );
 }
-
-// ── IconBtn ────────────────────────────────────────────────────────────────────
 
 function IconBtn({
   icon,
@@ -443,8 +433,6 @@ function IconBtn({
     </button>
   );
 }
-
-// ── TimeSlotRow ────────────────────────────────────────────────────────────────
 
 function TimeSlotRow({
   slot,
@@ -508,7 +496,6 @@ function TimeSlotRow({
   const statusColor = slot.is_available ? "var(--color-success)" : "var(--color-text-muted)";
   const statusLabel = slot.is_available ? t("available") : t("booked");
 
-  // Students not yet assigned to any slot (by student_profile_id)
   const assignedProfileId = slot.booked_by_student?.student_profile_id;
   const unassigned = enrolledStudents.filter((s) => s.student_id !== assignedProfileId);
 
@@ -566,7 +553,6 @@ function TimeSlotRow({
           )}
         </div>
 
-        {/* Assigned student row */}
         {slot.booked_by_student ? (
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <User size={12} style={{ color: "var(--color-text-secondary)", flexShrink: 0 }} />
@@ -700,8 +686,6 @@ function TimeSlotRow({
   );
 }
 
-// ── DayGroup ───────────────────────────────────────────────────────────────────
-
 function DayGroup({
   day,
   slots,
@@ -833,8 +817,6 @@ function DayGroup({
   );
 }
 
-// ── AddSlotForm ────────────────────────────────────────────────────────────────
-
 function AddSlotForm({
   onAdd,
   onCancel,
@@ -904,8 +886,6 @@ function AddSlotForm({
     </form>
   );
 }
-
-// ── RescheduleForm ─────────────────────────────────────────────────────────────
 
 function RescheduleForm({
   slot,
@@ -985,8 +965,6 @@ function RescheduleForm({
   );
 }
 
-// ── GenerateSlotsForm ──────────────────────────────────────────────────────────
-
 const DURATION_VALUES = [30, 45, 60, 90, 120];
 const BREAK_VALUES = [0, 5, 10, 15, 30];
 
@@ -1049,7 +1027,6 @@ function GenerateSlotsForm({
 
   return (
     <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      {/* Row 1: day + window */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
         <div>
           <label style={LABEL}>{t("day")}</label>
@@ -1065,7 +1042,6 @@ function GenerateSlotsForm({
         </div>
       </div>
 
-      {/* Row 2: session duration + break */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
         <div>
           <label style={LABEL}>{t("sessionDuration")}</label>
@@ -1085,7 +1061,6 @@ function GenerateSlotsForm({
         </div>
       </div>
 
-      {/* Live preview */}
       <div style={{ background: "var(--color-bg)", borderRadius: 12, padding: "10px 14px" }}>
         <p style={{ ...LABEL, color: "var(--color-text-primary)", marginBottom: 8 }}>
           {t("previewSlots", { count: preview.length })}
@@ -1143,8 +1118,6 @@ function GenerateSlotsForm({
   );
 }
 
-// ── IndividualFormatSection ────────────────────────────────────────────────────
-
 function IndividualFormatSection({
   fmt,
   slug,
@@ -1162,7 +1135,6 @@ function IndividualFormatSection({
   const [rescheduling, setRescheduling] = useState<ScheduleSlot | null>(null);
   const [enrolledStudents, setEnrolledStudents] = useState<EnrolledStudent[]>([]);
 
-  // Slot assign personal conflict modal
   type AssignConflictState = {
     slotId: number;
     enrollmentId: number;
@@ -1177,7 +1149,6 @@ function IndividualFormatSection({
     end: string;
   } | null>(null);
 
-  // Slot reschedule conflict modal
   type ReschedulePayload = { day_of_week: DayOfWeek; start_time: string; end_time: string };
   const [rescheduleConflictModal, setRescheduleConflictModal] = useState<{
     conflicts: ScheduleConflicts;
@@ -1196,13 +1167,15 @@ function IndividualFormatSection({
   } | null>(null);
   const [rescheduleEventLoading, setRescheduleEventLoading] = useState<number | null>(null);
 
-  // Add / generate slot conflict modal
   const [addConflictModal, setAddConflictModal] = useState<{
     conflicts: ScheduleConflicts;
     payloads: ScheduleSlotPayload[];
   } | null>(null);
   const [addPendingEvents, setAddPendingEvents] = useState<ScheduleConflictPersonalEvent[]>([]);
   const [addModalSaving, setAddModalSaving] = useState(false);
+  const [addConflictErr, setAddConflictErr] = useState("");
+  const errText = (err: unknown) => apiErrorMessage(err, t("errorSaveFailed"));
+  const [rescheduleConflictErr, setRescheduleConflictErr] = useState("");
   const [addEventReschedule, setAddEventReschedule] = useState<{
     eventId: number;
     date: string;
@@ -1270,7 +1243,6 @@ function IndividualFormatSection({
   const handleAdd = async (payload: ScheduleSlotPayload) => resolveAndCreateSlots([payload]);
   const handleGenerate = async (payloads: ScheduleSlotPayload[]) => resolveAndCreateSlots(payloads);
 
-  // Add slot conflict modal handlers
   const resolveAddEvent = (eventId: number) => {
     setAddPendingEvents((prev) => prev.filter((e) => e.id !== eventId));
     setAddEventReschedule((rs) => (rs?.eventId === eventId ? null : rs));
@@ -1278,11 +1250,12 @@ function IndividualFormatSection({
 
   const handleAddDeleteEvent = async (ev: ScheduleConflictPersonalEvent) => {
     setAddEventLoading(ev.id);
+    setAddConflictErr("");
     try {
       await deletePersonalEvent(ev.id);
       resolveAddEvent(ev.id);
-    } catch {
-      /* ignore */
+    } catch (err) {
+      setAddConflictErr(errText(err));
     } finally {
       setAddEventLoading(null);
     }
@@ -1291,11 +1264,12 @@ function IndividualFormatSection({
   const handleAddDeclineEvent = async (ev: ScheduleConflictPersonalEvent) => {
     if (!ev.invitation_id) return;
     setAddEventLoading(ev.id);
+    setAddConflictErr("");
     try {
       await respondToInvitation(ev.invitation_id, "decline");
       resolveAddEvent(ev.id);
-    } catch {
-      /* ignore */
+    } catch (err) {
+      setAddConflictErr(errText(err));
     } finally {
       setAddEventLoading(null);
     }
@@ -1311,8 +1285,8 @@ function IndividualFormatSection({
         end_time: addEventReschedule.end,
       });
       resolveAddEvent(ev.id);
-    } catch {
-      /* ignore */
+    } catch (err) {
+      setAddConflictErr(errText(err));
     } finally {
       setAddEventLoading(null);
     }
@@ -1321,6 +1295,7 @@ function IndividualFormatSection({
   const handleAddDeleteBlocksAndSave = async () => {
     if (!addConflictModal) return;
     setAddModalSaving(true);
+    setAddConflictErr("");
     try {
       await Promise.all(
         addConflictModal.conflicts.personal.map((b) => deleteTeacherUnavailability(b.id)),
@@ -1331,8 +1306,8 @@ function IndividualFormatSection({
       }
       setSlots((prev) => [...prev, ...created]);
       setAddConflictModal(null);
-    } catch {
-      /* ignore */
+    } catch (err) {
+      setAddConflictErr(errText(err));
     } finally {
       setAddModalSaving(false);
     }
@@ -1341,6 +1316,7 @@ function IndividualFormatSection({
   const handleAddProceed = async () => {
     if (!addConflictModal) return;
     setAddModalSaving(true);
+    setAddConflictErr("");
     try {
       const created: ScheduleSlot[] = [];
       for (const p of addConflictModal.payloads) {
@@ -1348,8 +1324,8 @@ function IndividualFormatSection({
       }
       setSlots((prev) => [...prev, ...created]);
       setAddConflictModal(null);
-    } catch {
-      /* ignore */
+    } catch (err) {
+      setAddConflictErr(errText(err));
     } finally {
       setAddModalSaving(false);
     }
@@ -1383,7 +1359,6 @@ function IndividualFormatSection({
     await doReschedule(id, payload);
   };
 
-  // Reschedule slot conflict modal handlers
   const resolveRescheduleEvent = (eventId: number) => {
     setReschedulePendingEvents((prev) => prev.filter((e) => e.id !== eventId));
     setRescheduleEventReschedule((rs) => (rs?.eventId === eventId ? null : rs));
@@ -1391,11 +1366,12 @@ function IndividualFormatSection({
 
   const handleRescheduleDeleteEvent = async (ev: ScheduleConflictPersonalEvent) => {
     setRescheduleEventLoading(ev.id);
+    setRescheduleConflictErr("");
     try {
       await deletePersonalEvent(ev.id);
       resolveRescheduleEvent(ev.id);
-    } catch {
-      /* ignore */
+    } catch (err) {
+      setRescheduleConflictErr(errText(err));
     } finally {
       setRescheduleEventLoading(null);
     }
@@ -1404,11 +1380,12 @@ function IndividualFormatSection({
   const handleRescheduleDeclineEvent = async (ev: ScheduleConflictPersonalEvent) => {
     if (!ev.invitation_id) return;
     setRescheduleEventLoading(ev.id);
+    setRescheduleConflictErr("");
     try {
       await respondToInvitation(ev.invitation_id, "decline");
       resolveRescheduleEvent(ev.id);
-    } catch {
-      /* ignore */
+    } catch (err) {
+      setRescheduleConflictErr(errText(err));
     } finally {
       setRescheduleEventLoading(null);
     }
@@ -1424,8 +1401,8 @@ function IndividualFormatSection({
         end_time: rescheduleEventReschedule.end,
       });
       resolveRescheduleEvent(ev.id);
-    } catch {
-      /* ignore */
+    } catch (err) {
+      setRescheduleConflictErr(errText(err));
     } finally {
       setRescheduleEventLoading(null);
     }
@@ -1434,13 +1411,14 @@ function IndividualFormatSection({
   const handleRescheduleDeleteBlocksAndSave = async () => {
     if (!rescheduleConflictModal) return;
     setRescheduleModalSaving(true);
+    setRescheduleConflictErr("");
     try {
       await Promise.all(
         rescheduleConflictModal.conflicts.personal.map((b) => deleteTeacherUnavailability(b.id)),
       );
       await doReschedule(rescheduleConflictModal.slotId, rescheduleConflictModal.payload);
-    } catch {
-      /* ignore */
+    } catch (err) {
+      setRescheduleConflictErr(errText(err));
     } finally {
       setRescheduleModalSaving(false);
     }
@@ -1449,10 +1427,11 @@ function IndividualFormatSection({
   const handleRescheduleProceed = async () => {
     if (!rescheduleConflictModal) return;
     setRescheduleModalSaving(true);
+    setRescheduleConflictErr("");
     try {
       await doReschedule(rescheduleConflictModal.slotId, rescheduleConflictModal.payload);
-    } catch {
-      /* ignore */
+    } catch (err) {
+      setRescheduleConflictErr(errText(err));
     } finally {
       setRescheduleModalSaving(false);
     }
@@ -1934,6 +1913,11 @@ function IndividualFormatSection({
                     {t("resolveSessionsAbove")}
                   </p>
                 )}
+                {addConflictErr && (
+                  <p role="alert" style={{ ...CNOTE, color: "var(--color-danger)" }}>
+                    {addConflictErr}
+                  </p>
+                )}
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                   {hasPersonalBlocks && (
                     <button
@@ -1971,6 +1955,7 @@ function IndividualFormatSection({
                       setAddConflictModal(null);
                       setAddPendingEvents([]);
                       setAddEventReschedule(null);
+                      setAddConflictErr("");
                     }}
                     style={CANCEL_BTN}
                   >
@@ -2222,6 +2207,11 @@ function IndividualFormatSection({
                     {t("resolveSessionsAbove")}
                   </p>
                 )}
+                {rescheduleConflictErr && (
+                  <p role="alert" style={{ ...CNOTE, color: "var(--color-danger)" }}>
+                    {rescheduleConflictErr}
+                  </p>
+                )}
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                   {hasPersonalBlocks && (
                     <button
@@ -2260,6 +2250,7 @@ function IndividualFormatSection({
                       setRescheduleConflictModal(null);
                       setReschedulePendingEvents([]);
                       setRescheduleEventReschedule(null);
+                      setRescheduleConflictErr("");
                     }}
                     style={CANCEL_BTN}
                   >
@@ -2605,8 +2596,6 @@ function IndividualFormatSection({
   );
 }
 
-// ── UnavailabilityRow ─────────────────────────────────────────────────────────
-
 function UnavailabilityRow({
   block,
   onDelete,
@@ -2701,8 +2690,6 @@ function UnavailabilityRow({
   );
 }
 
-// ── AddUnavailabilityForm ─────────────────────────────────────────────────────
-
 function AddUnavailabilityForm({
   onAdd,
   onCancel,
@@ -2770,22 +2757,17 @@ function AddUnavailabilityForm({
     setSaving(true);
     setErr(null);
     try {
-      const resolvedStart = allDay ? "00:00" : start;
-      const resolvedEnd = allDay ? "23:59" : end;
-      const payload: TeacherUnavailabilityPayload = {
-        recurrence_type: recurrence,
-        start_time: resolvedStart,
-        end_time: resolvedEnd,
+      const base = {
+        start_time: allDay ? "00:00" : start,
+        end_time: allDay ? "23:59" : end,
         reason: reason || undefined,
       };
-      if (recurrence === "weekly") {
-        payload.day_of_week = day;
-      } else if (recurrence === "one_time") {
-        payload.date = date;
-      } else {
-        payload.date = date;
-        payload.date_to = dateTo;
-      }
+      const payload: TeacherUnavailabilityPayload =
+        recurrence === "weekly"
+          ? { ...base, recurrence_type: "weekly", day_of_week: day }
+          : recurrence === "one_time"
+            ? { ...base, recurrence_type: "one_time", date }
+            : { ...base, recurrence_type: "date_range", date, date_to: dateTo };
       await onAdd(payload);
     } catch (e: unknown) {
       setErr((e as { message?: string })?.message ?? t("errorSaveFailed"));
@@ -2796,7 +2778,6 @@ function AddUnavailabilityForm({
 
   return (
     <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-      {/* Type */}
       <div>
         <label style={PL}>{t("type")}</label>
         <PillSelect
@@ -2810,7 +2791,6 @@ function AddUnavailabilityForm({
         />
       </div>
 
-      {/* Day / Date */}
       {recurrence === "weekly" ? (
         <div>
           <label style={PL}>{t("day")}</label>
@@ -2831,7 +2811,6 @@ function AddUnavailabilityForm({
         </div>
       )}
 
-      {/* Hours toggle */}
       <div>
         <span style={PL}>{t("hours")}</span>
         <div style={{ display: "flex", gap: 6 }}>
@@ -2844,7 +2823,6 @@ function AddUnavailabilityForm({
         </div>
       </div>
 
-      {/* Time range */}
       {!allDay && (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           <div>
@@ -2858,7 +2836,6 @@ function AddUnavailabilityForm({
         </div>
       )}
 
-      {/* Reason */}
       <div>
         <label style={PL}>{t("reasonOptional")}</label>
         <input
@@ -2923,8 +2900,6 @@ function AddUnavailabilityForm({
   );
 }
 
-// ── UnavailabilitySection ─────────────────────────────────────────────────────
-
 export function UnavailabilitySection() {
   const t = useTranslations("CourseManagementScheduleTab");
   const [blocks, setBlocks] = useState<TeacherUnavailability[]>([]);
@@ -2950,7 +2925,6 @@ export function UnavailabilitySection() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      {/* Description */}
       <p
         style={{
           fontFamily: "var(--font-base)",
@@ -2963,7 +2937,6 @@ export function UnavailabilitySection() {
         {t("unavailabilityDescription")}
       </p>
 
-      {/* Existing blocks */}
       {loading && (
         <p
           style={{
@@ -2998,7 +2971,6 @@ export function UnavailabilitySection() {
         </div>
       )}
 
-      {/* Add form or Add button */}
       {addOpen ? (
         <div style={{ borderTop: "1px solid var(--color-border-light)", paddingTop: 16 }}>
           <AddUnavailabilityForm onAdd={handleAdd} onCancel={() => setAddOpen(false)} />
@@ -3032,8 +3004,6 @@ export function UnavailabilitySection() {
     </div>
   );
 }
-
-// ── Main component ─────────────────────────────────────────────────────────────
 
 /** Individual-format schedule management: slot creation by day, student assignment, and teacher unavailability blocks. */
 export function CourseManagementScheduleTab({

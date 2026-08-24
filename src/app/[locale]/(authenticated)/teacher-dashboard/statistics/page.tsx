@@ -171,7 +171,6 @@ export default function TeacherStatisticsPage() {
               className="flex flex-col lg:grid lg:grid-cols-[minmax(360px,1fr)_minmax(320px,1fr)] lg:items-start"
               style={{ position: "relative", zIndex: 3, gap: "clamp(12px, 1.11vw, 20px)" }}
             >
-              {/* Left: 2x2 stat blocks, with the enrollment-growth chart below them */}
               <div className="flex flex-col" style={{ gap: "clamp(12px, 1.11vw, 20px)" }}>
                 <div className="grid grid-cols-2" style={{ gap: "clamp(12px, 1.11vw, 20px)" }}>
                   <StatCard
@@ -206,7 +205,6 @@ export default function TeacherStatisticsPage() {
                 <GrowthCard metric="enrollments" chartHeightClassName="h-[180px]" />
               </div>
 
-              {/* Right: Top courses / Recent payments, stacked */}
               <div className="flex flex-col" style={{ gap: "clamp(12px, 1.11vw, 20px)" }}>
                 <ListPanel title={t("topCourses")} emptyText={t("noCoursesYet")}>
                   {topCourses.map((course) => (

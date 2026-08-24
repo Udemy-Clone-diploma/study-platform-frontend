@@ -1,4 +1,4 @@
-import { BlogModerationView } from "@/widgets/blog/BlogModerationView";
+import { BlogModerationView } from "@/widgets/blog";
 
 export default function ModeratorBlogPage() {
   return <BlogModerationView role="moderator" />;

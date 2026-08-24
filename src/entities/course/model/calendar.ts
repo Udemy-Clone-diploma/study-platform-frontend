@@ -20,8 +20,8 @@ export type CalendarEvent = {
   date: string; // "YYYY-MM-DD"
   start_time: string; // "HH:MM"
   end_time: string;
-  title?: string | null; // personal event title
-  owner_name?: string | null; // personal event creator
+  title?: string | null;
+  owner_name?: string | null;
   course_title: string | null;
   course_slug: string | null;
   lesson_title?: string | null;
@@ -30,10 +30,8 @@ export type CalendarEvent = {
   cohort_name: string | null;
   meeting_link: string | null;
   is_available: boolean | null;
-  // Personal event fields
   is_owner?: boolean | null;
   invite_status?: "pending" | "accepted" | "declined" | null;
-  // Session status fields
   event_status?: CalendarEventStatus | null;
   rescheduled_to_date?: string | null;
   rescheduled_from_date?: string | null;
@@ -53,28 +51,3 @@ export type CalendarResponse = {
   unavailability: TeacherUnavailability[];
   deadlines: CalendarDeadline[];
 };
-
-// ── Create event payload ──────────────────────────────────────────────────────
-
-type CalendarEventBase = {
-  date: string; // "YYYY-MM-DD"
-  start_time: string; // "HH:MM"
-  end_time: string;
-};
-
-export type CalendarEventPayload =
-  | (CalendarEventBase & { type: "personal"; title: string; notes?: string })
-  | (CalendarEventBase & {
-      type: "group_session";
-      course_slug: string;
-      cohort_id: number;
-      lesson_id?: number | null;
-      meeting_link?: string | null;
-    })
-  | (CalendarEventBase & {
-      type: "individual_session";
-      course_slug: string;
-      student_id: number;
-      lesson_id?: number | null;
-      meeting_link?: string | null;
-    });

@@ -35,7 +35,6 @@ export async function PlatformBenefitsSection() {
             className="flex flex-col lg:flex-row lg:items-center"
             style={{ gap: "clamp(20px, 7.29vw, 105px)" }}
           >
-            {/* Left column */}
             <div
               className="w-full lg:w-[30.21vw]"
               style={{
@@ -58,7 +57,6 @@ export async function PlatformBenefitsSection() {
                 {t("heading")}
               </h2>
 
-              {/* Tag pill */}
               <div
                 style={{
                   display: "inline-flex",
@@ -91,7 +89,6 @@ export async function PlatformBenefitsSection() {
               </div>
             </div>
 
-            {/* Right: description */}
             <p
               className="text-[15px] md:text-[17px] lg:text-[1.04vw]"
               style={{

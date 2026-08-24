@@ -83,7 +83,6 @@ export function StudentReviewCard({ review, className = "" }: Props) {
         {review.text}
       </p>
 
-      {/* Author */}
       <div
         style={{
           display: "flex",

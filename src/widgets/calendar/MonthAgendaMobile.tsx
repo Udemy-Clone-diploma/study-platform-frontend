@@ -8,8 +8,6 @@ import type { CalendarDeadline, CalendarEvent } from "@/entities/course/model/ca
 import { getWeekdayNames } from "@/shared/lib/time";
 import { chipColors } from "./WeekCalendar";
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
 function pad(n: number) {
   return String(n).padStart(2, "0");
 }
@@ -26,8 +24,6 @@ function weekStartsForGrid(days: Date[]): string[] {
 }
 
 const GRADIENT = "linear-gradient(90deg, #A7BAFA 0%, #FCC4C3 50.96%, #FFF4DA 100%)";
-
-// ── Month nav arrow ──────────────────────────────────────────────────────────
 
 function NavArrow({
   direction,
@@ -64,8 +60,6 @@ function NavArrow({
     </button>
   );
 }
-
-// ── Day cell ─────────────────────────────────────────────────────────────────
 
 function DayCell({
   day,
@@ -136,8 +130,6 @@ function DayCell({
     </button>
   );
 }
-
-// ── Agenda card ──────────────────────────────────────────────────────────────
 
 function fmtChipTime(hhmm: string, locale: string): string {
   const [h, m] = hhmm.split(":").map(Number);
@@ -211,8 +203,6 @@ function AgendaEventCard({ event, onClick }: { event: CalendarEvent; onClick: ()
     </button>
   );
 }
-
-// ── Main ─────────────────────────────────────────────────────────────────────
 
 type Props = {
   role: "teacher" | "student";
@@ -288,7 +278,6 @@ export function MonthAgendaMobile({
     setEventMap({});
     setDeadlineMap({});
     fetchMonth(days);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [days, fetchMonth, refreshKey]);
 
   function visibleEventsFor(iso: string): CalendarEvent[] {
@@ -311,7 +300,6 @@ export function MonthAgendaMobile({
 
   return (
     <div className="relative flex flex-col gap-4 pb-20">
-      {/* Month nav */}
       <div className="flex items-center justify-between px-4">
         <NavArrow
           direction="left"
@@ -339,7 +327,6 @@ export function MonthAgendaMobile({
         />
       </div>
 
-      {/* Day-of-week row */}
       <div className="grid grid-cols-7 px-2 text-center">
         {weekDays.map((d, i) => (
           <span
@@ -352,7 +339,6 @@ export function MonthAgendaMobile({
         ))}
       </div>
 
-      {/* Date grid */}
       <div className="grid grid-cols-7 gap-y-2 px-2">
         {days.map((day, i) => {
           const iso = toISO(day);
@@ -373,7 +359,6 @@ export function MonthAgendaMobile({
         })}
       </div>
 
-      {/* Selected-day agenda */}
       <div className="flex flex-col gap-2 px-4">
         {selectedDeadlines.map((dl) => (
           <button
@@ -411,7 +396,6 @@ export function MonthAgendaMobile({
         ) : null}
       </div>
 
-      {/* Floating action buttons */}
       <div className="fixed bottom-[calc(103px+env(safe-area-inset-bottom)+16px)] left-1/2 z-10 flex -translate-x-1/2 items-center gap-3">
         {role === "teacher" && onBlockTime && (
           <button

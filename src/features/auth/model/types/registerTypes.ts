@@ -23,8 +23,6 @@ export interface RegisterPayload {
 }
 
 export interface RegisterResponse {
-  // access: string;
-  // refresh: string;
   message: string;
   status: string;
 }

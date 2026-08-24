@@ -13,16 +13,12 @@ import type { CourseCohort } from "@/entities/course/model/cohort";
 import type { CohortMember, EnrolledStudent } from "@/entities/course/model/cohortGroup";
 import type { CourseDetail } from "@/entities/course";
 
-// ── Style constants ──────────────────────────────────────────────────────────
-
 const CARD: React.CSSProperties = {
   background: "#fff",
   borderRadius: 16,
   boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
   padding: "clamp(16px, 1.25vw, 22px)",
 };
-
-// ── AddStudentDropdown ───────────────────────────────────────────────────────
 
 function AddStudentDropdown({
   enrolledStudents,
@@ -51,7 +47,6 @@ function AddStudentDropdown({
   useEffect(() => {
     if (open) {
       setTimeout(() => inputRef.current?.focus(), 0);
-      // scroll the dropdown panel into view after it renders
       setTimeout(
         () => panelRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }),
         50,
@@ -101,7 +96,6 @@ function AddStudentDropdown({
             overflow: "hidden",
           }}
         >
-          {/* Search */}
           <div
             style={{
               padding: "10px 12px",
@@ -205,8 +199,6 @@ function AddStudentDropdown({
   );
 }
 
-// ── MemberRow ────────────────────────────────────────────────────────────────
-
 function MemberRow({
   member,
   onRemove,
@@ -280,8 +272,6 @@ function MemberRow({
     </div>
   );
 }
-
-// ── CohortCard ───────────────────────────────────────────────────────────────
 
 function CohortCard({
   cohort,
@@ -530,8 +520,6 @@ function CohortCard({
     </div>
   );
 }
-
-// ── Main component ────────────────────────────────────────────────────────────
 
 /** Teacher cohort manager: expand a cohort to see and manage its students. */
 export function CourseManagementCohortsTab({

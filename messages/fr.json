@@ -2162,7 +2162,19 @@
     "finalScore": "Note finale",
     "certificate": "Certificat",
     "download": "Télécharger",
-    "notAvailable": "Non disponible pour ce cours"
+    "notAvailable": "Non disponible pour ce cours",
+    "review": "Avis",
+    "loadingReview": "Chargement de votre avis…",
+    "leaveReviewPrompt": "Comment avez-vous trouvé ce cours ? Laissez une note et un avis.",
+    "ratingAriaLabel": "Note",
+    "reviewPlaceholder": "Partagez votre avis sur le cours (facultatif)",
+    "reviewErrorGeneric": "Impossible d'envoyer votre avis.",
+    "submittingReview": "Envoi…",
+    "submitReview": "Envoyer l'avis",
+    "editReview": "Modifier l'avis",
+    "cancelEdit": "Annuler",
+    "saveReviewChanges": "Enregistrer les modifications",
+    "savingReview": "Enregistrement…"
   },
   "TeacherCoursesPage": {
     "tabAll": "Tous",

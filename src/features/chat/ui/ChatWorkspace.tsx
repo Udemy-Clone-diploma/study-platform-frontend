@@ -11,7 +11,7 @@ import {
   useState,
 } from "react";
 import { useSearchParams } from "next/navigation";
-import { usePathname, useRouter } from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { MessageSquarePlus, Plus } from "lucide-react";
 import { useTranslations } from "next-intl";
 import {
@@ -42,6 +42,7 @@ import type { ApiError } from "@/shared/api/base";
 import { resolveMediaUrl } from "@/shared/api/lib/mediaUrl";
 import { useChatSocket } from "@/features/chat/lib/useChatSocket";
 import {
+  MESSAGE_PREFETCH_CHAT_COUNT,
   MESSAGE_SCROLLBAR_HIDE_DELAY,
   MESSAGE_SCROLLBAR_MIN_THUMB_HEIGHT,
 } from "../lib/chatConstants";
@@ -107,7 +108,6 @@ export function ChatWorkspace({ onViewProfile, moderationHref }: ChatWorkspacePr
   const tCommon = useTranslations("ChatCommon");
   const tShared = useTranslations("Common");
   const router = useRouter();
-  const pathname = usePathname();
   const searchParams = useSearchParams();
   const requestedChatId = Number(searchParams.get("chat")) || null;
   const [me, setMe] = useState<UserData | null>(null);
@@ -167,6 +167,7 @@ export function ChatWorkspace({ onViewProfile, moderationHref }: ChatWorkspacePr
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const lastReadSentRef = useRef<string | null>(null);
   const messageCacheRef = useRef<Map<number, MessageCacheEntry>>(new Map());
+  const messagesPrefetchedRef = useRef(false);
 
   const meChatUser = useMemo(() => (me ? toChatUser(me) : null), [me]);
   const selectedChat = chats.find((chat) => chat.id === selectedChatId) ?? null;
@@ -543,6 +544,46 @@ export function ChatWorkspace({ onViewProfile, moderationHref }: ChatWorkspacePr
   }, [loadMessages, selectedChatId]);
 
   useEffect(() => {
+    if (messagesPrefetchedRef.current || chats.length === 0) return;
+    messagesPrefetchedRef.current = true;
+
+    const candidateIds = chats.slice(0, MESSAGE_PREFETCH_CHAT_COUNT).map((chat) => chat.id);
+    let cancelled = false;
+    let timer: number | null = null;
+
+    const prefetchNext = (index: number) => {
+      if (cancelled || index >= candidateIds.length) return;
+      const chatId = candidateIds[index];
+      const alreadyCached = messageCacheRef.current.has(chatId);
+      const isCurrentChat = chatId === selectedChatIdRef.current;
+      if (alreadyCached || isCurrentChat) {
+        timer = window.setTimeout(() => prefetchNext(index + 1), 0);
+        return;
+      }
+      getMessages(chatId, 1)
+        .then((data) => {
+          if (cancelled || messageCacheRef.current.has(chatId)) return;
+          messageCacheRef.current.set(chatId, {
+            messages: [...data.results].reverse(),
+            page: 1,
+            hasMore: Boolean(data.next),
+          });
+        })
+        .catch(() => null)
+        .finally(() => {
+          timer = window.setTimeout(() => prefetchNext(index + 1), 150);
+        });
+    };
+
+    timer = window.setTimeout(() => prefetchNext(0), 300);
+
+    return () => {
+      cancelled = true;
+      if (timer !== null) window.clearTimeout(timer);
+    };
+  }, [chats]);
+
+  useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ block: "end" });
   }, [messages.length, selectedChatId]);
 
@@ -794,7 +835,15 @@ export function ChatWorkspace({ onViewProfile, moderationHref }: ChatWorkspacePr
 
     const params = new URLSearchParams(window.location.search);
     params.set("chat", String(chatId));
-    window.history.pushState(window.history.state, "", `${pathname}?${params.toString()}`);
+    // Use the browser's actual (locale-prefixed) pathname here, not next-intl's
+    // usePathname() (which strips the locale) -- pushing a de-prefixed URL makes
+    // NavigationLoadingOverlay think a real route change happened and show its
+    // full-page splash on every chat switch.
+    window.history.pushState(
+      window.history.state,
+      "",
+      `${window.location.pathname}?${params.toString()}`,
+    );
   }
 
   function clearVisibleHistory() {

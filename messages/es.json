@@ -2162,7 +2162,19 @@
     "finalScore": "Puntuación final",
     "certificate": "Certificado",
     "download": "Descargar",
-    "notAvailable": "No disponible para este curso"
+    "notAvailable": "No disponible para este curso",
+    "review": "Reseña",
+    "loadingReview": "Cargando tu reseña…",
+    "leaveReviewPrompt": "¿Qué te pareció este curso? Deja una valoración y una reseña.",
+    "ratingAriaLabel": "Valoración",
+    "reviewPlaceholder": "Comparte tu opinión sobre el curso (opcional)",
+    "reviewErrorGeneric": "No se pudo enviar tu reseña.",
+    "submittingReview": "Enviando…",
+    "submitReview": "Enviar reseña",
+    "editReview": "Editar reseña",
+    "cancelEdit": "Cancelar",
+    "saveReviewChanges": "Guardar cambios",
+    "savingReview": "Guardando…"
   },
   "TeacherCoursesPage": {
     "tabAll": "Todos",

@@ -111,9 +111,18 @@ export function MessageList({
         ) : null}
 
         {loading && messages.length === 0 ? (
-          <div className="flex min-h-0 flex-1 items-center justify-center text-sm text-[#4B5563]">
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            {t("loadingMessages")}
+          <div className="mt-auto flex flex-col gap-2 lg:gap-4" aria-label={t("loadingMessages")}>
+            {[72, 55, 40, 62, 48].map((widthPercent, index) => (
+              <div
+                key={index}
+                className={`flex ${index % 2 === 0 ? "justify-start" : "justify-end"}`}
+              >
+                <div
+                  className="h-9 animate-pulse rounded-2xl bg-white/60"
+                  style={{ width: `${widthPercent}%`, maxWidth: 320 }}
+                />
+              </div>
+            ))}
           </div>
         ) : messages.length > 0 ? (
           <div className="mt-auto flex flex-col gap-2 lg:gap-4">

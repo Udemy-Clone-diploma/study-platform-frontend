@@ -7,11 +7,7 @@ import { getAccessToken, getRefreshToken } from "@/shared/api/authCookies";
 import { AppShell } from "@/widgets/app-shell";
 import { getSidebarItems } from "@/widgets/app-shell/sidebar/model/sidebarConfig";
 
-export default async function AuthenticatedLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
   const accessToken = await getAccessToken();
   const refreshToken = await getRefreshToken();
   const headerStore = await headers();

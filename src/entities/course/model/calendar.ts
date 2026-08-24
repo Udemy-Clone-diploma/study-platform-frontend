@@ -17,11 +17,11 @@ export type CalendarEventStatus = "cancelled" | "rescheduled";
 export type CalendarEvent = {
   id: string;
   type: CalendarEventType;
-  date: string;       // "YYYY-MM-DD"
+  date: string; // "YYYY-MM-DD"
   start_time: string; // "HH:MM"
   end_time: string;
-  title?: string | null;          // personal event title
-  owner_name?: string | null;     // personal event creator
+  title?: string | null; // personal event title
+  owner_name?: string | null; // personal event creator
   course_title: string | null;
   course_slug: string | null;
   lesson_title?: string | null;
@@ -57,7 +57,7 @@ export type CalendarResponse = {
 // ── Create event payload ──────────────────────────────────────────────────────
 
 type CalendarEventBase = {
-  date: string;       // "YYYY-MM-DD"
+  date: string; // "YYYY-MM-DD"
   start_time: string; // "HH:MM"
   end_time: string;
 };

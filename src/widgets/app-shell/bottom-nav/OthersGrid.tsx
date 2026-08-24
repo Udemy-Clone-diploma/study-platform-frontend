@@ -15,9 +15,20 @@ export function OthersGrid({ items }: { items: SidebarItem[] }) {
           style={{ background: "var(--color-brand-lavender)", height: 100 }}
         >
           {item.iconSrc ? (
-            <Image src={item.iconSrc} alt="" width={40} height={40} className="h-10 w-10 object-contain" />
+            <Image
+              src={item.iconSrc}
+              alt=""
+              width={40}
+              height={40}
+              className="h-10 w-10 object-contain"
+            />
           ) : (
-            <SidebarIcon name={item.icon} width={40} height={40} className="text-(--color-blue-dark)" />
+            <SidebarIcon
+              name={item.icon}
+              width={40}
+              height={40}
+              className="text-(--color-blue-dark)"
+            />
           )}
           <span
             className="font-(family-name:--font-accent) text-(--color-blue-dark)"

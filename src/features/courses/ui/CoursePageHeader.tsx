@@ -14,7 +14,13 @@ type Props = {
 };
 
 /** Shared page header for course creation / edit pages. */
-export function CoursePageHeader({ title, saving, canPublish = false, onSaveDraft, onContinue }: Props) {
+export function CoursePageHeader({
+  title,
+  saving,
+  canPublish = false,
+  onSaveDraft,
+  onContinue,
+}: Props) {
   const t = useTranslations("CoursePageHeader");
   return (
     <div
@@ -30,18 +36,32 @@ export function CoursePageHeader({ title, saving, canPublish = false, onSaveDraf
         </h1>
         <span
           className="rounded bg-(--color-draft) font-medium font-(family-name:--font-accent) text-(--color-text-secondary)"
-          style={{ padding: "clamp(3px, 0.21vw, 4px) clamp(6px, 0.56vw, 8px)", fontSize: "clamp(11px, 0.78vw, 15px)" }}
+          style={{
+            padding: "clamp(3px, 0.21vw, 4px) clamp(6px, 0.56vw, 8px)",
+            fontSize: "clamp(11px, 0.78vw, 15px)",
+          }}
         >
           {t("draft")}
         </span>
       </div>
 
       <div className="flex items-center" style={{ gap: "clamp(10px, 1.25vw, 24px)" }}>
-        <AccentButton type="button" size="md" disabled={saving} style={{ gap: "clamp(8px, 0.69vw, 10px)" }} onClick={onSaveDraft}>
+        <AccentButton
+          type="button"
+          size="md"
+          disabled={saving}
+          style={{ gap: "clamp(8px, 0.69vw, 10px)" }}
+          onClick={onSaveDraft}
+        >
           <Save size={20} />
           {saving ? t("saving") : t("saveDraft")}
         </AccentButton>
-        <GradientButton type="button" disabled={!canPublish} onClick={onContinue} style={{ gap: "clamp(8px, 0.83vw, 12px)" }}>
+        <GradientButton
+          type="button"
+          disabled={!canPublish}
+          onClick={onContinue}
+          style={{ gap: "clamp(8px, 0.83vw, 12px)" }}
+        >
           {t("continueToReviewAndPublish")}
           <ArrowUpRight size={20} aria-hidden="true" />
         </GradientButton>

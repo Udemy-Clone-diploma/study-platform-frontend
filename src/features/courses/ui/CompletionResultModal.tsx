@@ -5,7 +5,12 @@ import { useLocale, useTranslations } from "next-intl";
 import { Download, Star } from "lucide-react";
 import { ModalShell } from "@/shared/ui/ModalShell";
 import { GradientButton } from "@/shared/ui/GradientButton";
-import { getCourseBySlug, getMyCourseReview, submitCourseReview, updateCourseReview } from "@/entities/course";
+import {
+  getCourseBySlug,
+  getMyCourseReview,
+  submitCourseReview,
+  updateCourseReview,
+} from "@/entities/course";
 import type { CourseCompletion, CourseDetail, CourseReview } from "@/entities/course";
 import type { ApiError } from "@/shared/api/base";
 
@@ -20,17 +25,46 @@ function fmt(iso: string, locale: string) {
 
 // ── sub-components ─────────────────────────────────────────────────────────────
 
-function FieldRow({ label, value, last }: { label: string; value: React.ReactNode; last?: boolean }) {
+function FieldRow({
+  label,
+  value,
+  last,
+}: {
+  label: string;
+  value: React.ReactNode;
+  last?: boolean;
+}) {
   return (
-    <div style={{
-      display: "flex", alignItems: "center", justifyContent: "space-between",
-      gap: 12, padding: "10px 0",
-      borderBottom: last ? undefined : "1px solid var(--color-border-light)",
-    }}>
-      <span style={{ fontFamily: bf, fontWeight: 600, fontSize: 13, color: "var(--color-text-secondary)", flexShrink: 0 }}>
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 12,
+        padding: "10px 0",
+        borderBottom: last ? undefined : "1px solid var(--color-border-light)",
+      }}
+    >
+      <span
+        style={{
+          fontFamily: bf,
+          fontWeight: 600,
+          fontSize: 13,
+          color: "var(--color-text-secondary)",
+          flexShrink: 0,
+        }}
+      >
         {label}
       </span>
-      <span style={{ fontFamily: bf, fontSize: 14, fontWeight: 500, color: "var(--color-text-primary)", textAlign: "right" }}>
+      <span
+        style={{
+          fontFamily: bf,
+          fontSize: 14,
+          fontWeight: 500,
+          color: "var(--color-text-primary)",
+          textAlign: "right",
+        }}
+      >
         {value}
       </span>
     </div>
@@ -40,12 +74,18 @@ function FieldRow({ label, value, last }: { label: string; value: React.ReactNod
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-      <span style={{
-        display: "block", fontFamily: bf, fontWeight: 700,
-        fontSize: "clamp(13px, 1.04vw, 16px)", color: "var(--color-text-primary)",
-        paddingBottom: 10, borderBottom: "1px solid var(--color-border-light)",
-        marginBottom: 0,
-      }}>
+      <span
+        style={{
+          display: "block",
+          fontFamily: bf,
+          fontWeight: 700,
+          fontSize: "clamp(13px, 1.04vw, 16px)",
+          color: "var(--color-text-primary)",
+          paddingBottom: 10,
+          borderBottom: "1px solid var(--color-border-light)",
+          marginBottom: 0,
+        }}
+      >
         {title}
       </span>
       {children}
@@ -68,7 +108,7 @@ function StarRow({
   onPick?: (value: number) => void;
   ariaLabel?: string;
 }) {
-  const displayRating = interactive ? (hoverRating || rating) : rating;
+  const displayRating = interactive ? hoverRating || rating : rating;
   return (
     <div
       style={{ display: "flex", alignItems: "center", gap: interactive ? 2 : 4 }}
@@ -195,20 +235,27 @@ export function CompletionResultModal({ completion, onClose }: Props) {
   const level = (detail?.level ?? completion.level ?? "").replace(/^\w/, (c) => c.toUpperCase());
   const category = detail?.category?.name ?? completion.category ?? null;
   const shortDesc = detail?.short_description ?? completion.short_description ?? null;
-  const fullDesc  = detail?.full_description ?? null;
+  const fullDesc = detail?.full_description ?? null;
   const pricePaid = completion.paid_amount
     ? `${completion.paid_currency.toUpperCase()} ${completion.paid_amount}`
     : t("free");
-  const modules   = detail?.modules ?? [];
+  const modules = detail?.modules ?? [];
   const totalLessons = modules.reduce((s, m) => s + m.lessons.length, 0);
-  const totalTests   = modules.reduce((s, m) => s + (m.tests?.length ?? 0), 0);
+  const totalTests = modules.reduce((s, m) => s + (m.tests?.length ?? 0), 0);
 
   return (
     <ModalShell onClose={onClose} title={completion.title} width="clamp(400px, 50vw, 680px)">
       <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-
         {/* ── Status header ─────────────────────────────────────── */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, paddingBottom: 4 }}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 8,
+            paddingBottom: 4,
+          }}
+        >
           {completion.image_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -220,12 +267,16 @@ export function CompletionResultModal({ completion, onClose }: Props) {
             // eslint-disable-next-line @next/next/no-img-element
             <img src="/icons/yes.svg" alt="completed" style={{ width: 40, height: 40 }} />
           )}
-          <span style={{
-            fontFamily: af, fontWeight: 700,
-            fontSize: "clamp(22px, 2.08vw, 32px)",
-            letterSpacing: "0.08em", textTransform: "uppercase",
-            color: "var(--color-text-primary)",
-          }}>
+          <span
+            style={{
+              fontFamily: af,
+              fontWeight: 700,
+              fontSize: "clamp(22px, 2.08vw, 32px)",
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              color: "var(--color-text-primary)",
+            }}
+          >
             {t("completed")}
           </span>
         </div>
@@ -249,27 +300,74 @@ export function CompletionResultModal({ completion, onClose }: Props) {
         {/* ── Course info ───────────────────────────────────────── */}
         <Section title={t("course")}>
           {detailLoading ? (
-            <p style={{ fontFamily: bf, fontSize: 13, color: "var(--color-text-secondary)", padding: "10px 0", margin: 0 }}>
+            <p
+              style={{
+                fontFamily: bf,
+                fontSize: 13,
+                color: "var(--color-text-secondary)",
+                padding: "10px 0",
+                margin: 0,
+              }}
+            >
               {t("loadingCourseDetails")}
             </p>
           ) : (
             <>
               {shortDesc && (
-                <div style={{ padding: "10px 0", borderBottom: "1px solid var(--color-border-light)" }}>
-                  <span style={{ fontFamily: bf, fontWeight: 600, fontSize: 13, color: "var(--color-text-secondary)", display: "block", marginBottom: 4 }}>
+                <div
+                  style={{ padding: "10px 0", borderBottom: "1px solid var(--color-border-light)" }}
+                >
+                  <span
+                    style={{
+                      fontFamily: bf,
+                      fontWeight: 600,
+                      fontSize: 13,
+                      color: "var(--color-text-secondary)",
+                      display: "block",
+                      marginBottom: 4,
+                    }}
+                  >
                     {t("shortDescription")}
                   </span>
-                  <p style={{ fontFamily: bf, fontSize: 14, color: "var(--color-text-primary)", margin: 0, lineHeight: "20px" }}>
+                  <p
+                    style={{
+                      fontFamily: bf,
+                      fontSize: 14,
+                      color: "var(--color-text-primary)",
+                      margin: 0,
+                      lineHeight: "20px",
+                    }}
+                  >
                     {shortDesc}
                   </p>
                 </div>
               )}
               {fullDesc && (
-                <div style={{ padding: "10px 0", borderBottom: "1px solid var(--color-border-light)" }}>
-                  <span style={{ fontFamily: bf, fontWeight: 600, fontSize: 13, color: "var(--color-text-secondary)", display: "block", marginBottom: 4 }}>
+                <div
+                  style={{ padding: "10px 0", borderBottom: "1px solid var(--color-border-light)" }}
+                >
+                  <span
+                    style={{
+                      fontFamily: bf,
+                      fontWeight: 600,
+                      fontSize: 13,
+                      color: "var(--color-text-secondary)",
+                      display: "block",
+                      marginBottom: 4,
+                    }}
+                  >
                     {t("fullDescription")}
                   </span>
-                  <p style={{ fontFamily: bf, fontSize: 14, color: "var(--color-text-primary)", margin: 0, lineHeight: "20px", whiteSpace: "pre-wrap" }}>
+                  <p
+                    style={{
+                      fontFamily: bf,
+                      fontSize: 14,
+                      color: "var(--color-text-primary)",
+                      margin: 0,
+                      lineHeight: "20px",
+                      whiteSpace: "pre-wrap",
+                    }}
+                  >
                     {fullDesc}
                   </p>
                 </div>
@@ -315,11 +413,19 @@ export function CompletionResultModal({ completion, onClose }: Props) {
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{
-                    display: "inline-flex", alignItems: "center", gap: 6,
-                    fontFamily: af, fontWeight: 600, fontSize: 12,
-                    color: "white", textTransform: "uppercase", letterSpacing: "0.04em",
-                    background: "var(--color-text-primary)", borderRadius: 999,
-                    padding: "6px 14px", textDecoration: "none",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    fontFamily: af,
+                    fontWeight: 600,
+                    fontSize: 12,
+                    color: "white",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.04em",
+                    background: "var(--color-text-primary)",
+                    borderRadius: 999,
+                    padding: "6px 14px",
+                    textDecoration: "none",
                   }}
                 >
                   <Download size={14} />
@@ -338,14 +444,30 @@ export function CompletionResultModal({ completion, onClose }: Props) {
         {completion.slug && !reviewLoadFailed && (
           <Section title={t("review")}>
             {reviewLoading ? (
-              <p style={{ fontFamily: bf, fontSize: 13, color: "var(--color-text-secondary)", padding: "10px 0", margin: 0 }}>
+              <p
+                style={{
+                  fontFamily: bf,
+                  fontSize: 13,
+                  color: "var(--color-text-secondary)",
+                  padding: "10px 0",
+                  margin: 0,
+                }}
+              >
                 {t("loadingReview")}
               </p>
             ) : myReview && !isEditingReview ? (
               <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: "10px 0" }}>
                 <StarRow rating={myReview.rating} />
                 {myReview.text && (
-                  <p style={{ fontFamily: bf, fontSize: 14, color: "var(--color-text-primary)", margin: 0, lineHeight: "20px" }}>
+                  <p
+                    style={{
+                      fontFamily: bf,
+                      fontSize: 14,
+                      color: "var(--color-text-primary)",
+                      margin: 0,
+                      lineHeight: "20px",
+                    }}
+                  >
                     {myReview.text}
                   </p>
                 )}
@@ -354,9 +476,14 @@ export function CompletionResultModal({ completion, onClose }: Props) {
                     type="button"
                     onClick={handleStartEditReview}
                     style={{
-                      fontFamily: bf, fontWeight: 600, fontSize: 13,
-                      color: "var(--color-blue)", background: "transparent",
-                      border: "none", padding: 0, cursor: "pointer",
+                      fontFamily: bf,
+                      fontWeight: 600,
+                      fontSize: 13,
+                      color: "var(--color-blue)",
+                      background: "transparent",
+                      border: "none",
+                      padding: 0,
+                      cursor: "pointer",
                     }}
                   >
                     {t("editReview")}
@@ -366,7 +493,14 @@ export function CompletionResultModal({ completion, onClose }: Props) {
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: "10px 0" }}>
                 {!isEditingReview && (
-                  <p style={{ fontFamily: bf, fontSize: 13, color: "var(--color-text-secondary)", margin: 0 }}>
+                  <p
+                    style={{
+                      fontFamily: bf,
+                      fontSize: 13,
+                      color: "var(--color-text-secondary)",
+                      margin: 0,
+                    }}
+                  >
                     {t("leaveReviewPrompt")}
                   </p>
                 )}
@@ -386,7 +520,15 @@ export function CompletionResultModal({ completion, onClose }: Props) {
                   className="w-full resize-none rounded-2xl border border-(--color-border-light) p-3 font-(family-name:--font-base) text-sm text-(--color-text-primary) outline-none focus:border-(--color-blue)"
                 />
                 {reviewError && (
-                  <p role="status" style={{ fontFamily: bf, fontSize: 13, color: "var(--color-pink-dark)", margin: 0 }}>
+                  <p
+                    role="status"
+                    style={{
+                      fontFamily: bf,
+                      fontSize: 13,
+                      color: "var(--color-pink-dark)",
+                      margin: 0,
+                    }}
+                  >
                     {reviewError}
                   </p>
                 )}
@@ -397,8 +539,12 @@ export function CompletionResultModal({ completion, onClose }: Props) {
                     disabled={reviewSubmitting || reviewRating === 0}
                   >
                     {reviewSubmitting
-                      ? (isEditingReview ? t("savingReview") : t("submittingReview"))
-                      : (isEditingReview ? t("saveReviewChanges") : t("submitReview"))}
+                      ? isEditingReview
+                        ? t("savingReview")
+                        : t("submittingReview")
+                      : isEditingReview
+                        ? t("saveReviewChanges")
+                        : t("submitReview")}
                   </GradientButton>
                   {isEditingReview && (
                     <button
@@ -406,9 +552,14 @@ export function CompletionResultModal({ completion, onClose }: Props) {
                       onClick={handleCancelEditReview}
                       disabled={reviewSubmitting}
                       style={{
-                        fontFamily: bf, fontWeight: 600, fontSize: 13,
-                        color: "var(--color-text-secondary)", background: "transparent",
-                        border: "none", padding: 0, cursor: "pointer",
+                        fontFamily: bf,
+                        fontWeight: 600,
+                        fontSize: 13,
+                        color: "var(--color-text-secondary)",
+                        background: "transparent",
+                        border: "none",
+                        padding: 0,
+                        cursor: "pointer",
                       }}
                     >
                       {t("cancelEdit")}
@@ -419,7 +570,6 @@ export function CompletionResultModal({ completion, onClose }: Props) {
             )}
           </Section>
         )}
-
       </div>
     </ModalShell>
   );

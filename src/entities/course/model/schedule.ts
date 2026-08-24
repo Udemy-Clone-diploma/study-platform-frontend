@@ -73,7 +73,7 @@ export type TeacherUnavailability = {
   recurrence_type_display: string;
   day_of_week: DayOfWeek;
   day_of_week_display: string;
-  date: string | null;    // "YYYY-MM-DD" — start date for one_time/date_range
+  date: string | null; // "YYYY-MM-DD" — start date for one_time/date_range
   date_to: string | null; // "YYYY-MM-DD" — end date for date_range
   start_time: string;
   end_time: string;
@@ -84,7 +84,7 @@ export type TeacherUnavailability = {
 export type TeacherUnavailabilityPayload = {
   recurrence_type: RecurrenceType;
   day_of_week?: DayOfWeek; // required for weekly
-  date?: string | null;    // required for one_time and date_range (start)
+  date?: string | null; // required for one_time and date_range (start)
   date_to?: string | null; // required for date_range (end)
   start_time: string;
   end_time: string;

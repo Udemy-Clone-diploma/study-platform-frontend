@@ -154,14 +154,32 @@ function QuestionCard({
   return (
     <div style={cardSt}>
       <div className="flex items-center justify-between">
-        <span style={{ fontFamily: "var(--font-base)", fontWeight: 700, fontSize: "clamp(14px, 1.39vw, 20px)", lineHeight: "25px", color: "var(--color-text-primary)" }}>
+        <span
+          style={{
+            fontFamily: "var(--font-base)",
+            fontWeight: 700,
+            fontSize: "clamp(14px, 1.39vw, 20px)",
+            lineHeight: "25px",
+            color: "var(--color-text-primary)",
+          }}
+        >
           {t("questionNumber", { order: index + 1 })}
         </span>
         {!readOnly && (
-          <button type="button" onClick={onRemove}
+          <button
+            type="button"
+            onClick={onRemove}
             className="flex items-center justify-center rounded-full transition hover:bg-red-50"
-            style={{ width: 28, height: 28, border: "none", background: "transparent", cursor: "pointer", flexShrink: 0 }}
-            aria-label={t("removeQuestion")}>
+            style={{
+              width: 28,
+              height: 28,
+              border: "none",
+              background: "transparent",
+              cursor: "pointer",
+              flexShrink: 0,
+            }}
+            aria-label={t("removeQuestion")}
+          >
             <Trash2 size={18} style={{ color: "var(--color-text-primary)" }} />
           </button>
         )}
@@ -169,21 +187,23 @@ function QuestionCard({
 
       <div>
         <label style={labelSt}>{t("questionType")}</label>
-        {readOnly
-          ? <div style={inputSt}>{t(`questionTypeOption.${question.type}`)}</div>
-          : (
-            <StyledSelect value={question.type} onChange={(v) => onUpdate({ type: v })}>
-              <option value="single_choice">{t("questionTypeOption.single_choice")}</option>
-              <option value="multiple_choice">{t("questionTypeOption.multiple_choice")}</option>
-              <option value="true_false">{t("questionTypeOption.true_false")}</option>
-              <option value="short_answer">{t("questionTypeOption.short_answer")}</option>
-            </StyledSelect>
-          )}
+        {readOnly ? (
+          <div style={inputSt}>{t(`questionTypeOption.${question.type}`)}</div>
+        ) : (
+          <StyledSelect value={question.type} onChange={(v) => onUpdate({ type: v })}>
+            <option value="single_choice">{t("questionTypeOption.single_choice")}</option>
+            <option value="multiple_choice">{t("questionTypeOption.multiple_choice")}</option>
+            <option value="true_false">{t("questionTypeOption.true_false")}</option>
+            <option value="short_answer">{t("questionTypeOption.short_answer")}</option>
+          </StyledSelect>
+        )}
       </div>
 
       <div>
         <label style={labelSt}>{t("questionText")}</label>
-        <input type="text" value={question.text}
+        <input
+          type="text"
+          value={question.text}
           onChange={readOnly ? undefined : (e) => onUpdate({ text: e.target.value })}
           readOnly={readOnly}
           placeholder={t("questionTextPlaceholder")}
@@ -208,17 +228,40 @@ function QuestionCard({
                 });
               return (
                 <div key={oi} className="flex items-center" style={{ gap: 12 }}>
-                  <div style={{ flexShrink: 0, width: 20, height: 20, border: "1px solid var(--color-blue)", borderRadius: isSingle ? "50%" : 2, background: isCorrect ? "var(--color-catalog-category-active)" : "var(--color-bg)", display: "flex", alignItems: "center", justifyContent: "center", cursor: readOnly ? "default" : "pointer" }}
+                  <div
+                    style={{
+                      flexShrink: 0,
+                      width: 20,
+                      height: 20,
+                      border: "1px solid var(--color-blue)",
+                      borderRadius: isSingle ? "50%" : 2,
+                      background: isCorrect
+                        ? "var(--color-catalog-category-active)"
+                        : "var(--color-bg)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: readOnly ? "default" : "pointer",
+                    }}
                     onClick={readOnly ? undefined : toggleCorrect}
                     role={readOnly ? undefined : "button"}
-                    aria-label={readOnly ? undefined : t("markOptionCorrect", { order: oi + 1 })}>
+                    aria-label={readOnly ? undefined : t("markOptionCorrect", { order: oi + 1 })}
+                  >
                     {isCorrect && (
                       <svg width="11" height="8" viewBox="0 0 11 8" fill="none">
-                        <path d="M1 4L4 7L10 1" stroke="var(--color-blue)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        <path
+                          d="M1 4L4 7L10 1"
+                          stroke="var(--color-blue)"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
                       </svg>
                     )}
                   </div>
-                  <input type="text" value={opt}
+                  <input
+                    type="text"
+                    value={opt}
                     onChange={readOnly ? undefined : (e) => onUpdateOption(oi, e.target.value)}
                     readOnly={readOnly}
                     placeholder={t("optionPlaceholder", { order: oi + 1 })}
@@ -234,9 +277,15 @@ function QuestionCard({
             </p>
           )}
           {!readOnly && question.type === "multiple_choice" && (
-            <label className="flex items-center" style={{ gap: 8, marginTop: 12, cursor: "pointer" }}>
-              <input type="checkbox" checked={question.exact_set_match}
-                onChange={(e) => onUpdate({ exact_set_match: e.target.checked })} />
+            <label
+              className="flex items-center"
+              style={{ gap: 8, marginTop: 12, cursor: "pointer" }}
+            >
+              <input
+                type="checkbox"
+                checked={question.exact_set_match}
+                onChange={(e) => onUpdate({ exact_set_match: e.target.checked })}
+              />
               <span style={{ ...hintSt, marginTop: 0 }}>{t("requireExactMatch")}</span>
             </label>
           )}
@@ -246,22 +295,27 @@ function QuestionCard({
       {question.type === "true_false" && (
         <div>
           <label style={labelSt}>{t("correctAnswer")}</label>
-          {readOnly
-            ? <div style={inputSt}>{question.correct_bool ? t("true") : t("false")}</div>
-            : (
-              <StyledSelect value={question.correct_bool ? "true" : "false"} onChange={(v) => onUpdate({ correct_bool: v === "true" })}>
-                <option value="">{t("selectCorrectAnswer")}</option>
-                <option value="true">{t("true")}</option>
-                <option value="false">{t("false")}</option>
-              </StyledSelect>
-            )}
+          {readOnly ? (
+            <div style={inputSt}>{question.correct_bool ? t("true") : t("false")}</div>
+          ) : (
+            <StyledSelect
+              value={question.correct_bool ? "true" : "false"}
+              onChange={(v) => onUpdate({ correct_bool: v === "true" })}
+            >
+              <option value="">{t("selectCorrectAnswer")}</option>
+              <option value="true">{t("true")}</option>
+              <option value="false">{t("false")}</option>
+            </StyledSelect>
+          )}
         </div>
       )}
 
       {question.type === "short_answer" && (
         <div>
           <label style={labelSt}>{t("sampleAnswerLabel")}</label>
-          <input type="text" value={question.sample_answer}
+          <input
+            type="text"
+            value={question.sample_answer}
             onChange={readOnly ? undefined : (e) => onUpdate({ sample_answer: e.target.value })}
             readOnly={readOnly}
             placeholder={t("sampleAnswerPlaceholder")}
@@ -269,8 +323,20 @@ function QuestionCard({
           />
           {!readOnly && <p style={{ ...hintSt, marginTop: 8 }}>{t("sampleAnswerHint")}</p>}
           <label style={{ ...labelSt, marginTop: 16 }}>{t("otherAcceptedAnswers")}</label>
-          <input type="text" value={question.accepted_answers.join(", ")}
-            onChange={readOnly ? undefined : (e) => onUpdate({ accepted_answers: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) })}
+          <input
+            type="text"
+            value={question.accepted_answers.join(", ")}
+            onChange={
+              readOnly
+                ? undefined
+                : (e) =>
+                    onUpdate({
+                      accepted_answers: e.target.value
+                        .split(",")
+                        .map((s) => s.trim())
+                        .filter(Boolean),
+                    })
+            }
             readOnly={readOnly}
             placeholder={t("otherAcceptedAnswersPlaceholder")}
             style={{ ...inputSt, cursor: readOnly ? "default" : undefined }}
@@ -298,7 +364,9 @@ export function TestFormBody({ mode, initialValues = {}, onSave, onCancel }: Tes
   const [saveError, setSaveError] = useState<string | null>(null);
   const titleRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { if (!readOnly) titleRef.current?.focus(); }, [readOnly]);
+  useEffect(() => {
+    if (!readOnly) titleRef.current?.focus();
+  }, [readOnly]);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
     const { name, value } = e.target;
@@ -316,7 +384,7 @@ export function TestFormBody({ mode, initialValues = {}, onSave, onCancel }: Tes
   function updateQuestion(key: string, patch: Partial<TestQuestion>) {
     setValues((prev) => ({
       ...prev,
-      questions: prev.questions.map((q) => q._key === key ? { ...q, ...patch } : q),
+      questions: prev.questions.map((q) => (q._key === key ? { ...q, ...patch } : q)),
     }));
   }
 
@@ -361,14 +429,19 @@ export function TestFormBody({ mode, initialValues = {}, onSave, onCancel }: Tes
 
   return (
     <form onSubmit={handleSubmit}>
-
       <div
         className="grid"
-        style={{ gridTemplateColumns: readOnly ? "1fr 1fr" : "1fr 1fr 1fr", gap: "clamp(16px, 2.22vw, 32px)", marginBottom: "clamp(16px, 1.67vw, 24px)" }}
+        style={{
+          gridTemplateColumns: readOnly ? "1fr 1fr" : "1fr 1fr 1fr",
+          gap: "clamp(16px, 2.22vw, 32px)",
+          marginBottom: "clamp(16px, 1.67vw, 24px)",
+        }}
       >
         {!readOnly && (
           <div>
-            <label htmlFor="test-title" style={labelSt}>{t("testTitle")}</label>
+            <label htmlFor="test-title" style={labelSt}>
+              {t("testTitle")}
+            </label>
             <input
               ref={titleRef}
               id="test-title"
@@ -383,7 +456,9 @@ export function TestFormBody({ mode, initialValues = {}, onSave, onCancel }: Tes
           </div>
         )}
         <div>
-          <label htmlFor="test-passing-score" style={labelSt}>{t("passingScore")}</label>
+          <label htmlFor="test-passing-score" style={labelSt}>
+            {t("passingScore")}
+          </label>
           <input
             id="test-passing-score"
             name="passing_score"
@@ -400,7 +475,9 @@ export function TestFormBody({ mode, initialValues = {}, onSave, onCancel }: Tes
         <div>
           <div className="flex items-center" style={{ gap: 4, marginBottom: 12 }}>
             <Clock size={20} style={{ color: "var(--color-text-primary)", flexShrink: 0 }} />
-            <label htmlFor="test-duration" style={{ ...labelSt, marginBottom: 0 }}>{t("durationMinutesLabel")}</label>
+            <label htmlFor="test-duration" style={{ ...labelSt, marginBottom: 0 }}>
+              {t("durationMinutesLabel")}
+            </label>
           </div>
           <input
             id="test-duration"
@@ -417,7 +494,9 @@ export function TestFormBody({ mode, initialValues = {}, onSave, onCancel }: Tes
       </div>
 
       <div style={{ marginBottom: "clamp(20px, 2.22vw, 32px)" }}>
-        <label htmlFor="test-description" style={labelSt}>{t("testDescription")}</label>
+        <label htmlFor="test-description" style={labelSt}>
+          {t("testDescription")}
+        </label>
         <textarea
           id="test-description"
           name="description"
@@ -425,39 +504,91 @@ export function TestFormBody({ mode, initialValues = {}, onSave, onCancel }: Tes
           onChange={readOnly ? undefined : handleChange}
           readOnly={readOnly}
           placeholder={t("textPlaceholder")}
-          style={{ ...inputSt, minHeight: 57, resize: readOnly ? "none" : "vertical", cursor: readOnly ? "default" : undefined }}
+          style={{
+            ...inputSt,
+            minHeight: 57,
+            resize: readOnly ? "none" : "vertical",
+            cursor: readOnly ? "default" : undefined,
+          }}
         />
       </div>
 
       <div style={{ marginBottom: "clamp(20px, 2.22vw, 32px)" }}>
-        <label className="flex items-center" style={{ gap: 8, cursor: readOnly ? "default" : "pointer", marginBottom: values.allow_retakes ? 12 : 0 }}>
-          <input type="checkbox" checked={values.allow_retakes} disabled={readOnly}
-            onChange={(e) => setValues((prev) => ({ ...prev, allow_retakes: e.target.checked }))} />
+        <label
+          className="flex items-center"
+          style={{
+            gap: 8,
+            cursor: readOnly ? "default" : "pointer",
+            marginBottom: values.allow_retakes ? 12 : 0,
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={values.allow_retakes}
+            disabled={readOnly}
+            onChange={(e) => setValues((prev) => ({ ...prev, allow_retakes: e.target.checked }))}
+          />
           <span style={{ ...labelSt, marginBottom: 0 }}>{t("allowRetakes")}</span>
         </label>
         {values.allow_retakes && (
           <div style={{ maxWidth: 280 }}>
-            <label htmlFor="test-max-attempts" style={labelSt}>{t("maxAttempts")}</label>
-            <input id="test-max-attempts" name="max_attempts" type={readOnly ? "text" : "number"} min="1"
+            <label htmlFor="test-max-attempts" style={labelSt}>
+              {t("maxAttempts")}
+            </label>
+            <input
+              id="test-max-attempts"
+              name="max_attempts"
+              type={readOnly ? "text" : "number"}
+              min="1"
               value={values.max_attempts || (readOnly ? t("unlimited") : "")}
-              onChange={readOnly ? undefined : handleChange} readOnly={readOnly}
-              placeholder={t("unlimited")} style={{ ...inputSt, cursor: readOnly ? "default" : undefined }} />
+              onChange={readOnly ? undefined : handleChange}
+              readOnly={readOnly}
+              placeholder={t("unlimited")}
+              style={{ ...inputSt, cursor: readOnly ? "default" : undefined }}
+            />
           </div>
         )}
       </div>
 
       <div>
-        <div className="flex items-center justify-between" style={{ marginBottom: "clamp(12px, 1.39vw, 20px)" }}>
+        <div
+          className="flex items-center justify-between"
+          style={{ marginBottom: "clamp(12px, 1.39vw, 20px)" }}
+        >
           <div className="flex items-center" style={{ gap: 8 }}>
             <HelpCircle size={24} style={{ color: "var(--color-text-primary)", flexShrink: 0 }} />
-            <span style={{ fontFamily: "var(--font-base)", fontWeight: 700, fontSize: "clamp(14px, 1.39vw, 20px)", lineHeight: "25px", color: "var(--color-text-primary)" }}>
+            <span
+              style={{
+                fontFamily: "var(--font-base)",
+                fontWeight: 700,
+                fontSize: "clamp(14px, 1.39vw, 20px)",
+                lineHeight: "25px",
+                color: "var(--color-text-primary)",
+              }}
+            >
               {t("questionsCount", { count: values.questions.length })}
             </span>
           </div>
           {!readOnly && (
-            <button type="button" onClick={addQuestion}
+            <button
+              type="button"
+              onClick={addQuestion}
               className="inline-flex items-center justify-center transition hover:opacity-80"
-              style={{ gap: 10, minWidth: "clamp(160px, 15.69vw, 226px)", height: "clamp(38px, 3.06vw, 44px)", background: "var(--color-text-primary)", border: "none", borderRadius: 28, fontFamily: "var(--font-accent)", fontWeight: 500, fontSize: "clamp(14px, 1.39vw, 20px)", color: "var(--color-bg)", cursor: "pointer", padding: "4px 16px" }}>
+              style={{
+                gap: 10,
+                minWidth: "clamp(160px, 15.69vw, 226px)",
+                height: "clamp(38px, 3.06vw, 44px)",
+                background: "var(--color-text-primary)",
+                border: "none",
+                borderRadius: 28,
+                fontFamily: "var(--font-accent)",
+                fontWeight: 500,
+                fontSize: "clamp(14px, 1.39vw, 20px)",
+                color: "var(--color-bg)",
+                cursor: "pointer",
+                padding: "4px 16px",
+              }}
+            >
               <Plus size={24} style={{ color: "var(--color-bg)" }} />
               {t("addQuestion")}
             </button>
@@ -465,18 +596,57 @@ export function TestFormBody({ mode, initialValues = {}, onSave, onCancel }: Tes
         </div>
 
         {values.questions.length === 0 ? (
-          <div style={{ border: "2px solid var(--color-border-light)", borderRadius: 16, padding: "clamp(24px, 2.78vw, 40px) 24px", display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
-            <span style={{ fontFamily: "var(--font-base)", fontWeight: 400, fontSize: "clamp(13px, 1.39vw, 20px)", color: "var(--color-text-secondary)" }}>{t("noQuestionsYet")}</span>
+          <div
+            style={{
+              border: "2px solid var(--color-border-light)",
+              borderRadius: 16,
+              padding: "clamp(24px, 2.78vw, 40px) 24px",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 12,
+            }}
+          >
+            <span
+              style={{
+                fontFamily: "var(--font-base)",
+                fontWeight: 400,
+                fontSize: "clamp(13px, 1.39vw, 20px)",
+                color: "var(--color-text-secondary)",
+              }}
+            >
+              {t("noQuestionsYet")}
+            </span>
             {!readOnly && (
-              <button type="button" onClick={addQuestion}
+              <button
+                type="button"
+                onClick={addQuestion}
                 className="inline-flex items-center justify-center transition hover:opacity-80"
-                style={{ gap: 10, minWidth: "clamp(200px, 20.49vw, 295px)", height: "clamp(38px, 3.06vw, 44px)", background: "var(--color-bg)", border: "1px solid var(--color-draft)", borderRadius: 28, fontFamily: "var(--font-accent)", fontWeight: 500, fontSize: "clamp(14px, 1.39vw, 20px)", letterSpacing: "-0.011em", color: "var(--color-text-primary)", cursor: "pointer", padding: "4px 16px" }}>
-                <Plus size={20} />{t("addFirstQuestion")}
+                style={{
+                  gap: 10,
+                  minWidth: "clamp(200px, 20.49vw, 295px)",
+                  height: "clamp(38px, 3.06vw, 44px)",
+                  background: "var(--color-bg)",
+                  border: "1px solid var(--color-draft)",
+                  borderRadius: 28,
+                  fontFamily: "var(--font-accent)",
+                  fontWeight: 500,
+                  fontSize: "clamp(14px, 1.39vw, 20px)",
+                  letterSpacing: "-0.011em",
+                  color: "var(--color-text-primary)",
+                  cursor: "pointer",
+                  padding: "4px 16px",
+                }}
+              >
+                <Plus size={20} />
+                {t("addFirstQuestion")}
               </button>
             )}
           </div>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: "clamp(16px, 1.39vw, 20px)" }}>
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "clamp(16px, 1.39vw, 20px)" }}
+          >
             {values.questions.map((q, qi) => (
               <QuestionCard
                 key={q._key}
@@ -501,7 +671,6 @@ export function TestFormBody({ mode, initialValues = {}, onSave, onCancel }: Tes
           error={saveError}
         />
       )}
-
     </form>
   );
 }
@@ -522,8 +691,16 @@ export function TestFormModal({ mode, initialValues = {}, onClose, onSave, zInde
   return (
     <ModalShell
       onClose={onClose}
-      title={readOnly ? (initialValues?.title || t("testFallbackTitle")) : mode === "add" ? t("addTest") : t("editTest")}
-      icon={<ClipboardList size={20} style={{ color: "var(--color-text-primary)", flexShrink: 0 }} />}
+      title={
+        readOnly
+          ? initialValues?.title || t("testFallbackTitle")
+          : mode === "add"
+            ? t("addTest")
+            : t("editTest")
+      }
+      icon={
+        <ClipboardList size={20} style={{ color: "var(--color-text-primary)", flexShrink: 0 }} />
+      }
       width="clamp(480px, 81.39vw, 1200px)"
       padding="clamp(20px, 2.78vw, 40px) clamp(24px, 3.47vw, 50px)"
       zIndex={zIndex}

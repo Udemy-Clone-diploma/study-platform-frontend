@@ -30,25 +30,15 @@ export type LiqPayStatusResponse = {
 export async function createLiqPayCheckout(
   payload: LiqPayCheckoutRequest,
 ): Promise<LiqPayCheckoutResponse> {
-  const { data } =
-    await api.post<LiqPayCheckoutResponse>(
-      "payments/liqpay/checkout/",
-      payload,
-    );
+  const { data } = await api.post<LiqPayCheckoutResponse>("payments/liqpay/checkout/", payload);
 
   return data;
 }
 
-export async function syncLiqPayStatus(
-  paymentId: number,
-): Promise<LiqPayStatusResponse> {
-  const { data } =
-    await api.post<LiqPayStatusResponse>(
-      "payments/liqpay/status/sync/",
-      {
-        payment_id: paymentId,
-      },
-    );
+export async function syncLiqPayStatus(paymentId: number): Promise<LiqPayStatusResponse> {
+  const { data } = await api.post<LiqPayStatusResponse>("payments/liqpay/status/sync/", {
+    payment_id: paymentId,
+  });
 
   return data;
 }

@@ -5,7 +5,10 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { AuthField, AuthShell, useAuthForm } from "@/features/auth";
-import { checkTeacherApplicationEmail, submitTeacherApplication } from "@/entities/teacher-application";
+import {
+  checkTeacherApplicationEmail,
+  submitTeacherApplication,
+} from "@/entities/teacher-application";
 import { AccentButton } from "@/shared/ui/AccentButton";
 import { DatePicker, todayISO } from "@/shared/ui/DatePicker";
 import {
@@ -49,50 +52,61 @@ export function TeacherApplicationForm() {
   const tValidationAuth = useTranslations("Auth.validation");
   const tValidation = useTranslations("TeacherApplication.validation");
 
-  const { formData, errors, apiError, isSubmitting, handleChange, handleSubmit, setFormData, setErrors, setApiError } =
-    useAuthForm<TeacherApplicationFormData>({
-      initial: initialForm,
-      validate: (data) => validateTeacherApplicationForm(data, tValidationAuth, tValidation),
-      fieldKeys: [
-        "email",
-        "bio",
-        "experience",
-        "specialization",
-        "directions",
-        "motivation",
-        "instagram",
-        "linkedin",
-        "behance",
-      ],
-      fieldKeyMap: {
-        first_name: "firstName",
-        last_name: "lastName",
-        date_of_birth: "dateOfBirth",
-        phone_number: "phoneNumber",
-        years_experience: "yearsExperience",
-      },
-      fallbackError: t("fallbackError"),
-      submit: async (data) => {
-        await submitTeacherApplication({
-          first_name: data.firstName.trim(),
-          last_name: data.lastName.trim(),
-          email: data.email.trim(),
-          date_of_birth: data.dateOfBirth,
-          phone_number: data.phoneNumber.trim(),
-          bio: data.bio.trim(),
-          experience: data.experience.trim(),
-          specialization: data.specialization.trim(),
-          years_experience: data.yearsExperience.trim() ? Number(data.yearsExperience) : null,
-          directions: data.directions,
-          motivation: data.motivation.trim(),
-          instagram: data.instagram.trim(),
-          linkedin: data.linkedin.trim(),
-          behance: data.behance.trim(),
-        });
+  const {
+    formData,
+    errors,
+    apiError,
+    isSubmitting,
+    handleChange,
+    handleSubmit,
+    setFormData,
+    setErrors,
+    setApiError,
+  } = useAuthForm<TeacherApplicationFormData>({
+    initial: initialForm,
+    validate: (data) => validateTeacherApplicationForm(data, tValidationAuth, tValidation),
+    fieldKeys: [
+      "email",
+      "bio",
+      "experience",
+      "specialization",
+      "directions",
+      "motivation",
+      "instagram",
+      "linkedin",
+      "behance",
+    ],
+    fieldKeyMap: {
+      first_name: "firstName",
+      last_name: "lastName",
+      date_of_birth: "dateOfBirth",
+      phone_number: "phoneNumber",
+      years_experience: "yearsExperience",
+    },
+    fallbackError: t("fallbackError"),
+    submit: async (data) => {
+      await submitTeacherApplication({
+        first_name: data.firstName.trim(),
+        last_name: data.lastName.trim(),
+        email: data.email.trim(),
+        date_of_birth: data.dateOfBirth,
+        phone_number: data.phoneNumber.trim(),
+        bio: data.bio.trim(),
+        experience: data.experience.trim(),
+        specialization: data.specialization.trim(),
+        years_experience: data.yearsExperience.trim() ? Number(data.yearsExperience) : null,
+        directions: data.directions,
+        motivation: data.motivation.trim(),
+        instagram: data.instagram.trim(),
+        linkedin: data.linkedin.trim(),
+        behance: data.behance.trim(),
+      });
 
-        router.push(`/register/teacher/check-application?email=${encodeURIComponent(data.email.trim())}`);
-      },
-    });
+      router.push(
+        `/register/teacher/check-application?email=${encodeURIComponent(data.email.trim())}`,
+      );
+    },
+  });
 
   async function checkEmailAvailability(email: string): Promise<boolean> {
     const trimmed = email.trim();

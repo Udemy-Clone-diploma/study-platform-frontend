@@ -43,29 +43,35 @@ export function SidePanel({
       ].join(" ")}
       style={{ width: `min(${width}, calc(100vw - 24px))` }}
     >
-      <div style={{
-        height: "100%",
-        overflowY: "auto",
-        padding: "clamp(16px, 1.25vw, 24px)",
-        display: "flex",
-        flexDirection: "column",
-        boxSizing: "border-box",
-      }}>
-        {/* Header */}
-        <div style={{
+      <div
+        style={{
+          height: "100%",
+          overflowY: "auto",
+          padding: "clamp(16px, 1.25vw, 24px)",
           display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: 24,
-          flexShrink: 0,
-        }}>
-          <h2 style={{
-            fontFamily: "var(--font-base)",
-            fontWeight: 700,
-            fontSize: "clamp(14px, 1vw, 17px)",
-            color: "var(--color-text-primary)",
-            margin: 0,
-          }}>
+          flexDirection: "column",
+          boxSizing: "border-box",
+        }}
+      >
+        {/* Header */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: 24,
+            flexShrink: 0,
+          }}
+        >
+          <h2
+            style={{
+              fontFamily: "var(--font-base)",
+              fontWeight: 700,
+              fontSize: "clamp(14px, 1vw, 17px)",
+              color: "var(--color-text-primary)",
+              margin: 0,
+            }}
+          >
             {title}
           </h2>
           <button
@@ -88,9 +94,7 @@ export function SidePanel({
         </div>
 
         {/* Content */}
-        <div style={{ flex: 1, minHeight: 0 }}>
-          {children}
-        </div>
+        <div style={{ flex: 1, minHeight: 0 }}>{children}</div>
       </div>
     </aside>
   );

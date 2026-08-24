@@ -43,7 +43,9 @@ export function ArticleActionModals({ categories, state }: Props) {
           }}
           existingCoverImageUrl={editingArticle.cover_image}
           submitLabel={t("saveChangesLabel")}
-          moderatorComment={editingArticle.status === "rejected" ? editingArticle.moderator_comment : null}
+          moderatorComment={
+            editingArticle.status === "rejected" ? editingArticle.moderator_comment : null
+          }
           onClose={() => setEditingArticle(null)}
           onSave={async (values) => {
             await updateArticle(editingArticle.slug, values);

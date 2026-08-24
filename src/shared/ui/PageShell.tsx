@@ -16,7 +16,12 @@ type PageShellProps = {
 };
 
 /** Shared `<main>` wrapper: sidebar-gap left/right padding + top padding, consistent across main dashboard pages. */
-export function PageShell({ children, className = "", fixedHeight = false, style }: PageShellProps) {
+export function PageShell({
+  children,
+  className = "",
+  fixedHeight = false,
+  style,
+}: PageShellProps) {
   return (
     <main
       className={`${fixedHeight ? "flex flex-col" : "min-h-[calc(100vh-76px)]"} ${className}`.trim()}

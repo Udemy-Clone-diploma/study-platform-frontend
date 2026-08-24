@@ -5,10 +5,7 @@ import type { LessonSession } from "../model/schedule";
 const COURSES = "courses/";
 
 /** Full lesson payload. Preview lessons are public; locked lessons require enrollment. */
-export async function getLessonDetail(
-  courseSlug: string,
-  lessonId: number,
-): Promise<CourseLesson> {
+export async function getLessonDetail(courseSlug: string, lessonId: number): Promise<CourseLesson> {
   const { data } = await api.get<CourseLesson>(`${COURSES}${courseSlug}/lessons/${lessonId}/`);
   return data;
 }

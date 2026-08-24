@@ -3,21 +3,15 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import {
-  SidebarNavItem,
-  type SidebarItem,
-} from "@/features/app-shell";
+import { SidebarNavItem, type SidebarItem } from "@/features/app-shell";
 
 type AppSidebarProps = {
   items: SidebarItem[];
 };
 
-export function AppSidebar({
-  items,
-}: AppSidebarProps) {
+export function AppSidebar({ items }: AppSidebarProps) {
   const t = useTranslations("AppSidebar");
-  const [isExpanded, setIsExpanded] =
-    useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const asideRef = useRef<HTMLElement>(null);
 
   // Collapse back to the icon rail on an outside click, focus leaving it, or Escape.
@@ -41,9 +35,7 @@ export function AppSidebar({
       ref={asideRef}
       className={[
         "absolute inset-y-0 left-0 z-30 hidden overflow-y-auto overflow-x-hidden [background-image:var(--gradient-brand)] [background-size:100vw_100%] [background-position:0_0] bg-no-repeat px-[clamp(10px,0.85vw,16px)] pt-[clamp(16px,1.5vw,28px)] transition-[width] duration-200 lg:block",
-        isExpanded
-          ? "w-[clamp(240px,15.2vw,292px)]"
-          : "w-[clamp(60px,4.5vw,80px)]",
+        isExpanded ? "w-[clamp(240px,15.2vw,292px)]" : "w-[clamp(60px,4.5vw,80px)]",
       ].join(" ")}
     >
       <nav
@@ -54,9 +46,7 @@ export function AppSidebar({
           type="button"
           aria-label={t("menuAriaLabel")}
           aria-expanded={isExpanded}
-          onClick={() =>
-            setIsExpanded((expanded) => !expanded)
-          }
+          onClick={() => setIsExpanded((expanded) => !expanded)}
           className={[
             "flex h-[clamp(36px,2.5vw,48px)] w-full items-center overflow-hidden rounded-sm text-[#092878] transition-[background-color,background-image,margin,padding,width] duration-200",
             isExpanded ? "sidebar-nav-gradient-expanded" : "sidebar-nav-gradient-collapsed",
@@ -77,11 +67,7 @@ export function AppSidebar({
         </button>
 
         {items.map((item) => (
-          <SidebarNavItem
-            key={item.id}
-            item={item}
-            isExpanded={isExpanded}
-          />
+          <SidebarNavItem key={item.id} item={item} isExpanded={isExpanded} />
         ))}
       </nav>
     </aside>

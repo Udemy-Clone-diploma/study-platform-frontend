@@ -19,17 +19,11 @@ type Props = {
 };
 
 /** Form select field matching the app's drawer/panel input style. */
-export function SelectField({
-  options,
-  value,
-  onChange,
-  placeholder,
-  disabled = false,
-}: Props) {
+export function SelectField({ options, value, onChange, placeholder, disabled = false }: Props) {
   const t = useTranslations("Common");
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const selected = options.find(o => o.value === value);
+  const selected = options.find((o) => o.value === value);
   const resolvedPlaceholder = placeholder ?? t("selectPlaceholder");
 
   useEffect(() => {
@@ -45,7 +39,7 @@ export function SelectField({
       <button
         type="button"
         disabled={disabled}
-        onClick={() => !disabled && setOpen(p => !p)}
+        onClick={() => !disabled && setOpen((p) => !p)}
         style={{
           display: "flex",
           alignItems: "center",
@@ -63,7 +57,9 @@ export function SelectField({
           gap: 6,
         }}
       >
-        <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        <span
+          style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+        >
           {disabled ? t("loading") : (selected?.label ?? resolvedPlaceholder)}
         </span>
         <ChevronDown
@@ -96,11 +92,14 @@ export function SelectField({
             margin: 0,
           }}
         >
-          {options.map(opt => (
+          {options.map((opt) => (
             <li key={opt.value} role="option" aria-selected={opt.value === value}>
               <button
                 type="button"
-                onClick={() => { onChange(opt.value); setOpen(false); }}
+                onClick={() => {
+                  onChange(opt.value);
+                  setOpen(false);
+                }}
                 style={{
                   display: "block",
                   width: "100%",

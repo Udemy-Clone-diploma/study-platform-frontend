@@ -45,7 +45,11 @@ export function ReportReviewModal({ onClose, onSubmit }: Props) {
     >
       <p
         className="font-(family-name:--font-base) font-normal text-(--color-text-secondary)"
-        style={{ fontSize: "clamp(13px, 0.97vw, 16px)", lineHeight: 1.5, margin: "0 0 clamp(12px, 1vw, 16px)" }}
+        style={{
+          fontSize: "clamp(13px, 0.97vw, 16px)",
+          lineHeight: 1.5,
+          margin: "0 0 clamp(12px, 1vw, 16px)",
+        }}
       >
         {t("description")}
       </p>
@@ -60,12 +64,21 @@ export function ReportReviewModal({ onClose, onSubmit }: Props) {
       />
 
       {error && (
-        <p style={{ color: "var(--color-danger)", fontSize: "clamp(12px, 0.83vw, 14px)", marginTop: 8 }}>
+        <p
+          style={{
+            color: "var(--color-danger)",
+            fontSize: "clamp(12px, 0.83vw, 14px)",
+            marginTop: 8,
+          }}
+        >
           {error}
         </p>
       )}
 
-      <div className="flex items-center justify-center" style={{ gap: 12, marginTop: "clamp(16px, 1.67vw, 24px)" }}>
+      <div
+        className="flex items-center justify-center"
+        style={{ gap: 12, marginTop: "clamp(16px, 1.67vw, 24px)" }}
+      >
         <WhiteButton
           icon={null}
           onClick={onClose}

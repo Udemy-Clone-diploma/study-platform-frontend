@@ -1,13 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import {
-  AlertTriangle,
-  Calendar,
-  ChevronDown,
-  Flag,
-  Search,
-} from "lucide-react";
+import { AlertTriangle, Calendar, ChevronDown, Flag, Search } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 
 import { PageShell } from "@/shared/ui/PageShell";
@@ -85,7 +79,10 @@ function DateRangeFilter({
     return () => document.removeEventListener("mousedown", onOutside);
   }, [open]);
 
-  const label = from || to ? `${from ? formatShort(from) : "…"} – ${to ? formatShort(to) : "…"}` : t("dateRangeLabel");
+  const label =
+    from || to
+      ? `${from ? formatShort(from) : "…"} – ${to ? formatShort(to) : "…"}`
+      : t("dateRangeLabel");
 
   return (
     <div ref={ref} className="relative">
@@ -122,11 +119,29 @@ function DateRangeFilter({
       {open && (
         <div
           className="absolute left-0 z-50 flex flex-col bg-white"
-          style={{ top: "calc(100% + 6px)", gap: 12, borderRadius: 16, padding: 16, boxShadow: "var(--shadow-sort-dropdown)" }}
+          style={{
+            top: "calc(100% + 6px)",
+            gap: 12,
+            borderRadius: 16,
+            padding: 16,
+            boxShadow: "var(--shadow-sort-dropdown)",
+          }}
         >
           <div className="flex" style={{ gap: 16 }}>
-            <DatePicker value={from} onChange={onChangeFrom} label={t("fromLabel")} max={to || undefined} size="sm" />
-            <DatePicker value={to} onChange={onChangeTo} label={t("toLabel")} min={from || undefined} size="sm" />
+            <DatePicker
+              value={from}
+              onChange={onChangeFrom}
+              label={t("fromLabel")}
+              max={to || undefined}
+              size="sm"
+            />
+            <DatePicker
+              value={to}
+              onChange={onChangeTo}
+              label={t("toLabel")}
+              min={from || undefined}
+              size="sm"
+            />
           </div>
           {(from || to) && (
             <button
@@ -147,11 +162,7 @@ function DateRangeFilter({
   );
 }
 
-function StatusBadge({
-  status,
-}: {
-  status: TeacherOrderStatus;
-}) {
+function StatusBadge({ status }: { status: TeacherOrderStatus }) {
   const t = useTranslations("TeacherPaymentsPage");
 
   const config = {
@@ -262,43 +273,30 @@ function LiqPayDestinationManager({
 }) {
   const t = useTranslations("TeacherPaymentsPage");
 
-  const [formOpen, setFormOpen] =
-    useState(false);
+  const [formOpen, setFormOpen] = useState(false);
 
   const [destinationType, setDestinationType] =
-    useState<
-      TeacherPayoutDestination["destination_type"]
-    >("bank_account");
+    useState<TeacherPayoutDestination["destination_type"]>("bank_account");
 
-  const [receiverAccount, setReceiverAccount] =
-    useState("");
+  const [receiverAccount, setReceiverAccount] = useState("");
 
-  const [receiverMfo, setReceiverMfo] =
-    useState("");
+  const [receiverMfo, setReceiverMfo] = useState("");
 
-  const [receiverOkpo, setReceiverOkpo] =
-    useState("");
+  const [receiverOkpo, setReceiverOkpo] = useState("");
 
-  const [receiverCompany, setReceiverCompany] =
-    useState("");
+  const [receiverCompany, setReceiverCompany] = useState("");
 
-  const [receiverCardToken, setReceiverCardToken] =
-    useState("");
+  const [receiverCardToken, setReceiverCardToken] = useState("");
 
-  const [makeDefault, setMakeDefault] =
-    useState(false);
+  const [makeDefault, setMakeDefault] = useState(false);
 
-  const [saving, setSaving] =
-    useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const [actionDestinationId, setActionDestinationId] =
-    useState<number | null>(null);
+  const [actionDestinationId, setActionDestinationId] = useState<number | null>(null);
 
-  const [error, setError] =
-    useState("");
+  const [error, setError] = useState("");
 
-  const [message, setMessage] =
-    useState("");
+  const [message, setMessage] = useState("");
 
   function clearForm() {
     setDestinationType("bank_account");
@@ -313,12 +311,7 @@ function LiqPayDestinationManager({
   function openForm() {
     clearForm();
 
-    setMakeDefault(
-      !destinations.some(
-        (destination) =>
-          destination.is_default,
-      ),
-    );
+    setMakeDefault(!destinations.some((destination) => destination.is_default));
 
     setError("");
     setMessage("");
@@ -343,63 +336,45 @@ function LiqPayDestinationManager({
     setError("");
     setMessage("");
 
-    if (
-      destinationType === "bank_account"
-    ) {
+    if (destinationType === "bank_account") {
       if (
         !receiverAccount.trim() ||
         !receiverMfo.trim() ||
         !receiverOkpo.trim() ||
         !receiverCompany.trim()
       ) {
-        setError(
-          t("liqPayDestinationRequired"),
-        );
+        setError(t("liqPayDestinationRequired"));
         return;
       }
     }
 
-    if (
-      destinationType === "card_token" &&
-      !receiverCardToken.trim()
-    ) {
-      setError(
-        t("liqPayDestinationRequired"),
-      );
+    if (destinationType === "card_token" && !receiverCardToken.trim()) {
+      setError(t("liqPayDestinationRequired"));
       return;
     }
 
     setSaving(true);
 
     try {
-      if (
-        destinationType === "bank_account"
-      ) {
+      if (destinationType === "bank_account") {
         await createTeacherPayoutDestination({
-          destination_type:
-            "bank_account",
+          destination_type: "bank_account",
 
-          receiver_account:
-            receiverAccount.trim(),
+          receiver_account: receiverAccount.trim(),
 
-          receiver_mfo:
-            receiverMfo.trim(),
+          receiver_mfo: receiverMfo.trim(),
 
-          receiver_okpo:
-            receiverOkpo.trim(),
+          receiver_okpo: receiverOkpo.trim(),
 
-          receiver_company:
-            receiverCompany.trim(),
+          receiver_company: receiverCompany.trim(),
 
           is_default: makeDefault,
         });
       } else {
         await createTeacherPayoutDestination({
-          destination_type:
-            "card_token",
+          destination_type: "card_token",
 
-          receiver_card_token:
-            receiverCardToken.trim(),
+          receiver_card_token: receiverCardToken.trim(),
 
           is_default: makeDefault,
         });
@@ -410,75 +385,44 @@ function LiqPayDestinationManager({
 
       await onChanged();
 
-      setMessage(
-        t("liqPayDestinationSaved"),
-      );
+      setMessage(t("liqPayDestinationSaved"));
     } catch (caughtError) {
-      setError(
-        caughtError instanceof Error
-          ? caughtError.message
-          : t("liqPayDestinationError"),
-      );
+      setError(caughtError instanceof Error ? caughtError.message : t("liqPayDestinationError"));
     } finally {
       setSaving(false);
     }
   }
 
-  async function handleSetDefault(
-    destination: TeacherPayoutDestination,
-  ) {
-    if (
-      destination.is_default ||
-      actionDestinationId !== null
-    ) {
+  async function handleSetDefault(destination: TeacherPayoutDestination) {
+    if (destination.is_default || actionDestinationId !== null) {
       return;
     }
 
     setError("");
     setMessage("");
-    setActionDestinationId(
-      destination.id,
-    );
+    setActionDestinationId(destination.id);
 
     try {
-      await updateTeacherPayoutDestination(
-        destination.id,
-        {
-          is_default: true,
-        },
-      );
+      await updateTeacherPayoutDestination(destination.id, {
+        is_default: true,
+      });
 
       await onChanged();
 
-      setMessage(
-        t(
-          "liqPayDestinationDefaultChanged",
-        ),
-      );
+      setMessage(t("liqPayDestinationDefaultChanged"));
     } catch (caughtError) {
-      setError(
-        caughtError instanceof Error
-          ? caughtError.message
-          : t("liqPayDestinationError"),
-      );
+      setError(caughtError instanceof Error ? caughtError.message : t("liqPayDestinationError"));
     } finally {
       setActionDestinationId(null);
     }
   }
 
-  async function handleDelete(
-    destination: TeacherPayoutDestination,
-  ) {
+  async function handleDelete(destination: TeacherPayoutDestination) {
     if (actionDestinationId !== null) {
       return;
     }
 
-    const confirmed =
-      window.confirm(
-        t(
-          "liqPayDestinationDeleteConfirm",
-        ),
-      );
+    const confirmed = window.confirm(t("liqPayDestinationDeleteConfirm"));
 
     if (!confirmed) {
       return;
@@ -486,26 +430,16 @@ function LiqPayDestinationManager({
 
     setError("");
     setMessage("");
-    setActionDestinationId(
-      destination.id,
-    );
+    setActionDestinationId(destination.id);
 
     try {
-      await deleteTeacherPayoutDestination(
-        destination.id,
-      );
+      await deleteTeacherPayoutDestination(destination.id);
 
       await onChanged();
 
-      setMessage(
-        t("liqPayDestinationDeleted"),
-      );
+      setMessage(t("liqPayDestinationDeleted"));
     } catch (caughtError) {
-      setError(
-        caughtError instanceof Error
-          ? caughtError.message
-          : t("liqPayDestinationError"),
-      );
+      setError(caughtError instanceof Error ? caughtError.message : t("liqPayDestinationError"));
     } finally {
       setActionDestinationId(null);
     }
@@ -515,16 +449,10 @@ function LiqPayDestinationManager({
     <div className="mt-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h3 className="text-sm font-semibold">
-            {t(
-              "liqPayDestinationTitle",
-            )}
-          </h3>
+          <h3 className="text-sm font-semibold">{t("liqPayDestinationTitle")}</h3>
 
           <p className="mt-1 text-xs text-(--color-text-secondary)">
-            {t(
-              "liqPayDestinationDescription",
-            )}
+            {t("liqPayDestinationDescription")}
           </p>
         </div>
 
@@ -534,183 +462,119 @@ function LiqPayDestinationManager({
             onClick={openForm}
             className="rounded-full border border-(--color-blue) px-4 py-2 text-sm text-(--color-blue) transition-opacity hover:opacity-75"
           >
-            {t(
-              "liqPayDestinationAdd",
-            )}
+            {t("liqPayDestinationAdd")}
           </button>
         ) : null}
       </div>
 
-      {error ? (
-        <p className="mt-3 text-sm text-red-600">
-          {error}
-        </p>
-      ) : null}
+      {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
 
-      {message ? (
-        <p className="mt-3 text-sm text-green-700">
-          {message}
-        </p>
-      ) : null}
+      {message ? <p className="mt-3 text-sm text-green-700">{message}</p> : null}
 
-      {!destinations.length &&
-      !formOpen ? (
+      {!destinations.length && !formOpen ? (
         <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3">
-          <p className="text-sm text-amber-800">
-            {t(
-              "liqPayDestinationEmpty",
-            )}
-          </p>
+          <p className="text-sm text-amber-800">{t("liqPayDestinationEmpty")}</p>
         </div>
       ) : null}
 
       {destinations.length ? (
         <div className="mt-3 flex flex-col gap-2">
-          {destinations.map(
-            (destination) => {
-              const busy =
-                actionDestinationId ===
-                destination.id;
+          {destinations.map((destination) => {
+            const busy = actionDestinationId === destination.id;
 
-              return (
-                <div
-                  key={destination.id}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#E5E5E5] p-3"
-                >
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-sm font-semibold">
-                        {destination.destination_type ===
-                        "bank_account"
-                          ? t(
-                              "liqPayDestinationBankAccount",
-                            )
-                          : t(
-                              "liqPayDestinationCardToken",
-                            )}
+            return (
+              <div
+                key={destination.id}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#E5E5E5] p-3"
+              >
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-sm font-semibold">
+                      {destination.destination_type === "bank_account"
+                        ? t("liqPayDestinationBankAccount")
+                        : t("liqPayDestinationCardToken")}
+                    </span>
+
+                    {destination.is_default ? (
+                      <span className="rounded-full bg-(--color-brand-lavender-soft) px-2 py-0.5 text-xs text-(--color-blue)">
+                        {t("liqPayDestinationDefaultBadge")}
                       </span>
-
-                      {destination.is_default ? (
-                        <span className="rounded-full bg-(--color-brand-lavender-soft) px-2 py-0.5 text-xs text-(--color-blue)">
-                          {t(
-                            "liqPayDestinationDefaultBadge",
-                          )}
-                        </span>
-                      ) : null}
-                    </div>
-
-                    <p className="mt-1 break-all text-sm text-(--color-text-secondary)">
-                      {destination.destination_type ===
-                      "bank_account"
-                        ? destination.receiver_account_masked ||
-                          "—"
-                        : destination.has_card_token
-                          ? t(
-                              "liqPayDestinationTokenConfigured",
-                            )
-                          : "—"}
-                    </p>
+                    ) : null}
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-2">
-                    {!destination.is_default ? (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          void handleSetDefault(
-                            destination,
-                          )
-                        }
-                        disabled={busy}
-                        className="rounded-full border border-(--color-blue) px-3 py-1.5 text-xs text-(--color-blue) disabled:opacity-50"
-                      >
-                        {t(
-                          "liqPayDestinationSetDefault",
-                        )}
-                      </button>
-                    ) : null}
+                  <p className="mt-1 break-all text-sm text-(--color-text-secondary)">
+                    {destination.destination_type === "bank_account"
+                      ? destination.receiver_account_masked || "—"
+                      : destination.has_card_token
+                        ? t("liqPayDestinationTokenConfigured")
+                        : "—"}
+                  </p>
+                </div>
 
+                <div className="flex flex-wrap items-center gap-2">
+                  {!destination.is_default ? (
                     <button
                       type="button"
-                      onClick={() =>
-                        void handleDelete(
-                          destination,
-                        )
-                      }
+                      onClick={() => void handleSetDefault(destination)}
                       disabled={busy}
-                      className="rounded-full border border-red-300 px-3 py-1.5 text-xs text-red-600 disabled:opacity-50"
+                      className="rounded-full border border-(--color-blue) px-3 py-1.5 text-xs text-(--color-blue) disabled:opacity-50"
                     >
-                      {t(
-                        "liqPayDestinationRemove",
-                      )}
+                      {t("liqPayDestinationSetDefault")}
                     </button>
-                  </div>
+                  ) : null}
+
+                  <button
+                    type="button"
+                    onClick={() => void handleDelete(destination)}
+                    disabled={busy}
+                    className="rounded-full border border-red-300 px-3 py-1.5 text-xs text-red-600 disabled:opacity-50"
+                  >
+                    {t("liqPayDestinationRemove")}
+                  </button>
                 </div>
-              );
-            },
-          )}
+              </div>
+            );
+          })}
         </div>
       ) : null}
 
       {formOpen ? (
         <div className="mt-4 rounded-2xl border border-[#E5E5E5] bg-[#FAFAFA] p-4">
-          <h4 className="text-sm font-semibold">
-            {t(
-              "liqPayDestinationNew",
-            )}
-          </h4>
+          <h4 className="text-sm font-semibold">{t("liqPayDestinationNew")}</h4>
 
           <div className="mt-4">
             <label className="text-xs font-medium text-(--color-text-secondary)">
-              {t(
-                "liqPayDestinationType",
-              )}
+              {t("liqPayDestinationType")}
             </label>
 
             <select
               value={destinationType}
               onChange={(event) => {
                 setDestinationType(
-                  event.target.value as
-                    TeacherPayoutDestination["destination_type"],
+                  event.target.value as TeacherPayoutDestination["destination_type"],
                 );
 
                 setError("");
               }}
               className="mt-1 h-10 w-full rounded-xl border border-[#D9D9D9] bg-white px-3 text-sm outline-none"
             >
-              <option value="bank_account">
-                {t(
-                  "liqPayDestinationBankAccount",
-                )}
-              </option>
+              <option value="bank_account">{t("liqPayDestinationBankAccount")}</option>
 
-              <option value="card_token">
-                {t(
-                  "liqPayDestinationCardToken",
-                )}
-              </option>
+              <option value="card_token">{t("liqPayDestinationCardToken")}</option>
             </select>
           </div>
 
-          {destinationType ===
-          "bank_account" ? (
+          {destinationType === "bank_account" ? (
             <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
               <label className="flex flex-col gap-1">
                 <span className="text-xs font-medium text-(--color-text-secondary)">
-                  {t(
-                    "liqPayDestinationAccount",
-                  )}
+                  {t("liqPayDestinationAccount")}
                 </span>
 
                 <input
                   type="text"
                   value={receiverAccount}
-                  onChange={(event) =>
-                    setReceiverAccount(
-                      event.target.value,
-                    )
-                  }
+                  onChange={(event) => setReceiverAccount(event.target.value)}
                   autoComplete="off"
                   spellCheck={false}
                   className="h-10 rounded-xl border border-[#D9D9D9] bg-white px-3 text-sm outline-none"
@@ -719,19 +583,13 @@ function LiqPayDestinationManager({
 
               <label className="flex flex-col gap-1">
                 <span className="text-xs font-medium text-(--color-text-secondary)">
-                  {t(
-                    "liqPayDestinationMfo",
-                  )}
+                  {t("liqPayDestinationMfo")}
                 </span>
 
                 <input
                   type="text"
                   value={receiverMfo}
-                  onChange={(event) =>
-                    setReceiverMfo(
-                      event.target.value,
-                    )
-                  }
+                  onChange={(event) => setReceiverMfo(event.target.value)}
                   autoComplete="off"
                   spellCheck={false}
                   className="h-10 rounded-xl border border-[#D9D9D9] bg-white px-3 text-sm outline-none"
@@ -740,19 +598,13 @@ function LiqPayDestinationManager({
 
               <label className="flex flex-col gap-1">
                 <span className="text-xs font-medium text-(--color-text-secondary)">
-                  {t(
-                    "liqPayDestinationOkpo",
-                  )}
+                  {t("liqPayDestinationOkpo")}
                 </span>
 
                 <input
                   type="text"
                   value={receiverOkpo}
-                  onChange={(event) =>
-                    setReceiverOkpo(
-                      event.target.value,
-                    )
-                  }
+                  onChange={(event) => setReceiverOkpo(event.target.value)}
                   autoComplete="off"
                   spellCheck={false}
                   className="h-10 rounded-xl border border-[#D9D9D9] bg-white px-3 text-sm outline-none"
@@ -761,19 +613,13 @@ function LiqPayDestinationManager({
 
               <label className="flex flex-col gap-1">
                 <span className="text-xs font-medium text-(--color-text-secondary)">
-                  {t(
-                    "liqPayDestinationCompany",
-                  )}
+                  {t("liqPayDestinationCompany")}
                 </span>
 
                 <input
                   type="text"
                   value={receiverCompany}
-                  onChange={(event) =>
-                    setReceiverCompany(
-                      event.target.value,
-                    )
-                  }
+                  onChange={(event) => setReceiverCompany(event.target.value)}
                   autoComplete="off"
                   className="h-10 rounded-xl border border-[#D9D9D9] bg-white px-3 text-sm outline-none"
                 />
@@ -783,19 +629,13 @@ function LiqPayDestinationManager({
             <div className="mt-4">
               <label className="flex flex-col gap-1">
                 <span className="text-xs font-medium text-(--color-text-secondary)">
-                  {t(
-                    "liqPayDestinationToken",
-                  )}
+                  {t("liqPayDestinationToken")}
                 </span>
 
                 <input
                   type="text"
                   value={receiverCardToken}
-                  onChange={(event) =>
-                    setReceiverCardToken(
-                      event.target.value,
-                    )
-                  }
+                  onChange={(event) => setReceiverCardToken(event.target.value)}
                   autoComplete="off"
                   spellCheck={false}
                   className="h-10 rounded-xl border border-[#D9D9D9] bg-white px-3 text-sm outline-none"
@@ -803,9 +643,7 @@ function LiqPayDestinationManager({
               </label>
 
               <p className="mt-2 text-xs text-(--color-text-secondary)">
-                {t(
-                  "liqPayDestinationTokenHint",
-                )}
+                {t("liqPayDestinationTokenHint")}
               </p>
             </div>
           )}
@@ -814,36 +652,20 @@ function LiqPayDestinationManager({
             <input
               type="checkbox"
               checked={makeDefault}
-              onChange={(event) =>
-                setMakeDefault(
-                  event.target.checked,
-                )
-              }
+              onChange={(event) => setMakeDefault(event.target.checked)}
             />
 
-            <span>
-              {t(
-                "liqPayDestinationMakeDefault",
-              )}
-            </span>
+            <span>{t("liqPayDestinationMakeDefault")}</span>
           </label>
 
           <div className="mt-5 flex flex-wrap gap-2">
             <button
               type="button"
-              onClick={() =>
-                void handleCreateDestination()
-              }
+              onClick={() => void handleCreateDestination()}
               disabled={saving}
               className="rounded-full bg-(--color-blue) px-5 py-2 text-sm text-white disabled:opacity-50"
             >
-              {saving
-                ? t(
-                    "liqPayDestinationSaving",
-                  )
-                : t(
-                    "liqPayDestinationSave",
-                  )}
+              {saving ? t("liqPayDestinationSaving") : t("liqPayDestinationSave")}
             </button>
 
             <button
@@ -852,9 +674,7 @@ function LiqPayDestinationManager({
               disabled={saving}
               className="rounded-full border border-[#D9D9D9] bg-white px-5 py-2 text-sm disabled:opacity-50"
             >
-              {t(
-                "liqPayDestinationCancel",
-              )}
+              {t("liqPayDestinationCancel")}
             </button>
           </div>
         </div>
@@ -878,77 +698,56 @@ export default function TeacherPaymentsPage() {
     { value: "partially_refunded", label: t("statusPartiallyRefunded") },
   ];
 
-  const [courses, setCourses] =
-    useState<TeacherOrdersCourseOption[]>([]);
+  const [courses, setCourses] = useState<TeacherOrdersCourseOption[]>([]);
 
-  const [cohorts, setCohorts] =
-    useState<TeacherOrdersCohortOption[]>([]);
+  const [cohorts, setCohorts] = useState<TeacherOrdersCohortOption[]>([]);
 
-  const [rows, setRows] =
-    useState<TeacherOrderRow[]>([]);
+  const [rows, setRows] = useState<TeacherOrderRow[]>([]);
 
-  const [selectedCourse, setSelectedCourse] =
-    useState(ALL_COURSES);
+  const [selectedCourse, setSelectedCourse] = useState(ALL_COURSES);
 
-  const [selectedGroup, setSelectedGroup] =
-    useState(ALL_GROUPS);
+  const [selectedGroup, setSelectedGroup] = useState(ALL_GROUPS);
 
-  const [selectedStatus, setSelectedStatus] =
-    useState(ALL_STATUSES);
+  const [selectedStatus, setSelectedStatus] = useState(ALL_STATUSES);
 
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const [liqPayBalance, setLiqPayBalance] =
-  useState<TeacherFinanceBalance | null>(null);
+  const [liqPayBalance, setLiqPayBalance] = useState<TeacherFinanceBalance | null>(null);
 
-  const [liqPayLedger, setLiqPayLedger] =
-    useState<TeacherLedgerEntry[]>([]);
+  const [liqPayLedger, setLiqPayLedger] = useState<TeacherLedgerEntry[]>([]);
 
-  const [liqPayPayouts, setLiqPayPayouts] =
-    useState<TeacherFinancePayout[]>([]);
+  const [liqPayPayouts, setLiqPayPayouts] = useState<TeacherFinancePayout[]>([]);
 
-  const [liqPayDestinations, setLiqPayDestinations] =
-    useState<TeacherPayoutDestination[]>([]);
+  const [liqPayDestinations, setLiqPayDestinations] = useState<TeacherPayoutDestination[]>([]);
 
-  const [liqPayFinanceLoading, setLiqPayFinanceLoading] =
-    useState(true);
+  const [liqPayFinanceLoading, setLiqPayFinanceLoading] = useState(true);
 
-  const [liqPayFinanceError, setLiqPayFinanceError] =
-    useState("");
+  const [liqPayFinanceError, setLiqPayFinanceError] = useState("");
 
   // Stripe Connect account status
-  const [payout, setPayout] =
-    useState<TeacherPayoutStatus | null>(null);
+  const [payout, setPayout] = useState<TeacherPayoutStatus | null>(null);
 
-  const [payoutLoading, setPayoutLoading] =
-    useState(true);
+  const [payoutLoading, setPayoutLoading] = useState(true);
 
-  const [payoutError, setPayoutError] =
-    useState("");
+  const [payoutError, setPayoutError] = useState("");
 
   // Stripe connected-account balance + real Stripe payouts
-  const [stripeFinance, setStripeFinance] =
-    useState<TeacherStripeFinance | null>(null);
+  const [stripeFinance, setStripeFinance] = useState<TeacherStripeFinance | null>(null);
 
-  const [stripeFinanceLoading, setStripeFinanceLoading] =
-    useState(true);
+  const [stripeFinanceLoading, setStripeFinanceLoading] = useState(true);
 
-  const [stripeFinanceError, setStripeFinanceError] =
-    useState("");
+  const [stripeFinanceError, setStripeFinanceError] = useState("");
 
   // Load / refresh Stripe Connect account status
   useEffect(() => {
     let cancelled = false;
 
-    const returnedFromStripe =
-      new URLSearchParams(window.location.search).has("stripe");
+    const returnedFromStripe = new URLSearchParams(window.location.search).has("stripe");
 
-    const request = returnedFromStripe
-      ? refreshTeacherPayoutStatus()
-      : getTeacherPayoutStatus();
+    const request = returnedFromStripe ? refreshTeacherPayoutStatus() : getTeacherPayoutStatus();
 
     setPayoutLoading(true);
     setPayoutError("");
@@ -961,10 +760,7 @@ export default function TeacherPaymentsPage() {
       })
       .catch((error: { message?: string }) => {
         if (!cancelled) {
-          setPayoutError(
-            error.message ??
-              "Could not load payout status.",
-          );
+          setPayoutError(error.message ?? "Could not load payout status.");
         }
       })
       .finally(() => {
@@ -988,24 +784,15 @@ export default function TeacherPaymentsPage() {
     setPayoutError("");
 
     try {
-      const result =
-        await startTeacherPayoutOnboarding();
+      const result = await startTeacherPayoutOnboarding();
 
       if (!result.onboarding_url) {
-        throw new Error(
-          "Stripe onboarding URL is unavailable.",
-        );
+        throw new Error("Stripe onboarding URL is unavailable.");
       }
 
-      window.location.assign(
-        result.onboarding_url,
-      );
+      window.location.assign(result.onboarding_url);
     } catch (error) {
-      setPayoutError(
-        error instanceof Error
-          ? error.message
-          : "Could not start payout setup.",
-      );
+      setPayoutError(error instanceof Error ? error.message : "Could not start payout setup.");
 
       setPayoutLoading(false);
     }
@@ -1016,12 +803,7 @@ export default function TeacherPaymentsPage() {
     setLiqPayFinanceError("");
 
     try {
-      const [
-        balance,
-        ledger,
-        payouts,
-        destinations,
-      ] = await Promise.all([
+      const [balance, ledger, payouts, destinations] = await Promise.all([
         getTeacherFinanceBalance(),
         getTeacherFinanceLedger(),
         getTeacherFinancePayouts(),
@@ -1031,16 +813,10 @@ export default function TeacherPaymentsPage() {
       setLiqPayBalance(balance);
       setLiqPayLedger(ledger.results);
       setLiqPayPayouts(payouts.results);
-      setLiqPayDestinations(
-        destinations.results.filter(
-          (item) => item.is_active,
-        ),
-      );
+      setLiqPayDestinations(destinations.results.filter((item) => item.is_active));
     } catch (error) {
       setLiqPayFinanceError(
-        error instanceof Error
-          ? error.message
-          : "Could not load LiqPay finance.",
+        error instanceof Error ? error.message : "Could not load LiqPay finance.",
       );
     } finally {
       setLiqPayFinanceLoading(false);
@@ -1061,10 +837,7 @@ export default function TeacherPaymentsPage() {
       })
       .catch((error: { message?: string }) => {
         if (!cancelled) {
-          setStripeFinanceError(
-            error.message ??
-              "Could not load Stripe balance.",
-          );
+          setStripeFinanceError(error.message ?? "Could not load Stripe balance.");
         }
       })
       .finally(() => {
@@ -1078,16 +851,11 @@ export default function TeacherPaymentsPage() {
     };
   }, []);
 
-async function reloadLiqPayDestinations() {
-  const destinations =
-    await getTeacherPayoutDestinations();
+  async function reloadLiqPayDestinations() {
+    const destinations = await getTeacherPayoutDestinations();
 
-  setLiqPayDestinations(
-    destinations.results.filter(
-      (item) => item.is_active,
-    ),
-  );
-}
+    setLiqPayDestinations(destinations.results.filter((item) => item.is_active));
+  }
 
   // Load teacher orders
   useEffect(() => {
@@ -1096,20 +864,11 @@ async function reloadLiqPayDestinations() {
     setLoading(true);
 
     getTeacherOrders({
-      course:
-        selectedCourse !== ALL_COURSES
-          ? selectedCourse
-          : undefined,
+      course: selectedCourse !== ALL_COURSES ? selectedCourse : undefined,
 
-      cohort:
-        selectedGroup !== ALL_GROUPS
-          ? Number(selectedGroup)
-          : undefined,
+      cohort: selectedGroup !== ALL_GROUPS ? Number(selectedGroup) : undefined,
 
-      status:
-        selectedStatus !== ALL_STATUSES
-          ? (selectedStatus as TeacherOrderStatus)
-          : undefined,
+      status: selectedStatus !== ALL_STATUSES ? (selectedStatus as TeacherOrderStatus) : undefined,
 
       date_from: dateFrom || undefined,
       date_to: dateTo || undefined,
@@ -1136,14 +895,7 @@ async function reloadLiqPayDestinations() {
     return () => {
       cancelled = true;
     };
-  }, [
-    selectedCourse,
-    selectedGroup,
-    selectedStatus,
-    dateFrom,
-    dateTo,
-    search,
-  ]);
+  }, [selectedCourse, selectedGroup, selectedStatus, dateFrom, dateTo, search]);
 
   useEffect(() => {
     void loadLiqPayFinance();
@@ -1188,10 +940,7 @@ async function reloadLiqPayDestinations() {
             gap: "clamp(8px, 0.83vw, 12px)",
           }}
         >
-          <StudentAvatar
-            name={row.student_name}
-            avatar={row.student_avatar}
-          />
+          <StudentAvatar name={row.student_name} avatar={row.student_avatar} />
 
           <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">
             {row.student_name}
@@ -1205,11 +954,7 @@ async function reloadLiqPayDestinations() {
       flex: 1,
       cellAlign: "center",
       headerAlign: "center",
-      render: (row) => (
-        <span>
-          {row.cohort_name ?? "—"}
-        </span>
-      ),
+      render: (row) => <span>{row.cohort_name ?? "—"}</span>,
     },
     {
       key: "plan",
@@ -1217,9 +962,7 @@ async function reloadLiqPayDestinations() {
       flex: 1.5,
       cellAlign: "center",
       headerAlign: "center",
-      render: (row) => (
-        <span>{row.payment_plan}</span>
-      ),
+      render: (row) => <span>{row.payment_plan}</span>,
     },
     {
       key: "status",
@@ -1227,9 +970,7 @@ async function reloadLiqPayDestinations() {
       flex: 1,
       cellAlign: "center",
       headerAlign: "center",
-      render: (row) => (
-        <StatusBadge status={row.status} />
-      ),
+      render: (row) => <StatusBadge status={row.status} />,
     },
     {
       key: "amount",
@@ -1249,13 +990,7 @@ async function reloadLiqPayDestinations() {
       flex: 1,
       cellAlign: "center",
       headerAlign: "center",
-      render: (row) => (
-        <span>
-          {new Date(
-            row.date,
-          ).toLocaleDateString(locale)}
-        </span>
-      ),
+      render: (row) => <span>{new Date(row.date).toLocaleDateString(locale)}</span>,
     },
     {
       key: "due_date",
@@ -1264,13 +999,7 @@ async function reloadLiqPayDestinations() {
       cellAlign: "center",
       headerAlign: "center",
       render: (row) => (
-        <span>
-          {row.due_date
-            ? new Date(
-                row.due_date,
-              ).toLocaleDateString(locale)
-            : "—"}
-        </span>
+        <span>{row.due_date ? new Date(row.due_date).toLocaleDateString(locale) : "—"}</span>
       ),
     },
     {
@@ -1279,18 +1008,11 @@ async function reloadLiqPayDestinations() {
       flex: 1,
       cellAlign: "center",
       headerAlign: "center",
-      render: (row) =>
-        row.has_receipt ? (
-          <ReceiptButton
-            orderId={row.order_id}
-          />
-        ) : null,
+      render: (row) => (row.has_receipt ? <ReceiptButton orderId={row.order_id} /> : null),
     },
   ];
 
-  const emptyMessage = loading
-    ? t("loadingPayments")
-    : t("noPaymentsFound");
+  const emptyMessage = loading ? t("loadingPayments") : t("noPaymentsFound");
 
   return (
     <PageShell className="bg-my-courses">
@@ -1304,47 +1026,32 @@ async function reloadLiqPayDestinations() {
         }}
       >
         {/* Stripe Connect + Stripe finance */}
-        <section
-          className="mb-5 rounded-2xl bg-white p-5 shadow-sm"
-          aria-label="Payouts"
-        >
+        <section className="mb-5 rounded-2xl bg-white p-5 shadow-sm" aria-label="Payouts">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h2 className="text-lg font-semibold">
-                Payouts
-              </h2>
+              <h2 className="text-lg font-semibold">Payouts</h2>
 
               <p className="mt-1 text-sm">
                 Status:{" "}
                 {payoutLoading
                   ? "Loading…"
-                  : (
-                      payout?.status ??
-                      "not configured"
-                    ).replaceAll("_", " ")}
+                  : (payout?.status ?? "not configured").replaceAll("_", " ")}
               </p>
 
-              {payout?.status !== "active" &&
-              !payoutLoading ? (
+              {payout?.status !== "active" && !payoutLoading ? (
                 <p className="mt-2 flex items-center gap-2 text-sm text-amber-700">
                   <AlertTriangle size={16} />
-                  Connect or finish verifying your payout
-                  account to sell paid courses.
+                  Connect or finish verifying your payout account to sell paid courses.
                 </p>
               ) : null}
 
               {payout?.outstanding_requirements?.length ? (
                 <p className="mt-1 text-sm text-amber-700">
-                  Stripe requires:{" "}
-                  {payout.outstanding_requirements.join(", ")}
+                  Stripe requires: {payout.outstanding_requirements.join(", ")}
                 </p>
               ) : null}
 
-              {payoutError ? (
-                <p className="mt-1 text-sm text-red-600">
-                  {payoutError}
-                </p>
-              ) : null}
+              {payoutError ? <p className="mt-1 text-sm text-red-600">{payoutError}</p> : null}
             </div>
 
             {payout?.status !== "active" ? (
@@ -1354,9 +1061,7 @@ async function reloadLiqPayDestinations() {
                 onClick={setupPayouts}
                 className="rounded-full bg-(--color-blue) px-5 py-2 text-white disabled:opacity-50"
               >
-                {payout?.configured
-                  ? "Continue payout setup"
-                  : "Set up payouts"}
+                {payout?.configured ? "Continue payout setup" : "Set up payouts"}
               </button>
             ) : null}
           </div>
@@ -1364,32 +1069,23 @@ async function reloadLiqPayDestinations() {
           {/* Stripe balance stays INSIDE Payouts card */}
           {payout?.status === "active" ? (
             <div className="mt-5 border-t border-[#E5E5E5] pt-4">
-              <h3 className="text-sm font-semibold">
-                Stripe balance
-              </h3>
+              <h3 className="text-sm font-semibold">Stripe balance</h3>
 
               {stripeFinanceLoading ? (
                 <p className="mt-2 text-sm text-(--color-text-secondary)">
                   Loading Stripe balance…
                 </p>
               ) : stripeFinanceError ? (
-                <p className="mt-2 text-sm text-red-600">
-                  {stripeFinanceError}
-                </p>
+                <p className="mt-2 text-sm text-red-600">{stripeFinanceError}</p>
               ) : (
                 <>
                   <div className="mt-3 flex flex-wrap gap-8">
                     <div>
-                      <p className="text-xs text-(--color-text-secondary)">
-                        Available
-                      </p>
+                      <p className="text-xs text-(--color-text-secondary)">Available</p>
 
                       {stripeFinance?.available.length ? (
                         stripeFinance.available.map((item) => (
-                          <p
-                            key={`available-${item.currency}`}
-                            className="font-semibold"
-                          >
+                          <p key={`available-${item.currency}`} className="font-semibold">
                             {item.amount} {item.currency}
                           </p>
                         ))
@@ -1399,16 +1095,11 @@ async function reloadLiqPayDestinations() {
                     </div>
 
                     <div>
-                      <p className="text-xs text-(--color-text-secondary)">
-                        Pending
-                      </p>
+                      <p className="text-xs text-(--color-text-secondary)">Pending</p>
 
                       {stripeFinance?.pending.length ? (
                         stripeFinance.pending.map((item) => (
-                          <p
-                            key={`pending-${item.currency}`}
-                            className="font-semibold"
-                          >
+                          <p key={`pending-${item.currency}`} className="font-semibold">
                             {item.amount} {item.currency}
                           </p>
                         ))
@@ -1419,9 +1110,7 @@ async function reloadLiqPayDestinations() {
                   </div>
 
                   <div className="mt-5">
-                    <h3 className="text-sm font-semibold">
-                      Recent Stripe payouts
-                    </h3>
+                    <h3 className="text-sm font-semibold">Recent Stripe payouts</h3>
 
                     {!stripeFinance?.payouts.length ? (
                       <p className="mt-2 text-sm text-(--color-text-secondary)">
@@ -1429,54 +1118,36 @@ async function reloadLiqPayDestinations() {
                       </p>
                     ) : (
                       <div className="mt-3 flex flex-col gap-2">
-                        {stripeFinance.payouts
-                          .slice(0, 5)
-                          .map((item) => (
-                            <div
-                              key={item.id}
-                              className="rounded-lg border border-[#E5E5E5] px-3 py-2"
-                            >
-                              <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
-                                <div>
-                                  <span className="font-semibold">
-                                    {item.amount}{" "}
-                                    {item.currency}
-                                  </span>
+                        {stripeFinance.payouts.slice(0, 5).map((item) => (
+                          <div
+                            key={item.id}
+                            className="rounded-lg border border-[#E5E5E5] px-3 py-2"
+                          >
+                            <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
+                              <div>
+                                <span className="font-semibold">
+                                  {item.amount} {item.currency}
+                                </span>
 
-                                  <span className="ml-2 text-(--color-text-secondary)">
-                                    {item.status.replaceAll(
-                                      "_",
-                                      " ",
-                                    )}
-                                  </span>
-                                </div>
-
-                                <span className="text-xs text-(--color-text-secondary)">
-                                  {item.arrival_date
-                                    ? new Date(
-                                        item.arrival_date *
-                                          1000,
-                                      ).toLocaleDateString(
-                                        locale,
-                                      )
-                                    : item.created
-                                      ? new Date(
-                                          item.created *
-                                            1000,
-                                        ).toLocaleDateString(
-                                          locale,
-                                        )
-                                      : "—"}
+                                <span className="ml-2 text-(--color-text-secondary)">
+                                  {item.status.replaceAll("_", " ")}
                                 </span>
                               </div>
 
-                              {item.failure_message ? (
-                                <p className="mt-1 text-xs text-red-600">
-                                  {item.failure_message}
-                                </p>
-                              ) : null}
+                              <span className="text-xs text-(--color-text-secondary)">
+                                {item.arrival_date
+                                  ? new Date(item.arrival_date * 1000).toLocaleDateString(locale)
+                                  : item.created
+                                    ? new Date(item.created * 1000).toLocaleDateString(locale)
+                                    : "—"}
+                              </span>
                             </div>
-                          ))}
+
+                            {item.failure_message ? (
+                              <p className="mt-1 text-xs text-red-600">{item.failure_message}</p>
+                            ) : null}
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>
@@ -1487,15 +1158,10 @@ async function reloadLiqPayDestinations() {
         </section>
 
         {/* LiqPay finance */}
-        <section
-          className="mb-5 rounded-2xl bg-white p-5 shadow-sm"
-          aria-label="LiqPay finance"
-        >
+        <section className="mb-5 rounded-2xl bg-white p-5 shadow-sm" aria-label="LiqPay finance">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h2 className="text-lg font-semibold">
-                LiqPay teacher finance
-              </h2>
+              <h2 className="text-lg font-semibold">LiqPay teacher finance</h2>
 
               <p className="mt-1 text-sm text-(--color-text-secondary)">
                 Internal balance for LiqPay payments
@@ -1513,50 +1179,30 @@ async function reloadLiqPayDestinations() {
           </div>
 
           {liqPayFinanceLoading ? (
-            <p className="mt-4 text-sm">
-              Loading LiqPay finance…
-            </p>
+            <p className="mt-4 text-sm">Loading LiqPay finance…</p>
           ) : liqPayFinanceError ? (
-            <p className="mt-4 text-sm text-red-600">
-              {liqPayFinanceError}
-            </p>
+            <p className="mt-4 text-sm text-red-600">{liqPayFinanceError}</p>
           ) : (
             <>
               <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4">
                 <div className="rounded-xl border border-[#E5E5E5] p-3">
-                  <p className="text-xs text-(--color-text-secondary)">
-                    Earned
-                  </p>
-                  <p className="mt-1 font-semibold">
-                    ${liqPayBalance?.earned ?? "0.00"}
-                  </p>
+                  <p className="text-xs text-(--color-text-secondary)">Earned</p>
+                  <p className="mt-1 font-semibold">${liqPayBalance?.earned ?? "0.00"}</p>
                 </div>
 
                 <div className="rounded-xl border border-[#E5E5E5] p-3">
-                  <p className="text-xs text-(--color-text-secondary)">
-                    Available
-                  </p>
-                  <p className="mt-1 font-semibold">
-                    ${liqPayBalance?.available ?? "0.00"}
-                  </p>
+                  <p className="text-xs text-(--color-text-secondary)">Available</p>
+                  <p className="mt-1 font-semibold">${liqPayBalance?.available ?? "0.00"}</p>
                 </div>
 
                 <div className="rounded-xl border border-[#E5E5E5] p-3">
-                  <p className="text-xs text-(--color-text-secondary)">
-                    Reserved
-                  </p>
-                  <p className="mt-1 font-semibold">
-                    ${liqPayBalance?.reserved ?? "0.00"}
-                  </p>
+                  <p className="text-xs text-(--color-text-secondary)">Reserved</p>
+                  <p className="mt-1 font-semibold">${liqPayBalance?.reserved ?? "0.00"}</p>
                 </div>
 
                 <div className="rounded-xl border border-[#E5E5E5] p-3">
-                  <p className="text-xs text-(--color-text-secondary)">
-                    Paid
-                  </p>
-                  <p className="mt-1 font-semibold">
-                    ${liqPayBalance?.paid ?? "0.00"}
-                  </p>
+                  <p className="text-xs text-(--color-text-secondary)">Paid</p>
+                  <p className="mt-1 font-semibold">${liqPayBalance?.paid ?? "0.00"}</p>
                 </div>
               </div>
 
@@ -1566,9 +1212,7 @@ async function reloadLiqPayDestinations() {
               />
 
               <div className="mt-5">
-                <h3 className="text-sm font-semibold">
-                  LiqPay payout history
-                </h3>
+                <h3 className="text-sm font-semibold">LiqPay payout history</h3>
 
                 {!liqPayPayouts.length ? (
                   <p className="mt-2 text-sm text-(--color-text-secondary)">
@@ -1576,93 +1220,71 @@ async function reloadLiqPayDestinations() {
                   </p>
                 ) : (
                   <div className="mt-2 flex flex-col gap-2">
-                    {liqPayPayouts
-                      .slice(0, 10)
-                      .map((item) => (
-                        <div
-                          key={item.id}
-                          className="rounded-lg border border-[#E5E5E5] px-3 py-2 text-sm"
-                        >
-                          <div className="flex flex-wrap justify-between gap-3">
-                            <div>
-                              <span className="font-semibold">
-                                {item.amount}{" "}
-                                {item.currency}
-                              </span>
+                    {liqPayPayouts.slice(0, 10).map((item) => (
+                      <div
+                        key={item.id}
+                        className="rounded-lg border border-[#E5E5E5] px-3 py-2 text-sm"
+                      >
+                        <div className="flex flex-wrap justify-between gap-3">
+                          <div>
+                            <span className="font-semibold">
+                              {item.amount} {item.currency}
+                            </span>
 
-                              <span className="ml-2">
-                                {item.status}
-                              </span>
+                            <span className="ml-2">{item.status}</span>
 
-                              <span className="ml-2 text-(--color-text-secondary)">
-                                {item.provider_status ||
-                                  item.provider}
-                              </span>
-                            </div>
-
-                            <span className="text-xs text-(--color-text-secondary)">
-                              {new Date(
-                                item.created_at,
-                              ).toLocaleDateString(
-                                locale,
-                              )}
+                            <span className="ml-2 text-(--color-text-secondary)">
+                              {item.provider_status || item.provider}
                             </span>
                           </div>
 
-                          {item.provider_order_id ? (
-                            <p className="mt-1 text-xs text-(--color-text-secondary)">
-                              Order:{" "}
-                              {item.provider_order_id}
-                            </p>
-                          ) : null}
-
-                          {item.failure_reason ? (
-                            <p className="mt-1 text-xs text-red-600">
-                              {item.failure_reason}
-                            </p>
-                          ) : null}
-
-                          {item.request_uncertain ? (
-                            <p className="mt-1 text-xs text-amber-700">
-                              Provider response is uncertain.
-                              Reconciliation is required.
-                            </p>
-                          ) : null}
+                          <span className="text-xs text-(--color-text-secondary)">
+                            {new Date(item.created_at).toLocaleDateString(locale)}
+                          </span>
                         </div>
-                      ))}
+
+                        {item.provider_order_id ? (
+                          <p className="mt-1 text-xs text-(--color-text-secondary)">
+                            Order: {item.provider_order_id}
+                          </p>
+                        ) : null}
+
+                        {item.failure_reason ? (
+                          <p className="mt-1 text-xs text-red-600">{item.failure_reason}</p>
+                        ) : null}
+
+                        {item.request_uncertain ? (
+                          <p className="mt-1 text-xs text-amber-700">
+                            Provider response is uncertain. Reconciliation is required.
+                          </p>
+                        ) : null}
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
 
               <details className="mt-5">
-                <summary className="cursor-pointer text-sm font-semibold">
-                  Ledger
-                </summary>
+                <summary className="cursor-pointer text-sm font-semibold">Ledger</summary>
 
                 <div className="mt-3 flex flex-col gap-2">
                   {!liqPayLedger.length ? (
-                    <p className="text-sm text-(--color-text-secondary)">
-                      No ledger entries.
-                    </p>
+                    <p className="text-sm text-(--color-text-secondary)">No ledger entries.</p>
                   ) : (
-                    liqPayLedger
-                      .slice(0, 15)
-                      .map((item) => (
-                        <div
-                          key={item.id}
-                          className="flex flex-wrap justify-between gap-3 border-b border-[#E5E5E5] py-2 text-sm"
-                        >
-                          <span>
-                            {item.entry_type} ·{" "}
-                            {item.status}
-                          </span>
+                    liqPayLedger.slice(0, 15).map((item) => (
+                      <div
+                        key={item.id}
+                        className="flex flex-wrap justify-between gap-3 border-b border-[#E5E5E5] py-2 text-sm"
+                      >
+                        <span>
+                          {item.entry_type} · {item.status}
+                        </span>
 
-                          <span className="font-semibold">
-                            {item.amount}{" "}
-                            {item.currency}
-                          </span>
-                        </div>
-                      ))
+                        <span className="font-semibold">
+                          {item.amount} {item.currency}
+                        </span>
+                      </div>
+                    ))
                   )}
                 </div>
               </details>
@@ -1675,16 +1297,14 @@ async function reloadLiqPayDestinations() {
           className="flex flex-wrap items-center"
           style={{
             gap: "clamp(12px, 1.67vw, 24px)",
-            marginBottom:
-              "clamp(12px, 1.11vw, 16px)",
+            marginBottom: "clamp(12px, 1.11vw, 16px)",
           }}
         >
           <h1
             className="font-semibold text-(--color-text-primary)"
             style={{
               fontFamily: "var(--font-base)",
-              fontSize:
-                "clamp(18px, 1.67vw, 24px)",
+              fontSize: "clamp(18px, 1.67vw, 24px)",
               whiteSpace: "nowrap",
             }}
           >
@@ -1726,18 +1346,15 @@ async function reloadLiqPayDestinations() {
             width: "100%",
             height: "clamp(32px, 2.78vw, 40px)",
             borderRadius: 40,
-            padding:
-              "clamp(6px, 0.56vw, 8px) clamp(12px, 1.11vw, 16px)",
-            marginBottom:
-              "clamp(16px, 1.67vw, 24px)",
+            padding: "clamp(6px, 0.56vw, 8px) clamp(12px, 1.11vw, 16px)",
+            marginBottom: "clamp(16px, 1.67vw, 24px)",
           }}
         >
           <Search
             style={{
               width: "clamp(14px, 1.39vw, 20px)",
               height: "clamp(14px, 1.39vw, 20px)",
-              color:
-                "var(--color-brand-lavender)",
+              color: "var(--color-brand-lavender)",
               flexShrink: 0,
             }}
           />
@@ -1746,16 +1363,12 @@ async function reloadLiqPayDestinations() {
             type="search"
             placeholder={tCommon("search")}
             value={search}
-            onChange={(event) =>
-              setSearch(event.target.value)
-            }
+            onChange={(event) => setSearch(event.target.value)}
             className="min-w-0 flex-1 bg-transparent outline-none"
             style={{
               fontFamily: "var(--font-base)",
-              fontSize:
-                "clamp(13px, 1.11vw, 20px)",
-              color:
-                "var(--color-text-primary)",
+              fontSize: "clamp(13px, 1.11vw, 20px)",
+              color: "var(--color-text-primary)",
             }}
           />
         </label>
@@ -1764,12 +1377,11 @@ async function reloadLiqPayDestinations() {
         <DataTable<TeacherOrderRow>
           columns={columns}
           rows={rows}
-          getRowKey={(row) =>
-            `${row.order_id}-${row.course_slug}`
-          }
+          getRowKey={(row) => `${row.order_id}-${row.course_slug}`}
           emptyMessage={emptyMessage}
           scrollable
         />
       </div>
     </PageShell>
-)};
+  );
+}

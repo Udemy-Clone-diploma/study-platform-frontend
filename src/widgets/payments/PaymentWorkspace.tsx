@@ -37,8 +37,7 @@ type CheckoutIntentState = {
   installmentCount: number | null;
 };
 
-const LIQPAY_PENDING_PAYMENT_KEY =
-  "nexo_liqpay_pending_payment";
+const LIQPAY_PENDING_PAYMENT_KEY = "nexo_liqpay_pending_payment";
 
 const TAB_ORDER: TabId[] = ["cart", "plans", "history"];
 const TAB_ROLES: Record<TabId, WorkspaceRole[]> = {
@@ -683,10 +682,7 @@ function PaymentHistoryTable({ payments }: { payments: Payment[] }) {
   );
 }
 
-
-function submitLiqPayForm(
-  checkout: LiqPayCheckoutResponse,
-) {
+function submitLiqPayForm(checkout: LiqPayCheckoutResponse) {
   const form = document.createElement("form");
 
   form.method = "POST";
@@ -697,8 +693,7 @@ function submitLiqPayForm(
   dataInput.name = "data";
   dataInput.value = checkout.data;
 
-  const signatureInput =
-    document.createElement("input");
+  const signatureInput = document.createElement("input");
 
   signatureInput.type = "hidden";
   signatureInput.name = "signature";
@@ -869,25 +864,18 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
   useEffect(() => {
     if (
       role !== "student" ||
-      searchParams.get("liqpay")
-        !== "return" ||
+      searchParams.get("liqpay") !== "return" ||
       liqPayReturnHandledRef.current
     ) {
       return;
     }
 
-    liqPayReturnHandledRef.current =
-      true;
+    liqPayReturnHandledRef.current = true;
 
-    const rawPendingPayment =
-      sessionStorage.getItem(
-        LIQPAY_PENDING_PAYMENT_KEY,
-      );
+    const rawPendingPayment = sessionStorage.getItem(LIQPAY_PENDING_PAYMENT_KEY);
 
     if (!rawPendingPayment) {
-      setToast(
-        t("noticePaymentProcessing"),
-      );
+      setToast(t("noticePaymentProcessing"));
       return;
     }
 
@@ -897,25 +885,18 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
     };
 
     try {
-      pendingPayment =
-        JSON.parse(
-          rawPendingPayment,
-        ) as {
-          paymentId: number;
-          orderId: number;
-        };
+      pendingPayment = JSON.parse(rawPendingPayment) as {
+        paymentId: number;
+        orderId: number;
+      };
     } catch {
-      sessionStorage.removeItem(
-        LIQPAY_PENDING_PAYMENT_KEY,
-      );
+      sessionStorage.removeItem(LIQPAY_PENDING_PAYMENT_KEY);
 
       return;
     }
 
     let cancelled = false;
-    let timeoutId:
-      | number
-      | undefined;
+    let timeoutId: number | undefined;
 
     let attempts = 0;
 
@@ -926,115 +907,59 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
       attempts += 1;
 
       try {
-        const result =
-          await syncLiqPayStatus(
-            pendingPayment.paymentId,
-          );
+        const result = await syncLiqPayStatus(pendingPayment.paymentId);
 
         if (cancelled) {
           return;
         }
 
-        if (
-          result.payment_status ===
-          "succeeded"
-        ) {
-          sessionStorage.removeItem(
-            LIQPAY_PENDING_PAYMENT_KEY,
-          );
+        if (result.payment_status === "succeeded") {
+          sessionStorage.removeItem(LIQPAY_PENDING_PAYMENT_KEY);
 
-          const [
-            refreshedPayments,
-            refreshedCart,
-          ] = await Promise.all([
-            getPayments(),
-            getCart(),
-          ]);
+          const [refreshedPayments, refreshedCart] = await Promise.all([getPayments(), getCart()]);
 
           if (cancelled) {
             return;
           }
 
-          setPayments(
-            refreshedPayments.results,
-          );
+          setPayments(refreshedPayments.results);
 
           setCart(refreshedCart);
 
-          setSelectedCartItemIds(
-            refreshedCart.items.map(
-              (item) => item.id,
-            ),
-          );
+          setSelectedCartItemIds(refreshedCart.items.map((item) => item.id));
 
           setActiveTab("history");
 
-          const params =
-            new URLSearchParams(
-              searchParams.toString(),
-            );
+          const params = new URLSearchParams(searchParams.toString());
 
-          params.set(
-            "tab",
-            "history",
-          );
+          params.set("tab", "history");
 
           params.delete("liqpay");
 
-          router.replace(
-            `${pathname}?${params.toString()}`,
-            {
-              scroll: false,
-            },
-          );
+          router.replace(`${pathname}?${params.toString()}`, {
+            scroll: false,
+          });
 
           return;
         }
 
-        if (
-          result.payment_status ===
-            "failed" ||
-          result.payment_status ===
-            "canceled"
-        ) {
-          sessionStorage.removeItem(
-            LIQPAY_PENDING_PAYMENT_KEY,
-          );
+        if (result.payment_status === "failed" || result.payment_status === "canceled") {
+          sessionStorage.removeItem(LIQPAY_PENDING_PAYMENT_KEY);
 
-          setToast(
-            t(
-              "noticePaymentCanceled",
-            ),
-          );
+          setToast(t("noticePaymentCanceled"));
 
           return;
         }
 
-        setToast(
-          t(
-            "noticePaymentProcessing",
-          ),
-        );
+        setToast(t("noticePaymentProcessing"));
       } catch {
         if (!cancelled) {
-          setToast(
-            t(
-              "noticePaymentProcessing",
-            ),
-          );
+          setToast(t("noticePaymentProcessing"));
         }
       }
 
-      if (
-        !cancelled &&
-        attempts <
-          MAX_LIQPAY_SYNC_ATTEMPTS
-      ) {
-        timeoutId =
-          window.setTimeout(
-            syncPayment,
-            LIQPAY_SYNC_DELAY_MS,
-          );
+      if (!cancelled && attempts < MAX_LIQPAY_SYNC_ATTEMPTS) {
+        timeoutId = window.setTimeout(syncPayment, LIQPAY_SYNC_DELAY_MS);
       }
     }
 
@@ -1044,18 +969,10 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
       cancelled = true;
 
       if (timeoutId) {
-        window.clearTimeout(
-          timeoutId,
-        );
+        window.clearTimeout(timeoutId);
       }
     };
-  }, [
-    pathname,
-    role,
-    router,
-    searchParams,
-    t,
-  ]);
+  }, [pathname, role, router, searchParams, t]);
 
   useEffect(() => {
     const notice = searchParams.get("notice");
@@ -1294,17 +1211,9 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
     }
   }
 
-  async function startCartLiqPayCheckout(
-    paymentType: PaymentType,
-  ) {
-    if (
-      !cart ||
-      selectedCartItems.length === 0 ||
-      checkoutLoading
-    ) {
-      setCheckoutError(
-        t("errorSelectCourse"),
-      );
+  async function startCartLiqPayCheckout(paymentType: PaymentType) {
+    if (!cart || selectedCartItems.length === 0 || checkoutLoading) {
+      setCheckoutError(t("errorSelectCourse"));
       return;
     }
 
@@ -1312,127 +1221,73 @@ export function PaymentWorkspace({ role = "student" }: { role?: WorkspaceRole })
     setCheckoutError("");
 
     try {
-      const freeCartItems =
-        selectedCartItems.filter(
-          (item) =>
-            Number(item.unit_price) === 0,
-        );
+      const freeCartItems = selectedCartItems.filter((item) => Number(item.unit_price) === 0);
 
-      const paidCartItems =
-        selectedCartItems.filter(
-          (item) =>
-            Number(item.unit_price) > 0,
-        );
+      const paidCartItems = selectedCartItems.filter((item) => Number(item.unit_price) > 0);
 
       if (freeCartItems.length > 0) {
         await Promise.all(
           freeCartItems.map((item) =>
-            enrollInFreeCourse(
-              item.course.slug,
-              {
-                pricing_plan_id:
-                  item.pricing_plan_id ??
-                  undefined,
+            enrollInFreeCourse(item.course.slug, {
+              pricing_plan_id: item.pricing_plan_id ?? undefined,
 
-                cohort_id:
-                  item.cohort?.id,
+              cohort_id: item.cohort?.id,
 
-                schedule_slot_ids:
-                  item.schedule_slots.map(
-                    (slot) => slot.id,
-                  ),
-              },
-            ),
+              schedule_slot_ids: item.schedule_slots.map((slot) => slot.id),
+            }),
           ),
         );
 
-        const refreshedCart =
-          await getCart();
+        const refreshedCart = await getCart();
 
         setCart(refreshedCart);
 
-        setSelectedCartItemIds(
-          paidCartItems.map(
-            (item) => item.id,
-          ),
-        );
+        setSelectedCartItemIds(paidCartItems.map((item) => item.id));
 
-        if (
-          paidCartItems.length === 0
-        ) {
-          setToast(
-            t("freeCourseGranted"),
-          );
+        if (paidCartItems.length === 0) {
+          setToast(t("freeCourseGranted"));
           return;
         }
       }
 
-      const paidInstallmentOption =
-        installmentOptionForItems(
-          paidCartItems,
-        );
+      const paidInstallmentOption = installmentOptionForItems(paidCartItems);
 
-      if (
-        paymentType ===
-          "installments" &&
-        !paidInstallmentOption
-      ) {
-        setCheckoutError(
-          t(
-            "errorPartialNotAvailable",
-          ),
-        );
+      if (paymentType === "installments" && !paidInstallmentOption) {
+        setCheckoutError(t("errorPartialNotAvailable"));
         return;
       }
 
       const requestedInstallmentCount =
-        paymentType ===
-          "installments" &&
-        paidInstallmentOption
+        paymentType === "installments" && paidInstallmentOption
           ? paidInstallmentOption.count
           : undefined;
 
-      const checkout =
-        await createLiqPayCheckout({
-          selected_cart_item_ids:
-            paidCartItems.map(
-              (item) => item.id,
-            ),
+      const checkout = await createLiqPayCheckout({
+        selected_cart_item_ids: paidCartItems.map((item) => item.id),
 
-          payment_type:
-            paymentType,
+        payment_type: paymentType,
 
-          installments_count:
-            requestedInstallmentCount,
-        });
+        installments_count: requestedInstallmentCount,
+      });
 
       sessionStorage.setItem(
         LIQPAY_PENDING_PAYMENT_KEY,
         JSON.stringify({
-          paymentId:
-            checkout.payment_id,
+          paymentId: checkout.payment_id,
 
-          orderId:
-            checkout.order_id,
+          orderId: checkout.order_id,
 
-          providerOrderId:
-            checkout.provider_order_id,
+          providerOrderId: checkout.provider_order_id,
 
-          createdAt:
-            Date.now(),
+          createdAt: Date.now(),
         }),
       );
 
       submitLiqPayForm(checkout);
     } catch (error) {
-      const apiError =
-        error as Partial<ApiError>;
+      const apiError = error as Partial<ApiError>;
 
-      setCheckoutError(
-        apiError.detail ||
-          apiError.message ||
-          t("errorStartPayment"),
-      );
+      setCheckoutError(apiError.detail || apiError.message || t("errorStartPayment"));
 
       setCheckoutLoading(false);
     }

@@ -354,8 +354,7 @@ export function FinanceAdminView() {
         </div>
         <div
           style={{
-            marginBottom:
-              "clamp(16px, 1.67vw, 24px)",
+            marginBottom: "clamp(16px, 1.67vw, 24px)",
           }}
         >
           <StaffPayoutPanel />
@@ -464,7 +463,11 @@ export function FinanceAdminView() {
           }
           description={[
             t("refundDescription", {
-              amount: formatMoney(String(remainingAmount(refundTarget)), refundTarget.currency, locale),
+              amount: formatMoney(
+                String(remainingAmount(refundTarget)),
+                refundTarget.currency,
+                locale,
+              ),
               currency: refundTarget.currency,
               payer: payerName(refundTarget, tPaymentsTable),
               id: refundTarget.id,

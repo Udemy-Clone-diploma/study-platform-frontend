@@ -20,7 +20,14 @@ export type CourseMode = "self_learning" | "with_teacher";
 export type CourseDeliveryType = "self_paced" | "scheduled" | "individual" | "group";
 export type CourseType = "profession" | "qualification" | "knowledge";
 export type CoursePricingType = "free" | "full_payment" | "installment";
-export type CourseStatus = "draft" | "review" | "needs_revision" | "rejected" | "published" | "hidden" | "archived";
+export type CourseStatus =
+  | "draft"
+  | "review"
+  | "needs_revision"
+  | "rejected"
+  | "published"
+  | "hidden"
+  | "archived";
 
 export type CourseListItem = {
   id: number;

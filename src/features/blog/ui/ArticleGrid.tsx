@@ -19,7 +19,13 @@ type Props = {
  * sits in its own white card (same shell as the Reports page), and — same layout as
  * TeacherApplicationsAdminView — a glass detail panel floats outside that card, directly on the
  * page's lavender background, when a row is selected. */
-export function ArticleGrid({ articles, emptyLabel, currentUserId, currentUserRole, onAction }: Props) {
+export function ArticleGrid({
+  articles,
+  emptyLabel,
+  currentUserId,
+  currentUserRole,
+  onAction,
+}: Props) {
   const [selected, setSelected] = useState<ArticleListItem | null>(null);
 
   const selectedArticle = selected ? (articles.find((a) => a.id === selected.id) ?? null) : null;

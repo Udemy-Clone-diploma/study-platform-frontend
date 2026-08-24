@@ -8,11 +8,7 @@ import {
   type NotificationType,
 } from "@/entities/notification";
 
-const EMAIL_TYPES: NotificationType[] = [
-  "homework_submitted",
-  "homework_graded",
-  "schedule_event",
-];
+const EMAIL_TYPES: NotificationType[] = ["homework_submitted", "homework_graded", "schedule_event"];
 
 export function useEmailPreference() {
   const [emailEnabled, setEmailEnabled] = useState<boolean | null>(null);

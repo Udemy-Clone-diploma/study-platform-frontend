@@ -77,7 +77,16 @@ function isLocked(key: string, statuses?: Record<string, ItemStatus>) {
 }
 
 /** Expandable module card showing only lessons (tests live inside lesson content blocks). */
-export function ModuleCard({ module, index, onEdit, onDelete, onAddLesson, onEditLesson, onDeleteLesson, itemStatuses }: Props) {
+export function ModuleCard({
+  module,
+  index,
+  onEdit,
+  onDelete,
+  onAddLesson,
+  onEditLesson,
+  onDeleteLesson,
+  itemStatuses,
+}: Props) {
   const t = useTranslations("ModuleCard");
   const [open, setOpen] = useState(false);
   const lessonCount = module.lessons.length;
@@ -97,13 +106,28 @@ export function ModuleCard({ module, index, onEdit, onDelete, onAddLesson, onEdi
           <span style={{ ...metaSt, color: "var(--color-text-secondary)", flexShrink: 0 }}>
             {t("moduleNumber", { order: index + 1 })}
           </span>
-          <span style={{ ...metaSt, color: "var(--color-text-primary)", overflow: "hidden", textOverflow: "ellipsis" }}>
+          <span
+            style={{
+              ...metaSt,
+              color: "var(--color-text-primary)",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
             {module.title}
           </span>
           <span className="flex shrink-0 items-center" style={{ gap: 4 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/icons/book.svg" alt="" width={16} height={16} style={{ width: 16, height: 16, flexShrink: 0 }} />
-            <span style={{ ...metaSt, color: "var(--color-text-secondary)" }}>{t("lessonsCount", { count: lessonCount })}</span>
+            <img
+              src="/icons/book.svg"
+              alt=""
+              width={16}
+              height={16}
+              style={{ width: 16, height: 16, flexShrink: 0 }}
+            />
+            <span style={{ ...metaSt, color: "var(--color-text-secondary)" }}>
+              {t("lessonsCount", { count: lessonCount })}
+            </span>
           </span>
         </div>
 
@@ -135,7 +159,13 @@ export function ModuleCard({ module, index, onEdit, onDelete, onAddLesson, onEdi
           aria-label={t("renameModuleAriaLabel")}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/icons/edit.svg" alt="" width={20} height={20} style={{ width: 20, height: 20 }} />
+          <img
+            src="/icons/edit.svg"
+            alt=""
+            width={20}
+            height={20}
+            style={{ width: 20, height: 20 }}
+          />
         </button>
         <button
           type="button"
@@ -145,13 +175,26 @@ export function ModuleCard({ module, index, onEdit, onDelete, onAddLesson, onEdi
           aria-label={t("deleteModuleAriaLabel")}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/icons/trash.svg" alt="" width={20} height={20} style={{ width: 20, height: 20 }} />
+          <img
+            src="/icons/trash.svg"
+            alt=""
+            width={20}
+            height={20}
+            style={{ width: 20, height: 20 }}
+          />
         </button>
       </div>
 
       {/* Expanded content */}
       {open && (
-        <div style={{ marginTop: "clamp(16px, 1.25vw, 24px)", display: "flex", flexDirection: "column", gap: 20 }}>
+        <div
+          style={{
+            marginTop: "clamp(16px, 1.25vw, 24px)",
+            display: "flex",
+            flexDirection: "column",
+            gap: 20,
+          }}
+        >
           <div className="flex items-center justify-between">
             <div className="flex items-center" style={{ gap: 8 }}>
               <Play size={20} style={{ color: "var(--color-text-primary)", flexShrink: 0 }} />
@@ -160,7 +203,11 @@ export function ModuleCard({ module, index, onEdit, onDelete, onAddLesson, onEdi
             <GradientButton
               type="button"
               onClick={onAddLesson}
-              style={{ gap: 8, minWidth: "clamp(160px, 10.42vw, 200px)", height: "clamp(38px, 2.29vw, 44px)" }}
+              style={{
+                gap: 8,
+                minWidth: "clamp(160px, 10.42vw, 200px)",
+                height: "clamp(38px, 2.29vw, 44px)",
+              }}
             >
               <Plus size={16} />
               {t("addLesson")}
@@ -169,19 +216,39 @@ export function ModuleCard({ module, index, onEdit, onDelete, onAddLesson, onEdi
 
           {lessonCount === 0 ? (
             <div style={emptyCardSt}>
-              <div className="flex flex-col items-center" style={{ gap: "clamp(16px, 1.39vw, 20px)" }}>
-                <div className="flex flex-col items-center" style={{ gap: "clamp(8px, 0.83vw, 12px)" }}>
-                  <Play size={40} style={{ width: "clamp(32px, 2.78vw, 40px)", height: "clamp(32px, 2.78vw, 40px)", color: "var(--color-text-primary)" }} />
+              <div
+                className="flex flex-col items-center"
+                style={{ gap: "clamp(16px, 1.39vw, 20px)" }}
+              >
+                <div
+                  className="flex flex-col items-center"
+                  style={{ gap: "clamp(8px, 0.83vw, 12px)" }}
+                >
+                  <Play
+                    size={40}
+                    style={{
+                      width: "clamp(32px, 2.78vw, 40px)",
+                      height: "clamp(32px, 2.78vw, 40px)",
+                      color: "var(--color-text-primary)",
+                    }}
+                  />
                   <span style={emptyTextSt}>{t("noLessonsYet")}</span>
                 </div>
-                <button type="button" onClick={onAddLesson} className="transition hover:opacity-80" style={outlinedBtnSt}>
+                <button
+                  type="button"
+                  onClick={onAddLesson}
+                  className="transition hover:opacity-80"
+                  style={outlinedBtnSt}
+                >
                   <Plus size={20} />
                   {t("createFirstLesson")}
                 </button>
               </div>
             </div>
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: "clamp(8px, 0.52vw, 10px)" }}>
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: "clamp(8px, 0.52vw, 10px)" }}
+            >
               {module.lessons.map((lesson, i) => {
                 const locked = isLocked(`lesson-${lesson.id}`, itemStatuses);
                 return (

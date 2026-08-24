@@ -22,9 +22,9 @@ type Translator = (key: string, values?: Record<string, string | number>) => str
 /** Build the SUBMIT_LABEL map from a `ModerationNavButtons` translator. */
 export function getSubmitLabels(t: Translator): Record<NonNullable<ModeratorAction>, string> {
   return {
-    approved:       t("submitApproved"),
+    approved: t("submitApproved"),
     needs_revision: t("submitNeedsRevision"),
-    rejected:       t("submitRejected"),
+    rejected: t("submitRejected"),
   };
 }
 
@@ -33,8 +33,8 @@ export function getContentActions(
   t: Translator,
 ): { key: NonNullable<ItemStatus>; label: string; color: string }[] {
   return [
-    { key: "approved",       label: t("statusApproved"),      color: "var(--color-success)" },
-    { key: "rejected",       label: t("statusRejected"),       color: "var(--color-rejected)" },
+    { key: "approved", label: t("statusApproved"), color: "var(--color-success)" },
+    { key: "rejected", label: t("statusRejected"), color: "var(--color-rejected)" },
     { key: "needs_revision", label: t("statusNeedsRevision"), color: "var(--color-warning)" },
   ];
 }
@@ -77,13 +77,16 @@ export function computeSectionAction(statuses: (ItemStatus | null)[]): ItemStatu
   const rated = statuses.filter((s): s is NonNullable<ItemStatus> => s !== null);
   if (rated.length === 0) return null;
   if (rated.some((s) => s === "needs_revision")) return "needs_revision";
-  if (rated.some((s) => s === "rejected"))       return "rejected";
+  if (rated.some((s) => s === "rejected")) return "rejected";
   return "approved";
 }
 
 /** Auto-compute the final moderator action from the two section actions.
  *  approved+approved=approved | rejected+rejected=rejected | anything else=needs_revision. */
-export function computeFinalAction(basics: ItemStatus | null, content: ItemStatus | null): ModeratorAction {
+export function computeFinalAction(
+  basics: ItemStatus | null,
+  content: ItemStatus | null,
+): ModeratorAction {
   if (basics === null || content === null) return null;
   if (basics === "approved" && content === "approved") return "approved";
   if (basics === "rejected" && content === "rejected") return "rejected";

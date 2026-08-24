@@ -107,7 +107,12 @@ export function FinanceStatTiles({ summary, currency, error, loading }: Props) {
                   {tile.hint}
                 </span>
               ) : (
-                <ChangeCaption change={change} upIsGood={tile.upIsGood} locale={locale} suffix={t("vsPreviousPeriod")} />
+                <ChangeCaption
+                  change={change}
+                  upIsGood={tile.upIsGood}
+                  locale={locale}
+                  suffix={t("vsPreviousPeriod")}
+                />
               )}
             </div>
           );

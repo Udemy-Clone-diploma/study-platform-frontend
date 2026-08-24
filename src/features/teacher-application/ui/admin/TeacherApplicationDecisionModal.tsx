@@ -58,7 +58,9 @@ export function TeacherApplicationDecisionModal({
         value={comment}
         onChange={(e) => setComment(e.target.value)}
         rows={3}
-        placeholder={commentRequired ? t("commentPlaceholderCancel") : t("commentPlaceholderApprove")}
+        placeholder={
+          commentRequired ? t("commentPlaceholderCancel") : t("commentPlaceholderApprove")
+        }
         className="w-full resize-y rounded-xl border border-(--color-pink-dark) bg-white outline-none focus:border-(--color-blue)"
         style={{
           fontFamily: "var(--font-base)",

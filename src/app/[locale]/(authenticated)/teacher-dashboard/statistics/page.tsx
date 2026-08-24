@@ -16,9 +16,13 @@ const ALL_COURSES = "__all__";
 
 function amountsLabel(rows: { amount: string; currency: string }[]): string {
   const byCurrency = new Map<string, number>();
-  rows.forEach((r) => byCurrency.set(r.currency, (byCurrency.get(r.currency) ?? 0) + Number(r.amount)));
+  rows.forEach((r) =>
+    byCurrency.set(r.currency, (byCurrency.get(r.currency) ?? 0) + Number(r.amount)),
+  );
   if (byCurrency.size === 0) return "0";
-  return Array.from(byCurrency.entries()).map(([currency, amount]) => `${amount.toFixed(0)} ${currency}`).join(" + ");
+  return Array.from(byCurrency.entries())
+    .map(([currency, amount]) => `${amount.toFixed(0)} ${currency}`)
+    .join(" + ");
 }
 
 /**
@@ -62,22 +66,36 @@ export default function TeacherStatisticsPage() {
       .catch(() => {});
 
     const ordersPromise = getTeacherOrders({})
-      .then((res) => { if (!cancelled) setOrders(res.results); })
+      .then((res) => {
+        if (!cancelled) setOrders(res.results);
+      })
       .catch(() => {});
 
-    Promise.all([coursesPromise, ordersPromise]).finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
+    Promise.all([coursesPromise, ordersPromise]).finally(() => {
+      if (!cancelled) setLoading(false);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  const courseOptions = useMemo(() => [
-    { value: ALL_COURSES, label: tCommon("allCourses") },
-    ...courses.map((c) => ({ value: c.slug, label: c.title })),
-  ], [courses, tCommon]);
+  const courseOptions = useMemo(
+    () => [
+      { value: ALL_COURSES, label: tCommon("allCourses") },
+      ...courses.map((c) => ({ value: c.slug, label: c.title })),
+    ],
+    [courses, tCommon],
+  );
 
-  const publishedCount = useMemo(() => courses.filter((c) => c.status === "published").length, [courses]);
+  const publishedCount = useMemo(
+    () => courses.filter((c) => c.status === "published").length,
+    [courses],
+  );
 
   const studentsValue =
-    studentsCourseFilter === ALL_COURSES ? totalStudents : studentsByCourse[studentsCourseFilter] ?? 0;
+    studentsCourseFilter === ALL_COURSES
+      ? totalStudents
+      : (studentsByCourse[studentsCourseFilter] ?? 0);
 
   const averageRating = useMemo(() => {
     if (ratingCourseFilter !== ALL_COURSES) {
@@ -91,7 +109,10 @@ export default function TeacherStatisticsPage() {
 
   const revenueLabel = useMemo(() => {
     const paid = orders.filter((o) => o.status === "paid");
-    const scoped = revenueCourseFilter === ALL_COURSES ? paid : paid.filter((o) => o.course_slug === revenueCourseFilter);
+    const scoped =
+      revenueCourseFilter === ALL_COURSES
+        ? paid
+        : paid.filter((o) => o.course_slug === revenueCourseFilter);
     return amountsLabel(scoped);
   }, [orders, revenueCourseFilter]);
 
@@ -105,7 +126,9 @@ export default function TeacherStatisticsPage() {
   return (
     <PageShell className="bg-my-courses">
       <div style={{ maxWidth: "1648px", margin: "0 auto" }}>
-        <h1 className="mb-6 text-[28px] leading-none font-normal text-(--color-text-primary)">{t("heading")}</h1>
+        <h1 className="mb-6 text-[28px] leading-none font-normal text-(--color-text-primary)">
+          {t("heading")}
+        </h1>
 
         {loading ? (
           <p className="text-center text-lg text-(--color-text-secondary)">{tCommon("loading")}</p>
@@ -118,7 +141,14 @@ export default function TeacherStatisticsPage() {
               width={499}
               height={505}
               className="pointer-events-none absolute hidden select-none lg:block"
-              style={{ left: "clamp(-80px, -4vw, -20px)", bottom: "clamp(-120px, -11vw, -60px)", width: "clamp(280px, 26vw, 500px)", height: "auto", transform: "rotate(-29.44deg)", zIndex: 1 }}
+              style={{
+                left: "clamp(-80px, -4vw, -20px)",
+                bottom: "clamp(-120px, -11vw, -60px)",
+                width: "clamp(280px, 26vw, 500px)",
+                height: "auto",
+                transform: "rotate(-29.44deg)",
+                zIndex: 1,
+              }}
             />
             <Image
               src="/backgrounds/crystal.svg"
@@ -127,7 +157,14 @@ export default function TeacherStatisticsPage() {
               width={696}
               height={702}
               className="pointer-events-none absolute hidden select-none lg:block"
-              style={{ right: "clamp(-70px, -1vw, 10px)", bottom: "clamp(-160px, -14vw, -100px)", width: "clamp(300px, 28vw, 560px)", height: "auto", transform: "rotate(31.1deg)", zIndex: 1 }}
+              style={{
+                right: "clamp(-70px, -1vw, 10px)",
+                bottom: "clamp(-160px, -14vw, -100px)",
+                width: "clamp(300px, 28vw, 560px)",
+                height: "auto",
+                transform: "rotate(31.1deg)",
+                zIndex: 1,
+              }}
             />
 
             <div
@@ -137,7 +174,11 @@ export default function TeacherStatisticsPage() {
               {/* Left: 2x2 stat blocks, with the enrollment-growth chart below them */}
               <div className="flex flex-col" style={{ gap: "clamp(12px, 1.11vw, 20px)" }}>
                 <div className="grid grid-cols-2" style={{ gap: "clamp(12px, 1.11vw, 20px)" }}>
-                  <StatCard title={t("totalCourses")} value={courses.length} caption={t("publishedCount", { count: publishedCount })} />
+                  <StatCard
+                    title={t("totalCourses")}
+                    value={courses.length}
+                    caption={t("publishedCount", { count: publishedCount })}
+                  />
                   <StatCard
                     title={t("totalStudents")}
                     value={studentsValue}
@@ -187,7 +228,14 @@ export default function TeacherStatisticsPage() {
   );
 }
 
-function StatCard({ title, value, caption, courseFilter, courseOptions, onCourseChange }: {
+function StatCard({
+  title,
+  value,
+  caption,
+  courseFilter,
+  courseOptions,
+  onCourseChange,
+}: {
   title: string;
   value: number | string;
   caption?: string;
@@ -201,7 +249,10 @@ function StatCard({ title, value, caption, courseFilter, courseOptions, onCourse
       style={{ boxShadow: "var(--shadow-dashboard-card)", gap: "clamp(12px, 1.11vw, 20px)" }}
     >
       <div className="flex items-center justify-between gap-2">
-        <span className="min-w-0 truncate font-(family-name:--font-base) text-(--color-text-primary)" style={{ fontSize: "clamp(14px, 1.11vw, 20px)" }}>
+        <span
+          className="min-w-0 truncate font-(family-name:--font-base) text-(--color-text-primary)"
+          style={{ fontSize: "clamp(14px, 1.11vw, 20px)" }}
+        >
           {title}
         </span>
         {courseOptions && onCourseChange && courseFilter !== undefined && (
@@ -210,13 +261,23 @@ function StatCard({ title, value, caption, courseFilter, courseOptions, onCourse
       </div>
       <div
         className="flex items-baseline gap-2 rounded-lg"
-        style={{ background: "linear-gradient(90deg, rgba(167, 186, 250, 0.32) 0%, rgba(167, 186, 250, 0) 100%)", padding: "clamp(8px, 0.83vw, 12px)" }}
+        style={{
+          background:
+            "linear-gradient(90deg, rgba(167, 186, 250, 0.32) 0%, rgba(167, 186, 250, 0) 100%)",
+          padding: "clamp(8px, 0.83vw, 12px)",
+        }}
       >
-        <span className="font-(family-name:--font-base) font-medium text-(--color-blue)" style={{ fontSize: "clamp(24px, 2.33vw, 32px)" }}>
+        <span
+          className="font-(family-name:--font-base) font-medium text-(--color-blue)"
+          style={{ fontSize: "clamp(24px, 2.33vw, 32px)" }}
+        >
           {value}
         </span>
         {caption && (
-          <span className="font-(family-name:--font-base) text-(--color-text-secondary)" style={{ fontSize: "clamp(13px, 1vw, 16px)" }}>
+          <span
+            className="font-(family-name:--font-base) text-(--color-text-secondary)"
+            style={{ fontSize: "clamp(13px, 1vw, 16px)" }}
+          >
             {caption}
           </span>
         )}
@@ -225,7 +286,11 @@ function StatCard({ title, value, caption, courseFilter, courseOptions, onCourse
   );
 }
 
-function ListPanel({ title, children, emptyText }: {
+function ListPanel({
+  title,
+  children,
+  emptyText,
+}: {
   title: string;
   emptyText: string;
   children: React.ReactNode;
@@ -234,16 +299,31 @@ function ListPanel({ title, children, emptyText }: {
   return (
     <div
       className="flex flex-col rounded-2xl bg-(--color-bg-surface) p-5"
-      style={{ boxShadow: "var(--shadow-dashboard-card)", gap: "clamp(12px, 1.11vw, 16px)", height: "clamp(240px, 22vw, 300px)" }}
+      style={{
+        boxShadow: "var(--shadow-dashboard-card)",
+        gap: "clamp(12px, 1.11vw, 16px)",
+        height: "clamp(240px, 22vw, 300px)",
+      }}
     >
       <div className="flex shrink-0 items-center gap-2">
-        <span className="font-(family-name:--font-base) text-(--color-text-primary)" style={{ fontSize: "clamp(14px, 1.11vw, 20px)" }}>
+        <span
+          className="font-(family-name:--font-base) text-(--color-text-primary)"
+          style={{ fontSize: "clamp(14px, 1.11vw, 20px)" }}
+        >
           {title}
         </span>
       </div>
-      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto" style={{ gap: "clamp(8px, 0.69vw, 12px)" }}>
-        {hasItems ? children : (
-          <p className="font-(family-name:--font-base) text-(--color-text-secondary)" style={{ fontSize: "clamp(12px, 0.83vw, 14px)" }}>
+      <div
+        className="flex min-h-0 flex-1 flex-col overflow-y-auto"
+        style={{ gap: "clamp(8px, 0.69vw, 12px)" }}
+      >
+        {hasItems ? (
+          children
+        ) : (
+          <p
+            className="font-(family-name:--font-base) text-(--color-text-secondary)"
+            style={{ fontSize: "clamp(12px, 0.83vw, 14px)" }}
+          >
             {emptyText}
           </p>
         )}
@@ -257,24 +337,44 @@ function CoursePerformanceRow({ course }: { course: CourseListItem }) {
   return (
     <div
       className="flex items-center rounded-xl bg-white"
-      style={{ boxShadow: "var(--shadow-card)", padding: "clamp(8px, 0.69vw, 12px)", gap: "clamp(10px, 0.83vw, 16px)" }}
+      style={{
+        boxShadow: "var(--shadow-card)",
+        padding: "clamp(8px, 0.69vw, 12px)",
+        gap: "clamp(10px, 0.83vw, 16px)",
+      }}
     >
       {course.image ? (
-        <Image src={course.image} alt="" width={48} height={48} unoptimized className="h-12 w-12 shrink-0 rounded-md object-cover" />
+        <Image
+          src={course.image}
+          alt=""
+          width={48}
+          height={48}
+          unoptimized
+          className="h-12 w-12 shrink-0 rounded-md object-cover"
+        />
       ) : (
         <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-[#fff3dc] to-[#ffe7ef]">
           <Image src="/icons/curses.svg" alt="" width={26} height={26} className="h-6 w-6" />
         </span>
       )}
       <div className="min-w-0 flex-1">
-        <p className="truncate font-(family-name:--font-base) font-medium text-(--color-text-primary)" style={{ fontSize: "clamp(13px, 1vw, 16px)" }}>
+        <p
+          className="truncate font-(family-name:--font-base) font-medium text-(--color-text-primary)"
+          style={{ fontSize: "clamp(13px, 1vw, 16px)" }}
+        >
           {course.title}
         </p>
-        <p className="font-(family-name:--font-base) text-(--color-text-secondary)" style={{ fontSize: "clamp(11px, 0.73vw, 13px)" }}>
+        <p
+          className="font-(family-name:--font-base) text-(--color-text-secondary)"
+          style={{ fontSize: "clamp(11px, 0.73vw, 13px)" }}
+        >
           {t("studentsCount", { count: course.students_count })}
         </p>
       </div>
-      <span className="flex shrink-0 items-center gap-1 font-(family-name:--font-base) text-(--color-text-primary)" style={{ fontSize: "clamp(12px, 0.9vw, 14px)" }}>
+      <span
+        className="flex shrink-0 items-center gap-1 font-(family-name:--font-base) text-(--color-text-primary)"
+        style={{ fontSize: "clamp(12px, 0.9vw, 14px)" }}
+      >
         <Star size={14} fill="var(--color-brand-yellow)" color="var(--color-brand-yellow)" />
         {course.rating_count > 0 ? Number(course.rating_avg).toFixed(1) : "—"}
       </span>
@@ -285,10 +385,22 @@ function CoursePerformanceRow({ course }: { course: CourseListItem }) {
 function PaymentStatusDot({ status }: { status: TeacherOrderStatus }) {
   const tPayments = useTranslations("TeacherPaymentsPage");
   const color =
-    status === "paid" ? "var(--color-blue)" : status === "unpaid" ? "var(--color-yellow-dark)" : "var(--color-rejected)";
-  const label = status === "paid" ? tPayments("statusPaid") : status === "unpaid" ? tPayments("statusUnpaid") : tPayments("statusOverdue");
+    status === "paid"
+      ? "var(--color-blue)"
+      : status === "unpaid"
+        ? "var(--color-yellow-dark)"
+        : "var(--color-rejected)";
+  const label =
+    status === "paid"
+      ? tPayments("statusPaid")
+      : status === "unpaid"
+        ? tPayments("statusUnpaid")
+        : tPayments("statusOverdue");
   return (
-    <span className="flex shrink-0 items-center gap-1 font-(family-name:--font-base)" style={{ fontSize: "clamp(11px, 0.83vw, 13px)", color }}>
+    <span
+      className="flex shrink-0 items-center gap-1 font-(family-name:--font-base)"
+      style={{ fontSize: "clamp(11px, 0.83vw, 13px)", color }}
+    >
       <span style={{ width: 6, height: 6, borderRadius: "50%", background: color }} />
       {label}
     </span>
@@ -299,18 +411,31 @@ function PaymentRow({ row }: { row: TeacherOrderRow }) {
   return (
     <div
       className="flex items-center rounded-xl bg-white"
-      style={{ boxShadow: "var(--shadow-card)", padding: "clamp(8px, 0.69vw, 12px)", gap: "clamp(10px, 0.83vw, 16px)" }}
+      style={{
+        boxShadow: "var(--shadow-card)",
+        padding: "clamp(8px, 0.69vw, 12px)",
+        gap: "clamp(10px, 0.83vw, 16px)",
+      }}
     >
       <StudentAvatar name={row.student_name} avatar={row.student_avatar} />
       <div className="min-w-0 flex-1">
-        <p className="truncate font-(family-name:--font-base) font-medium text-(--color-text-primary)" style={{ fontSize: "clamp(13px, 1vw, 16px)" }}>
+        <p
+          className="truncate font-(family-name:--font-base) font-medium text-(--color-text-primary)"
+          style={{ fontSize: "clamp(13px, 1vw, 16px)" }}
+        >
           {row.student_name}
         </p>
-        <p className="truncate font-(family-name:--font-base) text-(--color-text-secondary)" style={{ fontSize: "clamp(11px, 0.73vw, 13px)" }}>
+        <p
+          className="truncate font-(family-name:--font-base) text-(--color-text-secondary)"
+          style={{ fontSize: "clamp(11px, 0.73vw, 13px)" }}
+        >
           {row.course_title}
         </p>
       </div>
-      <span className="shrink-0 font-(family-name:--font-base) text-(--color-text-primary)" style={{ fontSize: "clamp(12px, 0.9vw, 14px)" }}>
+      <span
+        className="shrink-0 font-(family-name:--font-base) text-(--color-text-primary)"
+        style={{ fontSize: "clamp(12px, 0.9vw, 14px)" }}
+      >
         {row.amount} {row.currency}
       </span>
       <PaymentStatusDot status={row.status} />

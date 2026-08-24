@@ -266,7 +266,10 @@ export function TeacherStudentDashboard({ studentId }: { studentId: number }) {
     return (
       <PageShell>
         <div className="flex min-h-28 items-center justify-center text-(--color-blue)">
-          <Loader2 className="h-6 w-6 animate-spin" aria-label={t("loadingStudentProfileAriaLabel")} />
+          <Loader2
+            className="h-6 w-6 animate-spin"
+            aria-label={t("loadingStudentProfileAriaLabel")}
+          />
         </div>
       </PageShell>
     );

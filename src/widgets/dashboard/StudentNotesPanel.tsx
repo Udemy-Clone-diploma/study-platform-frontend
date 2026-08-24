@@ -23,10 +23,12 @@ const NOTE_ICON = "/icons/curses.svg";
 const NOTE_ACCENT = "from-[#fff3dc] to-[#ffe7ef]";
 
 function firstNoteLine(text: string, untitledLabel: string): string {
-  return text
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .find(Boolean) ?? untitledLabel;
+  return (
+    text
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .find(Boolean) ?? untitledLabel
+  );
 }
 
 function formatNoteDate(value: string, locale: string): string {
@@ -36,7 +38,9 @@ function formatNoteDate(value: string, locale: string): string {
   return new Intl.DateTimeFormat(locale, {
     day: "2-digit",
     month: "2-digit",
-  }).format(date).replace(/\//g, ".");
+  })
+    .format(date)
+    .replace(/\//g, ".");
 }
 
 export function StudentNotesPanel() {
@@ -122,9 +126,7 @@ export function StudentNotesPanel() {
         ) : visibleNotes.length > 0 ? (
           visibleNotes.map((note) => <NoteCard key={note.id} note={note} />)
         ) : (
-          <p className="pt-8 text-center text-sm text-[#5e5e5e]">
-            {t("noNotesFound")}
-          </p>
+          <p className="pt-8 text-center text-sm text-[#5e5e5e]">{t("noNotesFound")}</p>
         )}
       </div>
     </div>
@@ -188,9 +190,7 @@ function NotesDropdown({
                       setOpen(false);
                     }}
                     className={`w-full rounded-lg px-3 py-2 text-left text-xs transition-colors ${
-                      selected
-                        ? "bg-[#edf1ff] text-[#003aff]"
-                        : "text-black hover:bg-[#fafafa]"
+                      selected ? "bg-[#edf1ff] text-[#003aff]" : "text-black hover:bg-[#fafafa]"
                     }`}
                   >
                     {option.label}
@@ -221,18 +221,14 @@ function NoteCard({ note }: { note: NoteListItem }) {
       <div
         className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-gradient-to-br ${NOTE_ACCENT}`}
       >
-        <Image
-          src={NOTE_ICON}
-          alt=""
-          width={38}
-          height={38}
-          className="h-9 w-9 object-contain"
-        />
+        <Image src={NOTE_ICON} alt="" width={38} height={38} className="h-9 w-9 object-contain" />
       </div>
       <div className="min-w-0 flex-1">
         <p className="truncate text-xs text-[#5e5e5e]">
           {note.course_title} <span className="px-1">|</span> {lessonLabel}
-          {note.is_course_completed && <span className="px-1 text-[#5e5e5e]">· {t("completed")}</span>}
+          {note.is_course_completed && (
+            <span className="px-1 text-[#5e5e5e]">· {t("completed")}</span>
+          )}
         </p>
         <p className="line-clamp-2 text-base font-medium leading-tight text-black">
           {firstNoteLine(note.content, t("untitledNote"))}

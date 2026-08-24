@@ -218,7 +218,10 @@ export function CoursesAdminView() {
           </p>
         )}
 
-        <div className="flex flex-wrap items-start lg:flex-nowrap" style={{ gap: "clamp(16px, 1.67vw, 24px)" }}>
+        <div
+          className="flex flex-wrap items-start lg:flex-nowrap"
+          style={{ gap: "clamp(16px, 1.67vw, 24px)" }}
+        >
           <div className="flex min-w-0 flex-col" style={{ flex: "1 1 640px" }}>
             <div
               key={refreshKey}

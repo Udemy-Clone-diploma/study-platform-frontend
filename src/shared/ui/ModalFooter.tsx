@@ -18,7 +18,12 @@ export function ModalFooter({ onCancel, submitLabel, loading, disabled, error }:
   const t = useTranslations("ModalFooter");
   return (
     <div style={{ marginTop: "clamp(20px, 2.22vw, 32px)" }}>
-      <div style={{ borderTop: "2px solid var(--color-border-light)", marginBottom: "clamp(16px, 2.22vw, 32px)" }} />
+      <div
+        style={{
+          borderTop: "2px solid var(--color-border-light)",
+          marginBottom: "clamp(16px, 2.22vw, 32px)",
+        }}
+      />
       {error && (
         <p
           style={{

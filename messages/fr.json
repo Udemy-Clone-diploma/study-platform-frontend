@@ -2949,11 +2949,7 @@
     "chooseLanguage": "Choisissez une langue"
   },
   "HomeHero": {
-    "tags": [
-      "Compétences",
-      "Réseau",
-      "Croissance"
-    ],
+    "tags": ["Compétences", "Réseau", "Croissance"],
     "title": "L'éducation nouvelle génération",
     "subtitle": "Une plateforme où le savoir se transforme en résultats concrets. Simple, flexible et efficace.",
     "rating": "Note de 4,9 pour plus de 10 000 étudiants",
@@ -2993,13 +2989,7 @@
     }
   },
   "HomeBenefits": {
-    "tags": [
-      "Progresser",
-      "Pratique",
-      "Flow",
-      "Validé",
-      "Pro"
-    ],
+    "tags": ["Progresser", "Pratique", "Flow", "Validé", "Pro"],
     "heading": "Apprendre. Échanger. Grandir.",
     "description": "Là où le savoir rencontre la carrière. Choisissez votre rythme : apprentissage autonome ou sessions en direct avec des mentors. Certificats, tests et calendrier intelligent — tout pour progresser, au même endroit.",
     "cards": {

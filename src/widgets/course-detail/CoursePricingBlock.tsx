@@ -290,7 +290,13 @@ function IndividualSlotPicker({
 }
 
 /** Tuition section: heading badge, intro, pricing cards per delivery format. */
-export function CoursePricingBlock({ courseId, formats, slug, cohorts = [], discountPercent }: Props) {
+export function CoursePricingBlock({
+  courseId,
+  formats,
+  slug,
+  cohorts = [],
+  discountPercent,
+}: Props) {
   const router = useRouter();
   const t = useTranslations("CoursePricingBlock");
   const tHeroCta = useTranslations("CourseHeroCTA");
@@ -411,14 +417,12 @@ export function CoursePricingBlock({ courseId, formats, slug, cohorts = [], disc
           const finalInstallmentAmount = plan.installment_amount
             ? resolvePrice(plan.final_installment_amount, plan.installment_amount)
             : null;
-          const hasDiscount = Boolean(
-            discountPercent && pricesDiffer(plan.price, finalPrice),
-          );
+          const hasDiscount = Boolean(discountPercent && pricesDiffer(plan.price, finalPrice));
           const hasInstallmentDiscount = Boolean(
             discountPercent &&
-              plan.installment_amount &&
-              finalInstallmentAmount &&
-              pricesDiffer(plan.installment_amount, finalInstallmentAmount),
+            plan.installment_amount &&
+            finalInstallmentAmount &&
+            pricesDiffer(plan.installment_amount, finalInstallmentAmount),
           );
           const Icon = FORMAT_ICON[fmt.format_type];
           const isGroup = fmt.format_type === "group";

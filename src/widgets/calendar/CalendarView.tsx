@@ -1097,7 +1097,8 @@ function NewEventPanel({
                 }}
               >
                 {t("conflictSessionLine", {
-                  type: s.type === "group" ? tSchedule("groupSession") : tSchedule("individualSession"),
+                  type:
+                    s.type === "group" ? tSchedule("groupSession") : tSchedule("individualSession"),
                   title: s.title,
                   start: s.start_time,
                   end: s.end_time,
@@ -1114,7 +1115,11 @@ function NewEventPanel({
                   margin: 0,
                 }}
               >
-                {t("conflictPersonalEventLine", { title: e.title, start: e.start_time, end: e.end_time })}
+                {t("conflictPersonalEventLine", {
+                  title: e.title,
+                  start: e.start_time,
+                  end: e.end_time,
+                })}
               </p>
             ))}
           </div>
@@ -1178,7 +1183,11 @@ function NewEventPanel({
                   margin: 0,
                 }}
               >
-                {t("conflictPersonalEventLine", { title: e.title, start: e.start_time, end: e.end_time })}
+                {t("conflictPersonalEventLine", {
+                  title: e.title,
+                  start: e.start_time,
+                  end: e.end_time,
+                })}
               </p>
             ))}
           </div>
@@ -1284,12 +1293,7 @@ function EventDetailPanel({
   const nowTime_ = new Date().toTimeString().slice(0, 5);
   const isPastEvent = ev.date < todayISO_ || (ev.date === todayISO_ && ev.end_time <= nowTime_);
   const isFreeSlot = ev.is_available === true;
-  const canEdit =
-    role === "teacher" &&
-    !isPersonal &&
-    !isProcessed &&
-    !isPastEvent &&
-    !isFreeSlot;
+  const canEdit = role === "teacher" && !isPersonal && !isProcessed && !isPastEvent && !isFreeSlot;
 
   useEffect(() => {
     if (mode !== "lesson_edit" || !ev.course_slug || lessons !== null) return;
@@ -1798,7 +1802,11 @@ function EventDetailPanel({
                         )}
                         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 4 }}>
                           {ceCanReschedule && ce.id === ev.id && (
-                            <button type="button" onClick={() => setMode("reschedule")} style={PILL_PRIMARY_BTN}>
+                            <button
+                              type="button"
+                              onClick={() => setMode("reschedule")}
+                              style={PILL_PRIMARY_BTN}
+                            >
                               <RotateCcw size={13} />
                               {tScheduleTab("reschedule")}
                             </button>
@@ -1908,7 +1916,9 @@ function EventDetailPanel({
                   ? { bg: "rgba(255,225,140,0.5)", text: "#7C5000" }
                   : { bg: "rgba(167,186,250,0.5)", text: "var(--color-blue-dark)" };
             const badgeLabel = isPersonal
-              ? (invites && invites.length > 0 ? t("personalSharedLabel") : t("personalLabel"))
+              ? invites && invites.length > 0
+                ? t("personalSharedLabel")
+                : t("personalLabel")
               : typeBadge;
             return (
               <div
@@ -2261,7 +2271,12 @@ function EventDetailPanel({
         {/* ── Reschedule form ── */}
         {mode === "reschedule" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-            <DatePicker label={tScheduleTab("date")} value={newDate} onChange={setNewDate} size="md" />
+            <DatePicker
+              label={tScheduleTab("date")}
+              value={newDate}
+              onChange={setNewDate}
+              size="md"
+            />
 
             <div style={{ display: "flex", gap: 12 }}>
               <Field label={tScheduleTab("start")}>
@@ -2362,9 +2377,7 @@ function EventDetailPanel({
                 margin: 0,
               }}
             >
-              {isReplacement
-                ? t("cancelReplacementExplain")
-                : t("cancelSessionExplain")}
+              {isReplacement ? t("cancelReplacementExplain") : t("cancelSessionExplain")}
             </p>
             {error && (
               <p
@@ -2612,7 +2625,11 @@ function EventDetailPanel({
                   ? "rgba(255,225,140,0.5)"
                   : "rgba(252,196,195,0.5)";
               const statusText = isAccepted ? "#1A6633" : isPending ? "#7C5000" : "#8B2624";
-              const statusLabel = isAccepted ? t("accepted") : isPending ? t("pending") : t("declined");
+              const statusLabel = isAccepted
+                ? t("accepted")
+                : isPending
+                  ? t("pending")
+                  : t("declined");
               const initials = (inv.name || inv.email).slice(0, 1).toUpperCase();
               const avatarStyle: React.CSSProperties = {
                 width: 28,
@@ -2976,7 +2993,6 @@ function EventDetailPanel({
             </button>
           </div>
         )}
-
       </div>
       {/* end collapsible body */}
 
@@ -3270,7 +3286,9 @@ export function CalendarView({ role }: CalendarViewProps) {
   const [deadlines, setDeadlines] = useState<CalendarDeadline[]>([]);
   const [drawer, setDrawer] = useState<DrawerState>(null);
   const searchParams = useSearchParams();
-  const [weekStart, setWeekStart] = useState<string>(() => initialWeekStart(searchParams.get("date")));
+  const [weekStart, setWeekStart] = useState<string>(() =>
+    initialWeekStart(searchParams.get("date")),
+  );
   const [refreshTick, setRefreshTick] = useState(0);
 
   useEffect(() => {
@@ -3447,7 +3465,13 @@ export function CalendarView({ role }: CalendarViewProps) {
             )}
             {drawer?.type === "block" && <UnavailabilitySection />}
             {drawer?.type === "deadlines" && (
-              <div style={{ display: "flex", flexDirection: "column", gap: "clamp(10px, 0.83vw, 14px)" }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "clamp(10px, 0.83vw, 14px)",
+                }}
+              >
                 {deadlines
                   .filter((dl) => dl.date === drawer.date)
                   .map((dl) => (
@@ -3460,21 +3484,25 @@ export function CalendarView({ role }: CalendarViewProps) {
                         background: "#fff",
                       }}
                     >
-                      <p style={{
-                        fontFamily: "var(--font-base)",
-                        fontWeight: 700,
-                        fontSize: "clamp(13px, 0.9vw, 15px)",
-                        color: "var(--color-text-primary)",
-                        margin: "0 0 4px",
-                      }}>
+                      <p
+                        style={{
+                          fontFamily: "var(--font-base)",
+                          fontWeight: 700,
+                          fontSize: "clamp(13px, 0.9vw, 15px)",
+                          color: "var(--color-text-primary)",
+                          margin: "0 0 4px",
+                        }}
+                      >
                         {dl.title}
                       </p>
-                      <p style={{
-                        fontFamily: "var(--font-base)",
-                        fontSize: "clamp(12px, 0.8vw, 13px)",
-                        color: "var(--color-text-secondary)",
-                        margin: 0,
-                      }}>
+                      <p
+                        style={{
+                          fontFamily: "var(--font-base)",
+                          fontSize: "clamp(12px, 0.8vw, 13px)",
+                          color: "var(--color-text-secondary)",
+                          margin: 0,
+                        }}
+                      >
                         {dl.course_title}
                       </p>
                     </div>

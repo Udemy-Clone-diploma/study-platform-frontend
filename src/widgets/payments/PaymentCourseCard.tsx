@@ -7,12 +7,7 @@ type PaymentCourseCardProps = {
   image?: string | null;
 };
 
-export function PaymentCourseCard({
-  title,
-  subtitle,
-  amount,
-  image,
-}: PaymentCourseCardProps) {
+export function PaymentCourseCard({ title, subtitle, amount, image }: PaymentCourseCardProps) {
   return (
     <div className="flex min-h-[52px] w-full max-w-[365px] items-center gap-3 rounded-[10px] border border-[#F3E7C6] bg-[radial-gradient(circle_at_18%_50%,#FFF0B8_0%,#FFF8E9_38%,#FFFFFF_100%)] px-4 py-2 shadow-[0_0_12px_rgba(0,0,0,0.08)]">
       {image ? (

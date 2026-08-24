@@ -18,26 +18,58 @@ export function CourseManagementReviewsTab({ slug }: Props) {
 
   useEffect(() => {
     getCourseReviews(slug)
-      .then(data => setReviews(data.results))
+      .then((data) => setReviews(data.results))
       .catch(() => setError(t("errorLoad")))
       .finally(() => setLoading(false));
   }, [slug, t]);
 
   return (
     <SectionCard>
-      <h2 style={{ fontFamily: "var(--font-base)", fontWeight: 700, fontSize: "clamp(16px, 1.25vw, 22px)", color: "var(--color-text-primary)", margin: "0 0 clamp(16px, 1.39vw, 24px)" }}>
+      <h2
+        style={{
+          fontFamily: "var(--font-base)",
+          fontWeight: 700,
+          fontSize: "clamp(16px, 1.25vw, 22px)",
+          color: "var(--color-text-primary)",
+          margin: "0 0 clamp(16px, 1.39vw, 24px)",
+        }}
+      >
         {t("reviews")}
       </h2>
 
       {loading ? (
-        <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(13px, 0.83vw, 15px)", color: "var(--color-text-secondary)" }}>{t("loading")}</p>
+        <p
+          style={{
+            fontFamily: "var(--font-base)",
+            fontSize: "clamp(13px, 0.83vw, 15px)",
+            color: "var(--color-text-secondary)",
+          }}
+        >
+          {t("loading")}
+        </p>
       ) : error ? (
-        <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(13px, 0.83vw, 15px)", color: "var(--color-danger)" }}>{error}</p>
+        <p
+          style={{
+            fontFamily: "var(--font-base)",
+            fontSize: "clamp(13px, 0.83vw, 15px)",
+            color: "var(--color-danger)",
+          }}
+        >
+          {error}
+        </p>
       ) : reviews.length === 0 ? (
-        <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(13px, 0.83vw, 15px)", color: "var(--color-text-muted)" }}>{t("noReviewsYet")}</p>
+        <p
+          style={{
+            fontFamily: "var(--font-base)",
+            fontSize: "clamp(13px, 0.83vw, 15px)",
+            color: "var(--color-text-muted)",
+          }}
+        >
+          {t("noReviewsYet")}
+        </p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "clamp(12px, 1.11vw, 16px)" }}>
-          {reviews.map(review => (
+          {reviews.map((review) => (
             <CourseReviewCard key={review.id} review={review} />
           ))}
         </div>

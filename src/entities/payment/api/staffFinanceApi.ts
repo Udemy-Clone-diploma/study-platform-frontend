@@ -7,8 +7,7 @@ import type {
   TeacherFinancePayoutStatus,
 } from "./teacherFinanceApi";
 
-const STAFF_PAYOUTS_ENDPOINT =
-  "staff/finance/payouts/";
+const STAFF_PAYOUTS_ENDPOINT = "staff/finance/payouts/";
 
 export type StaffFinancePayout = {
   id: number;
@@ -59,36 +58,29 @@ export type StaffPayoutListParams = {
 export async function getStaffPayouts(
   params: StaffPayoutListParams = {},
 ): Promise<PaginatedResponse<StaffFinancePayout>> {
-  const { data } =
-    await api.get<
-      PaginatedResponse<StaffFinancePayout>
-    >(
-      STAFF_PAYOUTS_ENDPOINT,
-      {
-        params: {
-          page_size: 100,
-          ...params,
-        },
-      },
-    );
+  const { data } = await api.get<PaginatedResponse<StaffFinancePayout>>(STAFF_PAYOUTS_ENDPOINT, {
+    params: {
+      page_size: 100,
+      ...params,
+    },
+  });
 
   return data;
 }
 
-export async function getStaffTeacherBalance(
-  teacherId: number,
-): Promise<TeacherFinanceBalance & {
-  teacher: { id: number; name: string; email: string };
-  destinations: import("./teacherFinanceApi").TeacherPayoutDestination[];
-}> {
+export async function getStaffTeacherBalance(teacherId: number): Promise<
+  TeacherFinanceBalance & {
+    teacher: { id: number; name: string; email: string };
+    destinations: import("./teacherFinanceApi").TeacherPayoutDestination[];
+  }
+> {
   type StaffTeacherBalance = TeacherFinanceBalance & {
     teacher: { id: number; name: string; email: string };
     destinations: import("./teacherFinanceApi").TeacherPayoutDestination[];
   };
-  const { data } =
-    await api.get<StaffTeacherBalance>(
-      `staff/finance/teachers/${teacherId}/balance/`,
-    );
+  const { data } = await api.get<StaffTeacherBalance>(
+    `staff/finance/teachers/${teacherId}/balance/`,
+  );
 
   return data;
 }
@@ -96,33 +88,23 @@ export async function getStaffTeacherBalance(
 export async function createStaffPayout(
   input: CreateStaffPayoutInput,
 ): Promise<StaffFinancePayout> {
-  const { data } =
-    await api.post<StaffFinancePayout>(
-      STAFF_PAYOUTS_ENDPOINT,
-      input,
-    );
+  const { data } = await api.post<StaffFinancePayout>(STAFF_PAYOUTS_ENDPOINT, input);
 
   return data;
 }
 
-export async function executeStaffPayout(
-  payoutId: number,
-): Promise<StaffFinancePayout> {
-  const { data } =
-    await api.post<StaffFinancePayout>(
-      `${STAFF_PAYOUTS_ENDPOINT}${payoutId}/execute/`,
-    );
+export async function executeStaffPayout(payoutId: number): Promise<StaffFinancePayout> {
+  const { data } = await api.post<StaffFinancePayout>(
+    `${STAFF_PAYOUTS_ENDPOINT}${payoutId}/execute/`,
+  );
 
   return data;
 }
 
-export async function reconcileStaffPayout(
-  payoutId: number,
-): Promise<StaffFinancePayout> {
-  const { data } =
-    await api.post<StaffFinancePayout>(
-      `${STAFF_PAYOUTS_ENDPOINT}${payoutId}/reconcile/`,
-    );
+export async function reconcileStaffPayout(payoutId: number): Promise<StaffFinancePayout> {
+  const { data } = await api.post<StaffFinancePayout>(
+    `${STAFF_PAYOUTS_ENDPOINT}${payoutId}/reconcile/`,
+  );
 
   return data;
 }

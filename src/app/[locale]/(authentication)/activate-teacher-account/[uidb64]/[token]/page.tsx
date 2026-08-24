@@ -103,10 +103,7 @@ export default function ActivateTeacherAccountPage() {
 
   if (pageStatus === "success") {
     return (
-      <AuthPanel
-        title={t("successTitle")}
-        description={t("successDescription")}
-      >
+      <AuthPanel title={t("successTitle")} description={t("successDescription")}>
         <AccentButton href="/login">{tCommon("signIn")}</AccentButton>
       </AuthPanel>
     );
@@ -123,10 +120,7 @@ export default function ActivateTeacherAccountPage() {
   }
 
   return (
-    <AuthPanel
-      title={t("setPasswordTitle")}
-      description={t("setPasswordDescription")}
-    >
+    <AuthPanel title={t("setPasswordTitle")} description={t("setPasswordDescription")}>
       <form onSubmit={handleSubmit} className="space-y-7">
         <AuthField
           id="password"

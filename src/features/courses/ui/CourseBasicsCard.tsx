@@ -26,7 +26,11 @@ export function CourseBasicsCard({ onSubmit, children }: Props) {
       </h2>
       <p
         className="font-medium font-(family-name:--font-base) text-(--color-text-secondary)"
-        style={{ fontSize: "clamp(13px, 1.04vw, 20px)", letterSpacing: "-0.011em", marginBottom: "clamp(16px, 1.56vw, 24px)" }}
+        style={{
+          fontSize: "clamp(13px, 1.04vw, 20px)",
+          letterSpacing: "-0.011em",
+          marginBottom: "clamp(16px, 1.56vw, 24px)",
+        }}
       >
         {t("subtitle")}
       </p>

@@ -17,45 +17,76 @@ import type { ApiError } from "@/shared/api/base";
 import { CourseConfirmModal } from "./CourseConfirmModal";
 
 const ROW: React.CSSProperties = {
-  display: "flex", alignItems: "center", gap: 10,
-  padding: "8px 12px", borderRadius: 10,
-  background: "var(--color-bg)", border: "1px solid var(--color-border-light)",
+  display: "flex",
+  alignItems: "center",
+  gap: 10,
+  padding: "8px 12px",
+  borderRadius: 10,
+  background: "var(--color-bg)",
+  border: "1px solid var(--color-border-light)",
 };
 
 const NAME_STYLE: React.CSSProperties = {
-  fontFamily: "var(--font-base)", fontWeight: 600,
-  fontSize: "clamp(12px, 0.83vw, 14px)", color: "var(--color-text-primary)",
-  margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+  fontFamily: "var(--font-base)",
+  fontWeight: 600,
+  fontSize: "clamp(12px, 0.83vw, 14px)",
+  color: "var(--color-text-primary)",
+  margin: 0,
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
 };
 
 const SUB_STYLE: React.CSSProperties = {
-  fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.69vw, 12px)",
-  color: "var(--color-text-secondary)", margin: 0,
-  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+  fontFamily: "var(--font-base)",
+  fontSize: "clamp(11px, 0.69vw, 12px)",
+  color: "var(--color-text-secondary)",
+  margin: 0,
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
 };
 
 const META_STYLE: React.CSSProperties = {
-  fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.69vw, 13px)",
-  color: "var(--color-text-secondary)", flexShrink: 0, whiteSpace: "nowrap",
+  fontFamily: "var(--font-base)",
+  fontSize: "clamp(11px, 0.69vw, 13px)",
+  color: "var(--color-text-secondary)",
+  flexShrink: 0,
+  whiteSpace: "nowrap",
 };
 
 const ICON_BTN: React.CSSProperties = {
-  background: "none", border: "none", cursor: "pointer",
-  padding: 4, display: "flex", alignItems: "center",
-  color: "var(--color-text-secondary)", flexShrink: 0,
+  background: "none",
+  border: "none",
+  cursor: "pointer",
+  padding: 4,
+  display: "flex",
+  alignItems: "center",
+  color: "var(--color-text-secondary)",
+  flexShrink: 0,
 };
 
 const ERROR_STYLE: React.CSSProperties = {
-  fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.69vw, 12px)",
-  color: "var(--color-danger)", margin: "0 0 0 12px",
+  fontFamily: "var(--font-base)",
+  fontSize: "clamp(11px, 0.69vw, 12px)",
+  color: "var(--color-danger)",
+  margin: "0 0 0 12px",
 };
 
 const SAVE_BTN: React.CSSProperties = {
-  fontFamily: "var(--font-base)", fontWeight: 600,
-  fontSize: "clamp(11px, 0.72vw, 12px)", color: "#fff",
-  background: "var(--color-text-primary)", border: "none", borderRadius: 999,
-  padding: "5px 12px", cursor: "pointer",
-  display: "inline-flex", alignItems: "center", gap: 4, flexShrink: 0,
+  fontFamily: "var(--font-base)",
+  fontWeight: 600,
+  fontSize: "clamp(11px, 0.72vw, 12px)",
+  color: "#fff",
+  background: "var(--color-text-primary)",
+  border: "none",
+  borderRadius: 999,
+  padding: "5px 12px",
+  cursor: "pointer",
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 4,
+  flexShrink: 0,
 };
 
 // ── Shared helpers ─────────────────────────────────────────────────────────────
@@ -72,7 +103,14 @@ function fmtShort(iso: string): string {
 
 function EmptyMsg({ text }: { text: string }) {
   return (
-    <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(13px, 0.83vw, 15px)", color: "var(--color-text-muted)", margin: 0 }}>
+    <p
+      style={{
+        fontFamily: "var(--font-base)",
+        fontSize: "clamp(13px, 0.83vw, 15px)",
+        color: "var(--color-text-muted)",
+        margin: 0,
+      }}
+    >
       {text}
     </p>
   );
@@ -89,9 +127,13 @@ export function CompletionBadge({ completed }: { completed: boolean }) {
   return (
     <span
       style={{
-        fontFamily: "var(--font-base)", fontWeight: 600,
+        fontFamily: "var(--font-base)",
+        fontWeight: 600,
         fontSize: "clamp(10px, 0.63vw, 12px)",
-        borderRadius: 999, padding: "2px 10px", flexShrink: 0, whiteSpace: "nowrap",
+        borderRadius: 999,
+        padding: "2px 10px",
+        flexShrink: 0,
+        whiteSpace: "nowrap",
         color: completed ? "var(--color-success)" : "var(--color-text-secondary)",
         border: `1px solid ${completed ? "var(--color-success)" : "var(--color-border-light)"}`,
         background: "white",
@@ -104,8 +146,20 @@ export function CompletionBadge({ completed }: { completed: boolean }) {
 
 // ── StudentRow (generic) ───────────────────────────────────────────────────────
 
-function StudentRow({ name, email, meta, badge, completed, onComplete, onUncomplete }: {
-  name?: string | null; email: string; meta?: string; badge?: string; completed?: boolean;
+function StudentRow({
+  name,
+  email,
+  meta,
+  badge,
+  completed,
+  onComplete,
+  onUncomplete,
+}: {
+  name?: string | null;
+  email: string;
+  meta?: string;
+  badge?: string;
+  completed?: boolean;
   onComplete?: () => Promise<void>;
   onUncomplete?: () => Promise<void>;
 }) {
@@ -138,17 +192,41 @@ function StudentRow({ name, email, meta, badge, completed, onComplete, onUncompl
         {meta && <span style={META_STYLE}>{meta}</span>}
         {completed != null && <CompletionBadge completed={completed} />}
         {completed === false && onComplete && (
-          <button type="button" onClick={() => setAction("complete")} disabled={pending} style={ICON_BTN} title={t("markAsCompleted")}>
+          <button
+            type="button"
+            onClick={() => setAction("complete")}
+            disabled={pending}
+            style={ICON_BTN}
+            title={t("markAsCompleted")}
+          >
             <Award size={14} />
           </button>
         )}
         {completed === true && onUncomplete && (
-          <button type="button" onClick={() => setAction("uncomplete")} disabled={pending} style={ICON_BTN} title={t("returnToCourse")}>
+          <button
+            type="button"
+            onClick={() => setAction("uncomplete")}
+            disabled={pending}
+            style={ICON_BTN}
+            title={t("returnToCourse")}
+          >
             <RotateCcw size={14} />
           </button>
         )}
         {badge && (
-          <span style={{ fontFamily: "var(--font-base)", fontSize: "clamp(10px, 0.63vw, 12px)", background: "var(--color-bg)", border: "1px solid var(--color-border-light)", borderRadius: 999, padding: "2px 10px", color: "var(--color-text-secondary)", flexShrink: 0, whiteSpace: "nowrap" }}>
+          <span
+            style={{
+              fontFamily: "var(--font-base)",
+              fontSize: "clamp(10px, 0.63vw, 12px)",
+              background: "var(--color-bg)",
+              border: "1px solid var(--color-border-light)",
+              borderRadius: 999,
+              padding: "2px 10px",
+              color: "var(--color-text-secondary)",
+              flexShrink: 0,
+              whiteSpace: "nowrap",
+            }}
+          >
             {badge}
           </span>
         )}
@@ -175,7 +253,11 @@ function StudentRow({ name, email, meta, badge, completed, onComplete, onUncompl
 // ── IndividualStudentRow (with period inline-edit) ─────────────────────────────
 
 function IndividualStudentRow({
-  student, meta, slug, fmtId, onUpdated,
+  student,
+  meta,
+  slug,
+  fmtId,
+  onUpdated,
 }: {
   student: EnrolledStudent;
   meta?: string;
@@ -185,9 +267,9 @@ function IndividualStudentRow({
 }) {
   const t = useTranslations("CourseManagementStudentsBlock");
   const [editing, setEditing] = useState(false);
-  const [start, setStart]     = useState(toDateStr(student.access_granted_at));
-  const [end, setEnd]         = useState(toDateStr(student.access_until));
-  const [saving, setSaving]   = useState(false);
+  const [start, setStart] = useState(toDateStr(student.access_granted_at));
+  const [end, setEnd] = useState(toDateStr(student.access_until));
+  const [saving, setSaving] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [completeError, setCompleteError] = useState<string | null>(null);
   const [action, setAction] = useState<"complete" | "uncomplete" | null>(null);
@@ -231,9 +313,7 @@ function IndividualStudentRow({
     setEditing(false);
   }
 
-  const periodLabel = start
-    ? `${fmtShort(start)} – ${end ? fmtShort(end) : "∞"}`
-    : null;
+  const periodLabel = start ? `${fmtShort(start)} – ${end ? fmtShort(end) : "∞"}` : null;
 
   if (editing) {
     return (
@@ -248,7 +328,12 @@ function IndividualStudentRow({
         <div style={{ flex: "1 1 130px", minWidth: 110 }}>
           <DatePicker label={t("until")} value={end} onChange={setEnd} size="sm" />
         </div>
-        <button type="button" onClick={save} disabled={saving} style={{ ...SAVE_BTN, opacity: saving ? 0.5 : 1 }}>
+        <button
+          type="button"
+          onClick={save}
+          disabled={saving}
+          style={{ ...SAVE_BTN, opacity: saving ? 0.5 : 1 }}
+        >
           <Check size={12} /> {t("save")}
         </button>
         <button type="button" onClick={cancel} style={ICON_BTN}>
@@ -265,21 +350,39 @@ function IndividualStudentRow({
           <p style={NAME_STYLE}>{student.student_name || student.student_email}</p>
           <p style={SUB_STYLE}>
             {student.student_name ? student.student_email : ""}
-            {periodLabel && (student.student_name ? "  ·  " : "")}{periodLabel}
+            {periodLabel && (student.student_name ? "  ·  " : "")}
+            {periodLabel}
           </p>
         </div>
         {meta && <span style={META_STYLE}>{meta}</span>}
         <CompletionBadge completed={student.is_completed} />
         {!student.is_completed ? (
-          <button type="button" onClick={() => setAction("complete")} disabled={completing} style={ICON_BTN} title={t("markAsCompleted")}>
+          <button
+            type="button"
+            onClick={() => setAction("complete")}
+            disabled={completing}
+            style={ICON_BTN}
+            title={t("markAsCompleted")}
+          >
             <Award size={14} />
           </button>
         ) : (
-          <button type="button" onClick={() => setAction("uncomplete")} disabled={completing} style={ICON_BTN} title={t("returnToCourse")}>
+          <button
+            type="button"
+            onClick={() => setAction("uncomplete")}
+            disabled={completing}
+            style={ICON_BTN}
+            title={t("returnToCourse")}
+          >
             <RotateCcw size={14} />
           </button>
         )}
-        <button type="button" onClick={() => setEditing(true)} style={ICON_BTN} title={t("editPeriod")}>
+        <button
+          type="button"
+          onClick={() => setEditing(true)}
+          style={ICON_BTN}
+          title={t("editPeriod")}
+        >
           <Pencil size={14} />
         </button>
       </div>
@@ -305,19 +408,28 @@ function IndividualStudentRow({
 // ── Individual: students with booked days + period ─────────────────────────────
 
 /** List content for the Individual format — shows each student's scheduled days and learning period. */
-export function IndividualStudentsList({ slug, fmtId, refreshKey }: {
-  slug: string; fmtId: number; refreshKey?: number;
+export function IndividualStudentsList({
+  slug,
+  fmtId,
+  refreshKey,
+}: {
+  slug: string;
+  fmtId: number;
+  refreshKey?: number;
 }) {
   const t = useTranslations("CourseManagementStudentsBlock");
   const tDays = useTranslations("Days");
   const [students, setStudents] = useState<EnrolledStudent[]>([]);
-  const [slots, setSlots]       = useState<ScheduleSlot[]>([]);
-  const [loading, setLoading]   = useState(true);
+  const [slots, setSlots] = useState<ScheduleSlot[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setLoading(true);
     Promise.all([getCourseEnrolledStudents(slug, fmtId), getScheduleSlots(slug, fmtId)])
-      .then(([s, sl]) => { setStudents(s); setSlots(sl); })
+      .then(([s, sl]) => {
+        setStudents(s);
+        setSlots(sl);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [slug, fmtId, refreshKey]);
@@ -335,7 +447,9 @@ export function IndividualStudentsList({ slug, fmtId, refreshKey }: {
   }, [slots]);
 
   function handleUpdated(updated: EnrolledStudent) {
-    setStudents(prev => prev.map(s => s.enrollment_id === updated.enrollment_id ? updated : s));
+    setStudents((prev) =>
+      prev.map((s) => (s.enrollment_id === updated.enrollment_id ? updated : s)),
+    );
   }
 
   if (loading) return <EmptyMsg text={t("loading")} />;
@@ -343,12 +457,13 @@ export function IndividualStudentsList({ slug, fmtId, refreshKey }: {
 
   return (
     <ListWrap>
-      {students.map(s => {
+      {students.map((s) => {
         const mySlots = slotsByStudent.get(s.student_id) ?? [];
-        const days = [...new Set(mySlots.map(sl => sl.day_of_week))].sort((a, b) => a - b);
-        const meta = mySlots.length > 0
-          ? `${t("sessionsCount", { count: mySlots.length })} · ${days.map(d => tDays(DAY_KEYS[d])).join(", ")}`
-          : undefined;
+        const days = [...new Set(mySlots.map((sl) => sl.day_of_week))].sort((a, b) => a - b);
+        const meta =
+          mySlots.length > 0
+            ? `${t("sessionsCount", { count: mySlots.length })} · ${days.map((d) => tDays(DAY_KEYS[d])).join(", ")}`
+            : undefined;
         return (
           <IndividualStudentRow
             key={s.enrollment_id}
@@ -367,17 +482,23 @@ export function IndividualStudentsList({ slug, fmtId, refreshKey }: {
 // ── Group: students with their cohort name ─────────────────────────────────────
 
 /** List content for the Group format — shows each student with their cohort badge. */
-export function GroupStudentsList({ course, slug, onMemberCompleted, onMemberUncompleted }: {
+export function GroupStudentsList({
+  course,
+  slug,
+  onMemberCompleted,
+  onMemberUncompleted,
+}: {
   course: CourseDetail;
   slug: string;
   onMemberCompleted?: (enrollmentId: number) => void;
   onMemberUncompleted?: (enrollmentId: number) => void;
 }) {
   const t = useTranslations("CourseManagementStudentsBlock");
-  const rows = useMemo(() =>
-    (course.cohorts ?? []).flatMap(c =>
-      (c.members ?? []).map(m => ({ ...m, cohortName: c.name ?? t("unnamedCohort") }))
-    ),
+  const rows = useMemo(
+    () =>
+      (course.cohorts ?? []).flatMap((c) =>
+        (c.members ?? []).map((m) => ({ ...m, cohortName: c.name ?? t("unnamedCohort") })),
+      ),
     [course.cohorts, t],
   );
 
@@ -385,21 +506,29 @@ export function GroupStudentsList({ course, slug, onMemberCompleted, onMemberUnc
 
   return (
     <ListWrap>
-      {rows.map(r => (
+      {rows.map((r) => (
         <StudentRow
           key={r.enrollment_id}
           name={r.student_name}
           email={r.student_email}
           badge={r.cohortName}
           completed={r.is_completed}
-          onComplete={r.is_completed ? undefined : async () => {
-            await completeStudentEnrollment(slug, r.enrollment_id);
-            onMemberCompleted?.(r.enrollment_id);
-          }}
-          onUncomplete={!r.is_completed ? undefined : async () => {
-            await uncompleteStudentEnrollment(slug, r.enrollment_id);
-            onMemberUncompleted?.(r.enrollment_id);
-          }}
+          onComplete={
+            r.is_completed
+              ? undefined
+              : async () => {
+                  await completeStudentEnrollment(slug, r.enrollment_id);
+                  onMemberCompleted?.(r.enrollment_id);
+                }
+          }
+          onUncomplete={
+            !r.is_completed
+              ? undefined
+              : async () => {
+                  await uncompleteStudentEnrollment(slug, r.enrollment_id);
+                  onMemberUncompleted?.(r.enrollment_id);
+                }
+          }
         />
       ))}
     </ListWrap>
@@ -412,7 +541,7 @@ export function GroupStudentsList({ course, slug, onMemberCompleted, onMemberUnc
 export function SimpleStudentsList({ slug, fmtId }: { slug: string; fmtId: number }) {
   const t = useTranslations("CourseManagementStudentsBlock");
   const [students, setStudents] = useState<EnrolledStudent[]>([]);
-  const [loading, setLoading]   = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     getCourseEnrolledStudents(slug, fmtId)
@@ -426,8 +555,13 @@ export function SimpleStudentsList({ slug, fmtId }: { slug: string; fmtId: numbe
 
   return (
     <ListWrap>
-      {students.map(s => (
-        <StudentRow key={s.enrollment_id} name={s.student_name} email={s.student_email} completed={s.is_completed} />
+      {students.map((s) => (
+        <StudentRow
+          key={s.enrollment_id}
+          name={s.student_name}
+          email={s.student_email}
+          completed={s.is_completed}
+        />
       ))}
     </ListWrap>
   );

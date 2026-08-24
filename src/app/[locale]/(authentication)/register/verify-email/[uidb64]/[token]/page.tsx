@@ -45,10 +45,7 @@ export default function VerifyEmailPage() {
 
   if (status === "success") {
     return (
-      <AuthPanel
-        title={t("successTitle")}
-        description={message || t("successFallbackDescription")}
-      >
+      <AuthPanel title={t("successTitle")} description={message || t("successFallbackDescription")}>
         <p className="text-sm text-[#3e3840]">{t("redirecting")}</p>
       </AuthPanel>
     );
@@ -58,10 +55,7 @@ export default function VerifyEmailPage() {
     <AuthPanel title={t("failedTitle")} description={message}>
       <div className="space-y-5">
         {!showResend ? (
-          <AccentButton
-            type="button"
-            onClick={() => setShowResend(true)}
-          >
+          <AccentButton type="button" onClick={() => setShowResend(true)}>
             {tCommon("sendAgain")}
           </AccentButton>
         ) : (

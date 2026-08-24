@@ -2949,11 +2949,7 @@
     "chooseLanguage": "Sprache wählen"
   },
   "HomeHero": {
-    "tags": [
-      "Skills",
-      "Networking",
-      "Wachstum"
-    ],
+    "tags": ["Skills", "Networking", "Wachstum"],
     "title": "Bildung der nächsten Generation",
     "subtitle": "Eine Plattform, auf der Wissen zu echten Ergebnissen wird. Einfach, flexibel und auf den Punkt.",
     "rating": "4,9 Bewertung von über 10.000 Studierenden",
@@ -2993,13 +2989,7 @@
     }
   },
   "HomeBenefits": {
-    "tags": [
-      "Upgrade",
-      "Praxis",
-      "Flow",
-      "Geprüft",
-      "Pro"
-    ],
+    "tags": ["Upgrade", "Praxis", "Flow", "Geprüft", "Pro"],
     "heading": "Lernen. Vernetzen. Wachsen.",
     "description": "Wo Wissen auf Karriere trifft. Wähle deinen Rhythmus: selbstbestimmtes Lernen oder Live-Sessions mit Mentoren. Zertifikate, Tests und ein smarter Kalender — alles für dein Upgrade an einem Ort.",
     "cards": {

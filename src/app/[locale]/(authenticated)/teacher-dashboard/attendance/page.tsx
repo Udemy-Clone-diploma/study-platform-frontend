@@ -332,10 +332,13 @@ export default function TeacherAttendancePage() {
     resetCalToToday();
   }, []);
 
-  const handleCalendarViewChange = useCallback((y: number, m: number) => {
-    setCalYear(y);
-    setCalMonth(m);
-  }, []);
+  const handleCalendarViewChange = useCallback(
+    (y: number, m: number) => {
+      setCalYear(y);
+      setCalMonth(m);
+    },
+    [setCalYear, setCalMonth],
+  );
 
   const handleToggleAttendance = useCallback(
     async (enrollmentId: number, isPresent: boolean) => {

@@ -1,3 +1,5 @@
+import type { Currency } from "./pricing";
+
 export type DeliveryFormatType = "self_paced" | "scheduled" | "individual" | "group";
 export type DeliveryStartType = "date" | "manual";
 export type DeliveryUnlockMode = "immediate" | "date_based" | "sequential";
@@ -7,7 +9,7 @@ export type DeliveryFormatPricing = {
   price: string;
   /** Discounted price when the course is on sale; equals `price` otherwise. */
   final_price: string;
-  currency: "USD";
+  currency: Currency;
   installment_count: number | null;
   installment_amount: string | null;
   /** Discounted installment amount when the course is on sale; equals `installment_amount` otherwise. */
@@ -41,7 +43,7 @@ export type CourseDeliveryFormatPayload = {
   max_students?: number | null;
   pricing?: {
     price: string;
-    currency: "USD";
+    currency: Currency;
     installment_count?: number | null;
     installment_amount?: string | null;
   } | null;

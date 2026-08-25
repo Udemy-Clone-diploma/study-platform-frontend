@@ -1426,6 +1426,10 @@
   },
   "FinanceAdminView": {
     "heading": "Фінансовий менеджмент",
+    "tabStatistics": "Статистика",
+    "tabPaymentHistory": "Історія платежів",
+    "tabTeacherPayouts": "Виплати вчителям",
+    "tabsAriaLabel": "Розділи фінансів",
     "loadingTransactions": "Завантаження транзакцій…",
     "noTransactionsFound": "Транзакцій не знайдено.",
     "errorLoadTransactions": "Не вдалося завантажити транзакції.",

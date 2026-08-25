@@ -1426,6 +1426,10 @@
   },
   "FinanceAdminView": {
     "heading": "Finanzverwaltung",
+    "tabStatistics": "Statistiken",
+    "tabPaymentHistory": "Zahlungsverlauf",
+    "tabTeacherPayouts": "Auszahlungen an Lehrkräfte",
+    "tabsAriaLabel": "Finanzbereiche",
     "loadingTransactions": "Transaktionen werden geladen…",
     "noTransactionsFound": "Keine Transaktionen gefunden.",
     "errorLoadTransactions": "Transaktionen konnten nicht geladen werden.",

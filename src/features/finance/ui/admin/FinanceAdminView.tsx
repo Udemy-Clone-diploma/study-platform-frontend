@@ -27,14 +27,20 @@ import type {
   RevenueTrendGroupBy,
 } from "@/entities/payment";
 import type { ApiError } from "@/shared/api/base";
-import type { PricingPlan } from "@/entities/course";
+import { CURRENCIES, type Currency } from "@/entities/course";
 import { FinanceStatTiles } from "./FinanceStatTiles";
-import { FinanceToolbar, type RefundFilter } from "./FinanceToolbar";
+import {
+  DateRangeFilter,
+  FinanceToolbar,
+  RefreshButton,
+  type RefundFilter,
+} from "./FinanceToolbar";
 import { PaymentsTable, payerName, refundedSoFar, remainingAmount } from "./PaymentsTable";
 import { PaymentDetailPanel } from "./PaymentDetailPanel";
 import { RevenueTrendCard } from "./RevenueTrendCard";
 import { RevenueCategoryCard } from "./RevenueCategoryCard";
 import { CurrencyTabs } from "./CurrencyTabs";
+import { FinanceTabs, type FinanceTabKey } from "./FinanceTabs";
 import { StaffPayoutPanel } from "./StaffPayoutPanel";
 
 const PAGE_SIZE = 10;
@@ -50,6 +56,7 @@ const STATUS_VALUES: PaymentStatus[] = [
   "refunded",
 ];
 const METHOD_VALUES: PaymentMethod[] = ["stripe", "manual", "liqpay"];
+const TAB_VALUES: FinanceTabKey[] = ["stats", "payments", "payouts"];
 
 function saveBlob(blob: Blob, filename: string) {
   const url = window.URL.createObjectURL(blob);
@@ -94,6 +101,10 @@ export function FinanceAdminView() {
   const hasRefund = refunds === null ? undefined : refunds === "true";
 
   const currencyParam = searchParams.get("currency");
+  const tabParam = searchParams.get("tab");
+  const tab: FinanceTabKey = TAB_VALUES.includes(tabParam as FinanceTabKey)
+    ? (tabParam as FinanceTabKey)
+    : "stats";
 
   const [payments, setPayments] = useState<AdminPayment[]>([]);
   const [count, setCount] = useState(0);
@@ -105,6 +116,7 @@ export function FinanceAdminView() {
     "|",
   );
   const queryKey = [page, ordering, filterKey].join("|");
+  const statsKey = [from, to, refreshKey].join("|");
   const loading = loadedKey !== queryKey;
 
   const [summary, setSummary] = useState<PaymentSummary | null>(null);
@@ -140,6 +152,7 @@ export function FinanceAdminView() {
   );
 
   useEffect(() => {
+    if (tab !== "payments") return;
     let cancelled = false;
     getAdminPayments({
       page,
@@ -174,15 +187,12 @@ export function FinanceAdminView() {
     return () => {
       cancelled = true;
     };
-  }, [page, ordering, status, method, hasRefund, from, to, search, queryKey, updateParams, t]);
+  }, [tab, page, ordering, status, method, hasRefund, from, to, search, queryKey, updateParams, t]);
 
   useEffect(() => {
+    if (tab !== "stats") return;
     let cancelled = false;
     getPaymentsSummary({
-      search: search || undefined,
-      status: status ?? undefined,
-      payment_method: method ?? undefined,
-      has_refund: hasRefund,
       date_from: from || undefined,
       date_to: to || undefined,
     })
@@ -190,29 +200,26 @@ export function FinanceAdminView() {
         if (cancelled) return;
         setSummary(data);
         setSummaryError(null);
-        setSummaryLoadedKey(filterKey);
+        setSummaryLoadedKey(statsKey);
       })
       .catch((err) => {
         if (cancelled) return;
         setSummary(null);
         setSummaryError((err as ApiError).message ?? t("errorLoadTotals"));
-        setSummaryLoadedKey(filterKey);
+        setSummaryLoadedKey(statsKey);
       });
     return () => {
       cancelled = true;
     };
-  }, [status, method, hasRefund, from, to, search, filterKey, t]);
+  }, [tab, from, to, statsKey, t]);
 
-  const trendKey = [filterKey, groupBy].join("|");
+  const trendKey = [statsKey, groupBy].join("|");
 
   useEffect(() => {
+    if (tab !== "stats") return;
     let cancelled = false;
     getRevenueTimeseries({
       group_by: groupBy,
-      search: search || undefined,
-      status: status ?? undefined,
-      payment_method: method ?? undefined,
-      has_refund: hasRefund,
       date_from: from || undefined,
       date_to: to || undefined,
     })
@@ -231,15 +238,12 @@ export function FinanceAdminView() {
     return () => {
       cancelled = true;
     };
-  }, [groupBy, status, method, hasRefund, from, to, search, trendKey, t]);
+  }, [tab, groupBy, from, to, trendKey, t]);
 
   useEffect(() => {
+    if (tab !== "stats") return;
     let cancelled = false;
     getRevenueByCategory({
-      search: search || undefined,
-      status: status ?? undefined,
-      payment_method: method ?? undefined,
-      has_refund: hasRefund,
       date_from: from || undefined,
       date_to: to || undefined,
     })
@@ -247,18 +251,18 @@ export function FinanceAdminView() {
         if (cancelled) return;
         setCategories(data);
         setCategoriesError(null);
-        setCategoriesLoadedKey(filterKey);
+        setCategoriesLoadedKey(statsKey);
       })
       .catch((err) => {
         if (cancelled) return;
         setCategories(null);
         setCategoriesError((err as ApiError).message ?? t("errorLoadCategoryBreakdown"));
-        setCategoriesLoadedKey(filterKey);
+        setCategoriesLoadedKey(statsKey);
       });
     return () => {
       cancelled = true;
     };
-  }, [status, method, hasRefund, from, to, search, filterKey, t]);
+  }, [tab, from, to, statsKey, t]);
 
   const refresh = useCallback(() => setRefreshKey((key) => key + 1), []);
 
@@ -309,16 +313,23 @@ export function FinanceAdminView() {
     }
   }
 
-  const availableCurrencies = (summary?.by_currency ?? [])
+  const earningCurrencies = (summary?.by_currency ?? [])
     .slice()
     .sort((a, b) => (Number(b.gross_revenue) || 0) - (Number(a.gross_revenue) || 0))
     .map((row) => row.currency);
-  const currency: PricingPlan["currency"] | null =
-    availableCurrencies.find((value) => value === currencyParam) ?? availableCurrencies[0] ?? null;
+  const currency: Currency = CURRENCIES.includes(currencyParam as Currency)
+    ? (currencyParam as Currency)
+    : (earningCurrencies[0] ?? "USD");
 
   const totalPages = Math.max(1, Math.ceil(count / PAGE_SIZE));
   const emptyMessage = loading ? t("loadingTransactions") : t("noTransactionsFound");
-  const summaryLoading = summaryLoadedKey !== filterKey;
+  const summaryLoading = summaryLoadedKey !== statsKey;
+
+  const TABS = [
+    { key: "stats", label: t("tabStatistics") },
+    { key: "payments", label: t("tabPaymentHistory") },
+    { key: "payouts", label: t("tabTeacherPayouts") },
+  ] as const;
 
   return (
     <PageShell className="bg-(--color-brand-lavender-soft)">
@@ -337,121 +348,163 @@ export function FinanceAdminView() {
           >
             {t("heading")}
           </h1>
-          <CurrencyTabs
-            currencies={availableCurrencies}
-            active={currency}
-            onChange={(next) => updateParams({ currency: next })}
+          <FinanceTabs
+            tabs={TABS}
+            active={tab}
+            onChange={(next) => updateParams({ tab: next === "stats" ? null : next })}
+            ariaLabel={t("tabsAriaLabel")}
           />
         </div>
 
-        <div style={{ marginBottom: "clamp(16px, 1.67vw, 24px)" }}>
-          <FinanceStatTiles
-            summary={summary}
-            currency={currency}
-            error={summaryError}
-            loading={summaryLoading && !summaryError}
-          />
-        </div>
-        <div
-          style={{
-            marginBottom: "clamp(16px, 1.67vw, 24px)",
-          }}
-        >
-          <StaffPayoutPanel />
-        </div>
-        <div
-          className="flex flex-wrap items-stretch"
-          style={{ gap: "clamp(12px, 1.11vw, 16px)", marginBottom: "clamp(16px, 1.67vw, 24px)" }}
-        >
-          <div className="flex min-w-0 flex-col" style={{ flex: "2 1 520px" }}>
-            <RevenueTrendCard
-              rows={trend}
-              currency={currency}
-              error={trendError}
-              loading={trendLoadedKey !== trendKey && !trendError}
-              groupBy={groupBy}
-              onGroupByChange={(next) => updateParams({ group: next === "month" ? null : next })}
-            />
-          </div>
-          <div className="flex min-w-0 flex-col" style={{ flex: "1 1 340px" }}>
-            <RevenueCategoryCard
-              rows={categories}
-              currency={currency}
-              error={categoriesError}
-              loading={categoriesLoadedKey !== filterKey && !categoriesError}
-            />
-          </div>
-        </div>
-
-        <div style={{ marginBottom: "clamp(16px, 1.67vw, 24px)" }}>
-          <FinanceToolbar
-            search={search}
-            onSearchChange={handleSearchChange}
-            status={status}
-            onStatusChange={(next) => updateParams({ status: next, page: null })}
-            method={method}
-            onMethodChange={(next) => updateParams({ method: next, page: null })}
-            refunds={refunds}
-            onRefundsChange={(next) => updateParams({ refunds: next, page: null })}
-            from={from}
-            to={to}
-            onDateChange={(updates) => updateParams({ ...updates, page: null })}
-            onRefresh={refresh}
-            refreshing={loading}
-          />
-        </div>
-
-        {(listError || noticeError) && (
-          <p
-            className="text-(--color-danger)"
-            style={{
-              fontFamily: "var(--font-base)",
-              fontSize: "clamp(12px, 0.97vw, 14px)",
-              margin: "0 0 8px",
-            }}
+        {tab === "stats" && (
+          <div
+            role="tabpanel"
+            id="finance-panel-stats"
+            aria-labelledby="finance-tab-stats"
+            className="flex flex-col"
           >
-            {listError ?? noticeError}
-          </p>
-        )}
-
-        <div className="flex flex-wrap items-start" style={{ gap: "clamp(16px, 1.67vw, 24px)" }}>
-          <div className="flex min-w-0 flex-col" style={{ flex: "1 1 640px" }}>
             <div
-              key={refreshKey}
-              className={`animate-[table-refresh_400ms_ease-out] transition-opacity ${loading ? "opacity-60" : ""}`}
+              className="flex flex-wrap items-center justify-between"
+              style={{ gap: 16, marginBottom: "clamp(16px, 1.67vw, 24px)" }}
             >
-              <PaymentsTable
-                payments={payments}
-                emptyMessage={emptyMessage}
-                selectedPaymentId={detailPayment?.id ?? null}
-                onSelect={setDetailPayment}
-                onDownloadReceipt={(payment) => handleDownload(payment, "receipt")}
-                onDownloadInvoice={(payment) => handleDownload(payment, "invoice")}
-                onRefund={requestRefund}
-                currentSort={ordering}
-                onSortChange={(next) =>
-                  updateParams({ ordering: next === DEFAULT_ORDERING ? null : next })
-                }
+              <div className="flex flex-wrap items-center" style={{ gap: 12 }}>
+                <DateRangeFilter
+                  from={from}
+                  to={to}
+                  onDateChange={(updates) => updateParams({ ...updates, page: null })}
+                  locale={locale}
+                />
+                <RefreshButton onRefresh={refresh} refreshing={summaryLoading} />
+              </div>
+              <CurrencyTabs
+                currencies={CURRENCIES}
+                active={currency}
+                onChange={(next) => updateParams({ currency: next })}
               />
             </div>
 
-            {totalPages > 1 && (
-              <div style={{ marginTop: "clamp(16px, 1.67vw, 24px)" }}>
-                <Pagination
-                  currentPage={page}
-                  totalPages={totalPages}
-                  onPageChange={(next) =>
-                    updateParams({ page: next > 1 ? String(next) : null }, { scroll: true })
+            <div style={{ marginBottom: "clamp(16px, 1.67vw, 24px)" }}>
+              <FinanceStatTiles
+                summary={summary}
+                currency={currency}
+                error={summaryError}
+                loading={summaryLoading && !summaryError}
+              />
+            </div>
+
+            <div
+              className="flex flex-wrap items-stretch"
+              style={{ gap: "clamp(12px, 1.11vw, 16px)" }}
+            >
+              <div className="flex min-w-0 flex-col" style={{ flex: "2 1 520px" }}>
+                <RevenueTrendCard
+                  rows={trend}
+                  currency={currency}
+                  error={trendError}
+                  loading={trendLoadedKey !== trendKey && !trendError}
+                  groupBy={groupBy}
+                  onGroupByChange={(next) =>
+                    updateParams({ group: next === "month" ? null : next })
                   }
                 />
               </div>
-            )}
+              <div className="flex min-w-0 flex-col" style={{ flex: "1 1 340px" }}>
+                <RevenueCategoryCard
+                  rows={categories}
+                  currency={currency}
+                  error={categoriesError}
+                  loading={categoriesLoadedKey !== statsKey && !categoriesError}
+                />
+              </div>
+            </div>
           </div>
+        )}
 
-          {detailPayment && (
-            <PaymentDetailPanel payment={detailPayment} onClose={() => setDetailPayment(null)} />
-          )}
-        </div>
+        {tab === "payments" && (
+          <div role="tabpanel" id="finance-panel-payments" aria-labelledby="finance-tab-payments">
+            <div style={{ marginBottom: "clamp(16px, 1.67vw, 24px)" }}>
+              <FinanceToolbar
+                search={search}
+                onSearchChange={handleSearchChange}
+                status={status}
+                onStatusChange={(next) => updateParams({ status: next, page: null })}
+                method={method}
+                onMethodChange={(next) => updateParams({ method: next, page: null })}
+                refunds={refunds}
+                onRefundsChange={(next) => updateParams({ refunds: next, page: null })}
+                from={from}
+                to={to}
+                onDateChange={(updates) => updateParams({ ...updates, page: null })}
+                onRefresh={refresh}
+                refreshing={loading}
+              />
+            </div>
+
+            {(listError || noticeError) && (
+              <p
+                className="text-(--color-danger)"
+                style={{
+                  fontFamily: "var(--font-base)",
+                  fontSize: "clamp(12px, 0.97vw, 14px)",
+                  margin: "0 0 8px",
+                }}
+              >
+                {listError ?? noticeError}
+              </p>
+            )}
+
+            <div
+              className="flex flex-wrap items-start"
+              style={{ gap: "clamp(16px, 1.67vw, 24px)" }}
+            >
+              <div className="flex min-w-0 flex-col" style={{ flex: "1 1 640px" }}>
+                <div
+                  key={refreshKey}
+                  className={`animate-[table-refresh_400ms_ease-out] transition-opacity ${loading ? "opacity-60" : ""}`}
+                >
+                  <PaymentsTable
+                    payments={payments}
+                    emptyMessage={emptyMessage}
+                    selectedPaymentId={detailPayment?.id ?? null}
+                    onSelect={setDetailPayment}
+                    onDownloadReceipt={(payment) => handleDownload(payment, "receipt")}
+                    onDownloadInvoice={(payment) => handleDownload(payment, "invoice")}
+                    onRefund={requestRefund}
+                    currentSort={ordering}
+                    onSortChange={(next) =>
+                      updateParams({ ordering: next === DEFAULT_ORDERING ? null : next })
+                    }
+                  />
+                </div>
+
+                {totalPages > 1 && (
+                  <div style={{ marginTop: "clamp(16px, 1.67vw, 24px)" }}>
+                    <Pagination
+                      currentPage={page}
+                      totalPages={totalPages}
+                      onPageChange={(next) =>
+                        updateParams({ page: next > 1 ? String(next) : null }, { scroll: true })
+                      }
+                    />
+                  </div>
+                )}
+              </div>
+
+              {detailPayment && (
+                <PaymentDetailPanel
+                  payment={detailPayment}
+                  onClose={() => setDetailPayment(null)}
+                />
+              )}
+            </div>
+          </div>
+        )}
+
+        {tab === "payouts" && (
+          <div role="tabpanel" id="finance-panel-payouts" aria-labelledby="finance-tab-payouts">
+            <StaffPayoutPanel />
+          </div>
+        )}
       </div>
 
       {refundTarget && (

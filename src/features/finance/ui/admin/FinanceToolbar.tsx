@@ -217,25 +217,39 @@ export function FinanceToolbar({
 
       <DateRangeFilter from={from} to={to} onDateChange={onDateChange} locale={locale} />
 
-      <button
-        type="button"
-        onClick={onRefresh}
-        title={t("refreshTitle")}
-        aria-label={t("refreshTitle")}
-        className="flex cursor-pointer items-center justify-center rounded-full bg-white text-(--color-text-primary) transition hover:opacity-80"
-        style={{ width: CONTROL_HEIGHT, height: CONTROL_HEIGHT, border: "none" }}
-      >
-        <RefreshCw
-          aria-hidden="true"
-          className={refreshing ? "animate-spin" : undefined}
-          style={ICON_SIZE}
-        />
-      </button>
+      <RefreshButton onRefresh={onRefresh} refreshing={refreshing} />
     </div>
   );
 }
 
-function DateRangeFilter({
+export function RefreshButton({
+  onRefresh,
+  refreshing,
+}: {
+  onRefresh: () => void;
+  refreshing: boolean;
+}) {
+  const t = useTranslations("FinanceToolbar");
+
+  return (
+    <button
+      type="button"
+      onClick={onRefresh}
+      title={t("refreshTitle")}
+      aria-label={t("refreshTitle")}
+      className="flex cursor-pointer items-center justify-center rounded-full bg-white text-(--color-text-primary) transition hover:opacity-80"
+      style={{ width: CONTROL_HEIGHT, height: CONTROL_HEIGHT, border: "none" }}
+    >
+      <RefreshCw
+        aria-hidden="true"
+        className={refreshing ? "animate-spin" : undefined}
+        style={ICON_SIZE}
+      />
+    </button>
+  );
+}
+
+export function DateRangeFilter({
   from,
   to,
   onDateChange,

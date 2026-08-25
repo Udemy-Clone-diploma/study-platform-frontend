@@ -1426,6 +1426,10 @@
   },
   "FinanceAdminView": {
     "heading": "Financial management",
+    "tabStatistics": "Statistics",
+    "tabPaymentHistory": "Payment history",
+    "tabTeacherPayouts": "Teacher payouts",
+    "tabsAriaLabel": "Finance sections",
     "loadingTransactions": "Loading transactions…",
     "noTransactionsFound": "No transactions found.",
     "errorLoadTransactions": "Failed to load transactions.",

@@ -16,10 +16,9 @@ import {
   TrendingUp,
   UserPlus,
   Users,
-  Wallet,
 } from "lucide-react";
 import { getUnassignedUserReports, getUsers, type UserData } from "@/entities/user";
-import { getCourses, type CourseListItem, type PricingPlan } from "@/entities/course";
+import { CURRENCIES, getCourses, type CourseListItem, type Currency } from "@/entities/course";
 import {
   formatMoney,
   getPaymentsSummary,
@@ -34,8 +33,6 @@ import type { ApiError } from "@/shared/api/base";
 import { PageShell } from "@/shared/ui/PageShell";
 import { StudentAvatar } from "@/shared/ui/StudentAvatar";
 
-type Currency = PricingPlan["currency"];
-
 type RoleSlice = { key: string; label: string; count: number; color: string };
 
 type AttentionQueue = {
@@ -47,6 +44,12 @@ type AttentionQueue = {
   icon: ReactNode;
 };
 
+type CurrencyRevenue = {
+  currency: Currency;
+  net: string;
+  change: number | null;
+};
+
 type AdminDashboardData = {
   totalUsers: number;
   newUsers7d: number;
@@ -54,10 +57,9 @@ type AdminDashboardData = {
   publishedCourses: number;
   coursesInModeration: number;
   certificates: number;
-  currency: Currency;
-  netRevenue: string | null;
-  netRevenueChange: number | null;
+  revenue: CurrencyRevenue[];
   revenueTrend: RevenueTimeseriesRow[];
+  revenueError: string | null;
   roles: RoleSlice[];
   attention: AttentionQueue[];
   latestUsers: UserData[];
@@ -94,10 +96,24 @@ function settled<T>(result: PromiseSettledResult<T>, fallback: T): T {
   return result.status === "fulfilled" ? result.value : fallback;
 }
 
+function busiestCurrency(data: AdminDashboardData | null): Currency {
+  if (data?.revenue.length) return data.revenue[0].currency;
+  const earning = data?.revenueTrend.find((row) => Number(row.gross_revenue) > 0);
+  return earning?.currency ?? "USD";
+}
+
+function revenueFailure(...results: PromiseSettledResult<unknown>[]): string | null {
+  const rejected = results.find((result) => result.status === "rejected");
+  if (!rejected) return null;
+  return (
+    ((rejected as PromiseRejectedResult).reason as ApiError)?.message ??
+    "Revenue data could not be loaded."
+  );
+}
+
 async function loadAdminDashboard(): Promise<AdminDashboardData> {
   const now = new Date();
   const monthWindow = new Date(now.getTime() - 30 * DAY);
-  const yearWindow = new Date(now.getFullYear() - 1, now.getMonth(), 1);
   const revenueWindow = { date_from: iso(monthWindow), date_to: iso(now) };
 
   const [
@@ -126,7 +142,7 @@ async function loadAdminDashboard(): Promise<AdminDashboardData> {
     getCourses({ page_size: 1, status: ["review", "needs_revision"] }),
     getCourses({ page_size: 6, ordering: "-created_at" }),
     getPaymentsSummary(revenueWindow),
-    getRevenueTimeseries({ date_from: iso(yearWindow), date_to: iso(now), group_by: "month" }),
+    getRevenueTimeseries({ group_by: "month", page_size: 500 }),
     getCertificateCounts(),
     getTeacherApplications({ pageSize: 1, status: "pending" }),
     getUnassignedUserReports({ page_size: 1 }),
@@ -154,15 +170,18 @@ async function loadAdminDashboard(): Promise<AdminDashboardData> {
     summary,
     null as Awaited<ReturnType<typeof getPaymentsSummary>> | null,
   );
-  const primary =
-    summaryData?.by_currency
-      .slice()
-      .sort((a, b) => Number(b.gross_revenue) - Number(a.gross_revenue))[0] ?? null;
-  const currency: Currency = primary?.currency ?? "USD";
-  const netRevenue = primary?.net_revenue ?? null;
-  const previousNet =
-    summaryData?.previous?.by_currency.find((row) => row.currency === currency)?.net_revenue ??
-    null;
+  const revenue: CurrencyRevenue[] = (summaryData?.by_currency ?? [])
+    .slice()
+    .sort((a, b) => Number(b.gross_revenue) - Number(a.gross_revenue))
+    .map((row) => ({
+      currency: row.currency,
+      net: row.net_revenue,
+      change: percentChange(
+        row.net_revenue,
+        summaryData?.previous?.by_currency.find((prev) => prev.currency === row.currency)
+          ?.net_revenue ?? null,
+      ),
+    }));
 
   const applicationsCount = settled(applications, empty).count;
   const reportsCount = settled(reports, empty).count;
@@ -174,10 +193,9 @@ async function loadAdminDashboard(): Promise<AdminDashboardData> {
     publishedCourses,
     coursesInModeration,
     certificates: settled(certificates, { total: 0, valid: 0, revoked: 0 }).valid,
-    currency,
-    netRevenue,
-    netRevenueChange: percentChange(netRevenue, previousNet),
+    revenue,
     revenueTrend: settled(timeseries, [] as RevenueTimeseriesRow[]),
+    revenueError: revenueFailure(summary, timeseries),
     roles: [
       {
         key: "student",
@@ -235,18 +253,17 @@ function Card({ children, className = "" }: { children: ReactNode; className?: s
   );
 }
 
-function Change({ pct, upIsGood = true }: { pct: number; upIsGood?: boolean }) {
+function Change({ pct }: { pct: number }) {
   const up = pct >= 0;
-  const positive = up === upIsGood;
   const Icon = up ? TrendingUp : TrendingDown;
   return (
     <span
-      className="flex items-center gap-1 text-sm"
-      style={{ color: positive ? "var(--color-success)" : "var(--color-rejected)" }}
+      className="flex items-center gap-1 text-xs"
+      style={{ color: up ? "var(--color-success)" : "var(--color-rejected)" }}
     >
-      <Icon className="h-4 w-4 shrink-0" />
+      <Icon className="h-3.5 w-3.5 shrink-0" />
       {up ? "+" : ""}
-      {pct.toFixed(1)}% vs prev. period
+      {pct.toFixed(1)}%
     </span>
   );
 }
@@ -280,10 +297,59 @@ function StatCard({
   );
 }
 
-const CHART_X0 = 40;
-const CHART_X1 = 624;
-const CHART_Y_TOP = 20;
-const CHART_Y_BASE = 150;
+function TabGroup<T extends string>({
+  options,
+  active,
+  onChange,
+  ariaLabel,
+}: {
+  options: readonly { key: T; label: string }[];
+  active: T | null;
+  onChange: (value: T) => void;
+  ariaLabel: string;
+}) {
+  return (
+    <div
+      className="flex shrink-0 gap-0.5 rounded-full border border-black/10 p-0.5"
+      role="group"
+      aria-label={ariaLabel}
+    >
+      {options.map((option) => (
+        <button
+          key={option.key}
+          type="button"
+          onClick={() => onChange(option.key)}
+          aria-pressed={option.key === active}
+          className={`cursor-pointer rounded-full px-3 py-1 text-xs transition-colors ${
+            option.key === active
+              ? "bg-(--color-brand-lavender-soft) font-medium text-(--color-blue)"
+              : "text-(--color-text-secondary) hover:text-(--color-blue)"
+          }`}
+        >
+          {option.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+const CHART_W = 600;
+const CHART_H = 130;
+const CHART_Y_TOP = 4;
+const CHART_Y_BASE = 126;
+const NICE_STEPS = [1, 2, 2.5, 5, 10];
+const MAX_X_LABELS = 12;
+
+const RANGES = [
+  { key: "6m", label: "6M", caption: "last 6 months" },
+  { key: "ytd", label: "YTD", caption: "year to date" },
+  { key: "12m", label: "12M", caption: "last 12 months" },
+  { key: "all", label: "All", caption: "all time" },
+] as const;
+
+type RangeKey = (typeof RANGES)[number]["key"];
+
+const CURRENCY_OPTIONS = CURRENCIES.map((currency) => ({ key: currency, label: currency }));
 
 function compact(value: number): string {
   return new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(
@@ -291,33 +357,75 @@ function compact(value: number): string {
   );
 }
 
-function monthLabel(period: string): string {
-  const parts = period.split("-");
-  if (parts.length >= 2) return MONTHS[Number(parts[1]) - 1] ?? period;
-  return period;
+function axisTicks(peak: number): number[] {
+  const rough = peak / 4;
+  const magnitude = 10 ** Math.floor(Math.log10(rough));
+  const normalized = rough / magnitude;
+  const step = Math.max(
+    1,
+    (NICE_STEPS.find((candidate) => normalized <= candidate) ?? 10) * magnitude,
+  );
+  const ticks: number[] = [];
+  for (let value = 0; value < peak + step; value += step) ticks.push(value);
+  return ticks;
 }
 
-function RevenueTrendCard({
+function monthLabel(period: string, withYear: boolean): string {
+  const [year, month] = period.split("-");
+  const name = MONTHS[Number(month) - 1] ?? period;
+  return withYear ? `${name} '${year.slice(2)}` : name;
+}
+
+function edgeShift(index: number, count: number): string {
+  if (index === 0) return "0";
+  if (index === count - 1) return "-100%";
+  return "-50%";
+}
+
+function inRange(rows: RevenueTimeseriesRow[], range: RangeKey): RevenueTimeseriesRow[] {
+  if (range === "all") return rows;
+  if (range === "ytd") {
+    const year = String(new Date().getFullYear());
+    return rows.filter((row) => row.period.startsWith(year));
+  }
+  return rows.slice(range === "6m" ? -6 : -12);
+}
+
+function RevenueCard({
   rows,
+  revenue,
   currency,
+  onCurrencyChange,
+  error,
 }: {
   rows: RevenueTimeseriesRow[];
+  revenue: CurrencyRevenue | null;
   currency: Currency;
+  onCurrencyChange: (value: Currency) => void;
+  error: string | null;
 }) {
-  const points = rows
+  const [range, setRange] = useState<RangeKey>("12m");
+  const [hover, setHover] = useState<number | null>(null);
+
+  const months = rows
     .filter((row) => row.currency === currency)
     .slice()
-    .sort((a, b) => a.period.localeCompare(b.period))
-    .slice(-12);
+    .sort((a, b) => a.period.localeCompare(b.period));
+  const points = inRange(months, range);
   const values = points.map((point) => Number(point.gross_revenue) || 0);
   const max = Math.max(1, ...values);
+  const ticks = axisTicks(max);
+  const axisTop = ticks[ticks.length - 1];
   const total = values.reduce((sum, value) => sum + value, 0);
+  const caption = RANGES.find((option) => option.key === range)?.caption ?? "";
+  const active = hover !== null && hover < points.length ? hover : null;
+  const withYear = new Set(points.map((point) => point.period.slice(0, 4))).size > 1;
+  const labelStep = Math.max(1, Math.ceil(points.length / MAX_X_LABELS));
 
   const xFor = (index: number) =>
-    points.length <= 1
-      ? CHART_X0
-      : CHART_X0 + (index * (CHART_X1 - CHART_X0)) / (points.length - 1);
-  const yFor = (value: number) => CHART_Y_BASE - (value / max) * (CHART_Y_BASE - CHART_Y_TOP);
+    points.length <= 1 ? 0 : (index * CHART_W) / (points.length - 1);
+  const yFor = (value: number) => CHART_Y_BASE - (value / axisTop) * (CHART_Y_BASE - CHART_Y_TOP);
+  const leftOf = (index: number) => `${(xFor(index) / CHART_W) * 100}%`;
 
   const lineD = points
     .map((point, index) => `${index === 0 ? "M" : "L"}${xFor(index)} ${yFor(values[index])}`)
@@ -327,68 +435,167 @@ function RevenueTrendCard({
       ? `${lineD} L${xFor(points.length - 1)} ${CHART_Y_BASE} L${xFor(0)} ${CHART_Y_BASE} Z`
       : "";
 
+  function trackHover(event: React.MouseEvent<HTMLDivElement>) {
+    if (points.length === 0) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    const ratio = (event.clientX - rect.left) / rect.width;
+    const index = Math.round(ratio * (points.length - 1));
+    setHover(Math.min(points.length - 1, Math.max(0, index)));
+  }
+
   return (
     <Card className="flex h-full flex-col p-5">
-      <div className="mb-4 flex items-center justify-between gap-4">
-        <h2 className="text-base font-bold text-(--color-text-primary)">Revenue trends</h2>
-        <span className="text-xs text-(--color-text-secondary)">Last 12 months</span>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-base font-bold text-(--color-text-primary)">Revenue</h2>
+        <TabGroup
+          options={CURRENCY_OPTIONS}
+          active={currency}
+          onChange={onCurrencyChange}
+          ariaLabel="Revenue currency"
+        />
       </div>
 
-      <div className="mb-3 inline-flex w-fit rounded bg-(--color-brand-lavender-soft) px-3 py-1.5 text-sm font-bold text-(--color-blue)">
-        Gross revenue: {formatMoney(String(total), currency)}
+      <div className="mb-4 flex flex-wrap items-end gap-x-10 gap-y-4">
+        <div>
+          <span className="block text-[28px] leading-[35px] font-medium text-(--color-blue)">
+            {formatMoney(String(total), currency)}
+          </span>
+          <span className="mt-1 block text-xs text-(--color-text-secondary)">
+            Gross revenue, {caption}
+          </span>
+        </div>
+        <div>
+          <span className="flex items-center gap-2">
+            <span className="text-xl leading-7 font-medium text-(--color-text-primary)">
+              {revenue === null ? MONEY_UNAVAILABLE : formatMoney(revenue.net, currency)}
+            </span>
+            {revenue?.change == null ? null : <Change pct={revenue.change} />}
+          </span>
+          <span className="mt-1 block text-xs text-(--color-text-secondary)">
+            Net revenue, last 30 days
+          </span>
+        </div>
       </div>
 
-      <div className="relative min-h-44 flex-1">
+      {error ? (
+        <p role="alert" className="mb-3 text-sm text-(--color-rejected)">
+          {error}
+        </p>
+      ) : null}
+
+      <div className="mb-3 flex justify-end">
+        <TabGroup options={RANGES} active={range} onChange={setRange} ariaLabel="Revenue period" />
+      </div>
+
+      <div className="flex min-h-44 flex-1 flex-col">
         {points.length > 0 ? (
-          <svg
-            className="h-full w-full"
-            viewBox="0 0 640 170"
-            preserveAspectRatio="none"
-            role="img"
-            aria-label="Revenue over the last 12 months"
-          >
-            <defs>
-              <linearGradient id="adminRevenueFill" x1="0" x2="0" y1="0" y2="1">
-                <stop offset="0%" stopColor="#a7bafa" stopOpacity="0.7" />
-                <stop offset="52%" stopColor="#fcc4c3" stopOpacity="0.65" />
-                <stop offset="100%" stopColor="#fff4da" stopOpacity="0.35" />
-              </linearGradient>
-            </defs>
-            {[CHART_Y_TOP, 52, 85, 117, CHART_Y_BASE].map((y) => (
-              <line
-                key={y}
-                x1={CHART_X0}
-                x2={CHART_X1}
-                y1={y}
-                y2={y}
-                stroke="#e3e7f8"
-                strokeWidth="1"
-              />
-            ))}
-            <path d={areaD} fill="url(#adminRevenueFill)" />
-            <path d={lineD} fill="none" stroke="#a7bafa" strokeWidth="2" />
-            <text x="6" y={CHART_Y_TOP + 4} fill="#5e5e5e" fontSize="11">
-              {compact(max)}
-            </text>
-            <text x="6" y={CHART_Y_BASE} fill="#5e5e5e" fontSize="11">
-              0
-            </text>
-            {points.map((point, index) => (
-              <text
-                key={point.period}
-                x={xFor(index)}
-                y="166"
-                textAnchor={index === 0 ? "start" : index === points.length - 1 ? "end" : "middle"}
-                fill="#5e5e5e"
-                fontSize={points.length > 8 ? 8 : 10}
+          <>
+            <div className="flex flex-1 gap-2">
+              <div className="flex w-10 shrink-0 flex-col justify-between text-right text-[10px] leading-none text-(--color-text-secondary)">
+                {ticks
+                  .slice()
+                  .reverse()
+                  .map((tick) => (
+                    <span key={tick}>{compact(tick)}</span>
+                  ))}
+              </div>
+              <div
+                className="relative min-w-0 flex-1"
+                onMouseMove={trackHover}
+                onMouseLeave={() => setHover(null)}
               >
-                {monthLabel(point.period)}
-              </text>
-            ))}
-          </svg>
+                <svg
+                  className="absolute inset-0 h-full w-full"
+                  viewBox={`0 0 ${CHART_W} ${CHART_H}`}
+                  preserveAspectRatio="none"
+                  role="img"
+                  aria-label={`Revenue over the ${caption}, peaking at ${formatMoney(String(max), currency)}`}
+                >
+                  <defs>
+                    <linearGradient id="adminRevenueFill" x1="0" x2="0" y1="0" y2="1">
+                      <stop offset="0%" stopColor="var(--color-brand-lavender)" stopOpacity="0.7" />
+                      <stop offset="52%" stopColor="var(--color-brand-pink)" stopOpacity="0.65" />
+                      <stop offset="100%" stopColor="var(--color-brand-cream)" stopOpacity="0.35" />
+                    </linearGradient>
+                  </defs>
+                  {ticks.map((tick) => (
+                    <line
+                      key={tick}
+                      x1="0"
+                      x2={CHART_W}
+                      y1={yFor(tick)}
+                      y2={yFor(tick)}
+                      stroke="var(--color-chart-grid)"
+                      strokeWidth="1"
+                      vectorEffect="non-scaling-stroke"
+                    />
+                  ))}
+                  <path d={areaD} fill="url(#adminRevenueFill)" />
+                  <path
+                    d={lineD}
+                    fill="none"
+                    stroke="var(--color-brand-lavender)"
+                    strokeWidth="2"
+                    strokeLinejoin="round"
+                    vectorEffect="non-scaling-stroke"
+                  />
+                </svg>
+
+                {active !== null ? (
+                  <>
+                    <div
+                      aria-hidden="true"
+                      className="pointer-events-none absolute inset-y-0 border-l border-dashed border-(--color-brand-lavender)"
+                      style={{ left: leftOf(active) }}
+                    />
+                    <div
+                      aria-hidden="true"
+                      className="pointer-events-none absolute h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-(--color-blue)"
+                      style={{
+                        left: leftOf(active),
+                        top: `${(yFor(values[active]) / CHART_H) * 100}%`,
+                      }}
+                    />
+                    <div
+                      className="pointer-events-none absolute top-0 rounded-lg bg-white px-2.5 py-1.5 whitespace-nowrap shadow-[0_2px_10px_rgba(0,0,0,0.16)]"
+                      style={{
+                        left: leftOf(active),
+                        transform: `translateX(${edgeShift(active, points.length)})`,
+                      }}
+                    >
+                      <span className="block text-[10px] text-(--color-text-secondary)">
+                        {monthLabel(points[active].period, withYear)}
+                      </span>
+                      <span className="block text-xs font-semibold text-(--color-text-primary)">
+                        {formatMoney(points[active].gross_revenue, currency)}
+                      </span>
+                    </div>
+                  </>
+                ) : null}
+              </div>
+            </div>
+            <div className="relative mt-2 ml-12 h-4 text-[10px] text-(--color-text-secondary)">
+              {points.map((point, index) =>
+                (points.length - 1 - index) % labelStep === 0 ? (
+                  <span
+                    key={point.period}
+                    className={`absolute whitespace-nowrap ${
+                      index === active ? "font-semibold text-(--color-text-primary)" : ""
+                    }`.trim()}
+                    style={{
+                      left: leftOf(index),
+                      transform: `translateX(${edgeShift(index, points.length)})`,
+                    }}
+                  >
+                    {monthLabel(point.period, withYear)}
+                  </span>
+                ) : null,
+              )}
+            </div>
+          </>
         ) : (
           <div className="flex h-full min-h-44 items-center justify-center text-sm text-(--color-text-secondary)">
-            No revenue recorded in this period.
+            No {currency} revenue recorded in this period.
           </div>
         )}
       </div>
@@ -586,6 +793,10 @@ export function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
+  const [pickedCurrency, setPickedCurrency] = useState<Currency | null>(null);
+
+  const currency = pickedCurrency ?? busiestCurrency(data);
+  const revenue = data?.revenue.find((row) => row.currency === currency) ?? null;
 
   const refresh = useCallback(() => {
     setLoading(true);
@@ -653,7 +864,7 @@ export function AdminDashboard() {
           <div
             className={`flex flex-col gap-5 ${loading ? "opacity-60" : ""} transition-opacity`.trim()}
           >
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
               <StatCard
                 label="Total users"
                 value={data.totalUsers.toLocaleString()}
@@ -687,22 +898,6 @@ export function AdminDashboard() {
                 footer="Joined in the last 7 days"
               />
               <StatCard
-                label="Net revenue"
-                value={
-                  data.netRevenue === null
-                    ? MONEY_UNAVAILABLE
-                    : formatMoney(data.netRevenue, data.currency)
-                }
-                icon={<Wallet className="h-5 w-5" />}
-                footer={
-                  data.netRevenueChange === null ? (
-                    "Last 30 days"
-                  ) : (
-                    <Change pct={data.netRevenueChange} />
-                  )
-                }
-              />
-              <StatCard
                 label="Certificates issued"
                 value={data.certificates.toLocaleString()}
                 icon={<Award className="h-5 w-5" />}
@@ -712,7 +907,13 @@ export function AdminDashboard() {
 
             <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
               <div className="xl:col-span-2">
-                <RevenueTrendCard rows={data.revenueTrend} currency={data.currency} />
+                <RevenueCard
+                  rows={data.revenueTrend}
+                  revenue={revenue}
+                  currency={currency}
+                  onCurrencyChange={setPickedCurrency}
+                  error={data.revenueError}
+                />
               </div>
               <div className="flex flex-col gap-5">
                 <AttentionPanel queues={data.attention} />

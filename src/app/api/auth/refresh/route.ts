@@ -8,6 +8,13 @@ import { API_BASE_URL } from "@/shared/api/config/baseUrl";
 import { decodeJwtPayload, getJwtMaxAge } from "@/shared/api/lib/jwt";
 import type { TokenRefreshResponse } from "@/features/auth/model/types/loginTypes";
 
+type RefreshSessionResult =
+  | { status: "success"; access: string; refresh: string }
+  | { status: "invalid" }
+  | { status: "unavailable" };
+
+const inFlightRefreshes = new Map<string, Promise<RefreshSessionResult>>();
+
 function refreshEndpoint(request: NextRequest): string {
   const base = API_BASE_URL.startsWith("http")
     ? API_BASE_URL
@@ -70,26 +77,59 @@ function setSessionCookies(
   });
 }
 
-async function refreshSession(request: NextRequest) {
+async function requestRefreshedSession(
+  endpoint: string,
+  currentRefresh: string,
+): Promise<RefreshSessionResult> {
+  let response: Response;
+
+  try {
+    response = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh: currentRefresh }),
+      cache: "no-store",
+    });
+  } catch {
+    return { status: "unavailable" };
+  }
+
+  if ([400, 401, 403].includes(response.status)) {
+    return { status: "invalid" };
+  }
+
+  if (!response.ok) {
+    return { status: "unavailable" };
+  }
+
+  try {
+    const data = (await response.json()) as TokenRefreshResponse;
+    if (!data.access) return { status: "unavailable" };
+
+    return {
+      status: "success",
+      access: data.access,
+      refresh: data.refresh ?? currentRefresh,
+    };
+  } catch {
+    return { status: "unavailable" };
+  }
+}
+
+async function refreshSession(request: NextRequest): Promise<RefreshSessionResult> {
   const currentRefresh = request.cookies.get(AUTH_COOKIE_CONFIG.refresh.name)?.value;
-  if (!currentRefresh) return null;
+  if (!currentRefresh) return { status: "invalid" };
 
-  const response = await fetch(refreshEndpoint(request), {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ refresh: currentRefresh }),
-    cache: "no-store",
+  const endpoint = refreshEndpoint(request);
+  const refreshKey = `${endpoint}:${currentRefresh}`;
+  const existingRefresh = inFlightRefreshes.get(refreshKey);
+  if (existingRefresh) return existingRefresh;
+
+  const refreshRequest = requestRefreshedSession(endpoint, currentRefresh).finally(() => {
+    inFlightRefreshes.delete(refreshKey);
   });
-
-  if (!response.ok) return null;
-
-  const data = (await response.json()) as TokenRefreshResponse;
-  if (!data.access) return null;
-
-  return {
-    access: data.access,
-    refresh: data.refresh ?? currentRefresh,
-  };
+  inFlightRefreshes.set(refreshKey, refreshRequest);
+  return refreshRequest;
 }
 
 export async function POST(request: NextRequest) {
@@ -97,10 +137,17 @@ export async function POST(request: NextRequest) {
   const fallbackRole = request.cookies.get(AUTH_COOKIE_CONFIG.role.name)?.value;
   const refreshed = await refreshSession(request);
 
-  if (!refreshed) {
+  if (refreshed.status === "invalid") {
     const response = NextResponse.json({ detail: "Could not refresh session." }, { status: 401 });
     clearSession(response);
     return response;
+  }
+
+  if (refreshed.status === "unavailable") {
+    return NextResponse.json(
+      { detail: "Session refresh is temporarily unavailable." },
+      { status: 503, headers: { "Retry-After": "5" } },
+    );
   }
 
   const response = NextResponse.json({ access: refreshed.access });
@@ -121,10 +168,17 @@ export async function GET(request: NextRequest) {
   const refreshed = await refreshSession(request);
   const baseUrl = process.env.APP_URL || request.url;
 
-  if (!refreshed) {
+  if (refreshed.status === "invalid") {
     const response = NextResponse.redirect(new URL("/login", baseUrl));
     clearSession(response);
     return response;
+  }
+
+  if (refreshed.status === "unavailable") {
+    return NextResponse.json(
+      { detail: "Session refresh is temporarily unavailable." },
+      { status: 503, headers: { "Retry-After": "5" } },
+    );
   }
 
   const response = NextResponse.redirect(new URL(redirectTarget, baseUrl));

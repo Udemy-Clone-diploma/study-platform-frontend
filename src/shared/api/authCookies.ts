@@ -83,3 +83,11 @@ export async function getRememberMeCookie(): Promise<boolean> {
   const jar = await cookies();
   return jar.get(AUTH_COOKIE_CONFIG.remember.name)?.value === "true";
 }
+
+/** Checks refresh expiry without exposing the httpOnly token to client code. */
+export async function hasUsableRefreshToken(): Promise<boolean> {
+  const refreshToken = await getRefreshToken();
+  if (!refreshToken) return false;
+
+  return (getJwtMaxAge(refreshToken) ?? 0) > 0;
+}

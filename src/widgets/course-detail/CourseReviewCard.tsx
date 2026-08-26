@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { Flag, Star } from "lucide-react";
 import { reportReview, type CourseReview } from "@/entities/course";
 import { ReportReviewModal } from "@/shared/ui/ReportReviewModal";
+import { useIsAuthenticated } from "@/shared/lib/useIsAuthenticated";
 
 type Props = {
   review: CourseReview;
@@ -18,6 +19,7 @@ type Props = {
 export function CourseReviewCard({ review, showRating = true, variant = "compact" }: Props) {
   const initial = review.student.name.charAt(0);
   const [reporting, setReporting] = useState(false);
+  const canReport = useIsAuthenticated();
   const t = useTranslations("StudentReviewCard");
   const tCard = useTranslations("CourseReviewCard");
   const isFull = variant === "full";
@@ -30,16 +32,18 @@ export function CourseReviewCard({ review, showRating = true, variant = "compact
           : "gap-3 rounded-[14px] px-3 pt-4 pb-3 sm:gap-2.5 sm:rounded-[20px] sm:px-6 sm:pt-7 sm:pb-8"
       }`}
     >
-      <button
-        type="button"
-        onClick={() => setReporting(true)}
-        aria-label={t("reportReview")}
-        title={t("reportReview")}
-        className="absolute top-2 right-2 flex items-center justify-center text-(--color-text-secondary) hover:text-(--color-text-primary) sm:top-3 sm:right-3"
-        style={{ border: "none", background: "transparent", cursor: "pointer" }}
-      >
-        <Flag className="h-3 w-3 sm:h-4 sm:w-4" />
-      </button>
+      {canReport && (
+        <button
+          type="button"
+          onClick={() => setReporting(true)}
+          aria-label={t("reportReview")}
+          title={t("reportReview")}
+          className="absolute top-2 right-2 flex items-center justify-center text-(--color-text-secondary) opacity-0 transition-opacity hover:text-(--color-text-primary) hover:opacity-100 focus-visible:opacity-100 sm:top-3 sm:right-3"
+          style={{ border: "none", background: "transparent", cursor: "pointer" }}
+        >
+          <Flag className="h-3 w-3 sm:h-4 sm:w-4" />
+        </button>
+      )}
 
       <p
         className={`flex-1 text-(--color-text-secondary) ${
@@ -112,7 +116,7 @@ export function CourseReviewCard({ review, showRating = true, variant = "compact
         )}
       </div>
 
-      {reporting && (
+      {canReport && reporting && (
         <ReportReviewModal
           onClose={() => setReporting(false)}
           onSubmit={(reason) => reportReview(review.id, reason)}

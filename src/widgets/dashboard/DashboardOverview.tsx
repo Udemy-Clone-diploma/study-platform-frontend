@@ -66,9 +66,12 @@ function StudentDashboard() {
               <HomeworkQueuePanel />
             </div>
 
-            <div className="flex min-w-0 flex-col" style={{ gap: "clamp(16px, 1.04vw, 20px)" }}>
-              <HomeworkReviewPanel />
-              <StudentNotesPanel />
+            <div
+              className="flex min-w-0 flex-col xl:h-[calc(100vh-76px-clamp(16px,3.06vw,44px))]"
+              style={{ gap: "clamp(16px, 1.04vw, 20px)" }}
+            >
+              <HomeworkReviewPanel className="h-[460px] xl:h-[480px] xl:shrink-0" />
+              <StudentNotesPanel className="h-[460px] xl:min-h-0 xl:h-auto xl:flex-1" />
             </div>
           </div>
 

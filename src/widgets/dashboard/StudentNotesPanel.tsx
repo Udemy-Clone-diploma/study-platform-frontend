@@ -39,7 +39,7 @@ function formatNoteDate(value: string, locale: string): string {
   }).format(date).replace(/\//g, ".");
 }
 
-export function StudentNotesPanel() {
+export function StudentNotesPanel({ className = "h-[460px]" }: { className?: string }) {
   const t = useTranslations("StudentNotesPanel");
   const tCommon = useTranslations("Common");
   const SORT_OPTIONS: SelectOption[] = [
@@ -84,7 +84,9 @@ export function StudentNotesPanel() {
   }, [notes, activeCourseFilter, sort]);
 
   return (
-    <div className="flex h-[460px] flex-col overflow-hidden rounded-lg bg-white p-4 shadow-[0_0_16px_rgba(0,0,0,0.14)]">
+    <div
+      className={`flex flex-col overflow-hidden rounded-lg bg-white p-4 shadow-[0_0_16px_rgba(0,0,0,0.14)] ${className}`}
+    >
       <div className="mb-3 flex items-center justify-between gap-2">
         <h2 className="min-w-0 truncate text-base font-bold text-black">{t("myNotes")}</h2>
         <div className="flex min-w-0 items-center justify-end gap-2">

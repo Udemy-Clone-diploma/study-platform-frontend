@@ -21,13 +21,7 @@ export function useEnrollCourse(courseSlug: string) {
   async function enroll() {
     if (loading || enrolled) return;
 
-    const token = getClientCookie(AUTH_COOKIE_NAMES.access);
     const role = getClientCookie(AUTH_COOKIE_NAMES.role);
-
-    if (!token) {
-      router.push("/login");
-      return;
-    }
 
     if (role && role !== "student") {
       setMessage(STUDENT_ONLY_MESSAGE);

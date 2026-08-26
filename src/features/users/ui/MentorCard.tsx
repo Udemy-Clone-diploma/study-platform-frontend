@@ -20,11 +20,11 @@ type Props = {
 };
 
 function getRoleFontSize(role: string): string {
-    const length = Array.from(role.trim()).length;
+  const length = Array.from(role.trim()).length;
 
-    if (length > 48) return "clamp(8px, 0.625vw, 10px)";
-    if (length > 32) return "clamp(9px, 0.69vw, 11px)";
-    return "clamp(10px, 0.78vw, 12px)";
+  if (length > 48) return "clamp(8px, 0.625vw, 10px)";
+  if (length > 32) return "clamp(9px, 0.69vw, 11px)";
+  return "clamp(10px, 0.78vw, 12px)";
 }
 
 export function MentorCard({ mentor, current, total, onPrev, onNext, onInfoClick }: Props) {
@@ -70,35 +70,35 @@ export function MentorCard({ mentor, current, total, onPrev, onNext, onInfoClick
 
         {/* Role badge*/}
         {mentor.role && (
-            <div
-                style={{
-                    position: "absolute",
-                    top: "1.04vw",
-                    right: "1.04vw",
-                    zIndex: 2,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    padding: "0.1vw 0.42vw",
-                    background: "var(--color-white-60)",
-                    borderRadius: "0.885vw",
-                    maxWidth: "calc(100% - 2.08vw)",
-                }}
+          <div
+            style={{
+              position: "absolute",
+              top: "1.04vw",
+              right: "1.04vw",
+              zIndex: 2,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "0.1vw 0.42vw",
+              background: "var(--color-white-60)",
+              borderRadius: "0.885vw",
+              maxWidth: "calc(100% - 2.08vw)",
+            }}
+          >
+            <span
+              style={{
+                fontFamily: "var(--font-accent)",
+                fontWeight: 500,
+                fontSize: getRoleFontSize(mentor.role),
+                lineHeight: 1.25,
+                color: "var(--color-blue)",
+                textAlign: "center",
+                overflowWrap: "anywhere",
+              }}
             >
-                <span
-                    style={{
-                        fontFamily: "var(--font-accent)",
-                        fontWeight: 500,
-                        fontSize: getRoleFontSize(mentor.role),
-                        lineHeight: 1.25,
-                        color: "var(--color-blue)",
-                        textAlign: "center",
-                        overflowWrap: "anywhere",
-                    }}
-                >
-                    {mentor.role}
-                </span>
-            </div>
+              {mentor.role}
+            </span>
+          </div>
         )}
         <div
           style={{

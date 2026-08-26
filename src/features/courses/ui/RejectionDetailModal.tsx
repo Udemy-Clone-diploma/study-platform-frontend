@@ -135,8 +135,8 @@ export function RejectionDetailModal({ record, onClose, onMoveToDraft }: Props) 
 
   useEffect(() => {
     if (record.course_slug)
-      getCourseBySlug(record.course_slug).then(setDetail).catch(() => {});
-  }, [record.course_slug]);
+      getCourseBySlug(record.course_slug, undefined, locale).then(setDetail).catch(() => {});
+  }, [record.course_slug, locale]);
 
   const basicsStatuses  = record.basics_field_statuses  ?? {};
   const contentStatuses = record.content_item_statuses  ?? {};

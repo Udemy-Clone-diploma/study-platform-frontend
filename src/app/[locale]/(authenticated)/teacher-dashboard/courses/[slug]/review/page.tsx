@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import type { CSSProperties, ReactNode } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { ArrowLeft } from "lucide-react";
@@ -162,6 +162,7 @@ function ModuleReviewCard({ module, index }: { module: CourseModule; index: numb
 
 export default function CourseReviewPage() {
   const t = useTranslations("CourseReviewPage");
+  const locale = useLocale();
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
   const [course, setCourse] = useState<CourseDetail | null>(null);
@@ -175,7 +176,7 @@ export default function CourseReviewPage() {
 
   useEffect(() => {
     if (!slug) return;
-    getCourseBySlug(slug)
+    getCourseBySlug(slug, undefined, locale)
       .then(async (c) => {
         setCourse(c);
         const isPublished = PUBLISHED_STATUSES.has(c.status);
@@ -183,7 +184,7 @@ export default function CourseReviewPage() {
 
         if (isPublished) {
           const pe = await getPendingEdit(slug);
-          const draft = await getCourseBySlug(pe.draft_course_slug);
+          const draft = await getCourseBySlug(pe.draft_course_slug, undefined, locale);
           setDisplayTitle(draft.title);
           setModuleList(Array.isArray(draft.modules) ? draft.modules : []);
         } else {
@@ -193,7 +194,7 @@ export default function CourseReviewPage() {
       })
       .catch(() => router.push("/teacher-dashboard/courses"))
       .finally(() => setLoading(false));
-  }, [slug, router]);
+  }, [slug, router, locale]);
 
   async function handleSubmit() {
     if (!slug || submitting) return;

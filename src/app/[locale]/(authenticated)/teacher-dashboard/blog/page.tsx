@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Plus } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { PageShell } from "@/shared/ui/PageShell";
 import { GradientButton } from "@/shared/ui/GradientButton";
 import { Pagination } from "@/shared/ui/Pagination";
@@ -28,6 +28,7 @@ export default function TeacherBlogPage() {
   const t = useTranslations("TeacherBlogPage");
   const tCommon = useTranslations("Common");
   const tStatus = useTranslations("ArticleStatus");
+  const locale = useLocale();
   const TAB_LABELS: Record<Tab, string> = {
     all: tCommon("all"),
     draft: tStatus("draft"),
@@ -51,22 +52,22 @@ export default function TeacherBlogPage() {
   const [page, setPage] = useState(1);
 
   const refresh = useCallback(() => {
-    getArticles({ mine: true }).then(setArticles).catch(() => {});
-  }, []);
+    getArticles({ mine: true, lang: locale }).then(setArticles).catch(() => {});
+  }, [locale]);
 
   const actions = useArticleActions(refresh);
 
   useAutoRefresh(refresh);
 
   useEffect(() => {
-    Promise.all([getArticles({ mine: true }), getBlogCategories()])
+    Promise.all([getArticles({ mine: true, lang: locale }), getBlogCategories(locale)])
       .then(([articleList, categoryList]) => {
         setArticles(articleList);
         setCategories(categoryList);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [locale]);
 
   const filtered = articles.filter((a) => {
     const status = TAB_STATUS[activeTab];

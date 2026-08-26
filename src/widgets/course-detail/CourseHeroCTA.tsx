@@ -86,11 +86,6 @@ export function CourseHeroCTA({ slug, isEnrolled, accessStatus, defaultFormat }:
   }
 
   const handleClick = async () => {
-    if (!getClientCookie(AUTH_COOKIE_NAMES.access)) {
-      router.push(`/login?next=${encodeURIComponent(`/courses/${slug}`)}`);
-      return;
-    }
-
     const role = getClientCookie(AUTH_COOKIE_NAMES.role);
     if (role && role !== "student") {
       setNotice(t("studentOnly"));
@@ -116,6 +111,11 @@ export function CourseHeroCTA({ slug, isEnrolled, accessStatus, defaultFormat }:
       setNotice(t("freeEnrollmentSuccess"));
     } catch (error) {
       const apiError = error as Partial<ApiError>;
+
+      if (apiError.status === 401) {
+        router.push(`/login?next=${encodeURIComponent(`/courses/${slug}`)}`);
+        return;
+      }
 
       if (apiError.status === 409) {
         setEnrolled(true);

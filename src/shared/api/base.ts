@@ -2,8 +2,11 @@ import axios, { AxiosHeaders, type InternalAxiosRequestConfig } from "axios";
 import { API_BASE_URL } from "@/shared/api/config/baseUrl";
 import { AUTH_COOKIE_NAMES } from "@/shared/api/config/authCookies";
 import { normalizeApiError } from "@/shared/api/lib/normalizeApiError";
-export type { ApiError } from "@/shared/api/model/types";
+import type { ApiError } from "@/shared/api/model/types";
+import { refreshBrowserSession } from "@/shared/api/sessionManager";
 import { getClientCookie } from "@/shared/lib/cookies";
+
+export type { ApiError } from "@/shared/api/model/types";
 
 type RetryableRequestConfig = InternalAxiosRequestConfig & {
   _retry?: boolean;
@@ -20,8 +23,6 @@ export const api = axios.create({
   timeout: REQUEST_TIMEOUT_MS,
 });
 
-let refreshPromise: Promise<string | null> | null = null;
-
 function isAuthRefreshAllowed(url?: string): boolean {
   if (!url) return true;
   return !["auth/login/", "auth/logout/", "auth/refresh/", "auth/google/"].some((path) =>
@@ -29,24 +30,22 @@ function isAuthRefreshAllowed(url?: string): boolean {
   );
 }
 
-async function refreshAccessToken(): Promise<string | null> {
-  if (typeof window === "undefined") return null;
+function getBearerToken(headers: AxiosHeaders): string | undefined {
+  const authorization = headers.get("Authorization");
+  if (typeof authorization !== "string" || !authorization.startsWith("Bearer ")) {
+    return undefined;
+  }
 
-  refreshPromise ??= fetch("/api/auth/refresh", {
-    method: "POST",
-    cache: "no-store",
-  })
-    .then(async (response) => {
-      if (!response.ok) return null;
-      const data = (await response.json()) as { access?: string };
-      return data.access ?? null;
-    })
-    .catch(() => null)
-    .finally(() => {
-      refreshPromise = null;
-    });
+  return authorization.slice("Bearer ".length);
+}
 
-  return refreshPromise;
+function refreshUnavailableError(status: number): ApiError {
+  return {
+    message: "Session refresh is temporarily unavailable.",
+    detail: "Please try again in a moment.",
+    fields: {},
+    status,
+  };
 }
 
 api.interceptors.request.use((config) => {
@@ -89,15 +88,20 @@ api.interceptors.response.use(
     }
 
     originalRequest._retry = true;
-    const accessToken = await refreshAccessToken();
+    const originalHeaders = AxiosHeaders.from(originalRequest.headers);
+    const rejectedAccessToken = getBearerToken(originalHeaders);
+    const refreshResult = await refreshBrowserSession(rejectedAccessToken);
 
-    if (!accessToken) {
+    if (refreshResult.status === "invalid") {
       return Promise.reject(normalizeApiError(error, "Request failed"));
     }
 
-    const headers = AxiosHeaders.from(originalRequest.headers);
-    headers.set("Authorization", `Bearer ${accessToken}`);
-    originalRequest.headers = headers;
+    if (refreshResult.status === "unavailable") {
+      return Promise.reject(refreshUnavailableError(refreshResult.httpStatus));
+    }
+
+    originalHeaders.set("Authorization", `Bearer ${refreshResult.accessToken}`);
+    originalRequest.headers = originalHeaders;
 
     return api(originalRequest);
   },

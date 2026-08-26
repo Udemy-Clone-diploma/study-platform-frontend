@@ -324,11 +324,6 @@ export function CoursePricingBlock({
     setCohortPickerOpen((prev) => ({ ...prev, [formatId]: true }));
 
   const handleBuy = async (planId: number, formatId: number, formatType: DeliveryFormatType) => {
-    if (!getClientCookie(AUTH_COOKIE_NAMES.access)) {
-      router.push(`/login?next=${encodeURIComponent(`/courses/${slug}`)}`);
-      return;
-    }
-
     const role = getClientCookie(AUTH_COOKIE_NAMES.role);
     if (role && role !== "student") {
       setCardNotice(formatId, tHeroCta("studentOnly"));
@@ -380,6 +375,11 @@ export function CoursePricingBlock({
       const apiError = error as Partial<ApiError>;
       const courseError = String(apiError.fields?.course_id ?? "");
       const cohortError = String(apiError.fields?.cohort_id ?? "");
+
+      if (apiError.status === 401) {
+        router.push(`/login?next=${encodeURIComponent(`/courses/${slug}`)}`);
+        return;
+      }
 
       if (courseError.includes("already in cart")) {
         router.push(CART_URL);

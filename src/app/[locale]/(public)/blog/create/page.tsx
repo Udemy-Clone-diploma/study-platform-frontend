@@ -11,6 +11,7 @@ import { getMe } from "@/entities/user";
 import type { UserRole } from "@/entities/user";
 import {
   createArticle,
+  DEFAULT_COVER_CROPS,
   getBlogCategories,
   publishOwnArticle,
   submitArticleForReview,
@@ -32,6 +33,7 @@ const EMPTY: ArticleFormValues = {
   body_html: "",
   category: null,
   cover_image: null,
+  cover_crops: DEFAULT_COVER_CROPS,
 };
 
 /** Decorative molecule render (same asset/ratio as CourseDetailView's pricing section, scaled up here). */

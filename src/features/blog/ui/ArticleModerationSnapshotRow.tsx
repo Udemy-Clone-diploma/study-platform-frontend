@@ -2,6 +2,7 @@ import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Eye } from "lucide-react";
+import { coverCropStyle } from "@/entities/blog";
 import type { ArticleModerationSnapshot } from "@/entities/blog";
 import { formatDate } from "@/shared/lib/time";
 import { ARTICLE_STATUS_COLORS, getArticleStatusLabels } from "../model/articleStatus";
@@ -35,7 +36,13 @@ export function ArticleModerationSnapshotRow({ snapshot }: Props) {
     >
       <div className="relative shrink-0" style={{ width: "clamp(140px, 18vw, 220px)", aspectRatio: "4 / 3" }}>
         {snapshot.cover_image ? (
-          <Image src={snapshot.cover_image} alt={snapshot.title} fill unoptimized style={{ objectFit: "cover" }} />
+          <Image
+            src={snapshot.cover_image}
+            alt={snapshot.title}
+            fill
+            unoptimized
+            style={coverCropStyle(snapshot.cover_crops.row)}
+          />
         ) : (
           <div style={{ position: "absolute", inset: 0, background: "var(--shadow-lavander)" }} />
         )}

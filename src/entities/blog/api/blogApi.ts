@@ -1,10 +1,12 @@
 import { api } from "@/shared/api/base";
+import { DEFAULT_COVER_CROPS } from "../model/coverCrops";
 import type {
   ArticleDetail,
   ArticleListItem,
   ArticleModerationSnapshot,
   ArticleStatus,
   BlogCategory,
+  CoverCrops,
 } from "../model/types";
 
 const CATEGORIES = "blog/categories/";
@@ -128,6 +130,10 @@ export type ArticleFormValues = {
   body_html: string;
   category: number | null;
   cover_image?: File | null;
+  /** One crop per rendered format (card / row / banner -- see CoverCropSlot).
+   * Defaults to the whole image, centered, for every slot when the cover
+   * hasn't been repositioned yet. */
+  cover_crops?: CoverCrops;
 };
 
 function buildArticleFormData(values: ArticleFormValues): FormData {
@@ -137,6 +143,7 @@ function buildArticleFormData(values: ArticleFormValues): FormData {
   formData.append("body_html", values.body_html);
   if (values.category != null) formData.append("category", String(values.category));
   if (values.cover_image) formData.append("cover_image", values.cover_image);
+  formData.append("cover_crops", JSON.stringify(values.cover_crops ?? DEFAULT_COVER_CROPS));
   return formData;
 }
 

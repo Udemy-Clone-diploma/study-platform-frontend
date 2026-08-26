@@ -504,6 +504,10 @@
     "uploadImageHint": "Laden Sie ein Bild für diesen Artikel hoch",
     "uploadFormatsHint": "JPG, PNG, WEBP, SVG oder JFIF",
     "chooseFileLabel": "Datei auswählen",
+    "repositionHint": "Positionieren Sie das Foto für jedes Format unten: Ziehen zum Verschieben, Regler zum Zoomen.",
+    "cardFormatLabel": "Karte",
+    "rowFormatLabel": "Listenzeile",
+    "bannerFormatLabel": "Artikel-Banner",
     "summaryLabel": "Artikelzusammenfassung",
     "summaryPlaceholder": "Geben Sie hier Ihren Text ein"
   },

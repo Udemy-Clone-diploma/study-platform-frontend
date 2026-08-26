@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { X } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
+import { coverCropStyle } from "@/entities/blog";
 import type { ArticleListItem } from "@/entities/blog";
 import type { UserRole } from "@/entities/user";
 import { formatDate } from "@/shared/lib/time";
@@ -93,7 +94,13 @@ export function ArticleDetailPanel({ article, currentUserId, currentUserRole, on
 
       {article.cover_image && (
         <div style={{ position: "relative", width: "100%", aspectRatio: "16 / 9", borderRadius: 12, overflow: "hidden" }}>
-          <Image src={article.cover_image} alt="" fill unoptimized style={{ objectFit: "cover" }} />
+          <Image
+            src={article.cover_image}
+            alt=""
+            fill
+            unoptimized
+            style={coverCropStyle(article.cover_crops.banner)}
+          />
         </div>
       )}
 

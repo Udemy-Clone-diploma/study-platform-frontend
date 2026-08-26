@@ -40,6 +40,7 @@ export function ArticleActionModals({ categories, state }: Props) {
             subtitle: editingArticle.subtitle,
             body_html: editingArticle.body_html,
             category: editingArticle.category?.id ?? null,
+            cover_crops: editingArticle.cover_crops,
           }}
           existingCoverImageUrl={editingArticle.cover_image}
           submitLabel={t("saveChangesLabel")}

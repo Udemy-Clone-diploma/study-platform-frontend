@@ -29,9 +29,7 @@ function downloadHref(url: string, filename: string): string {
   return `${url}${separator}download=${encodeURIComponent(filename)}`;
 }
 
-type Body =
-  | { kind: "text"; value: string }
-  | { kind: "html"; value: string };
+type Body = { kind: "text"; value: string } | { kind: "html"; value: string };
 
 /** Renders each PDF page as an image (via pdfjs-dist) into the same white,
  *  toolbar-free surface used for text/.docx — not the browser's native viewer. */
@@ -74,20 +72,33 @@ function PdfPreview({ url }: { url: string }) {
       }
     })();
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [url]);
 
   if (error) {
-    return <p className="py-6 text-center text-sm text-(--color-text-secondary)">{t("couldNotLoadPreview")}</p>;
+    return (
+      <p className="py-6 text-center text-sm text-(--color-text-secondary)">
+        {t("couldNotLoadPreview")}
+      </p>
+    );
   }
   if (pages === null) {
-    return <p className="py-6 text-center text-sm text-(--color-text-secondary)">{tCommon("loading")}</p>;
+    return (
+      <p className="py-6 text-center text-sm text-(--color-text-secondary)">{tCommon("loading")}</p>
+    );
   }
   return (
     <div className="flex flex-col items-center gap-3 rounded-md bg-white p-5">
       {pages.map((src, i) => (
         // eslint-disable-next-line @next/next/no-img-element
-        <img key={i} src={src} alt={t("pageNumber", { number: i + 1 })} className="w-full rounded-sm shadow-sm" />
+        <img
+          key={i}
+          src={src}
+          alt={t("pageNumber", { number: i + 1 })}
+          className="w-full rounded-sm shadow-sm"
+        />
       ))}
     </div>
   );
@@ -174,7 +185,9 @@ export function MaterialPreviewModal({ title, url, onClose }: Props) {
       </div>
 
       {!url ? (
-        <p className="py-6 text-center text-sm text-(--color-text-secondary)">{t("fileUnavailable")}</p>
+        <p className="py-6 text-center text-sm text-(--color-text-secondary)">
+          {t("fileUnavailable")}
+        </p>
       ) : isImage ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={url} alt={title} className="w-full rounded-md object-contain" />
@@ -191,9 +204,13 @@ export function MaterialPreviewModal({ title, url, onClose }: Props) {
         </div>
       ) : isText || isDocx ? (
         loadError ? (
-          <p className="py-6 text-center text-sm text-(--color-text-secondary)">{t("couldNotLoadPreview")}</p>
+          <p className="py-6 text-center text-sm text-(--color-text-secondary)">
+            {t("couldNotLoadPreview")}
+          </p>
         ) : body === null ? (
-          <p className="py-6 text-center text-sm text-(--color-text-secondary)">{tCommon("loading")}</p>
+          <p className="py-6 text-center text-sm text-(--color-text-secondary)">
+            {tCommon("loading")}
+          </p>
         ) : body.kind === "text" ? (
           <pre className="whitespace-pre-wrap break-words rounded-md bg-white p-5 text-base leading-relaxed text-(--color-text-primary)">
             {body.value}
@@ -209,7 +226,9 @@ export function MaterialPreviewModal({ title, url, onClose }: Props) {
           <span className="flex h-16 w-16 items-center justify-center rounded-md bg-gradient-to-br from-[#fff3dc] to-[#ffe7ef]">
             <FileText size={30} className="text-(--color-text-secondary)" />
           </span>
-          <p className="text-center text-xs text-(--color-text-secondary)">{t("previewNotAvailable")}</p>
+          <p className="text-center text-xs text-(--color-text-secondary)">
+            {t("previewNotAvailable")}
+          </p>
         </div>
       )}
     </ModalShell>

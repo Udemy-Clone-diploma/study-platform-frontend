@@ -27,7 +27,12 @@ const NOTE_ICON = "/icons/curses.svg";
 const NOTE_ACCENT = "from-[#fff3dc] to-[#ffe7ef]";
 
 function firstLine(text: string, t: Translator): string {
-  return text.split(/\r?\n/).map((line) => line.trim()).find(Boolean) ?? t("untitledNote");
+  return (
+    text
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .find(Boolean) ?? t("untitledNote")
+  );
 }
 
 function formatNoteDate(value: string, locale: string): string {
@@ -123,7 +128,10 @@ function StudentNotesPageContent() {
 
   return (
     <PageShell className="bg-wishlist" style={{ display: "flex", flexDirection: "column" }}>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3" style={{ flexShrink: 0 }}>
+      <div
+        className="mb-4 flex flex-wrap items-center justify-between gap-3"
+        style={{ flexShrink: 0 }}
+      >
         <h1
           className="font-normal text-(--color-text-primary)"
           style={{ fontSize: "clamp(20px, 2.22vw, 32px)" }}
@@ -144,7 +152,10 @@ function StudentNotesPageContent() {
         ) : pageItems.length === 0 ? (
           <p className="text-center text-lg text-(--color-text-secondary)">{t("noNotesFound")}</p>
         ) : (
-          <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}>
+          <div
+            className="grid gap-4"
+            style={{ gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}
+          >
             {pageItems.map((note) => (
               <NoteGridCard key={note.id} note={note} onClick={() => setSelected(note)} />
             ))}
@@ -153,7 +164,14 @@ function StudentNotesPageContent() {
       </div>
 
       {!loading && !error && totalPages > 1 && (
-        <div style={{ display: "flex", justifyContent: "center", paddingTop: "clamp(16px, 2.22vw, 32px)", flexShrink: 0 }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            paddingTop: "clamp(16px, 2.22vw, 32px)",
+            flexShrink: 0,
+          }}
+        >
           <Pagination currentPage={page} totalPages={totalPages} onPageChange={handlePageChange} />
         </div>
       )}
@@ -177,13 +195,7 @@ function NoteGridCard({ note, onClick }: { note: NoteListItem; onClick: () => vo
       <div
         className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-gradient-to-br ${NOTE_ACCENT}`}
       >
-        <Image
-          src={NOTE_ICON}
-          alt=""
-          width={38}
-          height={38}
-          className="h-9 w-9 object-contain"
-        />
+        <Image src={NOTE_ICON} alt="" width={38} height={38} className="h-9 w-9 object-contain" />
       </div>
       <div className="min-w-0 flex-1">
         <p className="truncate text-[11px] text-[#5e5e5e]">
@@ -246,7 +258,10 @@ function NoteDrawer({ note, onClose }: { note: NoteListItem | null; onClose: () 
               {note.module_title}
             </h2>
             <p className="mt-1 font-(family-name:--font-accent) text-[16px] leading-5 tracking-normal">
-              {t("lessonWithTitleLabel", { number: note.lesson_order ?? "—", title: note.lesson_title })}
+              {t("lessonWithTitleLabel", {
+                number: note.lesson_order ?? "—",
+                title: note.lesson_title,
+              })}
             </p>
           </div>
 

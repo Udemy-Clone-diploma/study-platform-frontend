@@ -108,7 +108,15 @@ function CourseStatusBadge({ state }: { state: CourseState }) {
   );
 }
 
-function CourseIdentity({ course, href, freeLabel }: { course: CourseListItem; href?: string; freeLabel: string }) {
+function CourseIdentity({
+  course,
+  href,
+  freeLabel,
+}: {
+  course: CourseListItem;
+  href?: string;
+  freeLabel: string;
+}) {
   const content = (
     <>
       <CourseThumb image={course.image} title={course.title} />
@@ -144,7 +152,10 @@ function TableAction({
       type="button"
       onClick={onClick}
       className="inline-flex max-w-full items-center justify-center gap-1 whitespace-nowrap rounded-full border border-(--color-blue) bg-white font-semibold text-(--color-blue) transition hover:bg-(--color-brand-lavender-soft)"
-      style={{ fontSize: "clamp(10px, 0.9vw, 12px)", padding: "clamp(4px, 0.42vw, 6px) clamp(8px, 0.83vw, 12px)" }}
+      style={{
+        fontSize: "clamp(10px, 0.9vw, 12px)",
+        padding: "clamp(4px, 0.42vw, 6px) clamp(8px, 0.83vw, 12px)",
+      }}
     >
       {children}
       {label}
@@ -256,9 +267,7 @@ function currentCourseColumns(
       flex: 2.4,
       headerAlign: "center",
       cellAlign: "center",
-      render: (course) => (
-        <CourseStatusBadge state={courseStatus(course, tab, t)} />
-      ),
+      render: (course) => <CourseStatusBadge state={courseStatus(course, tab, t)} />,
     },
     {
       key: "actions",
@@ -275,7 +284,10 @@ function currentCourseColumns(
           <Link
             href={`/moderator-dashboard/courses/${course.slug}/review`}
             className="inline-flex max-w-full items-center justify-center gap-1 whitespace-nowrap rounded-full border border-(--color-blue) bg-white font-semibold text-(--color-blue) transition hover:bg-(--color-brand-lavender-soft)"
-            style={{ fontSize: "clamp(10px, 0.9vw, 12px)", padding: "clamp(4px, 0.42vw, 6px) clamp(8px, 0.83vw, 12px)" }}
+            style={{
+              fontSize: "clamp(10px, 0.9vw, 12px)",
+              padding: "clamp(4px, 0.42vw, 6px) clamp(8px, 0.83vw, 12px)",
+            }}
           >
             <Eye className="h-3.5 w-3.5" />
             {t("reviewAction")}
@@ -351,7 +363,8 @@ export function ModeratorHistoryTable({
   const tLevel = useTranslations("CourseBasicsForm");
   const tRejection = useTranslations("RejectionDetailModal");
   const locale = useLocale();
-  const statusLabel = status === "approved" ? tRejection("statusApproved") : tRejection("statusRejected");
+  const statusLabel =
+    status === "approved" ? tRejection("statusApproved") : tRejection("statusRejected");
 
   const columns: DataTableColumn<HistoryRecord>[] = [
     {
@@ -404,7 +417,9 @@ export function ModeratorHistoryTable({
       headerAlign: "center",
       cellAlign: "center",
       render: (record) => (
-        <span className="block break-words">{formatCourseDate(historyDate(record, status), locale)}</span>
+        <span className="block break-words">
+          {formatCourseDate(historyDate(record, status), locale)}
+        </span>
       ),
     },
     {

@@ -24,7 +24,15 @@ export function ModeratorNoteBanner({ title, comment, actionLabel, actionColor }
       }}
     >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <p style={{ fontFamily: "var(--font-base)", fontWeight: 700, fontSize: 13, color: "var(--color-pink-dark)", margin: 0 }}>
+        <p
+          style={{
+            fontFamily: "var(--font-base)",
+            fontWeight: 700,
+            fontSize: 13,
+            color: "var(--color-pink-dark)",
+            margin: 0,
+          }}
+        >
           {title ?? t("moderatorNote")}
         </p>
         {actionLabel && actionColor && (
@@ -44,7 +52,16 @@ export function ModeratorNoteBanner({ title, comment, actionLabel, actionColor }
         )}
       </div>
       {comment && (
-        <p style={{ fontFamily: "var(--font-base)", fontWeight: 400, fontSize: 14, lineHeight: "20px", color: "var(--color-text-primary)", margin: 0 }}>
+        <p
+          style={{
+            fontFamily: "var(--font-base)",
+            fontWeight: 400,
+            fontSize: 14,
+            lineHeight: "20px",
+            color: "var(--color-text-primary)",
+            margin: 0,
+          }}
+        >
           {comment}
         </p>
       )}

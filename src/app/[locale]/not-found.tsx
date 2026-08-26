@@ -51,7 +51,10 @@ function NotFoundBackground() {
         className="object-cover"
       />
       <Glow color="#FFF4DA" transform="translate(-50%, -50%) rotate(45deg)" />
-      <Glow color="#A7BAFA" transform="translate(calc(-50% - 80px), calc(-50% + 90px)) rotate(45deg)" />
+      <Glow
+        color="#A7BAFA"
+        transform="translate(calc(-50% - 80px), calc(-50% + 90px)) rotate(45deg)"
+      />
     </div>
   );
 }

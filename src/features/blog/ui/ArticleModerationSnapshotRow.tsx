@@ -34,7 +34,10 @@ export function ArticleModerationSnapshotRow({ snapshot }: Props) {
       className="flex w-full items-stretch gap-4 overflow-hidden rounded-2xl border bg-white"
       style={{ borderColor: "var(--color-border-light)" }}
     >
-      <div className="relative shrink-0" style={{ width: "clamp(140px, 18vw, 220px)", aspectRatio: "4 / 3" }}>
+      <div
+        className="relative shrink-0"
+        style={{ width: "clamp(140px, 18vw, 220px)", aspectRatio: "4 / 3" }}
+      >
         {snapshot.cover_image ? (
           <Image
             src={snapshot.cover_image}
@@ -144,7 +147,13 @@ export function ArticleModerationSnapshotRow({ snapshot }: Props) {
             {t("byAuthor", { name: snapshot.author_name })}
           </span>
           {snapshot.moderator_name && (
-            <span style={{ fontFamily: "var(--font-base)", fontSize: 12, color: "var(--color-text-secondary)" }}>
+            <span
+              style={{
+                fontFamily: "var(--font-base)",
+                fontSize: 12,
+                color: "var(--color-text-secondary)",
+              }}
+            >
               {snapshot.decision === "rejected"
                 ? t("rejectedBy", { name: snapshot.moderator_name })
                 : t("approvedBy", { name: snapshot.moderator_name })}

@@ -42,7 +42,11 @@ export default function StudentCertificatesPage() {
     <PageShell className="bg-wishlist" style={{ display: "flex", flexDirection: "column" }}>
       <h1
         className="font-normal text-(--color-text-primary)"
-        style={{ fontSize: "clamp(20px, 2.22vw, 32px)", marginBottom: "clamp(16px, 1.67vw, 32px)", flexShrink: 0 }}
+        style={{
+          fontSize: "clamp(20px, 2.22vw, 32px)",
+          marginBottom: "clamp(16px, 1.67vw, 32px)",
+          flexShrink: 0,
+        }}
       >
         {t("title")}
       </h1>
@@ -53,7 +57,9 @@ export default function StudentCertificatesPage() {
         ) : error ? (
           <p className="text-center text-lg text-red-500">{error}</p>
         ) : completions.length === 0 ? (
-          <p className="text-center text-lg text-(--color-text-secondary)">{t("noCertificatesYet")}</p>
+          <p className="text-center text-lg text-(--color-text-secondary)">
+            {t("noCertificatesYet")}
+          </p>
         ) : (
           <div className="flex flex-wrap" style={{ gap: "clamp(12px, 1.25vw, 24px)" }}>
             {completions.map((completion) => (
@@ -69,7 +75,14 @@ export default function StudentCertificatesPage() {
       </div>
 
       {!loading && !error && completions.length > 0 && totalPages > 1 && (
-        <div style={{ display: "flex", justifyContent: "center", paddingTop: "clamp(16px, 2.22vw, 32px)", flexShrink: 0 }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            paddingTop: "clamp(16px, 2.22vw, 32px)",
+            flexShrink: 0,
+          }}
+        >
           <Pagination currentPage={page} totalPages={totalPages} onPageChange={handlePageChange} />
         </div>
       )}

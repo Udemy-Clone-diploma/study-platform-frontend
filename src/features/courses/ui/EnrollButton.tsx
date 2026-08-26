@@ -30,9 +30,7 @@ export function EnrollButton({ courseSlug }: Props) {
 
       {message ? (
         <p
-          className={`text-sm ${
-            enrolled ? "text-green-700" : "text-(--color-pink-dark)"
-          }`}
+          className={`text-sm ${enrolled ? "text-green-700" : "text-(--color-pink-dark)"}`}
           role="status"
         >
           {message}

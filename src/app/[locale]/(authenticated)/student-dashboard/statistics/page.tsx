@@ -166,7 +166,6 @@ export default function StudentStatisticsPage() {
                 gap: "clamp(12px, 1.11vw, 20px)",
               }}
             >
-              {/* Left: 2x2 stat blocks, with the average-score chart below them */}
               <div className="flex flex-col" style={{ gap: "clamp(12px, 1.11vw, 20px)" }}>
                 <div className="grid grid-cols-2" style={{ gap: "clamp(12px, 1.11vw, 20px)" }}>
                   <StatCard
@@ -202,7 +201,6 @@ export default function StudentStatisticsPage() {
                 <GrowthCard metric="score" chartHeightClassName="h-[180px]" />
               </div>
 
-              {/* Right: Active / Completed course lists, stacked */}
               <div className="flex flex-col" style={{ gap: "clamp(12px, 1.11vw, 20px)" }}>
                 <CourseListPanel
                   title={t("activeCourses")}

@@ -72,7 +72,8 @@
     "invitedBy": "por {organizer}",
     "scheduleConflict": "Conflicto de horario",
     "accept": "Aceptar",
-    "decline": "Rechazar"
+    "decline": "Rechazar",
+    "respondFailed": "No se pudo enviar tu respuesta. Inténtalo de nuevo."
   },
   "StudentHomeworkDashboard": {
     "homework": "Tareas",
@@ -488,7 +489,8 @@
   "ArticleActionModals": {
     "saveChangesLabel": "Guardar cambios",
     "deleteArticleTitle": "Eliminar artículo",
-    "deleteArticleDescription": "¿Eliminar \"{title}\"? Esta acción no se puede deshacer."
+    "deleteArticleDescription": "¿Eliminar \"{title}\"? Esta acción no se puede deshacer.",
+    "actionFailed": "No se pudo completar la acción. Inténtalo de nuevo."
   },
   "ArticleFormModal": {
     "title": "Editar artículo",
@@ -1428,6 +1430,10 @@
   },
   "FinanceAdminView": {
     "heading": "Gestión financiera",
+    "tabStatistics": "Estadísticas",
+    "tabPaymentHistory": "Historial de pagos",
+    "tabTeacherPayouts": "Pagos a profesores",
+    "tabsAriaLabel": "Secciones de finanzas",
     "loadingTransactions": "Cargando transacciones…",
     "noTransactionsFound": "No se encontraron transacciones.",
     "errorLoadTransactions": "No se pudieron cargar las transacciones.",
@@ -2199,7 +2205,8 @@
     "cannotReturnToDraft": "No se puede volver a borrador",
     "noLongerRejected": "Este curso ya no está rechazado.",
     "currentStatus": "Estado actual:",
-    "ok": "Aceptar"
+    "ok": "Aceptar",
+    "errorAction": "No se pudo completar la acción. Inténtalo de nuevo."
   },
   "TeacherCourseCard": {
     "courseOptionsAriaLabel": "Opciones del curso",
@@ -2340,7 +2347,9 @@
     "backToBasics": "Volver a lo básico",
     "discardChanges": "Descartar cambios",
     "backToMyCourses": "Volver a Mis cursos",
-    "continueToReviewAndPublish": "Continuar a revisión y publicación"
+    "continueToReviewAndPublish": "Continuar a revisión y publicación",
+    "documentsUploadFailed": "No se pudieron subir {files}. La lección se guardó, vuelve a añadir los archivos.",
+    "documentsDeleteFailed": "No se pudieron eliminar algunos materiales. Actualiza la página e inténtalo de nuevo."
   },
   "ModuleCard": {
     "moduleNumber": "Módulo {order}",
@@ -2412,7 +2421,8 @@
     "minimumScoreLabel": "Puntuación mínima (opcional)",
     "requiredToComplete": "Obligatorio para completar el curso",
     "requiredToCompleteHint": "Si esta lección tiene una prueba, los estudiantes deben aprobarla antes de poder terminar el curso (por ejemplo, un examen final).",
-    "saveLesson": "Guardar lección"
+    "saveLesson": "Guardar lección",
+    "saveFailed": "No se pudo guardar la lección. Inténtalo de nuevo."
   },
   "TestFormModal": {
     "questionNumber": "Pregunta {order}",
@@ -2953,11 +2963,7 @@
     "chooseLanguage": "Elige un idioma"
   },
   "HomeHero": {
-    "tags": [
-      "Habilidades",
-      "Networking",
-      "Crecimiento"
-    ],
+    "tags": ["Habilidades", "Networking", "Crecimiento"],
     "title": "Educación de nueva generación",
     "subtitle": "Una plataforma donde el conocimiento se convierte en resultados reales. Simple, flexible y directa.",
     "rating": "Calificación de 4.9 con más de 10,000 estudiantes",
@@ -2997,13 +3003,7 @@
     }
   },
   "HomeBenefits": {
-    "tags": [
-      "Mejora",
-      "Práctica",
-      "Flow",
-      "Validado",
-      "Pro"
-    ],
+    "tags": ["Mejora", "Práctica", "Flow", "Validado", "Pro"],
     "heading": "Aprende. Conecta. Crece.",
     "description": "Donde el conocimiento se encuentra con la carrera profesional. Elige tu ritmo: estudio a tu propio paso o sesiones en vivo con mentores. Certificados, exámenes y un calendario inteligente, todo para mejorar en un solo lugar.",
     "cards": {

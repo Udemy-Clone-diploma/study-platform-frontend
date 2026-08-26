@@ -356,7 +356,9 @@ export default function TeacherGradebookPage() {
             value={selectedCourseSlug}
             options={courseOptions}
             ariaLabel={t("courseAriaLabel")}
-            placeholder={loadingCourses ? t("loadingCoursesPlaceholder") : t("selectCoursePlaceholder")}
+            placeholder={
+              loadingCourses ? t("loadingCoursesPlaceholder") : t("selectCoursePlaceholder")
+            }
             disabled={loadingCourses || courseOptions.length === 0}
             onChange={setSelectedCourseSlug}
           />

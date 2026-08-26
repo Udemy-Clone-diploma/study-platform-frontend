@@ -69,9 +69,15 @@ function TestItem({ test }: { test: CourseTest }) {
   return (
     <div className="flex items-center" style={{ gap: 8 }}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/icons/copy-check-yellow.svg" alt="" style={{ width: 20, height: 20, flexShrink: 0 }} />
+      <img
+        src="/icons/copy-check-yellow.svg"
+        alt=""
+        style={{ width: 20, height: 20, flexShrink: 0 }}
+      />
       <span style={itemTextSt}>{test.title}</span>
-      <span style={durationTextSt}>{t("testQuestions", { count: test.questions?.length ?? 0 })}</span>
+      <span style={durationTextSt}>
+        {t("testQuestions", { count: test.questions?.length ?? 0 })}
+      </span>
     </div>
   );
 }
@@ -110,9 +116,18 @@ function ModuleReviewCard({ module, index }: { module: CourseModule; index: numb
         gap: 10,
       }}
     >
-      <div style={{ width: "calc(100% - 98px)", display: "flex", flexDirection: "column", gap: 13 }}>
+      <div
+        style={{ width: "calc(100% - 98px)", display: "flex", flexDirection: "column", gap: 13 }}
+      >
         <div className="flex items-center justify-between">
-          <span style={{ fontFamily: "var(--font-base)", fontWeight: 700, fontSize: 20, lineHeight: "25px" }}>
+          <span
+            style={{
+              fontFamily: "var(--font-base)",
+              fontWeight: 700,
+              fontSize: 20,
+              lineHeight: "25px",
+            }}
+          >
             {t("moduleWithTitle", { order: index + 1, title: module.title })}
           </span>
           <div className="flex items-center" style={{ gap: 8 }}>
@@ -133,8 +148,20 @@ function ModuleReviewCard({ module, index }: { module: CourseModule; index: numb
           {lessonCount === 0 && testCount === 0 ? (
             <div className="flex items-center" style={{ gap: 8 }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/icons/exclamationmark-triangle.svg" alt="" style={{ width: 20, height: 20, flexShrink: 0 }} />
-              <span style={{ fontFamily: "var(--font-base)", fontWeight: 500, fontSize: 16, lineHeight: "20px", color: "var(--color-pink-dark)" }}>
+              <img
+                src="/icons/exclamationmark-triangle.svg"
+                alt=""
+                style={{ width: 20, height: 20, flexShrink: 0 }}
+              />
+              <span
+                style={{
+                  fontFamily: "var(--font-base)",
+                  fontWeight: 500,
+                  fontSize: 16,
+                  lineHeight: "20px",
+                  color: "var(--color-pink-dark)",
+                }}
+              >
                 {t("moduleEmpty")}
               </span>
             </div>
@@ -143,13 +170,19 @@ function ModuleReviewCard({ module, index }: { module: CourseModule; index: numb
               {lessonCount > 0 && (
                 <div style={{ display: "flex", flexDirection: "column", gap: 13 }}>
                   <span style={sectionLabelSt}>{t("lessonsLabel")}</span>
-                  <TwoColGrid items={module.lessons} renderItem={(l) => <LessonItem lesson={l} />} />
+                  <TwoColGrid
+                    items={module.lessons}
+                    renderItem={(l) => <LessonItem lesson={l} />}
+                  />
                 </div>
               )}
               {testCount > 0 && (
                 <div style={{ display: "flex", flexDirection: "column", gap: 13 }}>
                   <span style={sectionLabelSt}>{t("testsLabel")}</span>
-                  <TwoColGrid items={module.tests as CourseTest[]} renderItem={(t) => <TestItem test={t} />} />
+                  <TwoColGrid
+                    items={module.tests as CourseTest[]}
+                    renderItem={(t) => <TestItem test={t} />}
+                  />
                 </div>
               )}
             </>
@@ -212,8 +245,11 @@ export default function CourseReviewPage() {
   }
 
   const title = displayTitle || course?.title || t("untitledCourse");
-  const hasEmptyModule = moduleList.some((m) => m.lessons.length === 0 && (m.tests?.length ?? 0) === 0);
-  const hasLesson = moduleList.length > 0 && moduleList.some((m) => m.lessons.length > 0) && !hasEmptyModule;
+  const hasEmptyModule = moduleList.some(
+    (m) => m.lessons.length === 0 && (m.tests?.length ?? 0) === 0,
+  );
+  const hasLesson =
+    moduleList.length > 0 && moduleList.some((m) => m.lessons.length > 0) && !hasEmptyModule;
 
   const totalModules = moduleList.length;
   const totalLessons = moduleList.reduce((acc, m) => acc + m.lessons.length, 0);
@@ -224,10 +260,10 @@ export default function CourseReviewPage() {
   const levelLabel = course?.level ? t(`level.${course.level}`) : "";
 
   const STATS = [
-    { icon: "/icons/book-gradient.svg",       count: totalModules, label: t("statModules") },
-    { icon: "/icons/play-gradient.svg",       count: totalLessons, label: t("statLessons") },
-    { icon: "/icons/copy-check-gradient.svg", count: totalTests,   label: t("statTests")   },
-    { icon: "/icons/clock-gradient.svg",      count: totalMinutes, label: t("statMinutes") },
+    { icon: "/icons/book-gradient.svg", count: totalModules, label: t("statModules") },
+    { icon: "/icons/play-gradient.svg", count: totalLessons, label: t("statLessons") },
+    { icon: "/icons/copy-check-gradient.svg", count: totalTests, label: t("statTests") },
+    { icon: "/icons/clock-gradient.svg", count: totalMinutes, label: t("statMinutes") },
   ];
 
   const pageHeading = isPendingEditMode ? t("reviewChanges") : t("reviewAndPublish");
@@ -262,7 +298,6 @@ export default function CourseReviewPage() {
           gap: "clamp(16px, 1.25vw, 28px)",
         }}
       >
-        {/* Page heading */}
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <h2
             style={{
@@ -289,7 +324,6 @@ export default function CourseReviewPage() {
           </p>
         </div>
 
-        {/* Course Overview card */}
         <div
           style={{
             border: "2px solid var(--color-border-light)",
@@ -326,7 +360,11 @@ export default function CourseReviewPage() {
                 }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/icons/book-gradient.svg" alt="" style={{ width: "clamp(36px, 2.6vw, 50px)", height: "clamp(36px, 2.6vw, 50px)" }} />
+                <img
+                  src="/icons/book-gradient.svg"
+                  alt=""
+                  style={{ width: "clamp(36px, 2.6vw, 50px)", height: "clamp(36px, 2.6vw, 50px)" }}
+                />
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 0, minWidth: 0 }}>
                 <span
@@ -359,7 +397,15 @@ export default function CourseReviewPage() {
               </div>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 20, flexShrink: 0 }}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-end",
+                gap: 20,
+                flexShrink: 0,
+              }}
+            >
               <div className="flex items-center" style={{ gap: 8 }}>
                 {categoryName && (
                   <span
@@ -397,10 +443,8 @@ export default function CourseReviewPage() {
           </div>
         </div>
 
-        {/* Stats row */}
         <CourseStatsGrid stats={STATS} />
 
-        {/* Course Structure */}
         <div
           style={{
             border: "1px solid var(--color-draft)",
@@ -429,10 +473,11 @@ export default function CourseReviewPage() {
           </div>
         </div>
 
-        {/* Moderator final comment */}
-        <ModeratorNoteBanner title={t("moderatorComment")} comment={course?.moderator_comment ?? undefined} />
+        <ModeratorNoteBanner
+          title={t("moderatorComment")}
+          comment={course?.moderator_comment ?? undefined}
+        />
 
-        {/* Bottom: back + submit */}
         <div className="flex items-center justify-between">
           <button
             type="button"

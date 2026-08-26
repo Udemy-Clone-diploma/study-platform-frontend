@@ -15,4 +15,6 @@ export interface TeacherApplicationFormData {
   behance: string;
 }
 
-export type TeacherApplicationFormErrors = Partial<Record<keyof TeacherApplicationFormData, string>>;
+export type TeacherApplicationFormErrors = Partial<
+  Record<keyof TeacherApplicationFormData, string>
+>;

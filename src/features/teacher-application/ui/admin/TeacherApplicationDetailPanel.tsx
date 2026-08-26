@@ -45,7 +45,11 @@ export function TeacherApplicationDetailPanel({
       <div className="flex items-center justify-between" style={{ gap: 12 }}>
         <h2
           className="overflow-hidden font-bold text-ellipsis whitespace-nowrap text-(--color-text-primary)"
-          style={{ fontFamily: "var(--font-base)", fontSize: "clamp(16px, 1.25vw, 18px)", margin: 0 }}
+          style={{
+            fontFamily: "var(--font-base)",
+            fontSize: "clamp(16px, 1.25vw, 18px)",
+            margin: 0,
+          }}
         >
           {name}
         </h2>
@@ -95,7 +99,9 @@ export function TeacherApplicationDetailPanel({
       </PanelSection>
 
       <PanelSection title={t("submission")}>
-        <DetailRow label={t("submitted")}>{formatUserDate(application.submitted_at, locale)}</DetailRow>
+        <DetailRow label={t("submitted")}>
+          {formatUserDate(application.submitted_at, locale)}
+        </DetailRow>
         {application.decided_at && (
           <DetailRow label={t("decided")}>
             {formatUserDate(application.decided_at, locale)}
@@ -105,7 +111,9 @@ export function TeacherApplicationDetailPanel({
           <DetailRow label={t("moderator")}>{application.moderator_name}</DetailRow>
         )}
         {application.moderator_comment && (
-          <DetailTextRow label={t("moderatorComment")}>{application.moderator_comment}</DetailTextRow>
+          <DetailTextRow label={t("moderatorComment")}>
+            {application.moderator_comment}
+          </DetailTextRow>
         )}
       </PanelSection>
 
@@ -155,7 +163,10 @@ function DetailRow({ label, children }: { label: string; children: React.ReactNo
       className="flex items-baseline"
       style={{ gap: 12, fontFamily: "var(--font-base)", fontSize: "clamp(13px, 0.97vw, 15px)" }}
     >
-      <dt className="shrink-0 text-(--color-text-secondary)" style={{ width: "clamp(90px, 7vw, 110px)" }}>
+      <dt
+        className="shrink-0 text-(--color-text-secondary)"
+        style={{ width: "clamp(90px, 7vw, 110px)" }}
+      >
         {label}
       </dt>
       <dd

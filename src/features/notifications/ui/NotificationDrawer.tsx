@@ -137,9 +137,7 @@ export function NotificationDrawer({
         )}
 
         <div className="mt-auto flex items-center justify-between gap-3 border-t border-(--color-text-primary)/10 pt-4">
-          <span className="text-sm text-(--color-text-primary)">
-            {t("emailPreference")}
-          </span>
+          <span className="text-sm text-(--color-text-primary)">{t("emailPreference")}</span>
           <button
             type="button"
             role="switch"

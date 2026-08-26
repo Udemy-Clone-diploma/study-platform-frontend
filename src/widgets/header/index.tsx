@@ -2,11 +2,15 @@ import Image from "next/image";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { getCategories } from "@/entities/course";
-import { getMe } from "@/entities/user";
+import { getMe, type UserRole } from "@/entities/user";
 import { CatalogDropdown } from "@/features/courses";
 import { UserDropdown } from "@/features/auth";
 import { NotificationBell } from "@/features/notifications";
-import { getAccessToken } from "@/shared/api/authCookies";
+import {
+  getAccessToken,
+  getUserRoleCookie,
+  hasUsableRefreshToken,
+} from "@/shared/api/authCookies";
 import { AccentButton } from "@/shared/ui/AccentButton";
 import { LanguageSwitcher } from "@/shared/ui/LanguageSwitcher";
 import { SearchBar } from "@/shared/ui/SearchBar";
@@ -29,15 +33,17 @@ export async function Header({
   borderRadius = "0 0 var(--mobile-header-radius) var(--mobile-header-radius)",
 }: HeaderProps) {
   const locale = await getLocale();
-  const [accessToken, categories, t] = await Promise.all([
+  const [accessToken, roleCookie, hasRefreshSession, categories, t] = await Promise.all([
     getAccessToken(),
+    getUserRoleCookie(),
+    hasUsableRefreshToken(),
     getCategories(locale).catch(() => []),
     getTranslations("Common"),
   ]);
 
-  const isLoggedIn = !!accessToken;
-
-  const user = isLoggedIn ? await getMe(accessToken).catch(() => null) : null;
+  const user = accessToken ? await getMe(accessToken).catch(() => null) : null;
+  const role = user?.role ?? (roleCookie as UserRole | undefined) ?? null;
+  const isLoggedIn = Boolean(user || (role && hasRefreshSession));
 
   return (
     <header
@@ -49,7 +55,7 @@ export async function Header({
         } as React.CSSProperties
       }
     >
-      <MobileHeaderMenu isLoggedIn={isLoggedIn} categories={categories} role={user?.role ?? null} />
+      <MobileHeaderMenu isLoggedIn={isLoggedIn} categories={categories} role={role} />
 
       <div
         className="mx-auto hidden h-full items-center lg:flex"
@@ -59,7 +65,6 @@ export async function Header({
           paddingInline: isLoggedIn ? "max(4px, 0.42vw)" : "max(16px, 2.22vw)",
         }}
       >
-        {/* Left */}
         <div
           className="flex items-center flex-1 min-w-0 h-full"
           style={{ gap: isLoggedIn ? "3%" : "8.49%" }}
@@ -100,13 +105,12 @@ export async function Header({
           <SearchBar />
         </div>
 
-        {/* Right */}
         <div className="shrink-0 h-full flex items-center" style={{ gap: 24 }}>
           {isLoggedIn ? (
             <div className="flex items-center h-full" style={{ gap: 40 }}>
               <Link
                 href={
-                  user?.role === "teacher"
+                  role === "teacher"
                     ? "/teacher-dashboard/courses"
                     : "/student-dashboard/courses"
                 }
@@ -120,7 +124,7 @@ export async function Header({
                 <NotificationBell />
                 <UserDropdown
                   firstName={user?.first_name ?? null}
-                  role={user?.role ?? null}
+                  role={role}
                   avatar={user?.avatar ?? null}
                 />
               </div>

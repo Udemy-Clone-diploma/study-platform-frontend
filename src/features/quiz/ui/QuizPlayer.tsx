@@ -190,9 +190,7 @@ function ResultsFooter({
           </span>
         )}
         {result.can_retake && <GradientButton onClick={onRetake}>{t("retake")}</GradientButton>}
-        {nextLessonHref && (
-          <GradientButton href={nextLessonHref}>{t("nextLesson")}</GradientButton>
-        )}
+        {nextLessonHref && <GradientButton href={nextLessonHref}>{t("nextLesson")}</GradientButton>}
       </div>
     </div>
   );
@@ -214,9 +212,7 @@ function QuizButton({
   variant = "solid",
 }: QuizButtonProps) {
   const sizeClasses =
-    size === "lg"
-      ? "h-[52px] min-w-[200px] px-8 text-base"
-      : "h-[30px] min-w-[124px] px-5 text-xs";
+    size === "lg" ? "h-[52px] min-w-[200px] px-8 text-base" : "h-[30px] min-w-[124px] px-5 text-xs";
   const variantClasses =
     variant === "outline"
       ? "border border-(--color-text-primary) text-(--color-text-primary)"

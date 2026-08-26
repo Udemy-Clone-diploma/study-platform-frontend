@@ -121,11 +121,13 @@ API modules (`src/features/auth/api/authApi.ts`, `src/entities/course/api/course
 ### UI and styling
 
 Tailwind v4 via `@import "tailwindcss"` in `src/app/globals.css`. No `tailwind.config.*`. Tokens live in three blocks:
+
 - `@theme` for colors, gradients, shadows. Tailwind generates utility classes; `var(--color-*)` also works in components.
 - `:root` for font stacks only (`--font-base`, `--font-accent`), which reference next/font runtime vars Tailwind cannot resolve at build time.
 - `@theme inline` bridges (`--font-sans`, `--font-mono`) pass the runtime values through. `--card-bg` and `--card-border-color` are set inline per-component and do not belong in these blocks. Fonts come from `src/shared/lib/fonts.ts` and are wired onto `<html>` in `src/app/layout.tsx` as `--font-mulish` and `--font-source-code-pro`.
 
 Rules (apply in order of strictness):
+
 - **Never hardcode colors, sizes, or spacing.** Use tokens via paren shorthand: `text-(--color-text-secondary)`, `bg-(--color-catalog-category-active)`, `border-(--color-blue)`, `font-(family-name:--font-accent)`. The IDE plugin flags v3 `text-[var(--color-x)]` via `suggestCanonicalClasses`. If a needed shade is missing, add a token in `globals.css`, do not paste `text-[#xxx]` in JSX.
 - **Inline `style={{ ... }}` only for runtime-computed values** (CSS custom properties like `--card-bg: ${theme.gradient}`). Static positioning, sizing, flex, gap, padding all go in Tailwind classes (`absolute`, `h-9 w-9`, `rotate-180`, `gap-4`).
 - **Prefer Tailwind presets to arbitrary values** when they match: `aspect-video` over `aspect-[16/9]`, `text-base` over `text-[1rem]`, `h-10` over `h-[40px]`.

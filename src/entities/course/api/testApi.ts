@@ -36,6 +36,10 @@ export async function updateTest(
   return result;
 }
 
-export async function deleteTest(courseSlug: string, moduleId: number, testId: number): Promise<void> {
+export async function deleteTest(
+  courseSlug: string,
+  moduleId: number,
+  testId: number,
+): Promise<void> {
   await api.delete(`${COURSES}${courseSlug}/modules/${moduleId}/tests/${testId}/`);
 }

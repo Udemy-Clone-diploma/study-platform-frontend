@@ -72,7 +72,8 @@
     "invitedBy": "von {organizer}",
     "scheduleConflict": "Terminkonflikt",
     "accept": "Annehmen",
-    "decline": "Ablehnen"
+    "decline": "Ablehnen",
+    "respondFailed": "Antwort konnte nicht gesendet werden. Bitte erneut versuchen."
   },
   "StudentHomeworkDashboard": {
     "homework": "Hausaufgaben",
@@ -488,7 +489,8 @@
   "ArticleActionModals": {
     "saveChangesLabel": "Änderungen speichern",
     "deleteArticleTitle": "Artikel löschen",
-    "deleteArticleDescription": "„{title}“ löschen? Dies kann nicht rückgängig gemacht werden."
+    "deleteArticleDescription": "„{title}“ löschen? Dies kann nicht rückgängig gemacht werden.",
+    "actionFailed": "Aktion konnte nicht ausgeführt werden. Bitte erneut versuchen."
   },
   "ArticleFormModal": {
     "title": "Artikel bearbeiten",
@@ -1428,6 +1430,10 @@
   },
   "FinanceAdminView": {
     "heading": "Finanzverwaltung",
+    "tabStatistics": "Statistiken",
+    "tabPaymentHistory": "Zahlungsverlauf",
+    "tabTeacherPayouts": "Auszahlungen an Lehrkräfte",
+    "tabsAriaLabel": "Finanzbereiche",
     "loadingTransactions": "Transaktionen werden geladen…",
     "noTransactionsFound": "Keine Transaktionen gefunden.",
     "errorLoadTransactions": "Transaktionen konnten nicht geladen werden.",
@@ -2199,7 +2205,8 @@
     "cannotReturnToDraft": "Kann nicht zu Entwurf zurückgesetzt werden",
     "noLongerRejected": "Dieser Kurs ist nicht mehr abgelehnt.",
     "currentStatus": "Aktueller Status:",
-    "ok": "OK"
+    "ok": "OK",
+    "errorAction": "Aktion konnte nicht ausgeführt werden. Bitte erneut versuchen."
   },
   "TeacherCourseCard": {
     "courseOptionsAriaLabel": "Kursoptionen",
@@ -2340,7 +2347,9 @@
     "backToBasics": "Zurück zu den Grundlagen",
     "discardChanges": "Änderungen verwerfen",
     "backToMyCourses": "Zurück zu Meine Kurse",
-    "continueToReviewAndPublish": "Weiter zu Überprüfung & Veröffentlichung"
+    "continueToReviewAndPublish": "Weiter zu Überprüfung & Veröffentlichung",
+    "documentsUploadFailed": "{files} konnten nicht hochgeladen werden. Die Lektion wurde gespeichert, fügen Sie die Dateien erneut hinzu.",
+    "documentsDeleteFailed": "Einige Materialien konnten nicht entfernt werden. Laden Sie die Seite neu und versuchen Sie es erneut."
   },
   "ModuleCard": {
     "moduleNumber": "Modul {order}",
@@ -2412,7 +2421,8 @@
     "minimumScoreLabel": "Mindestpunktzahl (optional)",
     "requiredToComplete": "Erforderlich für den Kursabschluss",
     "requiredToCompleteHint": "Wenn diese Lektion einen Test enthält, müssen Studierende ihn bestehen, bevor sie den Kurs abschließen können (z. B. eine Abschlussprüfung).",
-    "saveLesson": "Lektion speichern"
+    "saveLesson": "Lektion speichern",
+    "saveFailed": "Die Lektion konnte nicht gespeichert werden. Versuchen Sie es erneut."
   },
   "TestFormModal": {
     "questionNumber": "Frage {order}",
@@ -2953,11 +2963,7 @@
     "chooseLanguage": "Sprache wählen"
   },
   "HomeHero": {
-    "tags": [
-      "Skills",
-      "Networking",
-      "Wachstum"
-    ],
+    "tags": ["Skills", "Networking", "Wachstum"],
     "title": "Bildung der nächsten Generation",
     "subtitle": "Eine Plattform, auf der Wissen zu echten Ergebnissen wird. Einfach, flexibel und auf den Punkt.",
     "rating": "4,9 Bewertung von über 10.000 Studierenden",
@@ -2997,13 +3003,7 @@
     }
   },
   "HomeBenefits": {
-    "tags": [
-      "Upgrade",
-      "Praxis",
-      "Flow",
-      "Geprüft",
-      "Pro"
-    ],
+    "tags": ["Upgrade", "Praxis", "Flow", "Geprüft", "Pro"],
     "heading": "Lernen. Vernetzen. Wachsen.",
     "description": "Wo Wissen auf Karriere trifft. Wähle deinen Rhythmus: selbstbestimmtes Lernen oder Live-Sessions mit Mentoren. Zertifikate, Tests und ein smarter Kalender — alles für dein Upgrade an einem Ort.",
     "cards": {

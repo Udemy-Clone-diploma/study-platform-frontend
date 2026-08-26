@@ -31,7 +31,13 @@ type Props = {
 /** Horizontal list row for dashboard article tabs (My Articles / moderation queues). The whole
  * row opens the shared ArticleDetailPanel (info + management actions); the small eye icon is a
  * separate link straight through to the article page. */
-export function ArticleRow({ article, currentUserId, currentUserRole, isSelected, onSelect }: Props) {
+export function ArticleRow({
+  article,
+  currentUserId,
+  currentUserRole,
+  isSelected,
+  onSelect,
+}: Props) {
   const locale = useLocale();
   const t = useTranslations("ArticleRow");
   const tStatus = useTranslations("ArticleStatus");
@@ -105,7 +111,13 @@ export function ArticleRow({ article, currentUserId, currentUserRole, isSelected
                 {statusLabel}
               </span>
             )}
-            <span style={{ fontFamily: "var(--font-base)", fontSize: 12, color: "var(--color-text-secondary)" }}>
+            <span
+              style={{
+                fontFamily: "var(--font-base)",
+                fontSize: 12,
+                color: "var(--color-text-secondary)",
+              }}
+            >
               {dateLabel}
             </span>
           </div>
@@ -162,9 +174,23 @@ export function ArticleRow({ article, currentUserId, currentUserRole, isSelected
               style={{ borderRadius: "50%", objectFit: "cover" }}
             />
           ) : (
-            <div style={{ width: 22, height: 22, borderRadius: "50%", background: "var(--color-badge-lavender)" }} />
+            <div
+              style={{
+                width: 22,
+                height: 22,
+                borderRadius: "50%",
+                background: "var(--color-badge-lavender)",
+              }}
+            />
           )}
-          <span style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: 13, color: "var(--color-text-primary)" }}>
+          <span
+            style={{
+              fontFamily: "var(--font-base)",
+              fontWeight: 600,
+              fontSize: 13,
+              color: "var(--color-text-primary)",
+            }}
+          >
             {article.author.name}
           </span>
         </div>

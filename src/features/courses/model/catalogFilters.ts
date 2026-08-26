@@ -100,10 +100,7 @@ export function getCatalogValues(state: CatalogFilterState, param: keyof Catalog
   return value.split(",").filter(Boolean);
 }
 
-export function isCatalogOptionChecked(
-  state: CatalogFilterState,
-  option: CatalogFilterOption,
-) {
+export function isCatalogOptionChecked(state: CatalogFilterState, option: CatalogFilterOption) {
   return getCatalogValues(state, option.param).includes(option.value);
 }
 

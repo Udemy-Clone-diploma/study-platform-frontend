@@ -17,11 +17,7 @@ import {
   updateDeliveryFormat,
 } from "@/entities/course";
 
-// ── constants ──────────────────────────────────────────────────────────────
-
 const ALL_FORMATS: DeliveryFormatType[] = ["self_paced", "scheduled", "individual", "group"];
-
-// ── Shared field styles ────────────────────────────────────────────────────
 
 const FIELD_LABEL: React.CSSProperties = {
   fontFamily: "var(--font-base)",
@@ -57,9 +53,13 @@ const PILL_INPUT_READONLY: React.CSSProperties = {
   cursor: "default",
 };
 
-// ── InstallmentToggle ──────────────────────────────────────────────────────
-
-function InstallmentToggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
+function InstallmentToggle({
+  value,
+  onChange,
+}: {
+  value: boolean;
+  onChange: (v: boolean) => void;
+}) {
   const t = useTranslations("CourseManagementPricingTab");
   const pill = (active: boolean): React.CSSProperties => ({
     padding: "clamp(5px, 0.42vw, 8px) clamp(16px, 1.25vw, 22px)",
@@ -78,14 +78,16 @@ function InstallmentToggle({ value, onChange }: { value: boolean; onChange: (v: 
     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
       <span style={FIELD_LABEL}>{t("installments")}</span>
       <div style={{ display: "flex", gap: 8 }}>
-        <button type="button" style={pill(!value)} onClick={() => onChange(false)}>{t("off")}</button>
-        <button type="button" style={pill(value)}  onClick={() => onChange(true)}>{t("on")}</button>
+        <button type="button" style={pill(!value)} onClick={() => onChange(false)}>
+          {t("off")}
+        </button>
+        <button type="button" style={pill(value)} onClick={() => onChange(true)}>
+          {t("on")}
+        </button>
       </div>
     </div>
   );
 }
-
-// ── PricingFields ──────────────────────────────────────────────────────────
 
 type PricingFieldsProps = {
   price: string;
@@ -97,7 +99,12 @@ type PricingFieldsProps = {
 };
 
 function PricingFields({
-  price, currency, installments, installmentCount, installmentAmount, onChange,
+  price,
+  currency,
+  installments,
+  installmentCount,
+  installmentAmount,
+  onChange,
 }: PricingFieldsProps) {
   const t = useTranslations("CourseManagementPricingTab");
   return (
@@ -106,29 +113,37 @@ function PricingFields({
         <div style={{ flex: 1 }}>
           <label style={FIELD_LABEL}>{t("price")}</label>
           <input
-            type="number" min="0" step="0.01"
+            type="number"
+            min="0"
+            step="0.01"
             value={price}
-            onChange={e => onChange("price", e.target.value)}
+            onChange={(e) => onChange("price", e.target.value)}
             placeholder="0.00"
             style={PILL_INPUT}
           />
         </div>
         <div style={{ paddingBottom: 0 }}>
           <label style={FIELD_LABEL}>{t("currency")}</label>
-          <input value={currency} readOnly aria-label={t("currency")} style={{ ...PILL_INPUT_READONLY, width: 110 }} />
+          <input
+            value={currency}
+            readOnly
+            aria-label={t("currency")}
+            style={{ ...PILL_INPUT_READONLY, width: 110 }}
+          />
         </div>
       </div>
 
-      <InstallmentToggle value={installments} onChange={v => onChange("installments", v)} />
+      <InstallmentToggle value={installments} onChange={(v) => onChange("installments", v)} />
 
       {installments && (
         <div style={{ display: "flex", gap: 12 }}>
           <div style={{ flex: 1 }}>
             <label style={FIELD_LABEL}>{t("installmentCount")}</label>
             <input
-              type="number" min="2"
+              type="number"
+              min="2"
               value={installmentCount}
-              onChange={e => onChange("installmentCount", e.target.value)}
+              onChange={(e) => onChange("installmentCount", e.target.value)}
               placeholder={t("installmentCountPlaceholder")}
               style={PILL_INPUT}
             />
@@ -148,8 +163,6 @@ function PricingFields({
     </div>
   );
 }
-
-// ── RemoveFormatModal ──────────────────────────────────────────────────────────
 
 function RemoveFormatModal({
   fmt,
@@ -181,38 +194,67 @@ function RemoveFormatModal({
   const title = hasStudents ? t("formatHasStudents") : t("removeFormatTitle", { name });
 
   const BTN_BASE: React.CSSProperties = {
-    fontFamily: "var(--font-base)", fontWeight: 600,
-    fontSize: "clamp(12px, 0.83vw, 14px)", borderRadius: 999,
-    padding: "7px 18px", cursor: busy ? "not-allowed" : "pointer",
-    border: "none", opacity: busy ? 0.6 : 1,
+    fontFamily: "var(--font-base)",
+    fontWeight: 600,
+    fontSize: "clamp(12px, 0.83vw, 14px)",
+    borderRadius: 999,
+    padding: "7px 18px",
+    cursor: busy ? "not-allowed" : "pointer",
+    border: "none",
+    opacity: busy ? 0.6 : 1,
   };
 
   return (
     <ModalShell onClose={onCancel} title={title} width="clamp(320px, 30vw, 460px)">
-      <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(13px, 0.83vw, 15px)", color: "var(--color-text-secondary)", margin: 0, lineHeight: 1.6 }}>
+      <p
+        style={{
+          fontFamily: "var(--font-base)",
+          fontSize: "clamp(13px, 0.83vw, 15px)",
+          color: "var(--color-text-secondary)",
+          margin: 0,
+          lineHeight: 1.6,
+        }}
+      >
         {hasStudents
           ? t.rich("enrolledMessage", {
               count: fmt.enrolled_count,
               name,
-              strong: chunks => <strong>{chunks}</strong>,
+              strong: (chunks) => <strong>{chunks}</strong>,
             })
           : t("deleteConfirm")}
       </p>
       {error && (
-        <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.72vw, 13px)", color: "var(--color-danger)", marginTop: 8, marginBottom: 0 }}>
+        <p
+          style={{
+            fontFamily: "var(--font-base)",
+            fontSize: "clamp(11px, 0.72vw, 13px)",
+            color: "var(--color-danger)",
+            marginTop: 8,
+            marginBottom: 0,
+          }}
+        >
           {error}
         </p>
       )}
       <div style={{ display: "flex", gap: 8, marginTop: 20, justifyContent: "flex-end" }}>
         <button
-          type="button" onClick={onCancel} disabled={busy}
-          style={{ ...BTN_BASE, background: "none", border: "1px solid var(--color-border-light)", color: "var(--color-text-secondary)" }}
+          type="button"
+          onClick={onCancel}
+          disabled={busy}
+          style={{
+            ...BTN_BASE,
+            background: "none",
+            border: "1px solid var(--color-border-light)",
+            color: "var(--color-text-secondary)",
+          }}
         >
           {t("cancel")}
         </button>
         {!hasStudents && (
           <button
-            type="button" onClick={handleAction} disabled={busy}
+            type="button"
+            onClick={handleAction}
+            disabled={busy}
             style={{ ...BTN_BASE, background: "var(--color-text-primary)", color: "#fff" }}
           >
             {busy ? t("saving") : t("remove")}
@@ -223,8 +265,6 @@ function RemoveFormatModal({
   );
 }
 
-// ── FormatCard ─────────────────────────────────────────────────────────────
-
 type FormatCardProps = {
   fmt: CourseDeliveryFormat;
   slug: string;
@@ -234,18 +274,20 @@ type FormatCardProps = {
 
 function FormatCard({ fmt, slug, onUpdated, onDeleted }: FormatCardProps) {
   const t = useTranslations("CourseManagementPricingTab");
-  const [editing, setEditing]   = useState(false);
-  const [saving, setSaving]     = useState(false);
-  const [error, setError]       = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [showRemoveModal, setShowRemoveModal] = useState(false);
-  const isFull   = fmt.max_students != null && fmt.enrolled_count >= fmt.max_students;
+  const isFull = fmt.max_students != null && fmt.enrolled_count >= fmt.max_students;
 
-  const [price, setPrice]                         = useState(fmt.pricing?.price ?? "");
+  const [price, setPrice] = useState(fmt.pricing?.price ?? "");
   const currency = "USD" as const;
-  const [installments, setInstallments]           = useState(fmt.pricing?.installment_count != null);
-  const [installmentCount, setInstallmentCount]   = useState(String(fmt.pricing?.installment_count ?? ""));
+  const [installments, setInstallments] = useState(fmt.pricing?.installment_count != null);
+  const [installmentCount, setInstallmentCount] = useState(
+    String(fmt.pricing?.installment_count ?? ""),
+  );
   const [installmentAmount, setInstallmentAmount] = useState(fmt.pricing?.installment_amount ?? "");
-  const [maxStudents, setMaxStudents]             = useState(String(fmt.max_students ?? ""));
+  const [maxStudents, setMaxStudents] = useState(String(fmt.max_students ?? ""));
 
   function handleChange(key: string, value: string | boolean) {
     if (key === "price") {
@@ -271,7 +313,7 @@ function FormatCard({ fmt, slug, onUpdated, onDeleted }: FormatCardProps) {
         pricing: {
           price,
           currency,
-          installment_count:  installments && installmentCount  ? Number(installmentCount)  : null,
+          installment_count: installments && installmentCount ? Number(installmentCount) : null,
           installment_amount: installments && installmentAmount ? installmentAmount : null,
         },
       };
@@ -294,32 +336,76 @@ function FormatCard({ fmt, slug, onUpdated, onDeleted }: FormatCardProps) {
   }
 
   return (
-    <div style={{ background: "#fff", border: "1.5px solid var(--color-border-light)", borderRadius: 16, padding: "clamp(16px, 1.25vw, 22px)", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: editing ? 16 : 0 }}>
+    <div
+      style={{
+        background: "#fff",
+        border: "1.5px solid var(--color-border-light)",
+        borderRadius: 16,
+        padding: "clamp(16px, 1.25vw, 22px)",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "flex-start",
+          justifyContent: "space-between",
+          marginBottom: editing ? 16 : 0,
+        }}
+      >
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontFamily: "var(--font-base)", fontWeight: 700, fontSize: "clamp(14px, 0.94vw, 17px)", color: "var(--color-text-primary)" }}>
+            <span
+              style={{
+                fontFamily: "var(--font-base)",
+                fontWeight: 700,
+                fontSize: "clamp(14px, 0.94vw, 17px)",
+                color: "var(--color-text-primary)",
+              }}
+            >
               {t(`formatLabel.${fmt.format_type}`)}
             </span>
-            {!editing && fmt.format_type === "individual" && (() => {
-              const label = isFull ? t("statusFull") : t("statusOpen");
-              const color = isFull ? "var(--color-text-muted)" : "var(--color-success)";
-              const bg    = isFull ? "var(--color-bg)" : "#f0faf0";
-              const bdr   = isFull ? "var(--color-border-light)" : "#b8e6b8";
-              return (
-                <span style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(10px, 0.63vw, 12px)", color, background: bg, border: `1px solid ${bdr}`, borderRadius: 999, padding: "2px 10px" }}>
-                  {label}
-                </span>
-              );
-            })()}
+            {!editing &&
+              fmt.format_type === "individual" &&
+              (() => {
+                const label = isFull ? t("statusFull") : t("statusOpen");
+                const color = isFull ? "var(--color-text-muted)" : "var(--color-success)";
+                const bg = isFull ? "var(--color-bg)" : "#f0faf0";
+                const bdr = isFull ? "var(--color-border-light)" : "#b8e6b8";
+                return (
+                  <span
+                    style={{
+                      fontFamily: "var(--font-base)",
+                      fontWeight: 600,
+                      fontSize: "clamp(10px, 0.63vw, 12px)",
+                      color,
+                      background: bg,
+                      border: `1px solid ${bdr}`,
+                      borderRadius: 999,
+                      padding: "2px 10px",
+                    }}
+                  >
+                    {label}
+                  </span>
+                );
+              })()}
           </div>
           {!editing && (
-            <div style={{ fontFamily: "var(--font-base)", fontSize: "clamp(12px, 0.78vw, 14px)", color: "var(--color-text-secondary)", marginTop: 4 }}>
+            <div
+              style={{
+                fontFamily: "var(--font-base)",
+                fontSize: "clamp(12px, 0.78vw, 14px)",
+                color: "var(--color-text-secondary)",
+                marginTop: 4,
+              }}
+            >
               {fmt.pricing
                 ? `${fmt.pricing.currency} ${fmt.pricing.price}${fmt.pricing.installment_count ? ` · ${t("installmentsSuffix", { count: fmt.pricing.installment_count })}` : ""}`
                 : t("noPriceSet")}
               {fmt.format_type === "individual" && fmt.max_students != null && (
-                <span style={{ marginLeft: 8 }}>&middot; {t("spotsCount", { count: fmt.max_students })}</span>
+                <span style={{ marginLeft: 8 }}>
+                  &middot; {t("spotsCount", { count: fmt.max_students })}
+                </span>
               )}
             </div>
           )}
@@ -328,22 +414,53 @@ function FormatCard({ fmt, slug, onUpdated, onDeleted }: FormatCardProps) {
           {!editing ? (
             <>
               <IconBtn onClick={() => setEditing(true)} title={t("editPricing")}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                 </svg>
               </IconBtn>
               <IconBtn onClick={() => setShowRemoveModal(true)} title={t("removeFormat")} danger>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-                  <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                  <path d="M10 11v6" />
+                  <path d="M14 11v6" />
+                  <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
                 </svg>
               </IconBtn>
             </>
           ) : (
             <>
-              <IconBtn onClick={handleSave} title={t("save")} accent disabled={saving}><Check size={14} /></IconBtn>
-              <IconBtn onClick={() => { setEditing(false); setError(null); }} title={t("cancel")}><X size={14} /></IconBtn>
+              <IconBtn onClick={handleSave} title={t("save")} accent disabled={saving}>
+                <Check size={14} />
+              </IconBtn>
+              <IconBtn
+                onClick={() => {
+                  setEditing(false);
+                  setError(null);
+                }}
+                title={t("cancel")}
+              >
+                <X size={14} />
+              </IconBtn>
             </>
           )}
         </div>
@@ -352,7 +469,8 @@ function FormatCard({ fmt, slug, onUpdated, onDeleted }: FormatCardProps) {
       {editing && (
         <>
           <PricingFields
-            price={price} currency={currency}
+            price={price}
+            currency={currency}
             installments={installments}
             installmentCount={installmentCount}
             installmentAmount={installmentAmount}
@@ -365,14 +483,22 @@ function FormatCard({ fmt, slug, onUpdated, onDeleted }: FormatCardProps) {
                 type="number"
                 min={1}
                 value={maxStudents}
-                onChange={e => setMaxStudents(e.target.value)}
+                onChange={(e) => setMaxStudents(e.target.value)}
                 placeholder={t("unlimited")}
                 style={{ ...PILL_INPUT, width: 180 }}
               />
             </div>
           )}
           {error && (
-            <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.72vw, 13px)", color: "var(--color-rejected)", marginTop: 8, marginBottom: 0 }}>
+            <p
+              style={{
+                fontFamily: "var(--font-base)",
+                fontSize: "clamp(11px, 0.72vw, 13px)",
+                color: "var(--color-rejected)",
+                marginTop: 8,
+                marginBottom: 0,
+              }}
+            >
               {error}
             </p>
           )}
@@ -390,8 +516,6 @@ function FormatCard({ fmt, slug, onUpdated, onDeleted }: FormatCardProps) {
   );
 }
 
-// ── AddFormatPanel ─────────────────────────────────────────────────────────
-
 type AddFormatPanelProps = {
   slug: string;
   existingTypes: DeliveryFormatType[];
@@ -401,15 +525,15 @@ type AddFormatPanelProps = {
 
 function AddFormatPanel({ slug, existingTypes, onCreated, onClose }: AddFormatPanelProps) {
   const t = useTranslations("CourseManagementPricingTab");
-  const available = ALL_FORMATS.filter(f => !existingTypes.includes(f));
-  const [selected, setSelected]                   = useState<DeliveryFormatType>(available[0] ?? "self_paced");
-  const [price, setPrice]                         = useState("");
+  const available = ALL_FORMATS.filter((f) => !existingTypes.includes(f));
+  const [selected, setSelected] = useState<DeliveryFormatType>(available[0] ?? "self_paced");
+  const [price, setPrice] = useState("");
   const currency = "USD" as const;
-  const [installments, setInstallments]           = useState(false);
-  const [installmentCount, setInstallmentCount]   = useState("");
+  const [installments, setInstallments] = useState(false);
+  const [installmentCount, setInstallmentCount] = useState("");
   const [installmentAmount, setInstallmentAmount] = useState("");
   const [saving, setSaving] = useState(false);
-  const [error, setError]   = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const createDisabled = saving;
 
   function handleChange(key: string, value: string | boolean) {
@@ -434,14 +558,17 @@ function AddFormatPanel({ slug, existingTypes, onCreated, onClose }: AddFormatPa
     try {
       const payload: CourseDeliveryFormatPayload = {
         format_type: selected,
-        ...(price ? {
-          pricing: {
-            price,
-            currency,
-            installment_count:  installments && installmentCount  ? Number(installmentCount)  : null,
-            installment_amount: installments && installmentAmount ? installmentAmount : null,
-          },
-        } : {}),
+        ...(price
+          ? {
+              pricing: {
+                price,
+                currency,
+                installment_count:
+                  installments && installmentCount ? Number(installmentCount) : null,
+                installment_amount: installments && installmentAmount ? installmentAmount : null,
+              },
+            }
+          : {}),
       };
       const fmt = await createDeliveryFormat(slug, payload);
       onCreated(fmt);
@@ -470,36 +597,84 @@ function AddFormatPanel({ slug, existingTypes, onCreated, onClose }: AddFormatPa
   });
 
   return (
-    <div style={{ background: "#fff", border: "1.5px solid var(--color-border-light)", borderRadius: 16, padding: "clamp(16px, 1.25vw, 22px)", display: "flex", flexDirection: "column", gap: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
+    <div
+      style={{
+        background: "#fff",
+        border: "1.5px solid var(--color-border-light)",
+        borderRadius: 16,
+        padding: "clamp(16px, 1.25vw, 22px)",
+        display: "flex",
+        flexDirection: "column",
+        gap: 16,
+        boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+      }}
+    >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <span style={{ fontFamily: "var(--font-base)", fontWeight: 700, fontSize: "clamp(13px, 0.83vw, 15px)", color: "var(--color-text-primary)" }}>
+        <span
+          style={{
+            fontFamily: "var(--font-base)",
+            fontWeight: 700,
+            fontSize: "clamp(13px, 0.83vw, 15px)",
+            color: "var(--color-text-primary)",
+          }}
+        >
           {t("addDeliveryFormat")}
         </span>
-        <button type="button" onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-text-muted)", padding: 4 }}>
+        <button
+          type="button"
+          onClick={onClose}
+          style={{
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            color: "var(--color-text-muted)",
+            padding: 4,
+          }}
+        >
           <X size={16} />
         </button>
       </div>
 
       {available.length === 0 ? (
-        <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(12px, 0.78vw, 14px)", color: "var(--color-text-muted)", margin: 0 }}>
+        <p
+          style={{
+            fontFamily: "var(--font-base)",
+            fontSize: "clamp(12px, 0.78vw, 14px)",
+            color: "var(--color-text-muted)",
+            margin: 0,
+          }}
+        >
           {t("allFormatsConfigured")}
         </p>
       ) : (
         <>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-            {available.map(f => (
-              <button key={f} type="button" onClick={() => setSelected(f)} style={TYPE_BTN(selected === f)}>
+            {available.map((f) => (
+              <button
+                key={f}
+                type="button"
+                onClick={() => setSelected(f)}
+                style={TYPE_BTN(selected === f)}
+              >
                 {t(`formatLabel.${f}`)}
               </button>
             ))}
           </div>
 
-          <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.72vw, 13px)", color: "var(--color-text-secondary)", margin: 0 }}>
+          <p
+            style={{
+              fontFamily: "var(--font-base)",
+              fontSize: "clamp(11px, 0.72vw, 13px)",
+              color: "var(--color-text-secondary)",
+              margin: 0,
+            }}
+          >
             {t(`formatDescription.${selected}`)}
           </p>
 
           <PricingFields
-            price={price} currency={currency}
+            price={price}
+            currency={currency}
             installments={installments}
             installmentCount={installmentCount}
             installmentAmount={installmentAmount}
@@ -507,7 +682,14 @@ function AddFormatPanel({ slug, existingTypes, onCreated, onClose }: AddFormatPa
           />
 
           {error && (
-            <p style={{ fontFamily: "var(--font-base)", fontSize: "clamp(11px, 0.72vw, 13px)", color: "var(--color-rejected)", margin: 0 }}>
+            <p
+              style={{
+                fontFamily: "var(--font-base)",
+                fontSize: "clamp(11px, 0.72vw, 13px)",
+                color: "var(--color-rejected)",
+                margin: 0,
+              }}
+            >
               {error}
             </p>
           )}
@@ -539,9 +721,14 @@ function AddFormatPanel({ slug, existingTypes, onCreated, onClose }: AddFormatPa
   );
 }
 
-// ── IconBtn ────────────────────────────────────────────────────────────────
-
-function IconBtn({ children, onClick, title, danger, accent, disabled }: {
+function IconBtn({
+  children,
+  onClick,
+  title,
+  danger,
+  accent,
+  disabled,
+}: {
   children: React.ReactNode;
   onClick: () => void;
   title?: string;
@@ -556,8 +743,12 @@ function IconBtn({ children, onClick, title, danger, accent, disabled }: {
       title={title}
       disabled={disabled}
       style={{
-        display: "inline-flex", alignItems: "center", justifyContent: "center",
-        width: 30, height: 30, borderRadius: 8,
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: 30,
+        height: 30,
+        borderRadius: 8,
         border: "1.5px solid var(--color-border-light)",
         background: accent ? "var(--gradient-brand)" : "var(--color-bg)",
         color: danger ? "var(--color-rejected)" : accent ? "#fff" : "var(--color-text-secondary)",
@@ -571,8 +762,6 @@ function IconBtn({ children, onClick, title, danger, accent, disabled }: {
   );
 }
 
-// ── Main export ────────────────────────────────────────────────────────────
-
 /** Pricing & delivery format configuration tab for the teacher course management page. */
 export function CourseManagementPricingTab({
   course,
@@ -585,7 +774,7 @@ export function CourseManagementPricingTab({
 }) {
   const t = useTranslations("CourseManagementPricingTab");
   const [formats, setFormats] = useState<CourseDeliveryFormat[]>(course.delivery_formats);
-  const [adding, setAdding]   = useState(false);
+  const [adding, setAdding] = useState(false);
 
   function updateFormats(next: CourseDeliveryFormat[]) {
     setFormats(next);
@@ -593,22 +782,37 @@ export function CourseManagementPricingTab({
   }
 
   function handleUpdated(updated: CourseDeliveryFormat) {
-    updateFormats(formats.map(f => (f.id === updated.id ? updated : f)));
+    updateFormats(formats.map((f) => (f.id === updated.id ? updated : f)));
   }
   function handleDeleted(id: number) {
-    updateFormats(formats.filter(f => f.id !== id));
+    updateFormats(formats.filter((f) => f.id !== id));
   }
   function handleCreated(fmt: CourseDeliveryFormat) {
     updateFormats([...formats, fmt]);
     setAdding(false);
   }
 
-  const existingTypes = formats.map(f => f.format_type);
+  const existingTypes = formats.map((f) => f.format_type);
 
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "clamp(12px, 1.04vw, 18px)" }}>
-        <h2 style={{ fontFamily: "var(--font-base)", fontWeight: 700, fontSize: "clamp(15px, 1.04vw, 19px)", color: "var(--color-text-primary)", margin: 0 }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: "clamp(12px, 1.04vw, 18px)",
+        }}
+      >
+        <h2
+          style={{
+            fontFamily: "var(--font-base)",
+            fontWeight: 700,
+            fontSize: "clamp(15px, 1.04vw, 19px)",
+            color: "var(--color-text-primary)",
+            margin: 0,
+          }}
+        >
           {t("heading")}
         </h2>
         {!adding && existingTypes.length < ALL_FORMATS.length && (
@@ -617,18 +821,23 @@ export function CourseManagementPricingTab({
       </div>
 
       {formats.length === 0 && !adding && (
-        <div style={{
-          border: "1.5px dashed var(--color-border-light)", borderRadius: 16,
-          padding: "clamp(24px, 2.08vw, 40px)", textAlign: "center",
-          color: "var(--color-text-muted)", fontFamily: "var(--font-base)",
-          fontSize: "clamp(13px, 0.83vw, 15px)",
-        }}>
+        <div
+          style={{
+            border: "1.5px dashed var(--color-border-light)",
+            borderRadius: 16,
+            padding: "clamp(24px, 2.08vw, 40px)",
+            textAlign: "center",
+            color: "var(--color-text-muted)",
+            fontFamily: "var(--font-base)",
+            fontSize: "clamp(13px, 0.83vw, 15px)",
+          }}
+        >
           {t("noFormatsYet")}
         </div>
       )}
 
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        {formats.map(fmt => (
+        {formats.map((fmt) => (
           <FormatCard
             key={fmt.id}
             fmt={fmt}

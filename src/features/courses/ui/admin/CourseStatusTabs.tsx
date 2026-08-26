@@ -23,10 +23,7 @@ export const STATUS_TAB_VALUES: Record<Exclude<CourseStatusTab, null>, CourseSta
   archived: ["archived"],
 };
 
-function getTabs(
-  t: Translator,
-  tCommon: Translator,
-): { label: string; value: CourseStatusTab }[] {
+function getTabs(t: Translator, tCommon: Translator): { label: string; value: CourseStatusTab }[] {
   return [
     { label: tCommon("allCourses"), value: null },
     { label: t("published"), value: "published" },

@@ -7,103 +7,104 @@ import { ChevronDown } from "lucide-react";
 import type { Category } from "@/entities/course";
 
 type Props = {
-    categories: Category[];
+  categories: Category[];
 };
 
 const itemStyle: React.CSSProperties = {
-    fontFamily: "var(--font-accent)",
-    fontSize: 16,
-    fontWeight: 500,
-    textTransform: "uppercase",
-    lineHeight: "20px",
-    whiteSpace: "nowrap",
+  fontFamily: "var(--font-accent)",
+  fontSize: 16,
+  fontWeight: 500,
+  textTransform: "uppercase",
+  lineHeight: "20px",
+  whiteSpace: "nowrap",
 };
 
 export function CatalogDropdown({ categories }: Props) {
-    const [open, setOpen] = useState(false);
-    const ref = useRef<HTMLDivElement>(null);
-    const t = useTranslations("Common");
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const t = useTranslations("Common");
 
-    useEffect(() => {
-        function onOutsideClick(e: MouseEvent) {
-            if (ref.current && !ref.current.contains(e.target as Node)) {
-                setOpen(false);
-            }
-        }
-        document.addEventListener("mousedown", onOutsideClick);
-        return () => document.removeEventListener("mousedown", onOutsideClick);
-    }, []);
+  useEffect(() => {
+    function onOutsideClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", onOutsideClick);
+    return () => document.removeEventListener("mousedown", onOutsideClick);
+  }, []);
 
-    return (
-        <div ref={ref} className="flex items-center h-full" style={{ position: "relative" }}>
-            <button
-                onClick={() => setOpen((prev) => !prev)}
-                className="flex items-center gap-1 transition-opacity hover:opacity-70"
-                style={{
-                    fontFamily: "var(--font-accent)",
-                    fontSize: "clamp(14px, 1.41vw, 20px)",
-                    fontWeight: 500,
-                    textTransform: "uppercase",
-                    color: "var(--color-text-primary)",
-                    lineHeight: 1.25,
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    padding: 0,
-                }}
-            >
-                {t("catalog")}
-                <ChevronDown
-                    aria-hidden="true"
-                    className={`h-4 w-4 shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
-                />
-            </button>
+  return (
+    <div ref={ref} className="flex items-center h-full" style={{ position: "relative" }}>
+      <button
+        onClick={() => setOpen((prev) => !prev)}
+        className="flex items-center gap-1 transition-opacity hover:opacity-70"
+        style={{
+          fontFamily: "var(--font-accent)",
+          fontSize: "clamp(14px, 1.41vw, 20px)",
+          fontWeight: 500,
+          textTransform: "uppercase",
+          color: "var(--color-text-primary)",
+          lineHeight: 1.25,
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          padding: 0,
+        }}
+      >
+        {t("catalog")}
+        <ChevronDown
+          aria-hidden="true"
+          className={`h-4 w-4 shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </button>
 
-            {open && (
-                <div
-                    style={{
-                        position: "absolute",
-                        top: "calc(100% + 8px)",
-                        left: 0,
-                        minWidth: 220,
-                        width: "max-content",
-                        backgroundImage: "linear-gradient(90deg, var(--color-brand-lavender) 0%, var(--color-brand-pink) 50.96%, var(--color-brand-cream) 100%)",
-                        backgroundAttachment: "fixed",
-                        backgroundSize: "100vw 100%",
-                        borderRadius: 12,
-                        padding: "23px 40px 23px 16px",
-                        zIndex: 50,
-                    }}
+      {open && (
+        <div
+          style={{
+            position: "absolute",
+            top: "calc(100% + 8px)",
+            left: 0,
+            minWidth: 220,
+            width: "max-content",
+            backgroundImage:
+              "linear-gradient(90deg, var(--color-brand-lavender) 0%, var(--color-brand-pink) 50.96%, var(--color-brand-cream) 100%)",
+            backgroundAttachment: "fixed",
+            backgroundSize: "100vw 100%",
+            borderRadius: 12,
+            padding: "23px 40px 23px 16px",
+            zIndex: 50,
+          }}
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              <Link
+                href="/catalog"
+                onClick={() => setOpen(false)}
+                className="dropdown-link"
+                style={itemStyle}
+              >
+                {t("allCourses")}
+              </Link>
+              <div style={{ width: "100%", height: 0, borderTop: "1px solid #FFFFFF" }} />
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              {categories.map((cat) => (
+                <Link
+                  key={cat.id}
+                  href={`/catalog?category=${cat.slug}`}
+                  onClick={() => setOpen(false)}
+                  className="dropdown-link"
+                  style={itemStyle}
                 >
-                    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                            <Link
-                                href="/catalog"
-                                onClick={() => setOpen(false)}
-                                className="dropdown-link"
-                                style={itemStyle}
-                            >
-                                {t("allCourses")}
-                            </Link>
-                            <div style={{ width: "100%", height: 0, borderTop: "1px solid #FFFFFF" }} />
-                        </div>
-
-                        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                            {categories.map((cat) => (
-                                <Link
-                                    key={cat.id}
-                                    href={`/catalog?category=${cat.slug}`}
-                                    onClick={() => setOpen(false)}
-                                    className="dropdown-link"
-                                    style={itemStyle}
-                                >
-                                    {cat.name}
-                                </Link>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            )}
+                  {cat.name}
+                </Link>
+              ))}
+            </div>
+          </div>
         </div>
-    );
+      )}
+    </div>
+  );
 }

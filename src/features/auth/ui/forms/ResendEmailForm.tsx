@@ -11,11 +11,7 @@ interface ResendEmailFormProps {
   successMessage?: string;
 }
 
-export function ResendEmailForm({
-  onResend,
-  submitLabel,
-  successMessage,
-}: ResendEmailFormProps) {
+export function ResendEmailForm({ onResend, submitLabel, successMessage }: ResendEmailFormProps) {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "sent" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
@@ -58,10 +54,7 @@ export function ResendEmailForm({
       {status === "error" ? <p className="text-sm text-[#be3b3b]">{errorMessage}</p> : null}
 
       <div className="text-center">
-        <AccentButton
-          type="submit"
-          disabled={!email || status === "loading"}
-        >
+        <AccentButton type="submit" disabled={!email || status === "loading"}>
           {status === "loading" ? t("common.sending") : resolvedSubmitLabel}
         </AccentButton>
       </div>

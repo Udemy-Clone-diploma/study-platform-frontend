@@ -46,7 +46,10 @@ function ModerationTrendsCard({ rows }: { rows: ModeratorTrend[] }) {
             <span className="w-12 shrink-0 text-xs text-(--color-text-secondary)">
               {formatDate(row.date, locale, { month: "short", day: "numeric" })}
             </span>
-            <div className="flex flex-1 flex-col gap-1.5" aria-label={t("reviewedAriaLabel", { count: row.reviewed })}>
+            <div
+              className="flex flex-1 flex-col gap-1.5"
+              aria-label={t("reviewedAriaLabel", { count: row.reviewed })}
+            >
               <div
                 className="h-1 rounded-full bg-[#f87171] transition-[width]"
                 style={{ width: `${(row.blocked / scale) * 100}%` }}
@@ -143,10 +146,10 @@ export function ModeratorDashboard() {
       <div className="mx-auto flex w-full max-w-[1648px] flex-col gap-6 font-(family-name:--font-base)">
         <header className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-semibold text-(--color-text-primary)">{tSidebar("dashboard")}</h1>
-            <p className="mt-1 text-base text-(--color-text-secondary)">
-              {t("subtitle")}
-            </p>
+            <h1 className="text-2xl font-semibold text-(--color-text-primary)">
+              {tSidebar("dashboard")}
+            </h1>
+            <p className="mt-1 text-base text-(--color-text-secondary)">{t("subtitle")}</p>
           </div>
           <button
             type="button"

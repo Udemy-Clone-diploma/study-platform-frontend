@@ -20,10 +20,7 @@ export function UserAvatar({ user, size = "clamp(36px, 2.78vw, 44px)" }: Props) 
     );
   }
 
-  const initials = [user.first_name[0], user.last_name[0]]
-    .filter(Boolean)
-    .join("")
-    .toUpperCase();
+  const initials = [user.first_name[0], user.last_name[0]].filter(Boolean).join("").toUpperCase();
 
   return (
     <div

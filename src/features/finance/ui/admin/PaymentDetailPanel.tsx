@@ -76,11 +76,11 @@ export function PaymentDetailPanel({ payment, onClose }: Props) {
         <DetailRow label={t("fieldPayer")}>{payerName(payment, tPaymentsTable)}</DetailRow>
         {payment.user?.email && <DetailRow label={t("fieldEmail")}>{payment.user.email}</DetailRow>}
         <DetailRow label={t("fieldMethod")}>
-          {payment.payment_method === "stripe" 
-          ? t("methodStripe") 
-          : payment.payment_method === "liqpay" 
-            ? t("methodLiqPay") 
-            : t("methodManual")}
+          {payment.payment_method === "stripe"
+            ? t("methodStripe")
+            : payment.payment_method === "liqpay"
+              ? t("methodLiqPay")
+              : t("methodManual")}
         </DetailRow>
         <DetailRow label={t("fieldOrder")}>
           {payment.order_id !== null ? `#${payment.order_id}` : naLabel}

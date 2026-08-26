@@ -50,9 +50,7 @@ export function StudentCourseCard({
   const t = useTranslations("StudentCourseCard");
   const theme = LEVEL_THEME[level] ?? LEVEL_THEME.beginner;
   const clamped =
-    progressPercent !== undefined
-      ? Math.min(Math.max(progressPercent, 0), 100)
-      : undefined;
+    progressPercent !== undefined ? Math.min(Math.max(progressPercent, 0), 100) : undefined;
 
   const thumbSize = "clamp(60px, 4.17vw, 60px)";
 
@@ -66,7 +64,10 @@ export function StudentCourseCard({
         padding: "clamp(26px, 1.25vw, 30px) clamp(12px, 0.83vw, 12px)",
       }}
     >
-      <div className="flex w-full flex-col" style={{ gap: "clamp(4px, 0.56vw, 8px)", maxWidth: "clamp(200px, 18.4vw, 265px)" }}>
+      <div
+        className="flex w-full flex-col"
+        style={{ gap: "clamp(4px, 0.56vw, 8px)", maxWidth: "clamp(200px, 18.4vw, 265px)" }}
+      >
         <div className="flex items-center" style={{ gap: "clamp(4px, 0.56vw, 8px)" }}>
           <Image
             src={imageSrc ?? iconSrc}
@@ -81,7 +82,10 @@ export function StudentCourseCard({
           <div className="flex min-w-0 flex-1 flex-col" style={{ gap: "clamp(3px, 0.28vw, 4px)" }}>
             <h3
               className="line-clamp-2 font-bold uppercase text-(--color-text-primary)"
-              style={{ fontSize: "clamp(12px, 0.97vw, 14px)", lineHeight: "clamp(15px, 1.25vw, 18px)" }}
+              style={{
+                fontSize: "clamp(12px, 0.97vw, 14px)",
+                lineHeight: "clamp(15px, 1.25vw, 18px)",
+              }}
             >
               {title}
             </h3>
@@ -103,7 +107,10 @@ export function StudentCourseCard({
         {suspended ? (
           <span
             className="self-start inline-block max-w-full truncate rounded-md bg-(--color-brand-pink) font-(family-name:--font-accent) uppercase leading-none text-(--color-pink-dark)"
-            style={{ fontSize: "clamp(10px, 0.69vw, 10px)", padding: "2px clamp(4px, 0.42vw, 6px)" }}
+            style={{
+              fontSize: "clamp(10px, 0.69vw, 10px)",
+              padding: "2px clamp(4px, 0.42vw, 6px)",
+            }}
           >
             {t("paymentOverdue")}
           </span>

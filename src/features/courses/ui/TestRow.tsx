@@ -20,10 +20,21 @@ type Props = {
 };
 
 function StatusBadge({ status }: { status: ItemStatus }) {
-  const src = status === "approved" ? "/icons/yes.svg" : status === "rejected" ? "/icons/no.svg" : "/icons/refine.svg";
+  const src =
+    status === "approved"
+      ? "/icons/yes.svg"
+      : status === "rejected"
+        ? "/icons/no.svg"
+        : "/icons/refine.svg";
   return (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={src} alt={status} width={22} height={22} style={{ width: 22, height: 22, flexShrink: 0 }} />
+    <img
+      src={src}
+      alt={status}
+      width={22}
+      height={22}
+      style={{ width: 22, height: 22, flexShrink: 0 }}
+    />
   );
 }
 
@@ -52,7 +63,13 @@ export function TestRow({ test, onEdit, onDelete, moderationStatus, locked }: Pr
       <div className="flex min-w-0 items-center" style={{ gap: "clamp(12px, 1.32vw, 19px)" }}>
         <div className="flex items-center" style={{ gap: 8, flexShrink: 0 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/icons/copy-check.svg" alt="" width={24} height={24} style={{ width: 24, height: 24, flexShrink: 0 }} />
+          <img
+            src="/icons/copy-check.svg"
+            alt=""
+            width={24}
+            height={24}
+            style={{ width: 24, height: 24, flexShrink: 0 }}
+          />
           <span
             style={{
               fontFamily: "var(--font-base)",
@@ -69,42 +86,52 @@ export function TestRow({ test, onEdit, onDelete, moderationStatus, locked }: Pr
           </span>
         </div>
 
-        {test.question_count != null && (
-          <span style={metaSt}>{test.question_count} questions</span>
-        )}
-        {test.pass_percent != null && (
-          <span style={metaSt}>Pass: {test.pass_percent}%</span>
-        )}
+        {test.question_count != null && <span style={metaSt}>{test.question_count} questions</span>}
+        {test.pass_percent != null && <span style={metaSt}>Pass: {test.pass_percent}%</span>}
       </div>
 
       <div className="flex shrink-0 items-center" style={{ gap: 8 }}>
         {moderationStatus && <StatusBadge status={moderationStatus} />}
-        {(onEdit || onDelete) && (<>
-          {onEdit && (
-            <button
-              type="button"
-              onClick={onEdit}
-              className="flex items-center justify-center rounded-full transition hover:bg-gray-100"
-              style={{ width: 40, height: 40, padding: 6, flexShrink: 0 }}
-              aria-label="Edit test"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/icons/edit.svg" alt="" width={20} height={20} style={{ width: 20, height: 20 }} />
-            </button>
-          )}
-          {onDelete && (
-            <button
-              type="button"
-              onClick={onDelete}
-              className="flex items-center justify-center rounded-full transition hover:bg-red-50"
-              style={{ width: 40, height: 40, padding: 6, flexShrink: 0 }}
-              aria-label="Delete test"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/icons/trash.svg" alt="" width={20} height={20} style={{ width: 20, height: 20 }} />
-            </button>
-          )}
-        </>)}
+        {(onEdit || onDelete) && (
+          <>
+            {onEdit && (
+              <button
+                type="button"
+                onClick={onEdit}
+                className="flex items-center justify-center rounded-full transition hover:bg-gray-100"
+                style={{ width: 40, height: 40, padding: 6, flexShrink: 0 }}
+                aria-label="Edit test"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/icons/edit.svg"
+                  alt=""
+                  width={20}
+                  height={20}
+                  style={{ width: 20, height: 20 }}
+                />
+              </button>
+            )}
+            {onDelete && (
+              <button
+                type="button"
+                onClick={onDelete}
+                className="flex items-center justify-center rounded-full transition hover:bg-red-50"
+                style={{ width: 40, height: 40, padding: 6, flexShrink: 0 }}
+                aria-label="Delete test"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/icons/trash.svg"
+                  alt=""
+                  width={20}
+                  height={20}
+                  style={{ width: 20, height: 20 }}
+                />
+              </button>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

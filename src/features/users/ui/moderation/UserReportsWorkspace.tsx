@@ -135,7 +135,12 @@ function actorRoleLabel(
   tRoles: Translator,
   t: Translator,
 ): string {
-  if (role === "student" || role === "teacher" || role === "moderator" || role === "administrator") {
+  if (
+    role === "student" ||
+    role === "teacher" ||
+    role === "moderator" ||
+    role === "administrator"
+  ) {
     return tRoles(role);
   }
   if (role === "system") return t("systemActor");
@@ -615,9 +620,7 @@ export function ReportReviewModal({
       <div className="flex flex-col gap-5 font-(family-name:--font-base)">
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-(--color-brand-lavender-soft) px-5 py-4">
           <div>
-            <p className="text-sm text-(--color-text-secondary)">
-              {t("currentProcessingStatus")}
-            </p>
+            <p className="text-sm text-(--color-text-secondary)">{t("currentProcessingStatus")}</p>
             <p className="mt-1 font-bold text-(--color-text-primary)">
               {reportStateLabel(report, tStates)}
             </p>
@@ -811,7 +814,10 @@ function ReportHistoryModal({
                       </p>
                       <p className="mt-1 text-sm text-(--color-text-secondary)">
                         {action.actor
-                          ? fullName(action.actor, tPublicProfile("userNumber", { id: action.actor.id }))
+                          ? fullName(
+                              action.actor,
+                              tPublicProfile("userNumber", { id: action.actor.id }),
+                            )
                           : t("systemActor")}
                         {" · "}
                         {actorRoleLabel(action.actor_role, tRoles, t)}

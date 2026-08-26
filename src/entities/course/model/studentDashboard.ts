@@ -21,5 +21,11 @@ export type TeacherStudentDashboard = {
   metrics: { homeworks_done: number; tests_done: number; absences: number };
   activities: StudentDashboardActivity[];
   growth: { average: number; points: { label: string; value: number }[] };
-  courses: { slug: string; title: string; teacher: string; image: string | null; progress: number }[];
+  courses: {
+    slug: string;
+    title: string;
+    teacher: string;
+    image: string | null;
+    progress: number;
+  }[];
 };

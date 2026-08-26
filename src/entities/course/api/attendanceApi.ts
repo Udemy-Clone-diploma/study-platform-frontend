@@ -41,7 +41,9 @@ export async function markAttendance(
 }
 
 export async function getIndividualEnrollments(slug: string): Promise<IndividualEnrollment[]> {
-  const { data } = await api.get<IndividualEnrollment[]>(`/courses/${slug}/individual-enrollments/`);
+  const { data } = await api.get<IndividualEnrollment[]>(
+    `/courses/${slug}/individual-enrollments/`,
+  );
   return data;
 }
 

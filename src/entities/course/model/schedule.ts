@@ -11,8 +11,6 @@ export const DAY_KEYS: Record<DayOfWeek, string> = {
   6: "sunday",
 };
 
-// ── ScheduleSlot (individual format) ─────────────────────────────────────────
-
 export type ScheduleSlotBookedStudent = {
   student_profile_id: number;
   full_name: string;
@@ -46,8 +44,6 @@ export type ScheduleSlotReschedulePayload = {
   end_time?: string;
 };
 
-// ── CohortSchedule (group format) ─────────────────────────────────────────────
-
 export type CohortSchedule = {
   id: number;
   day_of_week: DayOfWeek;
@@ -63,8 +59,6 @@ export type CohortSchedulePayload = {
   end_time: string;
 };
 
-// ── TeacherUnavailability ─────────────────────────────────────────────────────
-
 export type RecurrenceType = "weekly" | "one_time" | "date_range";
 
 export type TeacherUnavailability = {
@@ -73,7 +67,7 @@ export type TeacherUnavailability = {
   recurrence_type_display: string;
   day_of_week: DayOfWeek;
   day_of_week_display: string;
-  date: string | null;    // "YYYY-MM-DD" — start date for one_time/date_range
+  date: string | null; // "YYYY-MM-DD" — start date for one_time/date_range
   date_to: string | null; // "YYYY-MM-DD" — end date for date_range
   start_time: string;
   end_time: string;
@@ -81,17 +75,18 @@ export type TeacherUnavailability = {
   created_at: string;
 };
 
-export type TeacherUnavailabilityPayload = {
-  recurrence_type: RecurrenceType;
-  day_of_week?: DayOfWeek; // required for weekly
-  date?: string | null;    // required for one_time and date_range (start)
-  date_to?: string | null; // required for date_range (end)
+type TeacherUnavailabilityBase = {
   start_time: string;
   end_time: string;
   reason?: string;
 };
 
-// ── Lesson-scoped live sessions ───────────────────────────────────────────────
+/** Which date fields the backend requires depends on recurrence_type, so each variant
+ *  spells them out instead of leaving all three optional. */
+export type TeacherUnavailabilityPayload =
+  | (TeacherUnavailabilityBase & { recurrence_type: "weekly"; day_of_week: DayOfWeek })
+  | (TeacherUnavailabilityBase & { recurrence_type: "one_time"; date: string })
+  | (TeacherUnavailabilityBase & { recurrence_type: "date_range"; date: string; date_to: string });
 
 /** A scheduled live session (from the calendar) tied to a specific lesson. */
 export type LessonSession = {

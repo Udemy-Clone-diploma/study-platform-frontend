@@ -1,5 +1,5 @@
 name: Frontend — Build & Deploy
- 
+
 on:
   workflow_dispatch:
   pull_request:
@@ -7,29 +7,29 @@ on:
       - closed
     branches:
       - develop
-      - main 
+      - main
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
- 
+
 jobs:
   build-and-push:
     name: Build & Push (Next.js)
     runs-on: ubuntu-latest
- 
+
     if: github.event.pull_request.merged == true
- 
+
     permissions:
       id-token: write
       contents: read
- 
+
     outputs:
       image-env: ${{ steps.env-tag.outputs.IMAGE_ENV }}
- 
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
- 
+
       - name: Set environment tag
         id: env-tag
         run: |
@@ -38,20 +38,20 @@ jobs:
           else
             echo "IMAGE_ENV=dev" >> $GITHUB_OUTPUT
           fi
- 
+
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
           aws-region: ${{ secrets.AWS_REGION }}
- 
+
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
- 
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
- 
+
       - name: Build, tag, and push image
         uses: docker/build-push-action@v6
         with:
@@ -68,7 +68,7 @@ jobs:
             ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY_FRONT }}:${{ steps.env-tag.outputs.IMAGE_ENV }}
           cache-from: type=gha,scope=frontend-${{ steps.env-tag.outputs.IMAGE_ENV }}
           cache-to: type=gha,scope=frontend-${{ steps.env-tag.outputs.IMAGE_ENV }},mode=max
- 
+
       - name: Print image URI
         run: |
           echo "✅ Image pushed:"

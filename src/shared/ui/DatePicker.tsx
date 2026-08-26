@@ -4,11 +4,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { getWeekdayNames } from "@/shared/lib/time";
 
-// ── Utils ──────────────────────────────────────────────────────────────────────
-
 const YEARS_PER_PAGE = 12;
 
-function pad(n: number) { return String(n).padStart(2, "0"); }
+function pad(n: number) {
+  return String(n).padStart(2, "0");
+}
 
 /** YYYY-MM-DD → Date (local) or null */
 function parseISO(value: string): Date | null {
@@ -20,7 +20,8 @@ function parseISO(value: string): Date | null {
     date.getFullYear() !== y ||
     date.getMonth() !== m - 1 ||
     date.getDate() !== d
-  ) return null;
+  )
+    return null;
   return date;
 }
 
@@ -52,7 +53,8 @@ function parseDisplay(value: string): Date | null {
     date.getFullYear() !== year ||
     date.getMonth() !== month - 1 ||
     date.getDate() !== day
-  ) return null;
+  )
+    return null;
   return date;
 }
 
@@ -66,16 +68,21 @@ function formatTypedInput(rawValue: string, sep: string) {
 }
 
 function sameDay(a: Date | null, b: Date | null) {
-  return !!(a && b &&
+  return !!(
+    a &&
+    b &&
     a.getFullYear() === b.getFullYear() &&
     a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate());
+    a.getDate() === b.getDate()
+  );
 }
 
-function startOfMonth(y: number, m: number) { return new Date(y, m, 1); }
-function endOfMonth(y: number, m: number) { return new Date(y, m + 1, 0); }
-
-// ── Calendar icon ──────────────────────────────────────────────────────────────
+function startOfMonth(y: number, m: number) {
+  return new Date(y, m, 1);
+}
+function endOfMonth(y: number, m: number) {
+  return new Date(y, m + 1, 0);
+}
 
 function CalIcon({ size = 15, color = "currentColor" }: { size?: number; color?: string }) {
   return (
@@ -97,35 +104,55 @@ function CalIcon({ size = 15, color = "currentColor" }: { size?: number; color?:
   );
 }
 
-// ── Chevrons ───────────────────────────────────────────────────────────────────
-
 function ChevLeft() {
-  return <span style={{ display: "block", width: 8, height: 8, transform: "rotate(45deg)", border: "0 solid", borderBottomWidth: 1.8, borderLeftWidth: 1.8, borderColor: "currentColor" }} />;
+  return (
+    <span
+      style={{
+        display: "block",
+        width: 8,
+        height: 8,
+        transform: "rotate(45deg)",
+        border: "0 solid",
+        borderBottomWidth: 1.8,
+        borderLeftWidth: 1.8,
+        borderColor: "currentColor",
+      }}
+    />
+  );
 }
 function ChevRight() {
-  return <span style={{ display: "block", width: 8, height: 8, transform: "rotate(45deg)", border: "0 solid", borderTopWidth: 1.8, borderRightWidth: 1.8, borderColor: "currentColor" }} />;
+  return (
+    <span
+      style={{
+        display: "block",
+        width: 8,
+        height: 8,
+        transform: "rotate(45deg)",
+        border: "0 solid",
+        borderTopWidth: 1.8,
+        borderRightWidth: 1.8,
+        borderColor: "currentColor",
+      }}
+    />
+  );
 }
-
-// ── Sizes ──────────────────────────────────────────────────────────────────────
 
 type Size = "sm" | "md";
 
 const SIZE: Record<Size, { font: string; padding: string; radius: number; labelFont: string }> = {
   sm: {
-    font:       "clamp(11px, 0.72vw, 13px)",
-    padding:    "5px 12px",
-    radius:     999,
-    labelFont:  "clamp(10px, 0.63vw, 12px)",
+    font: "clamp(11px, 0.72vw, 13px)",
+    padding: "5px 12px",
+    radius: 999,
+    labelFont: "clamp(10px, 0.63vw, 12px)",
   },
   md: {
-    font:       "clamp(13px, 1.04vw, 16px)",
-    padding:    "clamp(6px, 0.52vw, 10px) clamp(12px, 1.04vw, 20px)",
-    radius:     999,
-    labelFont:  "clamp(12px, 0.83vw, 14px)",
+    font: "clamp(13px, 1.04vw, 16px)",
+    padding: "clamp(6px, 0.52vw, 10px) clamp(12px, 1.04vw, 20px)",
+    radius: 999,
+    labelFont: "clamp(12px, 0.83vw, 14px)",
   },
 };
-
-// ── Props ──────────────────────────────────────────────────────────────────────
 
 type CalendarView = "days" | "months" | "years";
 
@@ -157,8 +184,6 @@ interface DatePickerProps {
   onViewChange?: (year: number, month: number) => void;
 }
 
-// ── Component ──────────────────────────────────────────────────────────────────
-
 /** The single date picker used everywhere a date is chosen: brand calendar dropdown with optional month/year quick-jump and manual typing. */
 export function DatePicker({
   value,
@@ -178,14 +203,17 @@ export function DatePicker({
   const locale = useLocale();
   const t = useTranslations("DatePicker");
   const monthFmt = useMemo(() => new Intl.DateTimeFormat(locale, { month: "long" }), [locale]);
-  const monthShortFmt = useMemo(() => new Intl.DateTimeFormat(locale, { month: "short" }), [locale]);
+  const monthShortFmt = useMemo(
+    () => new Intl.DateTimeFormat(locale, { month: "short" }),
+    [locale],
+  );
   const yearFmt = useMemo(() => new Intl.DateTimeFormat(locale, { year: "numeric" }), [locale]);
   const weekDays = useMemo(() => getWeekdayNames(locale, "short"), [locale]);
 
-  const selected   = parseISO(value);
-  const minDate    = min ? parseISO(min) : null;
-  const maxDate    = max ? parseISO(max) : null;
-  const sep        = variant === "underline" ? "-" : ".";
+  const selected = parseISO(value);
+  const minDate = min ? parseISO(min) : null;
+  const maxDate = max ? parseISO(max) : null;
+  const sep = variant === "underline" ? "-" : ".";
   const resolvedPlaceholder = placeholder ?? `DD${sep}MM${sep}YYYY`;
 
   const [viewMonth, setViewMonth] = useState(() => {
@@ -222,7 +250,6 @@ export function DatePicker({
     return () => document.removeEventListener("pointerdown", onDown);
   }, []);
 
-  // Sync viewMonth when value changes externally
   useEffect(() => {
     if (selected) setViewMonth(new Date(selected.getFullYear(), selected.getMonth(), 1));
   }, [value]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -232,7 +259,6 @@ export function DatePicker({
     onViewChange?.(viewMonth.getFullYear(), viewMonth.getMonth() + 1);
   }, [viewMonth]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 6-week grid
   const days = useMemo(() => {
     const first = new Date(viewMonth.getFullYear(), viewMonth.getMonth(), 1);
     const start = new Date(first);
@@ -274,13 +300,13 @@ export function DatePicker({
   }
 
   function moveMonth(offset: number) {
-    setViewMonth(m => new Date(m.getFullYear(), m.getMonth() + offset, 1));
+    setViewMonth((m) => new Date(m.getFullYear(), m.getMonth() + offset, 1));
   }
   function moveYear(offset: number) {
-    setViewMonth(m => new Date(m.getFullYear() + offset, m.getMonth(), 1));
+    setViewMonth((m) => new Date(m.getFullYear() + offset, m.getMonth(), 1));
   }
   function moveYearPage(offset: number) {
-    setViewMonth(m => new Date(m.getFullYear() + offset * YEARS_PER_PAGE, m.getMonth(), 1));
+    setViewMonth((m) => new Date(m.getFullYear() + offset * YEARS_PER_PAGE, m.getMonth(), 1));
   }
 
   function handleNavigate(offset: number) {
@@ -291,13 +317,13 @@ export function DatePicker({
 
   function handleSelectMonth(monthIndex: number) {
     if (isMonthDisabled(viewMonth.getFullYear(), monthIndex)) return;
-    setViewMonth(m => new Date(m.getFullYear(), monthIndex, 1));
+    setViewMonth((m) => new Date(m.getFullYear(), monthIndex, 1));
     setView("days");
   }
 
   function handleSelectYear(year: number) {
     if (isYearDisabled(year)) return;
-    setViewMonth(m => new Date(year, m.getMonth(), 1));
+    setViewMonth((m) => new Date(year, m.getMonth(), 1));
     setView("days");
   }
 
@@ -315,11 +341,12 @@ export function DatePicker({
     }
   }
 
-  // ── Render ──────────────────────────────────────────────────────────────────
-
-  const displayValue = variant === "underline" && allowTyping
-    ? draftValue || (selected ? toDisplay(selected, sep) : (value || ""))
-    : (selected ? toDisplay(selected, sep) : "");
+  const displayValue =
+    variant === "underline" && allowTyping
+      ? draftValue || (selected ? toDisplay(selected, sep) : value || "")
+      : selected
+        ? toDisplay(selected, sep)
+        : "";
 
   const labelStyle: React.CSSProperties = {
     display: "block",
@@ -340,9 +367,16 @@ export function DatePicker({
   };
 
   const iconButtonStyle: React.CSSProperties = {
-    display: "flex", alignItems: "center", justifyContent: "center",
-    width: 28, height: 28, borderRadius: "50%",
-    background: "none", border: "none", cursor: "pointer", color: "var(--color-text-secondary)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: 28,
+    height: 28,
+    borderRadius: "50%",
+    background: "none",
+    border: "none",
+    cursor: "pointer",
+    color: "var(--color-text-secondary)",
   };
 
   return (
@@ -352,7 +386,9 @@ export function DatePicker({
       {variant === "underline" ? (
         <div
           style={{
-            display: "flex", alignItems: "flex-end", gap: 10,
+            display: "flex",
+            alignItems: "flex-end",
+            gap: 10,
             borderBottom: `1px solid ${error ? "var(--color-pink-dark)" : "var(--color-text-primary)"}`,
             paddingBottom: 8,
           }}
@@ -367,21 +403,32 @@ export function DatePicker({
               onChange={handleTypedChange}
               onFocus={() => setOpen(true)}
               style={{
-                minWidth: 0, flex: 1, border: 0, background: "transparent",
-                fontFamily: "var(--font-base)", fontSize: sz.font,
-                color: "var(--color-text-primary)", outline: "none",
+                minWidth: 0,
+                flex: 1,
+                border: 0,
+                background: "transparent",
+                fontFamily: "var(--font-base)",
+                fontSize: sz.font,
+                color: "var(--color-text-primary)",
+                outline: "none",
               }}
             />
           ) : (
             <button
               type="button"
               disabled={disabled}
-              onClick={() => setOpen(o => !o)}
+              onClick={() => setOpen((o) => !o)}
               style={{
-                minWidth: 0, flex: 1, border: 0, background: "transparent", textAlign: "left",
-                fontFamily: "var(--font-base)", fontSize: sz.font,
+                minWidth: 0,
+                flex: 1,
+                border: 0,
+                background: "transparent",
+                textAlign: "left",
+                fontFamily: "var(--font-base)",
+                fontSize: sz.font,
                 color: displayValue ? "var(--color-text-primary)" : "var(--color-text-muted)",
-                cursor: disabled ? "not-allowed" : "pointer", padding: 0,
+                cursor: disabled ? "not-allowed" : "pointer",
+                padding: 0,
               }}
             >
               {displayValue || resolvedPlaceholder}
@@ -393,7 +440,12 @@ export function DatePicker({
             disabled={disabled}
             onClick={() => (open ? closeCalendar() : setOpen(true))}
             aria-label={t("openDatePicker")}
-            style={{ ...iconButtonStyle, marginBottom: 2, opacity: disabled ? 0.5 : 1, cursor: disabled ? "not-allowed" : "pointer" }}
+            style={{
+              ...iconButtonStyle,
+              marginBottom: 2,
+              opacity: disabled ? 0.5 : 1,
+              cursor: disabled ? "not-allowed" : "pointer",
+            }}
           >
             <CalIcon size={size === "sm" ? 13 : 15} />
           </button>
@@ -402,17 +454,28 @@ export function DatePicker({
         <button
           type="button"
           disabled={disabled}
-          onClick={() => setOpen(o => !o)}
+          onClick={() => setOpen((o) => !o)}
           style={{
-            display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6,
-            fontFamily: "var(--font-base)", fontWeight: 400, fontSize: sz.font,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 6,
+            fontFamily: "var(--font-base)",
+            fontWeight: 400,
+            fontSize: sz.font,
             color: displayValue ? "var(--color-text-primary)" : "var(--color-text-muted)",
             background: "var(--color-bg)",
             border: `1px solid ${error ? "var(--color-pink-dark)" : "var(--color-text-primary)"}`,
-            borderRadius: sz.radius, padding: sz.padding, cursor: disabled ? "not-allowed" : "pointer",
+            borderRadius: sz.radius,
+            padding: sz.padding,
+            cursor: disabled ? "not-allowed" : "pointer",
             opacity: disabled ? 0.5 : 1,
-            width: "100%", textAlign: "left", outline: "none", boxSizing: "border-box",
-            letterSpacing: "-0.011em", lineHeight: 1.5,
+            width: "100%",
+            textAlign: "left",
+            outline: "none",
+            boxSizing: "border-box",
+            letterSpacing: "-0.011em",
+            lineHeight: 1.5,
           }}
         >
           <span>{displayValue || resolvedPlaceholder}</span>
@@ -439,23 +502,69 @@ export function DatePicker({
             padding: 16,
           }}
         >
-          {/* Header nav */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: 16,
+            }}
+          >
             <button
               type="button"
               onClick={() => handleNavigate(-1)}
-              aria-label={view === "days" ? t("previousMonth") : view === "months" ? t("previousYear") : t("previousYears")}
+              aria-label={
+                view === "days"
+                  ? t("previousMonth")
+                  : view === "months"
+                    ? t("previousYear")
+                    : t("previousYears")
+              }
               style={iconButtonStyle}
             >
               <ChevLeft />
             </button>
 
             {view === "days" ? (
-              <span style={{ display: "flex", alignItems: "center", gap: 4, fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(13px, 0.9vw, 16px)", color: "#111" }}>
-                <button type="button" onClick={() => setView("months")} style={{ background: "none", border: "none", cursor: "pointer", borderRadius: 6, padding: "2px 4px", font: "inherit", color: "inherit" }}>
+              <span
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
+                  fontFamily: "var(--font-base)",
+                  fontWeight: 600,
+                  fontSize: "clamp(13px, 0.9vw, 16px)",
+                  color: "#111",
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setView("months")}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    borderRadius: 6,
+                    padding: "2px 4px",
+                    font: "inherit",
+                    color: "inherit",
+                  }}
+                >
                   {monthFmt.format(viewMonth)}
                 </button>
-                <button type="button" onClick={() => setView("years")} style={{ background: "none", border: "none", cursor: "pointer", borderRadius: 6, padding: "2px 4px", font: "inherit", color: "inherit" }}>
+                <button
+                  type="button"
+                  onClick={() => setView("years")}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    borderRadius: 6,
+                    padding: "2px 4px",
+                    font: "inherit",
+                    color: "inherit",
+                  }}
+                >
                   {yearFmt.format(viewMonth)}
                 </button>
               </span>
@@ -463,12 +572,29 @@ export function DatePicker({
               <button
                 type="button"
                 onClick={() => setView("years")}
-                style={{ background: "none", border: "none", cursor: "pointer", borderRadius: 6, padding: "2px 4px", fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(13px, 0.9vw, 16px)", color: "#111" }}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  borderRadius: 6,
+                  padding: "2px 4px",
+                  fontFamily: "var(--font-base)",
+                  fontWeight: 600,
+                  fontSize: "clamp(13px, 0.9vw, 16px)",
+                  color: "#111",
+                }}
               >
                 {yearFmt.format(viewMonth)}
               </button>
             ) : (
-              <span style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(13px, 0.9vw, 16px)", color: "#111" }}>
+              <span
+                style={{
+                  fontFamily: "var(--font-base)",
+                  fontWeight: 600,
+                  fontSize: "clamp(13px, 0.9vw, 16px)",
+                  color: "#111",
+                }}
+              >
                 {yearRangeStart} – {yearRangeStart + YEARS_PER_PAGE - 1}
               </span>
             )}
@@ -476,7 +602,13 @@ export function DatePicker({
             <button
               type="button"
               onClick={() => handleNavigate(1)}
-              aria-label={view === "days" ? t("nextMonth") : view === "months" ? t("nextYear") : t("nextYears")}
+              aria-label={
+                view === "days"
+                  ? t("nextMonth")
+                  : view === "months"
+                    ? t("nextYear")
+                    : t("nextYears")
+              }
               style={iconButtonStyle}
             >
               <ChevRight />
@@ -484,23 +616,44 @@ export function DatePicker({
           </div>
 
           {view === "days" ? (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "6px 0", textAlign: "center" }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(7, 1fr)",
+                gap: "6px 0",
+                textAlign: "center",
+              }}
+            >
               {weekDays.map((w, i) => (
-                <span key={i} style={{ fontFamily: "var(--font-base)", fontSize: "0.75rem", fontWeight: 500, color: "#666" }}>
+                <span
+                  key={i}
+                  style={{
+                    fontFamily: "var(--font-base)",
+                    fontSize: "0.75rem",
+                    fontWeight: 500,
+                    color: "#666",
+                  }}
+                >
                   {w}
                 </span>
               ))}
 
-              {days.map(day => {
+              {days.map((day) => {
                 const isCurrentMonth = day.getMonth() === viewMonth.getMonth();
-                const isSel          = sameDay(day, selected);
-                const disabled       = isDayDisabled(day);
+                const isSel = sameDay(day, selected);
+                const disabled = isDayDisabled(day);
 
                 const btnStyle: React.CSSProperties = {
                   margin: "0 auto",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  width: 32, height: 32, borderRadius: "50%", border: "none",
-                  fontFamily: "var(--font-base)", fontSize: "0.875rem",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: 32,
+                  height: 32,
+                  borderRadius: "50%",
+                  border: "none",
+                  fontFamily: "var(--font-base)",
+                  fontSize: "0.875rem",
                   cursor: disabled ? "not-allowed" : "pointer",
                   opacity: disabled ? 0.35 : 1,
                   background: isSel ? "linear-gradient(135deg, #a7bafa, #fcc4c3, #fff4da)" : "none",
@@ -515,13 +668,12 @@ export function DatePicker({
                     disabled={disabled}
                     onClick={() => handleSelect(day)}
                     style={btnStyle}
-                    onMouseEnter={e => {
+                    onMouseEnter={(e) => {
                       if (!isSel && !disabled)
                         (e.currentTarget as HTMLButtonElement).style.background = "#f3f5ff";
                     }}
-                    onMouseLeave={e => {
-                      if (!isSel)
-                        (e.currentTarget as HTMLButtonElement).style.background = "none";
+                    onMouseLeave={(e) => {
+                      if (!isSel) (e.currentTarget as HTMLButtonElement).style.background = "none";
                     }}
                   >
                     {day.getDate()}
@@ -530,9 +682,17 @@ export function DatePicker({
               })}
             </div>
           ) : view === "months" ? (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, textAlign: "center" }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(3, 1fr)",
+                gap: 8,
+                textAlign: "center",
+              }}
+            >
               {Array.from({ length: 12 }, (_, monthIndex) => {
-                const isSel = selected !== null &&
+                const isSel =
+                  selected !== null &&
                   selected.getFullYear() === viewMonth.getFullYear() &&
                   selected.getMonth() === monthIndex;
                 const disabled = isMonthDisabled(viewMonth.getFullYear(), monthIndex);
@@ -544,11 +704,16 @@ export function DatePicker({
                     disabled={disabled}
                     onClick={() => handleSelectMonth(monthIndex)}
                     style={{
-                      borderRadius: 8, padding: "8px 0", border: "none",
-                      fontFamily: "var(--font-base)", fontSize: "0.875rem",
+                      borderRadius: 8,
+                      padding: "8px 0",
+                      border: "none",
+                      fontFamily: "var(--font-base)",
+                      fontSize: "0.875rem",
                       cursor: disabled ? "not-allowed" : "pointer",
                       opacity: disabled ? 0.35 : 1,
-                      background: isSel ? "linear-gradient(135deg, #a7bafa, #fcc4c3, #fff4da)" : "none",
+                      background: isSel
+                        ? "linear-gradient(135deg, #a7bafa, #fcc4c3, #fff4da)"
+                        : "none",
                       color: isSel ? "#fff" : "#111",
                       boxShadow: isSel ? "0 8px 20px rgba(167,186,250,0.5)" : "none",
                     }}
@@ -559,8 +724,15 @@ export function DatePicker({
               })}
             </div>
           ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, textAlign: "center" }}>
-              {years.map(year => {
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(3, 1fr)",
+                gap: 8,
+                textAlign: "center",
+              }}
+            >
+              {years.map((year) => {
                 const isSel = selected !== null && selected.getFullYear() === year;
                 const disabled = isYearDisabled(year);
 
@@ -571,11 +743,16 @@ export function DatePicker({
                     disabled={disabled}
                     onClick={() => handleSelectYear(year)}
                     style={{
-                      borderRadius: 8, padding: "8px 0", border: "none",
-                      fontFamily: "var(--font-base)", fontSize: "0.875rem",
+                      borderRadius: 8,
+                      padding: "8px 0",
+                      border: "none",
+                      fontFamily: "var(--font-base)",
+                      fontSize: "0.875rem",
                       cursor: disabled ? "not-allowed" : "pointer",
                       opacity: disabled ? 0.35 : 1,
-                      background: isSel ? "linear-gradient(135deg, #a7bafa, #fcc4c3, #fff4da)" : "none",
+                      background: isSel
+                        ? "linear-gradient(135deg, #a7bafa, #fcc4c3, #fff4da)"
+                        : "none",
                       color: isSel ? "#fff" : "#111",
                       boxShadow: isSel ? "0 8px 20px rgba(167,186,250,0.5)" : "none",
                     }}

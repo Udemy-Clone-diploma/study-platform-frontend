@@ -60,5 +60,12 @@ export function useDragScroll<T extends HTMLElement>() {
     e.preventDefault();
   };
 
-  return { scrollRef, onPointerDown, onPointerMove, onPointerUp, onDragStart, onPointerCancel: onPointerUp };
+  return {
+    scrollRef,
+    onPointerDown,
+    onPointerMove,
+    onPointerUp,
+    onDragStart,
+    onPointerCancel: onPointerUp,
+  };
 }

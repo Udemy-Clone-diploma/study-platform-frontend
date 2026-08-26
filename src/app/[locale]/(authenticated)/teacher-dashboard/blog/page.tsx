@@ -52,7 +52,9 @@ export default function TeacherBlogPage() {
   const [page, setPage] = useState(1);
 
   const refresh = useCallback(() => {
-    getArticles({ mine: true, lang: locale }).then(setArticles).catch(() => {});
+    getArticles({ mine: true, lang: locale })
+      .then(setArticles)
+      .catch(() => {});
   }, [locale]);
 
   const actions = useArticleActions(refresh);
@@ -104,22 +106,34 @@ export default function TeacherBlogPage() {
                     ? "text-(--color-text-primary) underline underline-offset-4"
                     : "text-(--color-text-primary)",
                 ].join(" ")}
-                style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(20px, 1.39vw, 24px)" }}
+                style={{
+                  fontFamily: "var(--font-base)",
+                  fontWeight: 600,
+                  fontSize: "clamp(20px, 1.39vw, 24px)",
+                }}
               >
                 {TAB_LABELS[tab]}
               </button>
             ))}
           </nav>
 
-          <GradientButton href="/blog/create" style={{ gap: 8 }} className="shrink-0 self-end lg:self-auto">
+          <GradientButton
+            href="/blog/create"
+            style={{ gap: 8 }}
+            className="shrink-0 self-end lg:self-auto"
+          >
             <Plus size={16} /> {t("addArticle")}
           </GradientButton>
         </div>
 
         {loading ? (
-          <p className="mt-16 text-center text-lg text-(--color-text-secondary)">{tCommon("loading")}</p>
+          <p className="mt-16 text-center text-lg text-(--color-text-secondary)">
+            {tCommon("loading")}
+          </p>
         ) : filtered.length === 0 ? (
-          <p className="mt-16 text-center text-lg text-(--color-text-secondary)">{EMPTY_LABEL[activeTab]}</p>
+          <p className="mt-16 text-center text-lg text-(--color-text-secondary)">
+            {EMPTY_LABEL[activeTab]}
+          </p>
         ) : (
           <>
             <div className="flex flex-wrap" style={{ gap: "1.04vw" }}>
@@ -135,7 +149,11 @@ export default function TeacherBlogPage() {
             </div>
             {totalPages > 1 && (
               <div style={{ marginTop: "clamp(16px, 1.67vw, 24px)" }}>
-                <Pagination currentPage={effectivePage} totalPages={totalPages} onPageChange={setPage} />
+                <Pagination
+                  currentPage={effectivePage}
+                  totalPages={totalPages}
+                  onPageChange={setPage}
+                />
               </div>
             )}
           </>

@@ -1,0 +1,11 @@
+# Commits listed here are skipped by `git blame`, so a whole-repo reformat does not
+# show up as the author of every line.
+#
+# Enable locally once per clone:
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+#
+# GitHub reads this file automatically. Add the full 40-character hash of a
+# formatting-only commit below, newest last.
+
+# chore: format the whole repo with prettier
+52add06b511a085fe0b5095759a81896dfa8ce58

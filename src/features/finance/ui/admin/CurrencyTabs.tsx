@@ -1,12 +1,10 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import type { PricingPlan } from "@/entities/course";
-
-type Currency = PricingPlan["currency"];
+import type { Currency } from "@/entities/course";
 
 type Props = {
-  currencies: Currency[];
+  currencies: readonly Currency[];
   active: Currency | null;
   onChange: (value: Currency) => void;
 };

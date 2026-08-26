@@ -86,7 +86,9 @@ export function ModalShell({
     const backgroundElements = Array.from(document.body.children).filter(
       (element): element is HTMLElement => element instanceof HTMLElement && element !== overlay,
     );
-    const previousInertValues = backgroundElements.map((element) => [element, element.inert] as const);
+    const previousInertValues = backgroundElements.map(
+      (element) => [element, element.inert] as const,
+    );
     backgroundElements.forEach((element) => {
       element.inert = true;
     });
@@ -159,7 +161,6 @@ export function ModalShell({
         style={{ width, boxShadow: shadow, overflow: "clip" }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* inner scrollable wrapper */}
         <div
           style={{
             padding,
@@ -191,7 +192,14 @@ export function ModalShell({
                 type="button"
                 onClick={onClose}
                 className="flex items-center justify-center rounded-full transition hover:bg-gray-100"
-                style={{ width: 32, height: 32, background: "transparent", border: "none", cursor: "pointer", flexShrink: 0 }}
+                style={{
+                  width: 32,
+                  height: 32,
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  flexShrink: 0,
+                }}
                 aria-label={t("close")}
               >
                 <X size={20} style={{ color: "var(--color-text-primary)" }} />

@@ -35,9 +35,7 @@ export function CategoryFilter({ categories, currentSlug }: Props) {
   }
 
   if (items.length === 0) {
-    return (
-      <p className="flex-1 text-xl text-(--color-text-secondary)">{t("noCategoriesYet")}</p>
-    );
+    return <p className="flex-1 text-xl text-(--color-text-secondary)">{t("noCategoriesYet")}</p>;
   }
 
   return (

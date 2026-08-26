@@ -14,17 +14,13 @@ type SidebarNavItemProps = {
 const expandedRowLayout =
   "-mx-[clamp(10px,0.85vw,16px)] w-[calc(100%_+_clamp(20px,1.7vw,32px))] pl-[clamp(10px,0.85vw,16px)]";
 
-export function SidebarNavItem({
-  item,
-  isExpanded,
-}: SidebarNavItemProps) {
+export function SidebarNavItem({ item, isExpanded }: SidebarNavItemProps) {
   const pathname = usePathname();
 
   const isActive =
     item.match === "exact"
       ? pathname === item.href
-      : pathname === item.href ||
-        pathname.startsWith(`${item.href}/`);
+      : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
   return (
     <Link

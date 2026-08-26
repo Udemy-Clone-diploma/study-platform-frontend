@@ -10,12 +10,7 @@ import type {
 } from "../model/schedule";
 import type { EnrolledStudent } from "../model/cohortGroup";
 
-// ── Individual delivery format schedule slots ─────────────────────────────────
-
-export async function getScheduleSlots(
-  slug: string,
-  formatId: number,
-): Promise<ScheduleSlot[]> {
+export async function getScheduleSlots(slug: string, formatId: number): Promise<ScheduleSlot[]> {
   const res = await api.get<ScheduleSlot[]>(
     `/courses/${slug}/delivery-formats/${formatId}/schedule-slots/`,
   );
@@ -52,9 +47,7 @@ export async function deleteScheduleSlot(
   formatId: number,
   slotId: number,
 ): Promise<void> {
-  await api.delete(
-    `/courses/${slug}/delivery-formats/${formatId}/schedule-slots/${slotId}/`,
-  );
+  await api.delete(`/courses/${slug}/delivery-formats/${formatId}/schedule-slots/${slotId}/`);
 }
 
 export async function assignScheduleSlot(
@@ -70,7 +63,6 @@ export async function assignScheduleSlot(
   return res.data;
 }
 
-
 export async function updateEnrollmentPeriod(
   slug: string,
   formatId: number,
@@ -84,15 +76,11 @@ export async function updateEnrollmentPeriod(
   return res.data;
 }
 
-// ── Cohort schedule entries ────────────────────────────────────────────────────
-
 export async function getCohortSchedules(
   slug: string,
   cohortId: number,
 ): Promise<CohortSchedule[]> {
-  const res = await api.get<CohortSchedule[]>(
-    `/courses/${slug}/cohorts/${cohortId}/schedules/`,
-  );
+  const res = await api.get<CohortSchedule[]>(`/courses/${slug}/cohorts/${cohortId}/schedules/`);
   return res.data;
 }
 
@@ -126,9 +114,7 @@ export async function deleteCohortSchedule(
   cohortId: number,
   scheduleId: number,
 ): Promise<void> {
-  await api.delete(
-    `/courses/${slug}/cohorts/${cohortId}/schedules/${scheduleId}/`,
-  );
+  await api.delete(`/courses/${slug}/cohorts/${cohortId}/schedules/${scheduleId}/`);
 }
 
 export type ScheduleConflictPersonalEvent = {
@@ -142,7 +128,13 @@ export type ScheduleConflictPersonalEvent = {
 };
 
 export type ScheduleConflicts = {
-  group: Array<{ id: number; course_title: string; cohort_name: string | null; start_time: string; end_time: string }>;
+  group: Array<{
+    id: number;
+    course_title: string;
+    cohort_name: string | null;
+    start_time: string;
+    end_time: string;
+  }>;
   individual: Array<{ id: number; course_title: string; start_time: string; end_time: string }>;
   personal: Array<{ id: number; reason: string; start_time: string; end_time: string }>;
   personal_events: ScheduleConflictPersonalEvent[];
@@ -192,8 +184,6 @@ export async function checkSlotRescheduleConflicts(
   );
   return res.data;
 }
-
-// ── Teacher unavailability ────────────────────────────────────────────────────
 
 export async function getTeacherUnavailabilities(): Promise<TeacherUnavailability[]> {
   const res = await api.get<TeacherUnavailability[]>("/teacher/unavailability/");

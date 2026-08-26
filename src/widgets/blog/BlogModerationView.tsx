@@ -42,7 +42,10 @@ type MyFilter = "all" | "draft" | "published" | "archived";
 
 type Translator = (key: string, values?: Record<string, string | number>) => string;
 
-function reviewFilters(t: Translator, tStatus: Translator): { value: ReviewFilter; label: string }[] {
+function reviewFilters(
+  t: Translator,
+  tStatus: Translator,
+): { value: ReviewFilter; label: string }[] {
   return [
     { value: "unassigned", label: t("filterUnassigned") },
     { value: "mine", label: t("filterAssignedToMe") },
@@ -78,7 +81,10 @@ function myEmptyLabel(t: Translator): Record<MyFilter, string> {
   };
 }
 
-function modeTabs(role: Extract<UserRole, "moderator" | "administrator">, t: Translator): { value: Mode; label: string }[] {
+function modeTabs(
+  role: Extract<UserRole, "moderator" | "administrator">,
+  t: Translator,
+): { value: Mode; label: string }[] {
   const tabs: { value: Mode; label: string }[] = [{ value: "mine", label: t("tabMyPublications") }];
   if (role === "moderator") tabs.push({ value: "review", label: t("tabOnReview") });
   if (role === "administrator") tabs.push({ value: "categories", label: t("tabCategories") });
@@ -87,8 +93,13 @@ function modeTabs(role: Extract<UserRole, "moderator" | "administrator">, t: Tra
 
 /** Only covers the live-queue review filters (unassigned/mine) -- "rejected"/"published"
  * are permanent decision snapshots now, fetched separately via getModerationSnapshots. */
-function paramsForMode(mode: Mode, reviewFilter: ReviewFilter, myFilter: MyFilter): GetArticlesParams | null {
-  if (mode === "mine") return myFilter === "all" ? { mine: true } : { mine: true, status: myFilter };
+function paramsForMode(
+  mode: Mode,
+  reviewFilter: ReviewFilter,
+  myFilter: MyFilter,
+): GetArticlesParams | null {
+  if (mode === "mine")
+    return myFilter === "all" ? { mine: true } : { mine: true, status: myFilter };
   if (mode === "review") {
     if (reviewFilter === "unassigned") return { assigned: "unassigned" };
     if (reviewFilter === "mine") return { assigned: "mine" };
@@ -97,11 +108,22 @@ function paramsForMode(mode: Mode, reviewFilter: ReviewFilter, myFilter: MyFilte
   return null;
 }
 
-function isSnapshotFilter(mode: Mode, reviewFilter: ReviewFilter): reviewFilter is "rejected" | "published" {
+function isSnapshotFilter(
+  mode: Mode,
+  reviewFilter: ReviewFilter,
+): reviewFilter is "rejected" | "published" {
   return mode === "review" && (reviewFilter === "rejected" || reviewFilter === "published");
 }
 
-function FilterChip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+function FilterChip({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
   return (
     <button
       type="button"
@@ -151,7 +173,9 @@ export function BlogModerationView({ role }: Props) {
   const [categoryDeleteError, setCategoryDeleteError] = useState<string | null>(null);
 
   const refreshCategories = useCallback(() => {
-    getBlogCategories(locale).then(setCategories).catch(() => {});
+    getBlogCategories(locale)
+      .then(setCategories)
+      .catch(() => {});
   }, [locale]);
 
   useEffect(() => {
@@ -161,12 +185,16 @@ export function BlogModerationView({ role }: Props) {
 
   const refresh = useCallback(() => {
     if (isSnapshotFilter(mode, reviewFilter)) {
-      getModerationSnapshots(reviewFilter).then(setSnapshots).catch(() => {});
+      getModerationSnapshots(reviewFilter)
+        .then(setSnapshots)
+        .catch(() => {});
       return;
     }
     const params = paramsForMode(mode, reviewFilter, myFilter);
     if (!params) return;
-    getArticles({ ...params, lang: locale }).then(setArticles).catch(() => {});
+    getArticles({ ...params, lang: locale })
+      .then(setArticles)
+      .catch(() => {});
   }, [mode, reviewFilter, myFilter, locale]);
 
   const actions = useArticleActions(refresh);
@@ -243,7 +271,11 @@ export function BlogModerationView({ role }: Props) {
                     ? "text-(--color-text-primary) underline underline-offset-4"
                     : "text-(--color-text-primary)",
                 ].join(" ")}
-                style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(20px, 1.39vw, 24px)" }}
+                style={{
+                  fontFamily: "var(--font-base)",
+                  fontWeight: 600,
+                  fontSize: "clamp(20px, 1.39vw, 24px)",
+                }}
               >
                 {label}
               </button>
@@ -264,7 +296,10 @@ export function BlogModerationView({ role }: Props) {
           )}
 
           {mode === "categories" && (
-            <GradientButton onClick={() => setCategoryFormOpen("add")} className="shrink-0 self-end lg:self-auto">
+            <GradientButton
+              onClick={() => setCategoryFormOpen("add")}
+              className="shrink-0 self-end lg:self-auto"
+            >
               {t("addCategory")}
               <Image
                 src="/icons/add.svg"
@@ -283,19 +318,23 @@ export function BlogModerationView({ role }: Props) {
             className="flex flex-wrap items-center gap-3"
             style={{ marginBottom: "clamp(16px, 2.22vw, 32px)" }}
           >
-            {(mode === "mine" ? myFilters(tCommon, tStatus) : reviewFilters(t, tStatus)).map((filter) => (
-              <FilterChip
-                key={filter.value}
-                label={filter.label}
-                active={mode === "mine" ? myFilter === filter.value : reviewFilter === filter.value}
-                onClick={() => {
-                  setLoading(true);
-                  setPage(1);
-                  if (mode === "mine") setMyFilter(filter.value as MyFilter);
-                  else setReviewFilter(filter.value as ReviewFilter);
-                }}
-              />
-            ))}
+            {(mode === "mine" ? myFilters(tCommon, tStatus) : reviewFilters(t, tStatus)).map(
+              (filter) => (
+                <FilterChip
+                  key={filter.value}
+                  label={filter.label}
+                  active={
+                    mode === "mine" ? myFilter === filter.value : reviewFilter === filter.value
+                  }
+                  onClick={() => {
+                    setLoading(true);
+                    setPage(1);
+                    if (mode === "mine") setMyFilter(filter.value as MyFilter);
+                    else setReviewFilter(filter.value as ReviewFilter);
+                  }}
+                />
+              ),
+            )}
           </nav>
         )}
 
@@ -311,7 +350,9 @@ export function BlogModerationView({ role }: Props) {
           />
         ) : loading ? (
           <section className="min-h-[520px] rounded-[20px] bg-white p-4 shadow-(--shadow-dashboard-card) sm:p-6">
-            <p className="mt-16 text-center text-lg text-(--color-text-secondary)">{tCommon("loading")}</p>
+            <p className="mt-16 text-center text-lg text-(--color-text-secondary)">
+              {tCommon("loading")}
+            </p>
           </section>
         ) : (
           <>
@@ -323,7 +364,9 @@ export function BlogModerationView({ role }: Props) {
             ) : (
               <ArticleGrid
                 articles={pageArticles}
-                emptyLabel={mode === "mine" ? myEmptyLabel(t)[myFilter] : reviewEmptyLabel(t)[reviewFilter]}
+                emptyLabel={
+                  mode === "mine" ? myEmptyLabel(t)[myFilter] : reviewEmptyLabel(t)[reviewFilter]
+                }
                 currentUserId={mode === "mine" ? currentUserId : null}
                 currentUserRole={role}
                 onAction={actions.handleAction}
@@ -331,7 +374,11 @@ export function BlogModerationView({ role }: Props) {
             )}
             {totalPages > 1 && (
               <div style={{ marginTop: "clamp(16px, 1.67vw, 24px)" }}>
-                <Pagination currentPage={effectivePage} totalPages={totalPages} onPageChange={setPage} />
+                <Pagination
+                  currentPage={effectivePage}
+                  totalPages={totalPages}
+                  onPageChange={setPage}
+                />
               </div>
             )}
           </>

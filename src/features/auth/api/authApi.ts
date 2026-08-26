@@ -53,6 +53,12 @@ export async function updateStudentProfile(data: Partial<StudentProfile>): Promi
   return response.data.profile as StudentProfile;
 }
 
+/**
+ * File uploads need far longer than the 10s default on `api`: a phone camera
+ * photo is several MB and routinely takes longer than that on mobile uplink.
+ */
+const UPLOAD_TIMEOUT_MS = 60000;
+
 export async function updateModeratorProfile(
   data: Partial<ModeratorProfile>,
 ): Promise<ModeratorProfile> {
@@ -65,6 +71,7 @@ export async function uploadAvatar(file: File): Promise<UserData> {
   form.append("avatar", file);
   const response = await api.patch<UserData>("auth/me/", form, {
     headers: { "Content-Type": "multipart/form-data" },
+    timeout: UPLOAD_TIMEOUT_MS,
   });
   return response.data;
 }
@@ -74,6 +81,7 @@ export async function uploadTeacherSignature(file: File): Promise<TeacherProfile
   form.append("signature", file);
   const response = await api.patch<UserData>("auth/me/profile/teacher/", form, {
     headers: { "Content-Type": "multipart/form-data" },
+    timeout: UPLOAD_TIMEOUT_MS,
   });
   return response.data.profile as TeacherProfile;
 }

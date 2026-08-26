@@ -30,8 +30,6 @@ export async function updateCalendarEvent(
   return data;
 }
 
-// ── Personal events ────────────────────────────────────────────────────────────
-
 export type PersonalEventPayload = {
   title: string;
   date: string;
@@ -45,7 +43,10 @@ export async function createPersonalEvent(payload: PersonalEventPayload): Promis
   return data;
 }
 
-export async function updatePersonalEvent(pk: number, payload: Partial<PersonalEventPayload>): Promise<void> {
+export async function updatePersonalEvent(
+  pk: number,
+  payload: Partial<PersonalEventPayload>,
+): Promise<void> {
   await api.patch(`/calendar/events/personal/${pk}/`, payload);
 }
 
@@ -63,7 +64,13 @@ export type PersonalEventConflictItem = {
 };
 
 export type PersonalEventConflicts = {
-  sessions: Array<{ id: number | string; title: string; type: "group" | "individual" | "extra"; start_time: string; end_time: string }>;
+  sessions: Array<{
+    id: number | string;
+    title: string;
+    type: "group" | "individual" | "extra";
+    start_time: string;
+    end_time: string;
+  }>;
   personal_events: PersonalEventConflictItem[];
 };
 
@@ -74,7 +81,9 @@ export async function checkPersonalEventConflicts(params: {
   exclude_id?: number;
   include_free_slots?: boolean;
 }): Promise<PersonalEventConflicts> {
-  const { data } = await api.get<PersonalEventConflicts>("/calendar/events/personal/conflicts/", { params });
+  const { data } = await api.get<PersonalEventConflicts>("/calendar/events/personal/conflicts/", {
+    params,
+  });
   return data;
 }
 
@@ -89,8 +98,6 @@ export async function getEventInvitations(pk: number): Promise<EventInvitationSt
   const { data } = await api.get(`/calendar/events/personal/${pk}/invitations/`);
   return data;
 }
-
-// ── Participants (owner + invitee view) ───────────────────────────────────────
 
 export type EventParticipant = {
   name: string;
@@ -114,8 +121,6 @@ export async function getEventParticipants(pk: number): Promise<EventParticipant
   const { data } = await api.get(`/calendar/events/personal/${pk}/participants/`);
   return data;
 }
-
-// ── Invitations ────────────────────────────────────────────────────────────────
 
 export type EventInvitationStatus = {
   id: number;
@@ -157,8 +162,6 @@ export async function respondToInvitation(pk: number, action: "accept" | "declin
   await api.patch(`/calendar/invitations/${pk}/`, { action });
 }
 
-// ── Extra sessions (teacher) ──────────────────────────────────────────────────
-
 export type ExtraSessionPayload = {
   date: string;
   start_time: string;
@@ -175,8 +178,6 @@ export async function createExtraSession(payload: ExtraSessionPayload): Promise<
   const { data } = await api.post("/calendar/events/extra/", payload);
   return data;
 }
-
-// ── User search ────────────────────────────────────────────────────────────────
 
 export type UserSearchResult = {
   email: string;

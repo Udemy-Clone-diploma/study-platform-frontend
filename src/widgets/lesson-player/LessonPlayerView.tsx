@@ -356,7 +356,9 @@ export function LessonPlayerView({
               onPassed={() => {
                 if (!isCompleted) handleToggleComplete();
               }}
-              nextLessonHref={isLastTab && nextLesson ? `/learn/${slug}/${nextLesson.id}` : undefined}
+              nextLessonHref={
+                isLastTab && nextLesson ? `/learn/${slug}/${nextLesson.id}` : undefined
+              }
             />
           ) : null}
         </div>
@@ -490,7 +492,8 @@ function LessonSessionCard({ session }: { session: LessonSession }) {
   const now = new Date();
   const todayISO = now.toISOString().slice(0, 10);
   const nowHM = now.toTimeString().slice(0, 5);
-  const isPast = session.date < todayISO || (session.date === todayISO && session.end_time <= nowHM);
+  const isPast =
+    session.date < todayISO || (session.date === todayISO && session.end_time <= nowHM);
 
   return (
     <div

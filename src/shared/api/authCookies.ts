@@ -78,6 +78,7 @@ export async function getUserRoleCookie(): Promise<string | undefined> {
   const jar = await cookies();
   return jar.get(AUTH_COOKIE_CONFIG.role.name)?.value;
 }
+<<<<<<< HEAD
 
 export async function getRememberMeCookie(): Promise<boolean> {
   const jar = await cookies();
@@ -91,3 +92,5 @@ export async function hasUsableRefreshToken(): Promise<boolean> {
 
   return (getJwtMaxAge(refreshToken) ?? 0) > 0;
 }
+=======
+>>>>>>> origin/develop

@@ -9,7 +9,10 @@ export async function logout(): Promise<void> {
   if (refreshToken) {
     try {
       await logoutUser(refreshToken);
-    } catch {}
+    } catch {
+      // Swallowed on purpose: whether or not the server revokes the refresh token,
+      // the local session must still be cleared below, or the user stays logged in.
+    }
   }
 
   await clearAuthCookies();

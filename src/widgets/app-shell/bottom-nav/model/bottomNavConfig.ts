@@ -16,9 +16,14 @@ export const OTHERS_HREF = "/others";
 export function getBottomNavSplit(role: UserRole, items: SidebarItem[]) {
   const ids = BOTTOM_NAV_PRIMARY_IDS[role];
   const byId = new Map(items.map((item) => [item.id, item]));
-  const primary = ids
-    .map((id) => byId.get(id))
-    .filter((item): item is SidebarItem => item != null);
+  const primary = ids.map((id) => byId.get(id)).filter((item): item is SidebarItem => item != null);
   const overflow = items.filter((item) => !ids.includes(item.id));
   return { primary, overflow };
 }
+
+/**
+ * Ids that have a short label in the `BottomNav` namespace. The sidebar labels
+ * are full phrases ("Домашні завдання", "Tableau de bord") that blow out a
+ * ~68px slot, so the bottom nav uses its own one-word labels instead.
+ */
+export const BOTTOM_NAV_LABEL_IDS = new Set(Object.values(BOTTOM_NAV_PRIMARY_IDS).flat());

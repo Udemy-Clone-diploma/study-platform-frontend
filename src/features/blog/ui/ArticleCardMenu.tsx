@@ -100,7 +100,14 @@ export function buildArticleMenu(
 }
 
 /** Self-contained ⋮ trigger + dropdown for an article card, actions depend on status/role. */
-export function ArticleCardMenu({ status, isOwner, isStaff, authorIsStaff, isAssignedToMe, onAction }: Props) {
+export function ArticleCardMenu({
+  status,
+  isOwner,
+  isStaff,
+  authorIsStaff,
+  isAssignedToMe,
+  onAction,
+}: Props) {
   const t = useTranslations("ArticleCardMenu");
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -137,7 +144,14 @@ export function ArticleCardMenu({ status, isOwner, isStaff, authorIsStaff, isAss
           setOpen((v) => !v);
         }}
         className="flex shrink-0 items-center justify-center rounded-full transition hover:bg-white/80"
-        style={{ width: 32, height: 32, background: "var(--color-bg)", border: "none", cursor: "pointer", padding: 0 }}
+        style={{
+          width: 32,
+          height: 32,
+          background: "var(--color-bg)",
+          border: "none",
+          cursor: "pointer",
+          padding: 0,
+        }}
       >
         <MoreVertical size={18} />
       </button>
@@ -150,7 +164,8 @@ export function ArticleCardMenu({ status, isOwner, isStaff, authorIsStaff, isAss
             top: "calc(100% + 6px)",
             right: 0,
             width: 200,
-            background: "linear-gradient(90deg, var(--color-brand-lavender) -210.91%, var(--color-brand-pink) 233.85%, var(--color-brand-cream) 661.82%)",
+            background:
+              "linear-gradient(90deg, var(--color-brand-lavender) -210.91%, var(--color-brand-pink) 233.85%, var(--color-brand-cream) 661.82%)",
             borderRadius: 12,
             padding: 14,
             zIndex: 20,
@@ -171,7 +186,10 @@ export function ArticleCardMenu({ status, isOwner, isStaff, authorIsStaff, isAss
               style={{ gap: 8 }}
               onClick={() => handleClick(item.action)}
             >
-              <span className="flex-1 text-left font-(family-name:--font-accent) font-medium" style={{ fontSize: 13 }}>
+              <span
+                className="flex-1 text-left font-(family-name:--font-accent) font-medium"
+                style={{ fontSize: 13 }}
+              >
                 {item.label}
               </span>
               <item.Icon size={16} />

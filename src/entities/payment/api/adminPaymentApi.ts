@@ -12,6 +12,11 @@ import type {
 
 const PAYMENTS_ENDPOINT = "payments/";
 
+function listOf<T>(data: T[] | { results?: T[] } | null | undefined): T[] {
+  if (Array.isArray(data)) return data;
+  return Array.isArray(data?.results) ? data.results : [];
+}
+
 type SummaryParams = Omit<AdminPaymentsParams, "page" | "page_size" | "ordering">;
 
 export async function getAdminPayments(
@@ -27,22 +32,23 @@ export async function getPaymentsSummary(params: SummaryParams = {}): Promise<Pa
 }
 
 export async function getRevenueTimeseries(
-  params: SummaryParams & { group_by?: RevenueTrendGroupBy } = {},
+  params: SummaryParams & { group_by?: RevenueTrendGroupBy; page_size?: number } = {},
 ): Promise<RevenueTimeseriesRow[]> {
-  const { data } = await api.get<RevenueTimeseriesRow[]>(
+  const { data } = await api.get<RevenueTimeseriesRow[] | { results?: RevenueTimeseriesRow[] }>(
     `${PAYMENTS_ENDPOINT}summary/timeseries/`,
     { params },
   );
-  return Array.isArray(data) ? data : [];
+  return listOf(data);
 }
 
 export async function getRevenueByCategory(
   params: SummaryParams = {},
 ): Promise<RevenueCategoryRow[]> {
-  const { data } = await api.get<RevenueCategoryRow[]>(`${PAYMENTS_ENDPOINT}revenue-by-category/`, {
-    params,
-  });
-  return Array.isArray(data) ? data : [];
+  const { data } = await api.get<RevenueCategoryRow[] | { results?: RevenueCategoryRow[] }>(
+    `${PAYMENTS_ENDPOINT}revenue-by-category/`,
+    { params },
+  );
+  return listOf(data);
 }
 
 export async function refundPayment(

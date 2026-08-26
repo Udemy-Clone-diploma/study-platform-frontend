@@ -57,7 +57,10 @@ export async function createLessonItem(
   lessonId: number,
   data: LessonItemPayload,
 ): Promise<LessonItem> {
-  const { data: result } = await api.post<LessonItem>(itemsBase(courseSlug, moduleId, lessonId), buildCreateBody(data));
+  const { data: result } = await api.post<LessonItem>(
+    itemsBase(courseSlug, moduleId, lessonId),
+    buildCreateBody(data),
+  );
   return result;
 }
 

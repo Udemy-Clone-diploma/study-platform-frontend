@@ -3,7 +3,10 @@ import type { CourseModule } from "../model/module";
 
 const COURSES = "courses/";
 
-export async function createModule(courseSlug: string, data: { title: string }): Promise<CourseModule> {
+export async function createModule(
+  courseSlug: string,
+  data: { title: string },
+): Promise<CourseModule> {
   const { data: result } = await api.post<CourseModule>(`${COURSES}${courseSlug}/modules/`, data);
   return result;
 }

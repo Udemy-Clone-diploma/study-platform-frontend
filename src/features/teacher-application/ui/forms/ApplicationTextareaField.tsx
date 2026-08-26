@@ -1,5 +1,7 @@
-interface ApplicationTextareaFieldProps
-  extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, "id"> {
+interface ApplicationTextareaFieldProps extends Omit<
+  React.TextareaHTMLAttributes<HTMLTextAreaElement>,
+  "id"
+> {
   id: string;
   label: string;
   error?: string;
@@ -16,7 +18,10 @@ export function ApplicationTextareaField({
 }: ApplicationTextareaFieldProps) {
   return (
     <div className="space-y-2 text-left">
-      <label htmlFor={id} className="block text-[1.1rem] font-medium tracking-[0.01em] text-[#1a171b]">
+      <label
+        htmlFor={id}
+        className="block text-[1.1rem] font-medium tracking-[0.01em] text-[#1a171b]"
+      >
         {label}
       </label>
 

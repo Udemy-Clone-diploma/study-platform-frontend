@@ -188,7 +188,6 @@ function DataTableContent<T>({
 }) {
   return (
     <>
-      {/* Gradient header row */}
       <div
         className="flex shrink-0 items-center"
         style={{
@@ -253,7 +252,6 @@ function DataTableContent<T>({
         })}
       </div>
 
-      {/* Body */}
       {rows.length === 0 ? (
         <p
           className="py-14 text-center text-(--color-text-secondary)"

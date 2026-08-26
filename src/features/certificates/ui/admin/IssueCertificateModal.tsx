@@ -42,19 +42,22 @@ export function IssueCertificateModal({ onClose, onIssued }: Props) {
     }));
   }, []);
 
-  const loadCourses = useCallback(async (query: string): Promise<SearchSelectOption[]> => {
-    const data = await getCourses({
-      search: query || undefined,
-      page_size: PICKER_PAGE_SIZE,
-    });
-    return data.results.map((item) => ({
-      id: item.id,
-      label: item.title,
-      hint: item.with_certificate
-        ? item.teacher_name
-        : `${item.teacher_name} · ${t("courseNoCertificateHint")}`,
-    }));
-  }, [t]);
+  const loadCourses = useCallback(
+    async (query: string): Promise<SearchSelectOption[]> => {
+      const data = await getCourses({
+        search: query || undefined,
+        page_size: PICKER_PAGE_SIZE,
+      });
+      return data.results.map((item) => ({
+        id: item.id,
+        label: item.title,
+        hint: item.with_certificate
+          ? item.teacher_name
+          : `${item.teacher_name} · ${t("courseNoCertificateHint")}`,
+      }));
+    },
+    [t],
+  );
 
   function validate(): Record<string, string> {
     const errors: Record<string, string> = {};

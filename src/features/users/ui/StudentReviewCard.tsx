@@ -25,7 +25,10 @@ type Props = {
 
 export function StudentReviewCard({ review, className = "" }: Props) {
   const [reporting, setReporting] = useState(false);
+<<<<<<< HEAD
   const canReport = useIsAuthenticated();
+=======
+>>>>>>> origin/develop
   const t = useTranslations("StudentReviewCard");
 
   return (
@@ -43,6 +46,7 @@ export function StudentReviewCard({ review, className = "" }: Props) {
         borderRadius: "20px",
       }}
     >
+<<<<<<< HEAD
       {canReport && (
         <button
           type="button"
@@ -109,6 +113,69 @@ export function StudentReviewCard({ review, className = "" }: Props) {
             background: "var(--gradient-blob)",
           }}
         >
+=======
+      <button
+        type="button"
+        onClick={() => setReporting(true)}
+        aria-label={t("reportReview")}
+        title={t("reportReview")}
+        style={{
+          position: "absolute",
+          top: "0.83vw",
+          right: "0.83vw",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: "1.67vw",
+          height: "1.67vw",
+          minWidth: 22,
+          minHeight: 22,
+          border: "none",
+          background: "transparent",
+          color: "var(--color-text-secondary)",
+          cursor: "pointer",
+        }}
+      >
+        <Flag size={14} />
+      </button>
+
+      {/* Quote: clamped to 4 lines so a long review can't grow the card. */}
+      <p
+        className="text-[14px] leading-[18px] md:text-[15px] md:leading-[19px] lg:text-[1.04vw] lg:leading-[1.3vw]"
+        style={{
+          fontFamily: "var(--font-base)",
+          fontWeight: 500,
+          color: "var(--color-text-secondary)",
+          margin: 0,
+          display: "-webkit-box",
+          WebkitBoxOrient: "vertical",
+          WebkitLineClamp: 4,
+          overflow: "hidden",
+        }}
+      >
+        {review.text}
+      </p>
+
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          alignItems: "center",
+          gap: "0.625vw",
+        }}
+      >
+        <div
+          style={{
+            position: "relative",
+            width: "clamp(32px, 2.71vw, 39px)",
+            height: "clamp(32px, 2.71vw, 39px)",
+            borderRadius: "50%",
+            overflow: "hidden",
+            flexShrink: 0,
+            background: "var(--gradient-blob)",
+          }}
+        >
+>>>>>>> origin/develop
           {review.authorAvatar && (
             <Image
               src={review.authorAvatar}
@@ -144,7 +211,11 @@ export function StudentReviewCard({ review, className = "" }: Props) {
         </div>
       </div>
 
+<<<<<<< HEAD
       {canReport && reporting && (
+=======
+      {reporting && (
+>>>>>>> origin/develop
         <ReportReviewModal
           onClose={() => setReporting(false)}
           onSubmit={(reason) => reportReview(review.id, reason)}

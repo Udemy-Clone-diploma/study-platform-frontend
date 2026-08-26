@@ -2,7 +2,16 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { MoreVertical, Pencil, Send, Trash2, RotateCcw, Archive, ArchiveRestore, Eye } from "lucide-react";
+import {
+  MoreVertical,
+  Pencil,
+  Send,
+  Trash2,
+  RotateCcw,
+  Archive,
+  ArchiveRestore,
+  Eye,
+} from "lucide-react";
 
 export type TeacherCourseStatus =
   | "draft"
@@ -37,26 +46,24 @@ type MenuItem = {
 
 const MENU_BY_STATUS: Record<TeacherCourseStatus, MenuItem[]> = {
   draft: [
-    { labelKey: "edit",              action: "edit",    Icon: Pencil },
-    { labelKey: "submitForReview",   action: "publish", Icon: Send   },
-    { labelKey: "delete",            action: "delete",  Icon: Trash2, danger: true },
+    { labelKey: "edit", action: "edit", Icon: Pencil },
+    { labelKey: "submitForReview", action: "publish", Icon: Send },
+    { labelKey: "delete", action: "delete", Icon: Trash2, danger: true },
   ],
-  pending_moderation: [
-    { labelKey: "withdrawFromModeration", action: "withdraw", Icon: RotateCcw },
-  ],
+  pending_moderation: [{ labelKey: "withdrawFromModeration", action: "withdraw", Icon: RotateCcw }],
   needs_revision: [
-    { labelKey: "withdrawFromModeration", action: "withdraw",  Icon: RotateCcw },
-    { labelKey: "edit",                   action: "edit",      Icon: Pencil   },
-    { labelKey: "resubmitForReview",      action: "publish",   Icon: Send     },
+    { labelKey: "withdrawFromModeration", action: "withdraw", Icon: RotateCcw },
+    { labelKey: "edit", action: "edit", Icon: Pencil },
+    { labelKey: "resubmitForReview", action: "publish", Icon: Send },
   ],
   active: [
-    { labelKey: "edit",    action: "edit",    Icon: Pencil  },
+    { labelKey: "edit", action: "edit", Icon: Pencil },
     { labelKey: "archive", action: "archive", Icon: Archive },
   ],
   /** Published + draft pending edit (saved but not submitted) */
   active_draft_edit: [
-    { labelKey: "editChanges",    action: "edit-changes",    Icon: Pencil   },
-    { labelKey: "submitChanges",  action: "submit-changes",  Icon: Send     },
+    { labelKey: "editChanges", action: "edit-changes", Icon: Pencil },
+    { labelKey: "submitChanges", action: "submit-changes", Icon: Send },
     { labelKey: "discardChanges", action: "discard-changes", Icon: Trash2, danger: true },
   ],
   /** Published + pending edit submitted for moderation (locked) */
@@ -65,18 +72,16 @@ const MENU_BY_STATUS: Record<TeacherCourseStatus, MenuItem[]> = {
   ],
   /** Published + edit returned by moderator */
   active_needs_revision: [
-    { labelKey: "editChanges",    action: "edit-changes",   Icon: Pencil },
-    { labelKey: "submitChanges",  action: "submit-changes", Icon: Send   },
+    { labelKey: "editChanges", action: "edit-changes", Icon: Pencil },
+    { labelKey: "submitChanges", action: "submit-changes", Icon: Send },
     { labelKey: "discardChanges", action: "discard-changes", Icon: Trash2, danger: true },
   ],
   hidden: [
-    { labelKey: "edit",    action: "edit",    Icon: Pencil      },
-    { labelKey: "open",    action: "open",    Icon: Eye         },
-    { labelKey: "archive", action: "archive", Icon: Archive     },
+    { labelKey: "edit", action: "edit", Icon: Pencil },
+    { labelKey: "open", action: "open", Icon: Eye },
+    { labelKey: "archive", action: "archive", Icon: Archive },
   ],
-  completed: [
-    { labelKey: "unarchive", action: "unarchive", Icon: ArchiveRestore },
-  ],
+  completed: [{ labelKey: "unarchive", action: "unarchive", Icon: ArchiveRestore }],
 };
 
 type Props = {
@@ -88,7 +93,7 @@ type Props = {
 export function CourseCardMenu({ status, onAction }: Props) {
   const t = useTranslations("TeacherCourseCard");
   const [open, setOpen] = useState(false);
-  const triggerRef  = useRef<HTMLButtonElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -110,8 +115,16 @@ export function CourseCardMenu({ status, onAction }: Props) {
   }
 
   return (
-    <div style={{ position: "absolute", right: 0, top: 0, bottom: 0, display: "flex", alignItems: "center" }}>
-      {/* ⋮ trigger */}
+    <div
+      style={{
+        position: "absolute",
+        right: 0,
+        top: 0,
+        bottom: 0,
+        display: "flex",
+        alignItems: "center",
+      }}
+    >
       <button
         ref={triggerRef}
         aria-label={t("courseOptionsAriaLabel")}
@@ -132,10 +145,11 @@ export function CourseCardMenu({ status, onAction }: Props) {
           padding: 0,
         }}
       >
-        <MoreVertical style={{ width: "clamp(16px, 1.67vw, 24px)", height: "clamp(16px, 1.67vw, 24px)" }} />
+        <MoreVertical
+          style={{ width: "clamp(16px, 1.67vw, 24px)", height: "clamp(16px, 1.67vw, 24px)" }}
+        />
       </button>
 
-      {/* Dropdown */}
       {open && items.length > 0 && (
         <div
           ref={dropdownRef}
@@ -145,7 +159,8 @@ export function CourseCardMenu({ status, onAction }: Props) {
             right: 0,
             width: 220,
             minWidth: 220,
-            background: "linear-gradient(90deg, var(--color-brand-lavender) -210.91%, var(--color-brand-pink) 233.85%, var(--color-brand-cream) 661.82%)",
+            background:
+              "linear-gradient(90deg, var(--color-brand-lavender) -210.91%, var(--color-brand-pink) 233.85%, var(--color-brand-cream) 661.82%)",
             borderRadius: 12,
             padding: "16px",
             zIndex: 20,

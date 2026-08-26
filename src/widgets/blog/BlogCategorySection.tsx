@@ -12,7 +12,8 @@ type Props = {
 
 /** One category row on /blog — badge + heading + a drag-scrollable row of article cards. */
 export function BlogCategorySection({ category, articles }: Props) {
-  const { scrollRef, onPointerDown, onPointerMove, onPointerUp } = useDragScroll<HTMLDivElement>();
+  const { scrollRef, onPointerDown, onPointerMove, onPointerUp, onPointerCancel, onDragStart } =
+    useDragScroll<HTMLDivElement>();
 
   if (articles.length === 0) return null;
 
@@ -78,11 +79,13 @@ export function BlogCategorySection({ category, articles }: Props) {
       <div className="pl-4 lg:pl-[clamp(16px,13vw,187px)]">
         <div
           ref={scrollRef}
-          className="drag-scroll snap-x snap-proximity overflow-x-scroll pb-8 lg:pb-[2.5vw]"
+          className="drag-scroll overflow-x-scroll pb-8 lg:pb-[2.5vw]"
           style={{ cursor: "grab" }}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
+          onPointerCancel={onPointerCancel}
+          onDragStart={onDragStart}
         >
           <div className="flex w-max gap-2.5 pr-4 lg:gap-[1.04vw] lg:pr-[clamp(16px,13vw,187px)]">
             {articles.map((article) => (

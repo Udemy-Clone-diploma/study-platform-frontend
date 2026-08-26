@@ -1,4 +1,5 @@
 import { api } from "@/shared/api/base";
+import type { ApiError } from "@/shared/api/base";
 import { API_BASE_URL } from "@/shared/api/config/baseUrl";
 import { getAccessToken } from "@/shared/api/authCookies";
 import type { Category } from "../model/category";
@@ -236,6 +237,17 @@ export async function getCourseReviews(slug: string, page = 1): Promise<Paginate
   return data;
 }
 
+/** The authenticated student's own review for a course, or `null` if they haven't left one yet. */
+export async function getMyCourseReview(slug: string): Promise<CourseReview | null> {
+  try {
+    const { data } = await api.get<CourseReview>(`${COURSES}${slug}/reviews/mine/`);
+    return data;
+  } catch (err) {
+    if ((err as Partial<ApiError>).status === 404) return null;
+    throw err;
+  }
+}
+
 /** Highest-rated reviews with written feedback, across all courses (used on the homepage). */
 export async function getTopReviews(limit = 4): Promise<TopReview[]> {
   const { data } = await api.get<TopReview[]>("reviews/top-reviews/", {
@@ -280,34 +292,11 @@ export async function rejectReportedReview(reviewId: number): Promise<void> {
   await api.post(`reviews/${reviewId}/reject/`);
 }
 
-export type PricingPlanInput = Omit<PricingPlan, "id">;
-
-/**
- * Create a pricing plan on a course. Course-owner or admin only.
- * Backend constraints: at most one plan per `kind` (duplicate → 409),
- * installment fields must both be set or both null,
- * `installment_count * installment_amount >= price` when installments are used.
- */
-export async function createPricingPlan(
-  slug: string,
-  body: PricingPlanInput,
-): Promise<PricingPlan> {
-  const { data } = await api.post<PricingPlan>(`${COURSES}${slug}/pricing-plans/`, body);
-  return data;
-}
-
-export async function updatePricingPlan(
-  slug: string,
-  id: number,
-  body: Partial<PricingPlanInput>,
-): Promise<PricingPlan> {
-  const { data } = await api.patch<PricingPlan>(`${COURSES}${slug}/pricing-plans/${id}/`, body);
-  return data;
-}
-
 export async function deletePricingPlan(slug: string, id: number): Promise<void> {
   await api.delete(`${COURSES}${slug}/pricing-plans/${id}/`);
 }
+
+export type PricingPlanInput = Omit<PricingPlan, "id">;
 
 export type CohortInput = Omit<CourseCohort, "id" | "members_count" | "members">;
 
@@ -414,6 +403,19 @@ export async function submitCourseReview(
   body: ReviewSubmission,
 ): Promise<CourseReview> {
   const { data } = await api.post<CourseReview>(`${COURSES}${slug}/reviews/`, body);
+  return data;
+}
+
+/**
+ * Update the authenticated student's existing review for a course. Always
+ * allowed once a review exists -- no enrollment/eligibility re-check.
+ * Throws a normalized ApiError on failure: 401 (anonymous), 404 (no review yet).
+ */
+export async function updateCourseReview(
+  slug: string,
+  body: ReviewSubmission,
+): Promise<CourseReview> {
+  const { data } = await api.patch<CourseReview>(`${COURSES}${slug}/reviews/mine/`, body);
   return data;
 }
 
@@ -720,4 +722,27 @@ export async function getWishlistSlugs(): Promise<string[]> {
   } catch {
     return [];
   }
+}
+
+/**
+ * Create a pricing plan on a course. Course-owner or admin only.
+ * Backend constraints: at most one plan per `kind` (duplicate → 409),
+ * installment fields must both be set or both null,
+ * `installment_count * installment_amount >= price` when installments are used.
+ */
+export async function createPricingPlan(
+  slug: string,
+  body: PricingPlanInput,
+): Promise<PricingPlan> {
+  const { data } = await api.post<PricingPlan>(`${COURSES}${slug}/pricing-plans/`, body);
+  return data;
+}
+
+export async function updatePricingPlan(
+  slug: string,
+  id: number,
+  body: Partial<PricingPlanInput>,
+): Promise<PricingPlan> {
+  const { data } = await api.patch<PricingPlan>(`${COURSES}${slug}/pricing-plans/${id}/`, body);
+  return data;
 }

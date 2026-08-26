@@ -25,7 +25,7 @@ import {
   type CatalogFilterState,
   type CatalogSearchParams,
 } from "@/features/courses";
-import { CatalogHero } from "@/widgets/catalog/CatalogHero";
+import { CatalogHero } from "@/widgets/catalog";
 import type { ApiError } from "@/shared/api/base";
 
 export const dynamic = "force-dynamic";

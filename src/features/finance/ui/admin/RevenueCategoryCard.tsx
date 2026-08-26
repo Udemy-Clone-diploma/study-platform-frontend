@@ -24,7 +24,11 @@ const SERIES = [
 
 type Slice = { label: string; amount: number; share: number };
 
-function toSlices(rows: RevenueCategoryRow[], uncategorizedLabel: string, otherLabel: string): Slice[] {
+function toSlices(
+  rows: RevenueCategoryRow[],
+  uncategorizedLabel: string,
+  otherLabel: string,
+): Slice[] {
   const sorted = rows
     .map((row) => ({
       label: row.category ?? uncategorizedLabel,
@@ -95,9 +99,7 @@ export function RevenueCategoryCard({ rows, currency, error, loading }: Props) {
             role="img"
             aria-label={t("ariaLabel", {
               currency: currency ?? "",
-              breakdown: slices
-                .map((s) => `${s.label} ${Math.round(s.share * 100)}%`)
-                .join(", "),
+              breakdown: slices.map((s) => `${s.label} ${Math.round(s.share * 100)}%`).join(", "),
             })}
           >
             <g transform={`rotate(-90 ${SIZE / 2} ${SIZE / 2})`}>

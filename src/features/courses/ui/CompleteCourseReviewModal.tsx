@@ -49,7 +49,11 @@ export function CompleteCourseReviewModal({ slug, onDone }: Props) {
           {t("prompt")}
         </p>
 
-        <div className="flex items-center gap-1" role="radiogroup" aria-label={t("ratingAriaLabel")}>
+        <div
+          className="flex items-center gap-1"
+          role="radiogroup"
+          aria-label={t("ratingAriaLabel")}
+        >
           {Array.from({ length: 5 }).map((_, i) => {
             const value = i + 1;
             return (
@@ -99,7 +103,11 @@ export function CompleteCourseReviewModal({ slug, onDone }: Props) {
           >
             {t("skip")}
           </button>
-          <GradientButton type="button" onClick={handleSubmit} disabled={submitting || rating === 0}>
+          <GradientButton
+            type="button"
+            onClick={handleSubmit}
+            disabled={submitting || rating === 0}
+          >
             {submitting ? t("submitting") : t("submitAndFinish")}
           </GradientButton>
         </div>

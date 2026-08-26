@@ -114,7 +114,11 @@ export function BlogCategoryDeleteModal({
       ) : (
         <p
           className="font-(family-name:--font-base) font-normal text-(--color-text-secondary)"
-          style={{ fontSize: "clamp(13px, 0.97vw, 16px)", lineHeight: 1.5, margin: "0 0 clamp(20px, 1.67vw, 28px)" }}
+          style={{
+            fontSize: "clamp(13px, 0.97vw, 16px)",
+            lineHeight: 1.5,
+            margin: "0 0 clamp(20px, 1.67vw, 28px)",
+          }}
         >
           {t("deleteConfirm", { name: category.name })}
         </p>
@@ -134,7 +138,11 @@ export function BlogCategoryDeleteModal({
           icon={null}
           onClick={onCancel}
           disabled={loading}
-          style={{ minWidth: "clamp(110px, 9vw, 140px)", height: "clamp(36px, 2.71vw, 44px)", fontSize: "clamp(12px, 0.97vw, 15px)" }}
+          style={{
+            minWidth: "clamp(110px, 9vw, 140px)",
+            height: "clamp(36px, 2.71vw, 44px)",
+            fontSize: "clamp(12px, 0.97vw, 15px)",
+          }}
         >
           {tCommon("cancel")}
         </WhiteButton>
@@ -142,7 +150,11 @@ export function BlogCategoryDeleteModal({
           size="md"
           onClick={handleConfirm}
           disabled={loading || (hasArticles && resolution === "move" && !targetSlug)}
-          style={{ minWidth: "clamp(110px, 9vw, 140px)", height: "clamp(36px, 2.71vw, 44px)", fontSize: "clamp(12px, 0.97vw, 15px)" }}
+          style={{
+            minWidth: "clamp(110px, 9vw, 140px)",
+            height: "clamp(36px, 2.71vw, 44px)",
+            fontSize: "clamp(12px, 0.97vw, 15px)",
+          }}
         >
           {loading ? tCommon("pleaseWait") : tCommon("delete")}
         </AccentButton>

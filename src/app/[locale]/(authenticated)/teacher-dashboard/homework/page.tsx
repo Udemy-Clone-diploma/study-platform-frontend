@@ -3,13 +3,7 @@
 import Image from "next/image";
 import { createPortal } from "react-dom";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
-import {
-  ChevronDown,
-  ClipboardList,
-  Plus,
-  Upload,
-  X,
-} from "lucide-react";
+import { ChevronDown, ClipboardList, Plus, Upload, X } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import {
   createHomeworkAssignment,
@@ -376,9 +370,9 @@ function TeacherHomeworkCard({
       type="button"
       disabled={submissionsCount === 0}
       onClick={onOpenReview}
-      className="group grid h-20 w-full max-w-[722px] grid-cols-[60px_minmax(0,1fr)_178px] items-center gap-2.5 rounded-lg bg-white px-3 py-2.5 text-left font-(family-name:--font-base) shadow-[0_0_4px_rgba(0,0,0,0.16)] transition hover:shadow-[0_3px_12px_rgba(0,0,0,0.12)] focus:outline-none focus:ring-2 focus:ring-[#9DB1FA]"
+      className="group grid w-full max-w-[722px] grid-cols-[44px_minmax(0,1fr)] items-center gap-x-2 gap-y-2 rounded-lg bg-white px-3 py-3 text-left font-(family-name:--font-base) shadow-[0_0_4px_rgba(0,0,0,0.16)] transition hover:shadow-[0_3px_12px_rgba(0,0,0,0.12)] focus:outline-none focus:ring-2 focus:ring-[#9DB1FA] lg:h-20 lg:grid-cols-[60px_minmax(0,1fr)_178px] lg:gap-2.5 lg:py-2.5"
     >
-      <span className="flex h-[60px] w-[60px] items-center justify-center overflow-hidden rounded-md">
+      <span className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-md lg:h-[60px] lg:w-[60px]">
         <Image
           src={iconSrc}
           alt=""
@@ -386,19 +380,20 @@ function TeacherHomeworkCard({
           height={60}
           unoptimized={!!assignment.course_image}
           aria-hidden="true"
-          className="h-[60px] w-[60px] object-contain"
+          className="h-full w-full object-contain"
         />
       </span>
       <span className="min-w-0">
-        <span className="block h-5 max-w-[244px] truncate text-[16px] leading-5 font-normal text-[#5E5E5E]">
+        <span className="block truncate text-[12px] leading-4 font-normal text-[#5E5E5E] lg:h-5 lg:max-w-[244px] lg:text-[16px] lg:leading-5">
           {assignment.course_title || t("courseFallback")} &bull; {kindLabel}
         </span>
-        <span className="mt-[7px] block max-w-[393px] truncate text-[20px] leading-none font-medium text-[#121212]">
+        <span className="mt-1 block truncate text-[16px] leading-tight font-medium text-[#121212] lg:mt-[7px] lg:max-w-[393px] lg:text-[20px] lg:leading-none">
           {assignment.title}
         </span>
       </span>
-      <span className="grid gap-1 text-[11px] leading-none font-normal text-[#5E5E5E]">
-        <span className="truncate">
+      {/* Below `lg` this metadata block has no column of its own: it wraps onto a full-width row under the title. */}
+      <span className="col-span-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] leading-none font-normal text-[#5E5E5E] lg:col-span-1 lg:grid lg:gap-1">
+        <span className="min-w-0 max-w-full truncate">
           {t("toLabel")} <span className="text-[#121212]">{recipientsLabel(assignment, t)}</span>
         </span>
         <span>
@@ -726,7 +721,8 @@ function HomeworkReviewDialog({
                   {deadlineLabel(assignment.due_at, locale, t)}
                 </p>
                 <p>
-                  <span className="font-medium text-[#121212]">{t("maxScoreLabel")}</span> {maxScore}
+                  <span className="font-medium text-[#121212]">{t("maxScoreLabel")}</span>{" "}
+                  {maxScore}
                 </p>
               </div>
               {assignment.description ? (
@@ -769,14 +765,18 @@ function HomeworkReviewDialog({
             <section className="rounded-lg border border-[#E8E8E8] p-4">
               <h3 className="text-sm font-semibold">{t("studentSubmissionHeading")}</h3>
               <div className="mt-3 flex flex-wrap gap-3 text-xs text-[#5E5E5E]">
-                <span>{t("submittedLabel", { date: deadlineLabel(submission.submitted_at, locale, t) })}</span>
+                <span>
+                  {t("submittedLabel", { date: deadlineLabel(submission.submitted_at, locale, t) })}
+                </span>
                 {submission.reviewed_at ? (
                   <span>
                     {t("returnedLabel", { date: deadlineLabel(submission.reviewed_at, locale, t) })}
                   </span>
                 ) : null}
                 <span>
-                  {t("statusLabel", { status: submissionStatusLabel(submission.status, tHomework) })}
+                  {t("statusLabel", {
+                    status: submissionStatusLabel(submission.status, tHomework),
+                  })}
                 </span>
               </div>
               {submission.content ? (
@@ -1410,9 +1410,7 @@ export default function TeacherHomeworkPage() {
         maxScore < HOMEWORK_SCORE_MIN ||
         maxScore > HOMEWORK_SCORE_MAX)
     ) {
-      setError(
-        t("maxScoreRangeError", { min: HOMEWORK_SCORE_MIN, max: HOMEWORK_SCORE_MAX }),
-      );
+      setError(t("maxScoreRangeError", { min: HOMEWORK_SCORE_MIN, max: HOMEWORK_SCORE_MAX }));
       return;
     }
 
@@ -1556,7 +1554,7 @@ export default function TeacherHomeworkPage() {
           <h1 className="sr-only">{tSidebar("homework")}</h1>
           <nav
             aria-label={t("homeworkQueuesAriaLabel")}
-            className="flex flex-wrap items-center gap-[50px]"
+            className="-mx-4 flex items-center gap-6 overflow-x-auto px-4 [-ms-overflow-style:none] [scrollbar-width:none] lg:mx-0 lg:flex-wrap lg:gap-[50px] lg:overflow-visible lg:px-0 [&::-webkit-scrollbar]:hidden"
           >
             {queueTabs.map((tab) => {
               const active = queueFilter === tab.value;
@@ -1566,7 +1564,7 @@ export default function TeacherHomeworkPage() {
                   type="button"
                   aria-pressed={active}
                   onClick={() => setQueueFilter(tab.value)}
-                  className={`inline-flex h-9 items-center font-(family-name:--font-base) text-[24px] leading-none font-semibold text-[#121212] transition ${
+                  className={`inline-flex h-9 shrink-0 items-center font-(family-name:--font-base) text-[20px] leading-none font-semibold whitespace-nowrap text-[#121212] transition lg:text-[24px] ${
                     active ? "" : "hover:text-[#003AFF]"
                   }`}
                 >
@@ -1579,7 +1577,7 @@ export default function TeacherHomeworkPage() {
             type="button"
             onClick={openModal}
             disabled={loadingCourses || courses.length === 0}
-            className="inline-flex h-[52px] w-fit min-w-[240px] shrink-0 items-center justify-center gap-2.5 rounded-[28px] bg-[linear-gradient(90deg,#A7BAFA_0%,#FCC4C3_55%,#FFF4DA_100%)] px-7 py-2.5 font-(family-name:--font-accent) text-[20px] leading-[30px] font-medium text-[#121212] uppercase transition hover:brightness-[0.98] focus:outline-none focus:ring-2 focus:ring-[#9DB1FA] disabled:cursor-not-allowed disabled:grayscale disabled:opacity-60"
+            className="inline-flex h-[46px] w-full min-w-[160px] shrink-0 items-center justify-center gap-2.5 rounded-[28px] bg-[linear-gradient(90deg,#A7BAFA_0%,#FCC4C3_55%,#FFF4DA_100%)] px-5 py-2 font-(family-name:--font-accent) text-[16px] leading-[24px] font-medium text-[#121212] uppercase transition hover:brightness-[0.98] focus:outline-none focus:ring-2 focus:ring-[#9DB1FA] disabled:cursor-not-allowed disabled:grayscale disabled:opacity-60 sm:w-fit lg:h-[52px] lg:min-w-[240px] lg:px-7 lg:py-2.5 lg:text-[20px] lg:leading-[30px]"
           >
             <span className="whitespace-nowrap">{t("addHomework")}</span>
             <Image
@@ -1588,13 +1586,14 @@ export default function TeacherHomeworkPage() {
               width={21}
               height={21}
               aria-hidden="true"
-              className="h-[21px] w-[21px] shrink-0"
+              className="h-[18px] w-[18px] shrink-0 lg:h-[21px] lg:w-[21px]"
             />
           </button>
         </div>
 
-        <div className="mt-3 flex w-[min(100%,1020px)] items-center gap-2">
+        <div className="-mx-4 mt-3 flex w-[calc(100%+32px)] items-center gap-2 overflow-x-auto px-4 [-ms-overflow-style:none] [scrollbar-width:none] lg:mx-0 lg:w-[min(100%,1020px)] lg:overflow-visible lg:px-0 [&::-webkit-scrollbar]:hidden">
           <PillSelect
+            className="shrink-0"
             value={selectedCourseSlug}
             options={courses.map((course) => ({ value: course.slug, label: course.title }))}
             placeholder={t("subjectPlaceholder")}
@@ -1602,6 +1601,7 @@ export default function TeacherHomeworkPage() {
             onChange={setSelectedCourseSlug}
           />
           <PillSelect
+            className="shrink-0"
             value={statusFilter}
             options={[
               { value: "all", label: t("statusFilterPlaceholder") },
@@ -1614,10 +1614,10 @@ export default function TeacherHomeworkPage() {
           />
           <span className="hidden">{t("groupComingSoon")}</span>
           <span className="hidden">{t("studentComingSoon")}</span>
-          <span className="inline-flex h-10 items-center rounded-full border border-[#ECECEC] bg-white px-5 font-(family-name:--font-base) text-[20px] leading-none font-normal text-[#121212] shadow-[0_0_4px_rgba(0,0,0,0.06)]">
+          <span className="inline-flex h-10 shrink-0 items-center rounded-full border border-[#ECECEC] bg-white px-4 font-(family-name:--font-base) text-[16px] leading-none font-normal whitespace-nowrap text-[#121212] shadow-[0_0_4px_rgba(0,0,0,0.06)] lg:px-5 lg:text-[20px]">
             {t("totalAssignments")}
           </span>
-          <span className="inline-flex h-10 min-w-10 items-center justify-center rounded-full border border-[#ECECEC] bg-white px-3 font-(family-name:--font-base) text-[20px] leading-none font-normal text-[#121212] shadow-[0_0_4px_rgba(0,0,0,0.06)]">
+          <span className="inline-flex h-10 min-w-10 shrink-0 items-center justify-center rounded-full border border-[#ECECEC] bg-white px-3 font-(family-name:--font-base) text-[16px] leading-none font-normal text-[#121212] shadow-[0_0_4px_rgba(0,0,0,0.06)] lg:text-[20px]">
             {visibleAssignments.length}
           </span>
         </div>
@@ -1648,7 +1648,7 @@ export default function TeacherHomeworkPage() {
             <div className="space-y-11">
               {assignmentsByMonth.map(([month, items]) => (
                 <section key={month}>
-                  <h2 className="mb-6 text-[28px] leading-none font-normal text-[#121212]">
+                  <h2 className="mb-4 text-[16px] leading-none font-normal text-[#121212] capitalize lg:mb-6 lg:text-[28px]">
                     {month}
                   </h2>
                   <div className="grid gap-x-5 gap-y-6 2xl:grid-cols-[minmax(0,722px)_minmax(0,722px)]">
@@ -1699,361 +1699,364 @@ export default function TeacherHomeworkPage() {
         />
       ) : null}
 
-      {isModalOpen ? createPortal(
-        <div
-          role="presentation"
-          className="fixed inset-0 z-[100] flex items-start justify-center bg-[#B7C7FA]/80 px-4 pt-[108px] pb-6 lg:pt-[120px]"
-          onMouseDown={closeModal}
-        >
-          <section
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="homework-dialog-title"
-            className="dashboard-homework-scrollbar max-h-[calc(100dvh-132px)] w-full max-w-[1240px] overflow-y-auto rounded-[16px] bg-white px-6 py-7 shadow-[0_18px_56px_rgba(38,58,130,0.25)] sm:px-[50px] sm:py-[40px] lg:max-h-[calc(100dvh-144px)]"
-            onMouseDown={(event) => event.stopPropagation()}
-          >
-            <div className="flex items-center justify-between gap-4">
-              <h2
-                id="homework-dialog-title"
-                className="flex items-center gap-2 text-[18px] font-semibold text-[#121212]"
+      {isModalOpen
+        ? createPortal(
+            <div
+              role="presentation"
+              className="fixed inset-0 z-[100] flex items-start justify-center bg-[#B7C7FA]/80 px-4 pt-[108px] pb-6 lg:pt-[120px]"
+              onMouseDown={closeModal}
+            >
+              <section
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="homework-dialog-title"
+                className="dashboard-homework-scrollbar max-h-[calc(100dvh-132px)] w-full max-w-[1240px] overflow-y-auto rounded-[16px] bg-white px-6 py-7 shadow-[0_18px_56px_rgba(38,58,130,0.25)] sm:px-[50px] sm:py-[40px] lg:max-h-[calc(100dvh-144px)]"
+                onMouseDown={(event) => event.stopPropagation()}
               >
-                <ClipboardList size={16} aria-hidden="true" />
-                {t("editHomeworkTitle")}
-              </h2>
-              <button
-                type="button"
-                onClick={closeModal}
-                disabled={saving}
-                aria-label={t("closeDialog")}
-                className="rounded-full p-1 text-[#121212] transition hover:bg-[#F1F1F1] disabled:cursor-not-allowed"
-              >
-                <X size={18} aria-hidden="true" />
-              </button>
-            </div>
+                <div className="flex items-center justify-between gap-4">
+                  <h2
+                    id="homework-dialog-title"
+                    className="flex items-center gap-2 text-[18px] font-semibold text-[#121212]"
+                  >
+                    <ClipboardList size={16} aria-hidden="true" />
+                    {t("editHomeworkTitle")}
+                  </h2>
+                  <button
+                    type="button"
+                    onClick={closeModal}
+                    disabled={saving}
+                    aria-label={t("closeDialog")}
+                    className="rounded-full p-1 text-[#121212] transition hover:bg-[#F1F1F1] disabled:cursor-not-allowed"
+                  >
+                    <X size={18} aria-hidden="true" />
+                  </button>
+                </div>
 
-            <form onSubmit={handleSubmit} className="mt-7">
-              <div className="grid gap-5 sm:grid-cols-2">
-                <HomeworkSelect
-                  label={t("subjectLabel")}
-                  value={form.courseSlug}
-                  options={courses.map((course) => ({ value: course.slug, label: course.title }))}
-                  placeholder={t("selectSubjectPlaceholder")}
-                  disabled={saving || courses.length === 0}
-                  onChange={(value) => updateField("courseSlug", value)}
-                />
-                <HomeworkSelect
-                  label={t("reusePreviousHomework")}
-                  value={form.sourceAssignmentId}
-                  options={[
-                    { value: "", label: t("startFromScratch") },
-                    ...modalAssignments.map((assignment) => ({
-                      value: String(assignment.id),
-                      label: t("templateOptionLabel", {
-                        title: assignment.title,
-                        status: assignment.status,
-                      }),
-                    })),
-                  ]}
-                  placeholder={
-                    modalAssignments.length === 0
-                      ? t("noPreviousHomework")
-                      : t("chooseTemplate")
-                  }
-                  disabled={saving || !form.courseSlug || modalAssignments.length === 0}
-                  onChange={(value) => updateField("sourceAssignmentId", value)}
-                />
-              </div>
-
-              <label className="mt-6 grid gap-2 text-[14px] font-semibold text-[#121212]">
-                {t("titleLabel")}
-                <input
-                  value={form.title}
-                  onChange={(event) => updateField("title", event.target.value)}
-                  maxLength={255}
-                  required
-                  disabled={saving}
-                  placeholder={t("titlePlaceholder")}
-                  className="h-14 rounded-md bg-[#ECECEC] px-4 text-[15px] outline-none transition placeholder:text-[#858585] focus:ring-2 focus:ring-[#9DB1FA] disabled:cursor-not-allowed"
-                />
-              </label>
-
-              <div className="mt-6 grid gap-5 sm:grid-cols-2">
-                <HomeworkSelect
-                  label={t("moduleFieldLabel")}
-                  value={form.moduleId}
-                  options={modalModules.map((module) => ({
-                    value: String(module.id),
-                    label: module.title,
-                  }))}
-                  placeholder={
-                    modalModules.length === 0
-                      ? t("noModulesAvailable")
-                      : t("selectModulePlaceholder")
-                  }
-                  disabled={saving || !form.courseSlug || modalModules.length === 0}
-                  onChange={(value) => updateField("moduleId", value)}
-                />
-                <HomeworkSelect
-                  label={t("lessonFieldLabel")}
-                  value={form.lessonId}
-                  options={(selectedModalModule?.lessons ?? []).map((lesson) => ({
-                    value: String(lesson.id),
-                    label: lesson.title,
-                  }))}
-                  placeholder={
-                    form.moduleId
-                      ? selectedModalModule?.lessons.length
-                        ? t("selectLessonPlaceholder")
-                        : t("noLessonsInModule")
-                      : t("selectModuleFirst")
-                  }
-                  disabled={saving || !form.moduleId || !selectedModalModule?.lessons.length}
-                  onChange={(value) => updateField("lessonId", value)}
-                />
-              </div>
-
-              <div className="mt-6 rounded-md border border-[#E1E1E1] bg-[#FAFAFA] p-4">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-                  <div className="flex-1">
+                <form onSubmit={handleSubmit} className="mt-7">
+                  <div className="grid gap-5 sm:grid-cols-2">
                     <HomeworkSelect
-                      label={t("testAsHomework")}
-                      value={form.testId}
+                      label={t("subjectLabel")}
+                      value={form.courseSlug}
+                      options={courses.map((course) => ({
+                        value: course.slug,
+                        label: course.title,
+                      }))}
+                      placeholder={t("selectSubjectPlaceholder")}
+                      disabled={saving || courses.length === 0}
+                      onChange={(value) => updateField("courseSlug", value)}
+                    />
+                    <HomeworkSelect
+                      label={t("reusePreviousHomework")}
+                      value={form.sourceAssignmentId}
                       options={[
-                        { value: "", label: t("noTestOption") },
-                        ...(selectedModalModule?.tests ?? []).map((test) => ({
-                          value: String(test.id),
-                          label: test.title,
+                        { value: "", label: t("startFromScratch") },
+                        ...modalAssignments.map((assignment) => ({
+                          value: String(assignment.id),
+                          label: t("templateOptionLabel", {
+                            title: assignment.title,
+                            status: assignment.status,
+                          }),
                         })),
                       ]}
                       placeholder={
+                        modalAssignments.length === 0
+                          ? t("noPreviousHomework")
+                          : t("chooseTemplate")
+                      }
+                      disabled={saving || !form.courseSlug || modalAssignments.length === 0}
+                      onChange={(value) => updateField("sourceAssignmentId", value)}
+                    />
+                  </div>
+
+                  <label className="mt-6 grid gap-2 text-[14px] font-semibold text-[#121212]">
+                    {t("titleLabel")}
+                    <input
+                      value={form.title}
+                      onChange={(event) => updateField("title", event.target.value)}
+                      maxLength={255}
+                      required
+                      disabled={saving}
+                      placeholder={t("titlePlaceholder")}
+                      className="h-14 rounded-md bg-[#ECECEC] px-4 text-[15px] outline-none transition placeholder:text-[#858585] focus:ring-2 focus:ring-[#9DB1FA] disabled:cursor-not-allowed"
+                    />
+                  </label>
+
+                  <div className="mt-6 grid gap-5 sm:grid-cols-2">
+                    <HomeworkSelect
+                      label={t("moduleFieldLabel")}
+                      value={form.moduleId}
+                      options={modalModules.map((module) => ({
+                        value: String(module.id),
+                        label: module.title,
+                      }))}
+                      placeholder={
+                        modalModules.length === 0
+                          ? t("noModulesAvailable")
+                          : t("selectModulePlaceholder")
+                      }
+                      disabled={saving || !form.courseSlug || modalModules.length === 0}
+                      onChange={(value) => updateField("moduleId", value)}
+                    />
+                    <HomeworkSelect
+                      label={t("lessonFieldLabel")}
+                      value={form.lessonId}
+                      options={(selectedModalModule?.lessons ?? []).map((lesson) => ({
+                        value: String(lesson.id),
+                        label: lesson.title,
+                      }))}
+                      placeholder={
                         form.moduleId
-                          ? selectedModalModule?.tests.length
-                            ? t("selectExistingTest")
-                            : t("noTestsInModule")
+                          ? selectedModalModule?.lessons.length
+                            ? t("selectLessonPlaceholder")
+                            : t("noLessonsInModule")
                           : t("selectModuleFirst")
                       }
-                      disabled={saving || !form.moduleId}
-                      onChange={(value) => updateField("testId", value)}
+                      disabled={saving || !form.moduleId || !selectedModalModule?.lessons.length}
+                      onChange={(value) => updateField("lessonId", value)}
                     />
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setIsTestModalOpen(true)}
-                    disabled={saving || !form.moduleId}
-                    className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-[#CFCFCF] bg-white px-4 text-[13px] font-medium text-[#121212] transition hover:bg-[#F4F4F4] disabled:cursor-not-allowed disabled:text-[#A3A3A3]"
-                  >
-                    <Plus size={15} aria-hidden="true" />
-                    {t("createTest")}
-                  </button>
-                </div>
-                {selectedTest ? (
-                  <div className="mt-3 rounded-md bg-white px-3 py-2 text-[12px] text-[#3E3E3E]">
-                    <p className="font-medium text-[#121212]">{selectedTest.title}</p>
-                    <p className="mt-1 text-[#6A6A6A]">
-                      {t("testPreviewQuestionsCount", {
-                        count: selectedTest.questions.length,
-                        score: selectedTest.passing_score,
-                      })}
-                    </p>
-                  </div>
-                ) : null}
-              </div>
 
-              <div className="mt-6">
-                <p className="mb-2 text-[14px] font-semibold text-[#121212]">
-                  {t("groupOrStudent")}
-                </p>
-                {availableRecipients.length === 0 ? (
-                  <p className="mt-2 text-[12px] text-[#A44]">{t("noActiveStudents")}</p>
-                ) : (
-                  <div>
-                    <HomeworkSelect
-                      value={form.recipientGroupId}
-                      options={recipientGroups}
-                      placeholder={t("selectGroupOrStudentPlaceholder")}
-                      disabled={saving || recipientGroups.length === 0}
-                      onChange={(value) => updateField("recipientGroupId", value)}
-                    />
-                    {selectedRecipientIds.length > 0 ? (
-                      <div className="mt-2 max-h-28 overflow-y-auto rounded-md border border-[#D8D8D8] bg-[#FAFAFA] p-3 text-[12px] text-[#3E3E3E]">
-                        {availableRecipients
-                          .filter((recipient) => selectedRecipientIds.includes(recipient.id))
-                          .map((recipient) => (
-                            <p key={recipient.id} className="truncate">
-                              {recipient.student_name || recipient.student_email}
-                              <span className="text-[#777]"> · {recipient.student_email}</span>
-                            </p>
-                          ))}
+                  <div className="mt-6 rounded-md border border-[#E1E1E1] bg-[#FAFAFA] p-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                      <div className="flex-1">
+                        <HomeworkSelect
+                          label={t("testAsHomework")}
+                          value={form.testId}
+                          options={[
+                            { value: "", label: t("noTestOption") },
+                            ...(selectedModalModule?.tests ?? []).map((test) => ({
+                              value: String(test.id),
+                              label: test.title,
+                            })),
+                          ]}
+                          placeholder={
+                            form.moduleId
+                              ? selectedModalModule?.tests.length
+                                ? t("selectExistingTest")
+                                : t("noTestsInModule")
+                              : t("selectModuleFirst")
+                          }
+                          disabled={saving || !form.moduleId}
+                          onChange={(value) => updateField("testId", value)}
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setIsTestModalOpen(true)}
+                        disabled={saving || !form.moduleId}
+                        className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-[#CFCFCF] bg-white px-4 text-[13px] font-medium text-[#121212] transition hover:bg-[#F4F4F4] disabled:cursor-not-allowed disabled:text-[#A3A3A3]"
+                      >
+                        <Plus size={15} aria-hidden="true" />
+                        {t("createTest")}
+                      </button>
+                    </div>
+                    {selectedTest ? (
+                      <div className="mt-3 rounded-md bg-white px-3 py-2 text-[12px] text-[#3E3E3E]">
+                        <p className="font-medium text-[#121212]">{selectedTest.title}</p>
+                        <p className="mt-1 text-[#6A6A6A]">
+                          {t("testPreviewQuestionsCount", {
+                            count: selectedTest.questions.length,
+                            score: selectedTest.passing_score,
+                          })}
+                        </p>
                       </div>
                     ) : null}
                   </div>
-                )}
-              </div>
 
-              <label className="mt-6 grid gap-2 text-[14px] font-semibold text-[#121212]">
-                {t("homeworkContentLabel")}
-                {form.testId ? "" : "*"}
-                <textarea
-                  value={form.description}
-                  onChange={(event) => updateField("description", event.target.value)}
-                  required={!form.testId}
-                  disabled={saving}
-                  rows={10}
-                  placeholder={
-                    form.testId
-                      ? t("homeworkContentPlaceholderTest")
-                      : t("homeworkContentPlaceholderTask")
-                  }
-                  className="h-[300px] resize-none rounded-md bg-[#ECECEC] px-4 py-4 text-[15px] outline-none transition placeholder:text-[#858585] focus:ring-2 focus:ring-[#9DB1FA] disabled:cursor-not-allowed"
-                />
-              </label>
-              <p className="mt-2 text-[12px] text-[#6A6A6A]">
-                {form.testId
-                  ? t("homeworkContentHelperTest")
-                  : t("homeworkContentHelperTask")}
-              </p>
+                  <div className="mt-6">
+                    <p className="mb-2 text-[14px] font-semibold text-[#121212]">
+                      {t("groupOrStudent")}
+                    </p>
+                    {availableRecipients.length === 0 ? (
+                      <p className="mt-2 text-[12px] text-[#A44]">{t("noActiveStudents")}</p>
+                    ) : (
+                      <div>
+                        <HomeworkSelect
+                          value={form.recipientGroupId}
+                          options={recipientGroups}
+                          placeholder={t("selectGroupOrStudentPlaceholder")}
+                          disabled={saving || recipientGroups.length === 0}
+                          onChange={(value) => updateField("recipientGroupId", value)}
+                        />
+                        {selectedRecipientIds.length > 0 ? (
+                          <div className="mt-2 max-h-28 overflow-y-auto rounded-md border border-[#D8D8D8] bg-[#FAFAFA] p-3 text-[12px] text-[#3E3E3E]">
+                            {availableRecipients
+                              .filter((recipient) => selectedRecipientIds.includes(recipient.id))
+                              .map((recipient) => (
+                                <p key={recipient.id} className="truncate">
+                                  {recipient.student_name || recipient.student_email}
+                                  <span className="text-[#777]"> · {recipient.student_email}</span>
+                                </p>
+                              ))}
+                          </div>
+                        ) : null}
+                      </div>
+                    )}
+                  </div>
 
-              <div className="mt-6 grid gap-5 sm:grid-cols-2">
-                <DatePicker
-                  label={t("dueDateLabel")}
-                  value={form.dueAt}
-                  onChange={(value) => updateField("dueAt", value)}
-                />
-                <label className="grid gap-2 text-[14px] font-semibold text-[#121212]">
-                  {t("maxScoreLabel")}
-                  <input
-                    type="number"
-                    min={HOMEWORK_SCORE_MIN}
-                    max={HOMEWORK_SCORE_MAX}
-                    step="1"
-                    value={form.maxScore}
-                    onChange={(event) => updateField("maxScore", event.target.value)}
-                    disabled={saving}
-                    placeholder={t("maxScorePlaceholder")}
-                    className="h-14 rounded-md bg-[#ECECEC] px-4 text-[15px] outline-none transition placeholder:text-[#858585] focus:ring-2 focus:ring-[#9DB1FA] disabled:cursor-not-allowed"
-                  />
-                </label>
-              </div>
-
-              <div className="mt-6">
-                <p className="text-[14px] font-semibold text-[#121212]">
-                  {t("homeworkMaterialLabel")}
-                </p>
-                <div className="mt-2 flex min-h-[208px] flex-col items-center justify-center rounded-md border border-dashed border-[#C9C9C9] px-4 py-5 text-center text-[#4E4E4E]">
-                  <Upload className="mb-3" size={20} aria-hidden="true" />
-                  <p className="text-[15px] font-medium">{t("uploadFileHeading")}</p>
-                  <p className="mt-1 text-[12px] text-[#6A6A6A]">{t("uploadFileHelper")}</p>
-                  <label className="mt-3 inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-full border border-[#CFCFCF] bg-white px-4 text-[12px] text-[#121212] transition hover:bg-[#F4F4F4] has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-60">
-                    <Upload size={13} aria-hidden="true" />
-                    {t("chooseFile")}
-                    <input
-                      type="file"
-                      multiple
+                  <label className="mt-6 grid gap-2 text-[14px] font-semibold text-[#121212]">
+                    {t("homeworkContentLabel")}
+                    {form.testId ? "" : "*"}
+                    <textarea
+                      value={form.description}
+                      onChange={(event) => updateField("description", event.target.value)}
+                      required={!form.testId}
                       disabled={saving}
-                      className="sr-only"
-                      onChange={(event) => {
-                        addAttachmentFiles(event.target.files);
-                        event.target.value = "";
-                      }}
+                      rows={10}
+                      placeholder={
+                        form.testId
+                          ? t("homeworkContentPlaceholderTest")
+                          : t("homeworkContentPlaceholderTask")
+                      }
+                      className="h-[300px] resize-none rounded-md bg-[#ECECEC] px-4 py-4 text-[15px] outline-none transition placeholder:text-[#858585] focus:ring-2 focus:ring-[#9DB1FA] disabled:cursor-not-allowed"
                     />
                   </label>
-                  {attachmentFiles.length > 0 ? (
-                    <div className="mt-4 w-full max-w-md space-y-1 text-left text-[12px] text-[#3E3E3E]">
-                      {attachmentFiles.map((file, index) => (
-                        <div
-                          key={`${file.name}-${index}`}
-                          className="flex items-center justify-between gap-3 rounded bg-[#F5F5F5] px-3 py-2"
-                        >
-                          <span className="truncate">{file.name}</span>
-                          <button
-                            type="button"
-                            disabled={saving}
-                            onClick={() =>
-                              setAttachmentFiles((current) =>
-                                current.filter((_, fileIndex) => fileIndex !== index),
-                              )
-                            }
-                            className="shrink-0 text-[#A44] hover:underline disabled:text-[#AAA]"
-                          >
-                            {t("removeFile")}
-                          </button>
+                  <p className="mt-2 text-[12px] text-[#6A6A6A]">
+                    {form.testId ? t("homeworkContentHelperTest") : t("homeworkContentHelperTask")}
+                  </p>
+
+                  <div className="mt-6 grid gap-5 sm:grid-cols-2">
+                    <DatePicker
+                      label={t("dueDateLabel")}
+                      value={form.dueAt}
+                      onChange={(value) => updateField("dueAt", value)}
+                    />
+                    <label className="grid gap-2 text-[14px] font-semibold text-[#121212]">
+                      {t("maxScoreLabel")}
+                      <input
+                        type="number"
+                        min={HOMEWORK_SCORE_MIN}
+                        max={HOMEWORK_SCORE_MAX}
+                        step="1"
+                        value={form.maxScore}
+                        onChange={(event) => updateField("maxScore", event.target.value)}
+                        disabled={saving}
+                        placeholder={t("maxScorePlaceholder")}
+                        className="h-14 rounded-md bg-[#ECECEC] px-4 text-[15px] outline-none transition placeholder:text-[#858585] focus:ring-2 focus:ring-[#9DB1FA] disabled:cursor-not-allowed"
+                      />
+                    </label>
+                  </div>
+
+                  <div className="mt-6">
+                    <p className="text-[14px] font-semibold text-[#121212]">
+                      {t("homeworkMaterialLabel")}
+                    </p>
+                    <div className="mt-2 flex min-h-[208px] flex-col items-center justify-center rounded-md border border-dashed border-[#C9C9C9] px-4 py-5 text-center text-[#4E4E4E]">
+                      <Upload className="mb-3" size={20} aria-hidden="true" />
+                      <p className="text-[15px] font-medium">{t("uploadFileHeading")}</p>
+                      <p className="mt-1 text-[12px] text-[#6A6A6A]">{t("uploadFileHelper")}</p>
+                      <label className="mt-3 inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-full border border-[#CFCFCF] bg-white px-4 text-[12px] text-[#121212] transition hover:bg-[#F4F4F4] has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-60">
+                        <Upload size={13} aria-hidden="true" />
+                        {t("chooseFile")}
+                        <input
+                          type="file"
+                          multiple
+                          disabled={saving}
+                          className="sr-only"
+                          onChange={(event) => {
+                            addAttachmentFiles(event.target.files);
+                            event.target.value = "";
+                          }}
+                        />
+                      </label>
+                      {attachmentFiles.length > 0 ? (
+                        <div className="mt-4 w-full max-w-md space-y-1 text-left text-[12px] text-[#3E3E3E]">
+                          {attachmentFiles.map((file, index) => (
+                            <div
+                              key={`${file.name}-${index}`}
+                              className="flex items-center justify-between gap-3 rounded bg-[#F5F5F5] px-3 py-2"
+                            >
+                              <span className="truncate">{file.name}</span>
+                              <button
+                                type="button"
+                                disabled={saving}
+                                onClick={() =>
+                                  setAttachmentFiles((current) =>
+                                    current.filter((_, fileIndex) => fileIndex !== index),
+                                  )
+                                }
+                                className="shrink-0 text-[#A44] hover:underline disabled:text-[#AAA]"
+                              >
+                                {t("removeFile")}
+                              </button>
+                            </div>
+                          ))}
                         </div>
-                      ))}
+                      ) : null}
                     </div>
+                  </div>
+
+                  {error ? (
+                    <p role="alert" className="mt-4 text-sm text-[#B42318]">
+                      {error}
+                    </p>
                   ) : null}
-                </div>
-              </div>
 
-              {error ? (
-                <p role="alert" className="mt-4 text-sm text-[#B42318]">
-                  {error}
-                </p>
-              ) : null}
-
-              <div className="mt-8 flex justify-end gap-4 border-t border-[#E4E4E4] pt-5">
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  disabled={saving}
-                  className="h-10 min-w-[124px] rounded-full border border-[#DADADA] px-5 text-[13px] font-medium text-[#121212] transition hover:bg-[#F6F6F6] disabled:cursor-not-allowed"
-                >
-                  {tCommon("cancel")}
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSaveDisabled}
-                  className="h-10 min-w-[152px] rounded-full bg-[#121212] px-5 text-[13px] font-medium text-white transition hover:bg-[#303030] disabled:cursor-not-allowed disabled:bg-[#BFBFBF]"
-                >
-                  {saving ? tCommon("saving") : t("saveHomework")}
-                </button>
-              </div>
-            </form>
-
-            {isTestModalOpen ? (
-              <div
-                role="presentation"
-                className="fixed inset-0 z-[160] flex items-center justify-center bg-black/35 px-4 py-6"
-                onMouseDown={() => {
-                  if (!savingTest) setIsTestModalOpen(false);
-                }}
-              >
-                <section
-                  role="dialog"
-                  aria-modal="true"
-                  aria-label={t("createTestDialogAriaLabel")}
-                  className="max-h-[calc(100vh-48px)] w-full max-w-[1120px] overflow-y-auto rounded-[16px] bg-white px-6 py-7 shadow-[0_18px_56px_rgba(18,18,18,0.24)] sm:px-10"
-                  onMouseDown={(event) => event.stopPropagation()}
-                >
-                  <div className="mb-6 flex items-center justify-between gap-4">
-                    <h3 className="flex items-center gap-2 text-[18px] font-semibold text-[#121212]">
-                      <ClipboardList size={18} aria-hidden="true" />
-                      {t("createTest")}
-                    </h3>
+                  <div className="mt-8 flex justify-end gap-4 border-t border-[#E4E4E4] pt-5">
                     <button
                       type="button"
-                      onClick={() => setIsTestModalOpen(false)}
-                      disabled={savingTest}
-                      aria-label={t("closeTestDialog")}
-                      className="rounded-full p-1 text-[#121212] transition hover:bg-[#F1F1F1] disabled:cursor-not-allowed"
+                      onClick={closeModal}
+                      disabled={saving}
+                      className="h-10 min-w-[124px] rounded-full border border-[#DADADA] px-5 text-[13px] font-medium text-[#121212] transition hover:bg-[#F6F6F6] disabled:cursor-not-allowed"
                     >
-                      <X size={18} aria-hidden="true" />
+                      {tCommon("cancel")}
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSaveDisabled}
+                      className="h-10 min-w-[152px] rounded-full bg-[#121212] px-5 text-[13px] font-medium text-white transition hover:bg-[#303030] disabled:cursor-not-allowed disabled:bg-[#BFBFBF]"
+                    >
+                      {saving ? tCommon("saving") : t("saveHomework")}
                     </button>
                   </div>
-                  <TestFormBody
-                    mode="add"
-                    initialValues={{
-                      title: form.title ? t("testTitleSuggestion", { title: form.title }) : "",
+                </form>
+
+                {isTestModalOpen ? (
+                  <div
+                    role="presentation"
+                    className="fixed inset-0 z-[160] flex items-center justify-center bg-black/35 px-4 py-6"
+                    onMouseDown={() => {
+                      if (!savingTest) setIsTestModalOpen(false);
                     }}
-                    onSave={handleCreateTest}
-                    onCancel={() => setIsTestModalOpen(false)}
-                  />
-                </section>
-              </div>
-            ) : null}
-          </section>
-        </div>,
-        document.body,
-      ) : null}
+                  >
+                    <section
+                      role="dialog"
+                      aria-modal="true"
+                      aria-label={t("createTestDialogAriaLabel")}
+                      className="max-h-[calc(100vh-48px)] w-full max-w-[1120px] overflow-y-auto rounded-[16px] bg-white px-6 py-7 shadow-[0_18px_56px_rgba(18,18,18,0.24)] sm:px-10"
+                      onMouseDown={(event) => event.stopPropagation()}
+                    >
+                      <div className="mb-6 flex items-center justify-between gap-4">
+                        <h3 className="flex items-center gap-2 text-[18px] font-semibold text-[#121212]">
+                          <ClipboardList size={18} aria-hidden="true" />
+                          {t("createTest")}
+                        </h3>
+                        <button
+                          type="button"
+                          onClick={() => setIsTestModalOpen(false)}
+                          disabled={savingTest}
+                          aria-label={t("closeTestDialog")}
+                          className="rounded-full p-1 text-[#121212] transition hover:bg-[#F1F1F1] disabled:cursor-not-allowed"
+                        >
+                          <X size={18} aria-hidden="true" />
+                        </button>
+                      </div>
+                      <TestFormBody
+                        mode="add"
+                        initialValues={{
+                          title: form.title ? t("testTitleSuggestion", { title: form.title }) : "",
+                        }}
+                        onSave={handleCreateTest}
+                        onCancel={() => setIsTestModalOpen(false)}
+                      />
+                    </section>
+                  </div>
+                ) : null}
+              </section>
+            </div>,
+            document.body,
+          )
+        : null}
     </PageShell>
   );
 }

@@ -179,7 +179,10 @@ function ChoiceReview({ graded, single }: { graded: GradedQuestion; single: bool
     <div className="flex flex-1 flex-col gap-5">
       {indices.map((i) => (
         <div key={i} className="flex items-center gap-2">
-          <ChoiceIndicator checked={graded.selected_indices?.includes(i) ?? false} single={single} />
+          <ChoiceIndicator
+            checked={graded.selected_indices?.includes(i) ?? false}
+            single={single}
+          />
           <span
             className={`font-(family-name:--font-base) text-xl leading-[25px] ${choiceOptionColor(i, graded)}`}
           >
@@ -300,7 +303,10 @@ function TrueFalseReview({ graded }: { graded: GradedQuestion }) {
     <div className="flex flex-col gap-2">
       <div className={`${pillBase} ${bg} text-(--color-black)`}>
         <span>{answered ? (graded.answer_bool ? t("true") : t("false")) : t("notAnswered")}</span>
-        <ChevronRight className="h-8 w-8 shrink-0 rotate-90 text-(--color-black)" aria-hidden="true" />
+        <ChevronRight
+          className="h-8 w-8 shrink-0 rotate-90 text-(--color-black)"
+          aria-hidden="true"
+        />
       </div>
       {!graded.is_correct && graded.correct_bool != null && (
         <span className="font-(family-name:--font-base) text-base text-(--color-quiz-correct-soft)">

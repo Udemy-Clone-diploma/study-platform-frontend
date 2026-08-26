@@ -62,9 +62,7 @@ export function TeacherApplicationsAdminView() {
         else params.set(key, value);
       }
       router.push(
-        params.toString()
-          ? `?${params.toString()}`
-          : "/moderator-dashboard/teacher-applications",
+        params.toString() ? `?${params.toString()}` : "/moderator-dashboard/teacher-applications",
         { scroll: false },
       );
     },
@@ -176,7 +174,10 @@ export function TeacherApplicationsAdminView() {
         </h1>
 
         <div style={{ marginBottom: "clamp(16px, 1.67vw, 24px)" }}>
-          <StatusTabs active={status} onChange={(next) => updateParams({ status: next, page: null })} />
+          <StatusTabs
+            active={status}
+            onChange={(next) => updateParams({ status: next, page: null })}
+          />
         </div>
 
         <div style={{ marginBottom: "clamp(16px, 1.67vw, 24px)" }}>
@@ -191,7 +192,11 @@ export function TeacherApplicationsAdminView() {
         {listError && (
           <p
             className="text-(--color-danger)"
-            style={{ fontFamily: "var(--font-base)", fontSize: "clamp(12px, 0.97vw, 14px)", margin: "0 0 8px" }}
+            style={{
+              fontFamily: "var(--font-base)",
+              fontSize: "clamp(12px, 0.97vw, 14px)",
+              margin: "0 0 8px",
+            }}
           >
             {listError}
           </p>

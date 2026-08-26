@@ -3,7 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { getTeacherCourses } from "@/entities/course";
-import { getHomeworkAssignments, type HomeworkAssignment, type HomeworkSubmission } from "@/entities/homework";
+import {
+  getHomeworkAssignments,
+  type HomeworkAssignment,
+  type HomeworkSubmission,
+} from "@/entities/homework";
 import { TodoPanel, type DashboardListItem } from "./DashboardOverview";
 
 const ACCENTS = [

@@ -130,9 +130,7 @@ export default function ModeratorCoursesPage() {
       setActiveTab("review");
       setPendingSlug(null);
     } catch (requestError: unknown) {
-      setAssignError(
-        (requestError as Partial<ApiError>).message ?? t("assignFailedError"),
-      );
+      setAssignError((requestError as Partial<ApiError>).message ?? t("assignFailedError"));
     } finally {
       setAssigning(false);
     }
@@ -163,7 +161,11 @@ export default function ModeratorCoursesPage() {
                   ? "text-(--color-text-primary) underline underline-offset-4"
                   : "text-(--color-text-primary)",
               ].join(" ")}
-              style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(20px, 1.39vw, 24px)" }}
+              style={{
+                fontFamily: "var(--font-base)",
+                fontWeight: 600,
+                fontSize: "clamp(20px, 1.39vw, 24px)",
+              }}
             >
               {t(TAB_LABEL_KEYS[key])}
             </button>
@@ -171,7 +173,9 @@ export default function ModeratorCoursesPage() {
         </nav>
 
         {loading ? (
-          <p className="mt-16 text-center text-lg text-(--color-text-secondary)">{tTeacherCourses("loading")}</p>
+          <p className="mt-16 text-center text-lg text-(--color-text-secondary)">
+            {tTeacherCourses("loading")}
+          </p>
         ) : error ? (
           <p className="mt-16 text-center text-lg text-red-500">{error}</p>
         ) : activeTab === "approved" ? (

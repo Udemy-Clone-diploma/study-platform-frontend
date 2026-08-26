@@ -65,7 +65,6 @@ export async function Header({
           paddingInline: isLoggedIn ? "max(4px, 0.42vw)" : "max(16px, 2.22vw)",
         }}
       >
-        {/* Left */}
         <div
           className="flex items-center flex-1 min-w-0 h-full"
           style={{ gap: isLoggedIn ? "3%" : "8.49%" }}
@@ -106,7 +105,6 @@ export async function Header({
           <SearchBar />
         </div>
 
-        {/* Right */}
         <div className="shrink-0 h-full flex items-center" style={{ gap: 24 }}>
           {isLoggedIn ? (
             <div className="flex items-center h-full" style={{ gap: 40 }}>

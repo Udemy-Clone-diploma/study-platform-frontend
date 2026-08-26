@@ -258,13 +258,11 @@ function NewEventPanel({
   const [endTime, setEndTime] = useState(`${padTwo(Math.min(hour + 1, 23))}:00`);
   const [meetingLink, setMeetingLink] = useState("");
 
-  // invite state
   const [emailQuery, setEmailQuery] = useState("");
   const [emailSuggestions, setEmailSuggestions] = useState<UserSearchResult[]>([]);
   const [emailSearched, setEmailSearched] = useState(false);
   const [inviteList, setInviteList] = useState<UserSearchResult[]>([]);
 
-  // extra session state
   const [courses, setCourses] = useState<CourseListItem[] | null>(null);
   const [courseId, setCourseId] = useState<string>("");
   const [courseSlug, setCourseSlug] = useState<string>("");
@@ -283,7 +281,6 @@ function NewEventPanel({
   const [personalConflicts, setPersonalConflicts] = useState<PersonalEventConflicts | null>(null);
   const [sessionConflicts, setSessionConflicts] = useState<PersonalEventConflicts | null>(null);
 
-  // Load teacher courses when entering extra_session mode
   useEffect(() => {
     if (mode !== "extra_session" || courses !== null) return;
     getTeacherCourses()
@@ -291,7 +288,6 @@ function NewEventPanel({
       .catch(() => setCourses([]));
   }, [mode, courses]);
 
-  // Load cohorts + lessons + enrolled students when course changes
   useEffect(() => {
     let cancelled = false;
     if (!courseSlug) {
@@ -337,7 +333,6 @@ function NewEventPanel({
     };
   }, [courseSlug]);
 
-  // Debounced invite email search
   useEffect(() => {
     const t = setTimeout(
       () => {
@@ -522,7 +517,6 @@ function NewEventPanel({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      {/* ── Event type tabs ── */}
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
         <button type="button" style={tabStyle("personal")} onClick={() => setMode("personal")}>
           {t("tabPersonal")}
@@ -545,7 +539,6 @@ function NewEventPanel({
         )}
       </div>
 
-      {/* ── Date ── */}
       <DatePicker
         label={tScheduleTab("date")}
         value={localDate}
@@ -556,7 +549,6 @@ function NewEventPanel({
         size="md"
       />
 
-      {/* ── Time range ── */}
       <div style={{ display: "flex", gap: 12 }}>
         <Field label={tScheduleTab("start")}>
           <TimePicker
@@ -578,7 +570,6 @@ function NewEventPanel({
         </Field>
       </div>
 
-      {/* ── Personal / invite fields ── */}
       {isPersonal && (
         <Field label={t("eventName")}>
           <input
@@ -604,7 +595,6 @@ function NewEventPanel({
         </Field>
       )}
 
-      {/* ── Invite section ── */}
       {mode === "personal_invite" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <span style={DRAWER_LABEL}>{t("invitePeople")}</span>
@@ -751,7 +741,6 @@ function NewEventPanel({
         </div>
       )}
 
-      {/* ── Extra session fields ── */}
       {mode === "extra_session" && (
         <>
           <Field label={t("course")}>
@@ -785,7 +774,6 @@ function NewEventPanel({
             )}
           </Field>
 
-          {/* Audience tabs */}
           <div>
             <span style={DRAWER_LABEL}>{t("audience")}</span>
             <div style={{ display: "flex", gap: 6 }}>
@@ -816,7 +804,6 @@ function NewEventPanel({
             </div>
           </div>
 
-          {/* Group: cohort picker */}
           {audience === "group" && courseSlug && (
             <Field label={t("cohort")}>
               {cohorts === null ? (
@@ -858,7 +845,6 @@ function NewEventPanel({
             </Field>
           )}
 
-          {/* Individual: student search */}
           {audience === "individual" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               <span style={DRAWER_LABEL}>{t("student")}</span>
@@ -1008,7 +994,6 @@ function NewEventPanel({
             </div>
           )}
 
-          {/* Lesson picker (optional) */}
           {courseSlug && (
             <Field label={t("lectureOptional")}>
               {extraLessons === null ? (
@@ -1061,7 +1046,6 @@ function NewEventPanel({
         </p>
       )}
 
-      {/* Personal event conflict block */}
       {personalConflicts &&
         (personalConflicts.sessions.length > 0 || personalConflicts.personal_events.length > 0) && (
           <div
@@ -1097,7 +1081,8 @@ function NewEventPanel({
                 }}
               >
                 {t("conflictSessionLine", {
-                  type: s.type === "group" ? tSchedule("groupSession") : tSchedule("individualSession"),
+                  type:
+                    s.type === "group" ? tSchedule("groupSession") : tSchedule("individualSession"),
                   title: s.title,
                   start: s.start_time,
                   end: s.end_time,
@@ -1114,7 +1099,11 @@ function NewEventPanel({
                   margin: 0,
                 }}
               >
-                {t("conflictPersonalEventLine", { title: e.title, start: e.start_time, end: e.end_time })}
+                {t("conflictPersonalEventLine", {
+                  title: e.title,
+                  start: e.start_time,
+                  end: e.end_time,
+                })}
               </p>
             ))}
           </div>
@@ -1178,7 +1167,11 @@ function NewEventPanel({
                   margin: 0,
                 }}
               >
-                {t("conflictPersonalEventLine", { title: e.title, start: e.start_time, end: e.end_time })}
+                {t("conflictPersonalEventLine", {
+                  title: e.title,
+                  start: e.start_time,
+                  end: e.end_time,
+                })}
               </p>
             ))}
           </div>
@@ -1284,12 +1277,7 @@ function EventDetailPanel({
   const nowTime_ = new Date().toTimeString().slice(0, 5);
   const isPastEvent = ev.date < todayISO_ || (ev.date === todayISO_ && ev.end_time <= nowTime_);
   const isFreeSlot = ev.is_available === true;
-  const canEdit =
-    role === "teacher" &&
-    !isPersonal &&
-    !isProcessed &&
-    !isPastEvent &&
-    !isFreeSlot;
+  const canEdit = role === "teacher" && !isPersonal && !isProcessed && !isPastEvent && !isFreeSlot;
 
   useEffect(() => {
     if (mode !== "lesson_edit" || !ev.course_slug || lessons !== null) return;
@@ -1306,7 +1294,6 @@ function EventDetailPanel({
     };
   }, [mode, ev.course_slug, lessons]);
 
-  // Fetch invitation list for personal events (owner view)
   useEffect(() => {
     if (!isPersonal || !isOwner || !personalPk) return;
     let cancelled = false;
@@ -1323,7 +1310,6 @@ function EventDetailPanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ev.id]);
 
-  // Fetch participants for invitee view (non-owner personal_shared events)
   useEffect(() => {
     if (!isPersonal || isOwner || !personalPk) return;
     let cancelled = false;
@@ -1340,7 +1326,6 @@ function EventDetailPanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ev.id]);
 
-  // Debounced search for invite-more input
   useEffect(() => {
     if (!inviteQuery.trim() || inviteQuery.length < 2) {
       setInviteSugg([]);
@@ -1360,7 +1345,6 @@ function EventDetailPanel({
     setInviteErr(null);
     try {
       await inviteToEvent(personalPk, email.trim());
-      // Refresh the invites list
       const fresh = await getEventInvitations(personalPk);
       setInvites(fresh);
       setInviteQuery("");
@@ -1374,6 +1358,7 @@ function EventDetailPanel({
 
   async function doResend(email: string, invId: number) {
     setResending(invId);
+    setError(null);
     try {
       await inviteToEvent(personalPk, email);
       setInvites(
@@ -1383,6 +1368,7 @@ function EventDetailPanel({
           ) ?? prev,
       );
     } catch {
+      setError(t("saveFailedRetry"));
     } finally {
       setResending(null);
     }
@@ -1559,7 +1545,6 @@ function EventDetailPanel({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      {/* ── Previously section (cancelled / rescheduled events) ── */}
       {isProcessed && mode === "view" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {onAddNew && (
@@ -1596,7 +1581,6 @@ function EventDetailPanel({
               overflow: "hidden",
             }}
           >
-            {/* Collapsible header */}
             <button
               type="button"
               onClick={() => setShowDetails((v) => !v)}
@@ -1636,7 +1620,6 @@ function EventDetailPanel({
               />
             </button>
 
-            {/* Rows list */}
             {showDetails &&
               [ev, ...overlappingCancelled].map((ce, idx) => {
                 const isExp = expandedIdx === idx;
@@ -1798,7 +1781,11 @@ function EventDetailPanel({
                         )}
                         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 4 }}>
                           {ceCanReschedule && ce.id === ev.id && (
-                            <button type="button" onClick={() => setMode("reschedule")} style={PILL_PRIMARY_BTN}>
+                            <button
+                              type="button"
+                              onClick={() => setMode("reschedule")}
+                              style={PILL_PRIMARY_BTN}
+                            >
                               <RotateCcw size={13} />
                               {tScheduleTab("reschedule")}
                             </button>
@@ -1850,7 +1837,6 @@ function EventDetailPanel({
           gap: 20,
         }}
       >
-        {/* ── Status badge (replacement only — cancelled/rescheduled shown in Previously card) ── */}
         {isReplacement && ev.rescheduled_from_date && (
           <div
             style={{
@@ -1879,7 +1865,6 @@ function EventDetailPanel({
           </div>
         )}
 
-        {/* ── Time ── */}
         {!isProcessed && (
           <div>
             <span style={DRAWER_LABEL}>{t("time")}</span>
@@ -1897,7 +1882,6 @@ function EventDetailPanel({
           </div>
         )}
 
-        {/* ── Type badge ── */}
         {!isProcessed &&
           (() => {
             const { bg: badgeBg, text: badgeText } = isPersonal
@@ -1908,7 +1892,9 @@ function EventDetailPanel({
                   ? { bg: "rgba(255,225,140,0.5)", text: "#7C5000" }
                   : { bg: "rgba(167,186,250,0.5)", text: "var(--color-blue-dark)" };
             const badgeLabel = isPersonal
-              ? (invites && invites.length > 0 ? t("personalSharedLabel") : t("personalLabel"))
+              ? invites && invites.length > 0
+                ? t("personalSharedLabel")
+                : t("personalLabel")
               : typeBadge;
             return (
               <div
@@ -1930,7 +1916,6 @@ function EventDetailPanel({
             );
           })()}
 
-        {/* ── Title / Date / Creator / Course / Group — hidden for cancelled/rescheduled (shown in Previously card) ── */}
         {!isProcessed && isPersonal && ev.title && (
           <div>
             <span style={DRAWER_LABEL}>{t("title")}</span>
@@ -2011,7 +1996,6 @@ function EventDetailPanel({
           </div>
         )}
 
-        {/* ── Lecture ── */}
         {mode === "lesson_edit" && canEdit ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <span style={DRAWER_LABEL}>{t("lecture")}</span>
@@ -2158,7 +2142,6 @@ function EventDetailPanel({
           </div>
         )}
 
-        {/* ── Meeting link ── */}
         {mode === "link_edit" && canEdit ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <span style={DRAWER_LABEL}>{t("meetingLink")}</span>
@@ -2258,10 +2241,14 @@ function EventDetailPanel({
           </div>
         )}
 
-        {/* ── Reschedule form ── */}
         {mode === "reschedule" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-            <DatePicker label={tScheduleTab("date")} value={newDate} onChange={setNewDate} size="md" />
+            <DatePicker
+              label={tScheduleTab("date")}
+              value={newDate}
+              onChange={setNewDate}
+              size="md"
+            />
 
             <div style={{ display: "flex", gap: 12 }}>
               <Field label={tScheduleTab("start")}>
@@ -2328,7 +2315,6 @@ function EventDetailPanel({
           </div>
         )}
 
-        {/* ── Cancel confirmation ── */}
         {mode === "confirm_cancel" && (
           <div
             style={{
@@ -2362,9 +2348,7 @@ function EventDetailPanel({
                 margin: 0,
               }}
             >
-              {isReplacement
-                ? t("cancelReplacementExplain")
-                : t("cancelSessionExplain")}
+              {isReplacement ? t("cancelReplacementExplain") : t("cancelSessionExplain")}
             </p>
             {error && (
               <p
@@ -2411,7 +2395,6 @@ function EventDetailPanel({
           </div>
         )}
 
-        {/* ── Delete confirmation ── */}
         {mode === "confirm_delete" && (
           <div
             style={{
@@ -2492,12 +2475,10 @@ function EventDetailPanel({
           </div>
         )}
 
-        {/* ── Invitations list + add guest (personal events, owner view) ── */}
         {isPersonal && isOwner && invites !== null && (
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
             <span style={DRAWER_LABEL}>{t("guests")}</span>
 
-            {/* Add guest input */}
             {mode === "view" && !isPastEvent && (
               <div style={{ position: "relative", marginBottom: 4 }}>
                 <div style={{ display: "flex", gap: 6 }}>
@@ -2612,7 +2593,11 @@ function EventDetailPanel({
                   ? "rgba(255,225,140,0.5)"
                   : "rgba(252,196,195,0.5)";
               const statusText = isAccepted ? "#1A6633" : isPending ? "#7C5000" : "#8B2624";
-              const statusLabel = isAccepted ? t("accepted") : isPending ? t("pending") : t("declined");
+              const statusLabel = isAccepted
+                ? t("accepted")
+                : isPending
+                  ? t("pending")
+                  : t("declined");
               const initials = (inv.name || inv.email).slice(0, 1).toUpperCase();
               const avatarStyle: React.CSSProperties = {
                 width: 28,
@@ -2724,7 +2709,6 @@ function EventDetailPanel({
           </div>
         )}
 
-        {/* ── Invitee view: my invitation + other participants ── */}
         {isPersonal &&
           !isOwner &&
           participants !== null &&
@@ -2939,7 +2923,6 @@ function EventDetailPanel({
             );
           })()}
 
-        {/* ── Reschedule + Delete for personal event owner ── */}
         {isPersonal && isOwner && mode === "view" && !isPastEvent && (
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 4 }}>
             <button type="button" onClick={() => setMode("reschedule")} style={PILL_PRIMARY_BTN}>
@@ -2958,7 +2941,6 @@ function EventDetailPanel({
           </div>
         )}
 
-        {/* ── Teacher action buttons ── */}
         {canEdit && mode === "view" && (
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 4 }}>
             <button type="button" onClick={() => setMode("reschedule")} style={PILL_PRIMARY_BTN}>
@@ -2976,11 +2958,8 @@ function EventDetailPanel({
             </button>
           </div>
         )}
-
       </div>
-      {/* end collapsible body */}
 
-      {/* ── Previously cancelled / rescheduled at this slot (active events only) ── */}
       {!isProcessed && overlappingCancelled.length > 0 && (
         <div style={{ borderTop: "1px solid var(--color-border-light)", paddingTop: 14 }}>
           <div
@@ -3270,7 +3249,9 @@ export function CalendarView({ role }: CalendarViewProps) {
   const [deadlines, setDeadlines] = useState<CalendarDeadline[]>([]);
   const [drawer, setDrawer] = useState<DrawerState>(null);
   const searchParams = useSearchParams();
-  const [weekStart, setWeekStart] = useState<string>(() => initialWeekStart(searchParams.get("date")));
+  const [weekStart, setWeekStart] = useState<string>(() =>
+    initialWeekStart(searchParams.get("date")),
+  );
   const [refreshTick, setRefreshTick] = useState(0);
 
   useEffect(() => {
@@ -3368,7 +3349,6 @@ export function CalendarView({ role }: CalendarViewProps) {
         background: "var(--color-calendar-bg)",
       }}
     >
-      {/* ── Calendar: month grid + agenda below `lg`, full week grid at `lg` and up ── */}
       <div className="lg:hidden">
         <MonthAgendaMobile
           role={role}
@@ -3394,7 +3374,6 @@ export function CalendarView({ role }: CalendarViewProps) {
         />
       </div>
 
-      {/* ── Side panel overlay (desktop) / modal (mobile) ── */}
       {(() => {
         const drawerTitle =
           drawer?.type === "new"
@@ -3447,7 +3426,13 @@ export function CalendarView({ role }: CalendarViewProps) {
             )}
             {drawer?.type === "block" && <UnavailabilitySection />}
             {drawer?.type === "deadlines" && (
-              <div style={{ display: "flex", flexDirection: "column", gap: "clamp(10px, 0.83vw, 14px)" }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "clamp(10px, 0.83vw, 14px)",
+                }}
+              >
                 {deadlines
                   .filter((dl) => dl.date === drawer.date)
                   .map((dl) => (
@@ -3460,21 +3445,25 @@ export function CalendarView({ role }: CalendarViewProps) {
                         background: "#fff",
                       }}
                     >
-                      <p style={{
-                        fontFamily: "var(--font-base)",
-                        fontWeight: 700,
-                        fontSize: "clamp(13px, 0.9vw, 15px)",
-                        color: "var(--color-text-primary)",
-                        margin: "0 0 4px",
-                      }}>
+                      <p
+                        style={{
+                          fontFamily: "var(--font-base)",
+                          fontWeight: 700,
+                          fontSize: "clamp(13px, 0.9vw, 15px)",
+                          color: "var(--color-text-primary)",
+                          margin: "0 0 4px",
+                        }}
+                      >
                         {dl.title}
                       </p>
-                      <p style={{
-                        fontFamily: "var(--font-base)",
-                        fontSize: "clamp(12px, 0.8vw, 13px)",
-                        color: "var(--color-text-secondary)",
-                        margin: 0,
-                      }}>
+                      <p
+                        style={{
+                          fontFamily: "var(--font-base)",
+                          fontSize: "clamp(12px, 0.8vw, 13px)",
+                          color: "var(--color-text-secondary)",
+                          margin: 0,
+                        }}
+                      >
                         {dl.course_title}
                       </p>
                     </div>

@@ -26,7 +26,10 @@ type Props = {
 export function CategoryFormModal({ category, onClose, onSaved }: Props) {
   const t = useTranslations("CategoryFormModal");
   const tCommon = useTranslations("Common");
-  const [name, setName] = useState<LocaleFields>({ ...EMPTY_LOCALE_FIELDS, en: category?.name ?? "" });
+  const [name, setName] = useState<LocaleFields>({
+    ...EMPTY_LOCALE_FIELDS,
+    en: category?.name ?? "",
+  });
   const [description, setDescription] = useState<LocaleFields>({
     ...EMPTY_LOCALE_FIELDS,
     en: category?.description ?? "",
@@ -79,8 +82,7 @@ export function CategoryFormModal({ category, onClose, onSaved }: Props) {
     if (!enName) errors.name_en = t("nameRequired");
     else if (enName.length > 100) errors.name_en = t("nameTooLong");
     if (trimmedSlug && trimmedSlug.length > 50) errors.slug = t("slugTooLong");
-    else if (trimmedSlug && !SLUG_PATTERN.test(trimmedSlug))
-      errors.slug = t("slugInvalid");
+    else if (trimmedSlug && !SLUG_PATTERN.test(trimmedSlug)) errors.slug = t("slugInvalid");
     return errors;
   }
 
@@ -107,9 +109,7 @@ export function CategoryFormModal({ category, onClose, onSaved }: Props) {
       description_de: description.de.trim(),
     };
     try {
-      const saved = category
-        ? await updateCategory(category.id, body)
-        : await createCategory(body);
+      const saved = category ? await updateCategory(category.id, body) : await createCategory(body);
       onSaved(saved);
     } catch (err) {
       const apiError = err as ApiError;
@@ -140,16 +140,20 @@ export function CategoryFormModal({ category, onClose, onSaved }: Props) {
     >
       <form onSubmit={handleSubmit} noValidate>
         <div className="flex flex-col gap-4">
-          <LocaleTabs active={activeLocale} onChange={(l) => setActiveLocale(l as Locale)} filled={filled} />
-          {activeLocale !== "en" && (
-            <p className="text-xs text-gray-400">
-              {t("localeHint")}
-            </p>
-          )}
+          <LocaleTabs
+            active={activeLocale}
+            onChange={(l) => setActiveLocale(l as Locale)}
+            filled={filled}
+          />
+          {activeLocale !== "en" && <p className="text-xs text-gray-400">{t("localeHint")}</p>}
 
           <Input
             id="category-name"
-            label={activeLocale === "en" ? t("nameLabel") : t("nameLabelWithLocale", { locale: activeLocale })}
+            label={
+              activeLocale === "en"
+                ? t("nameLabel")
+                : t("nameLabelWithLocale", { locale: activeLocale })
+            }
             value={name[activeLocale]}
             onChange={(e) => setName((prev) => ({ ...prev, [activeLocale]: e.target.value }))}
             placeholder={activeLocale !== "en" ? name.en : undefined}
@@ -161,11 +165,7 @@ export function CategoryFormModal({ category, onClose, onSaved }: Props) {
             <Input
               id="category-slug"
               label={category ? t("slugLabel") : t("slugLabelOptional")}
-              placeholder={
-                category
-                  ? t("slugPlaceholderEdit")
-                  : t("slugPlaceholderCreate")
-              }
+              placeholder={category ? t("slugPlaceholderEdit") : t("slugPlaceholderCreate")}
               value={slug}
               onChange={(e) => setSlug(e.target.value)}
               error={fieldErrors.slug}
@@ -178,7 +178,9 @@ export function CategoryFormModal({ category, onClose, onSaved }: Props) {
               htmlFor="category-description"
               className="text-sm font-medium font-mono text-gray-400"
             >
-              {activeLocale === "en" ? t("descriptionLabel") : t("descriptionLabelWithLocale", { locale: activeLocale })}
+              {activeLocale === "en"
+                ? t("descriptionLabel")
+                : t("descriptionLabelWithLocale", { locale: activeLocale })}
             </label>
             <textarea
               id="category-description"

@@ -18,12 +18,7 @@ export type OrderStatus =
 
 export type PaymentType = "full" | "installments";
 
-export type PaymentInstallmentStatus =
-  | "pending"
-  | "processing"
-  | "paid"
-  | "failed"
-  | "canceled";
+export type PaymentInstallmentStatus = "pending" | "processing" | "paid" | "failed" | "canceled";
 
 export type PaymentItem = {
   id: number;

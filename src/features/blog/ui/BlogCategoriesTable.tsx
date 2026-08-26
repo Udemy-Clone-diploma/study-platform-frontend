@@ -74,7 +74,10 @@ export function BlogCategoriesTable({ categories, emptyMessage, onEdit, onDelete
       headerAlign: "center",
       cellAlign: "center",
       render: (row) => (
-        <div className="flex items-center justify-center" style={{ gap: "clamp(4px, 0.56vw, 8px)" }}>
+        <div
+          className="flex items-center justify-center"
+          style={{ gap: "clamp(4px, 0.56vw, 8px)" }}
+        >
           <ActionButton title={t("editCategoryTitle")} onClick={() => onEdit(row)}>
             <Pencil size={16} />
           </ActionButton>

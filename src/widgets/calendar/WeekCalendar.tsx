@@ -7,22 +7,28 @@ import type { CalendarDeadline, CalendarEvent } from "@/entities/course/model/ca
 import type { TeacherUnavailability } from "@/entities/course/model/schedule";
 import { getWeekdayNames, timeToMinutes } from "@/shared/lib/time";
 
-const START_HOUR  = 7;
-const END_HOUR    = 23;
+const START_HOUR = 7;
+const END_HOUR = 23;
 const TOTAL_HOURS = END_HOUR - START_HOUR; // 16
-const TOTAL_MIN   = TOTAL_HOURS * 60;      // 960
+const TOTAL_MIN = TOTAL_HOURS * 60; // 960
 const HOURS = Array.from({ length: TOTAL_HOURS }, (_, i) => i + START_HOUR);
 const ROW_H = "clamp(36px, calc(13.15px + 2.23vw), 56px)";
 
-const CHIP_BAR_GRADIENT =
-  "linear-gradient(180deg, #A7BAFA 0%, #FCC4C3 50.96%, #FFF4DA 100%)";
+const CHIP_BAR_GRADIENT = "linear-gradient(180deg, #A7BAFA 0%, #FCC4C3 50.96%, #FFF4DA 100%)";
 
-export function chipColors(event: CalendarEvent): { bg: string; textColor: string; barColor?: string } {
-  if (event.type === "group_session")     return { bg: "rgba(252,196,195,0.5)", textColor: "#8B2624" };
-  if (event.type === "personal")          return { bg: "rgba(195,235,210,0.5)", textColor: "#1A6633" };
-  if (event.type === "personal_shared")   return { bg: "rgba(195,235,210,0.5)", textColor: "#1A6633", barColor: "rgba(59,130,246,0.75)" };
-  if (event.type === "extra_session")     return { bg: "rgba(255,225,140,0.5)", textColor: "#7C5000", barColor: "rgba(210,150,0,0.6)" };
-  if (event.is_available === true)        return { bg: "rgba(220,220,220,0.45)", textColor: "#777", barColor: "rgba(180,180,180,0.7)" };
+export function chipColors(event: CalendarEvent): {
+  bg: string;
+  textColor: string;
+  barColor?: string;
+} {
+  if (event.type === "group_session") return { bg: "rgba(252,196,195,0.5)", textColor: "#8B2624" };
+  if (event.type === "personal") return { bg: "rgba(195,235,210,0.5)", textColor: "#1A6633" };
+  if (event.type === "personal_shared")
+    return { bg: "rgba(195,235,210,0.5)", textColor: "#1A6633", barColor: "rgba(59,130,246,0.75)" };
+  if (event.type === "extra_session")
+    return { bg: "rgba(255,225,140,0.5)", textColor: "#7C5000", barColor: "rgba(210,150,0,0.6)" };
+  if (event.is_available === true)
+    return { bg: "rgba(220,220,220,0.45)", textColor: "#777", barColor: "rgba(180,180,180,0.7)" };
   return { bg: "rgba(167,186,250,0.5)", textColor: "var(--color-text-primary)" };
 }
 
@@ -36,7 +42,6 @@ function fmtHourLabel(hour: number, locale: string): string {
   const d = new Date(2000, 0, 1, hour, 0);
   return new Intl.DateTimeFormat(locale, { hour: "numeric" }).format(d);
 }
-
 
 function getWeekSunday(d: Date): Date {
   const day = new Date(d);
@@ -63,11 +68,10 @@ function isToday(d: Date): boolean {
   const t = new Date();
   return (
     d.getFullYear() === t.getFullYear() &&
-    d.getMonth()    === t.getMonth()    &&
-    d.getDate()     === t.getDate()
+    d.getMonth() === t.getMonth() &&
+    d.getDate() === t.getDate()
   );
 }
-
 
 function colBg(d: Date): string {
   if (isToday(d)) return "var(--color-calendar-today)";
@@ -90,7 +94,7 @@ function pct(minutes: number): string {
 
 function eventLayout(start: string, end: string): { top: string; height: string } | null {
   const s = Math.max(timeToMinutes(start) - START_HOUR * 60, 0);
-  const e = Math.min(timeToMinutes(end)   - START_HOUR * 60, TOTAL_MIN);
+  const e = Math.min(timeToMinutes(end) - START_HOUR * 60, TOTAL_MIN);
   if (e <= 0 || s >= TOTAL_MIN || e <= s) return null;
   const minH = TOTAL_MIN / TOTAL_HOURS;
   return { top: pct(s), height: pct(Math.max(e - s, minH)) };
@@ -102,10 +106,10 @@ function jsToBackendDay(jsDay: number): number {
 
 function unavailForDay(blocks: TeacherUnavailability[], d: Date): TeacherUnavailability[] {
   const iso = toISO(d);
-  const bd  = jsToBackendDay(d.getDay());
-  return blocks.filter(b => {
-    if (b.recurrence_type === "weekly")     return b.day_of_week === bd;
-    if (b.recurrence_type === "one_time")   return b.date === iso;
+  const bd = jsToBackendDay(d.getDay());
+  return blocks.filter((b) => {
+    if (b.recurrence_type === "weekly") return b.day_of_week === bd;
+    if (b.recurrence_type === "one_time") return b.date === iso;
     if (b.recurrence_type === "date_range")
       return !!b.date && !!b.date_to && b.date <= iso && iso <= b.date_to;
     return false;
@@ -129,7 +133,7 @@ function EventChip({
   const layout = eventLayout(event.start_time, event.end_time);
   if (!layout) return null;
 
-  const isCancelled   = event.event_status === "cancelled";
+  const isCancelled = event.event_status === "cancelled";
   const isRescheduled = event.event_status === "rescheduled";
 
   const { bg, textColor, barColor } = chipColors(event);
@@ -163,7 +167,10 @@ function EventChip({
   return (
     <div
       title={tooltipText}
-      onClick={e => { e.stopPropagation(); onClick?.(event); }}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick?.(event);
+      }}
       style={{
         position: "absolute",
         top: layout.top,
@@ -183,22 +190,60 @@ function EventChip({
       }}
     >
       <div style={{ width: 3, flexShrink: 0, background: chipBar }} />
-      <div style={{ flex: 1, minWidth: 0, padding: "4px 6px", display: "flex", flexDirection: "column", gap: 2, overflow: "hidden" }}>
-        <div style={{ fontFamily: "var(--font-accent)", fontWeight: 500, fontSize: "clamp(9px, calc(6.72px + 0.22vw), 11px)", color: textColor, lineHeight: 1.4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textDecoration: isCancelled ? "line-through" : "none" }}>
+      <div
+        style={{
+          flex: 1,
+          minWidth: 0,
+          padding: "4px 6px",
+          display: "flex",
+          flexDirection: "column",
+          gap: 2,
+          overflow: "hidden",
+        }}
+      >
+        <div
+          style={{
+            fontFamily: "var(--font-accent)",
+            fontWeight: 500,
+            fontSize: "clamp(9px, calc(6.72px + 0.22vw), 11px)",
+            color: textColor,
+            lineHeight: 1.4,
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            textDecoration: isCancelled ? "line-through" : "none",
+          }}
+        >
           {fmtChipTime(event.start_time, locale)} – {fmtChipTime(event.end_time, locale)}
         </div>
         {subtitle && (
-          <div style={{ fontFamily: "var(--font-base)", fontWeight: 600, fontSize: "clamp(8px, calc(5.72px + 0.22vw), 10px)", color: textColor, lineHeight: 1.3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textDecoration: isCancelled ? "line-through" : "none" }}>
+          <div
+            style={{
+              fontFamily: "var(--font-base)",
+              fontWeight: 600,
+              fontSize: "clamp(8px, calc(5.72px + 0.22vw), 10px)",
+              color: textColor,
+              lineHeight: 1.3,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              textDecoration: isCancelled ? "line-through" : "none",
+            }}
+          >
             {subtitle}
           </div>
         )}
         {event.type === "personal_shared" && !isCancelled && !isRescheduled && (
           <div style={{ ...TINY, color: "rgba(59,130,246,0.85)" }}>↗ {t("sharedTag")}</div>
         )}
-        {isCancelled && <div style={{ ...TINY, color: "rgba(120,0,0,0.8)" }}>✕ {cancelledLabel}</div>}
+        {isCancelled && (
+          <div style={{ ...TINY, color: "rgba(120,0,0,0.8)" }}>✕ {cancelledLabel}</div>
+        )}
         {isRescheduled && (
           <div style={{ ...TINY, color: "rgba(180,90,0,0.9)" }}>
-            {event.rescheduled_to_date ? `→ ${event.rescheduled_to_date.slice(5).split("-").reverse().join(".")}` : `→ ${t("rescheduledShort")}`}
+            {event.rescheduled_to_date
+              ? `→ ${event.rescheduled_to_date.slice(5).split("-").reverse().join(".")}`
+              : `→ ${t("rescheduledShort")}`}
           </div>
         )}
       </div>
@@ -255,26 +300,29 @@ function DayColumn({
   tSchedule: (key: string) => string;
 }) {
   const [hoveredHour, setHoveredHour] = useState<number | null>(null);
-  const baseBg        = colBg(date);
+  const baseBg = colBg(date);
   const unavailBlocks = unavailForDay(unavailability, date);
-  const dateISO       = toISO(date);
-  const BORDER        = "1px solid var(--color-calendar-border)";
+  const dateISO = toISO(date);
+  const BORDER = "1px solid var(--color-calendar-border)";
 
   const todayISO = toISO(new Date());
-  const nowHour  = new Date().getHours();
+  const nowHour = new Date().getHours();
 
   return (
     <div style={{ flex: 1, minWidth: 0, position: "relative" }}>
-      {HOURS.map(h => {
+      {HOURS.map((h) => {
         const isPastSlot = dateISO < todayISO || (dateISO === todayISO && h < nowHour);
         let bg = baseBg;
-        if (isPastSlot) bg = baseBg; // no hover/active tint on past slots
-        else if (activeHour === h)  bg = "rgba(167,186,250,0.22)";
+        if (isPastSlot)
+          bg = baseBg; // no hover/active tint on past slots
+        else if (activeHour === h) bg = "rgba(167,186,250,0.22)";
         else if (hoveredHour === h && onSlotClick) bg = "rgba(167,186,250,0.09)";
         return (
           <div
             key={h}
-            onClick={() => { if (!isPastSlot) onSlotClick?.(dateISO, h); }}
+            onClick={() => {
+              if (!isPastSlot) onSlotClick?.(dateISO, h);
+            }}
             onMouseEnter={() => setHoveredHour(h)}
             onMouseLeave={() => setHoveredHour(null)}
             style={{
@@ -283,22 +331,26 @@ function DayColumn({
               borderBottom: BORDER,
               borderRight: isLast ? "none" : BORDER,
               boxSizing: "border-box",
-              cursor: (onSlotClick && !isPastSlot) ? "pointer" : "default",
+              cursor: onSlotClick && !isPastSlot ? "pointer" : "default",
               transition: "background 0.1s",
             }}
           />
         );
       })}
-      {unavailBlocks.map((b, i) => <UnavailChip key={i} block={b} t={t} />)}
+      {unavailBlocks.map((b, i) => (
+        <UnavailChip key={i} block={b} t={t} />
+      ))}
       {(() => {
-        const activeEvs = events.filter(e => !e.event_status);
+        const activeEvs = events.filter((e) => !e.event_status);
         const hiddenIds = new Set(
           events
-            .filter(e => e.event_status === "cancelled" || e.event_status === "rescheduled")
-            .filter(pe => activeEvs.some(ae => ae.start_time < pe.end_time && pe.start_time < ae.end_time))
-            .map(e => e.id)
+            .filter((e) => e.event_status === "cancelled" || e.event_status === "rescheduled")
+            .filter((pe) =>
+              activeEvs.some((ae) => ae.start_time < pe.end_time && pe.start_time < ae.end_time),
+            )
+            .map((e) => e.id),
         );
-        return events.map(ev =>
+        return events.map((ev) =>
           hiddenIds.has(ev.id) ? null : (
             <EventChip
               key={ev.id}
@@ -309,7 +361,7 @@ function DayColumn({
               t={t}
               tSchedule={tSchedule}
             />
-          )
+          ),
         );
       })()}
     </div>
@@ -364,7 +416,7 @@ export function WeekCalendar({
   const locale = useLocale();
   const t = useTranslations("WeekCalendar");
   const tSchedule = useTranslations("ScheduleRail");
-  const dayAbbr = getWeekdayNames(locale, "short").map(d => d.toUpperCase());
+  const dayAbbr = getWeekdayNames(locale, "short").map((d) => d.toUpperCase());
 
   function navigate(delta: number) {
     const next = addDays(sunday, delta * 7);
@@ -378,70 +430,91 @@ export function WeekCalendar({
     onWeekChange?.(toISO(s));
   }
 
-  const columns  = Array.from({ length: 7 }, (_, i) => addDays(sunday, i));
+  const columns = Array.from({ length: 7 }, (_, i) => addDays(sunday, i));
   const todayISO = toISO(new Date());
-  const TIME_W   = "clamp(36px, calc(22.29px + 1.34vw), 48px)";
+  const TIME_W = "clamp(36px, calc(22.29px + 1.34vw), 48px)";
   const TIME_GAP = "clamp(8px, calc(1.14px + 0.67vw), 14px)";
   const TOOLBAR_LEFT_OFFSET = "clamp(8px, calc(-53.72px + 6.03vw), 62px)";
-  const BORDER   = "1px solid var(--color-calendar-border)";
+  const BORDER = "1px solid var(--color-calendar-border)";
 
   function eventsForCol(d: Date): CalendarEvent[] {
-    return events.filter(e => e.date === toISO(d));
+    return events.filter((e) => e.date === toISO(d));
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", width: "100%", background: "var(--color-calendar-bg)" }}>
-
-      {/* ── Toolbar ── */}
-      <div style={{
+    <div
+      style={{
         display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        paddingBlock: "clamp(8px, 0.6vw, 12px)",
-        flexShrink: 0,
-        gap: 12,
-      }}>
-        {/* Left: arrows + month label — offset to align with day columns */}
-        <div style={{ display: "flex", alignItems: "center", gap: 16, marginLeft: TOOLBAR_LEFT_OFFSET }}>
-          <button type="button" onClick={() => navigate(-1)} style={NAV_BTN}><ChevronLeft size={18} /></button>
-          <button type="button" onClick={() => navigate(1)}  style={NAV_BTN}><ChevronRight size={18} /></button>
-          <span style={{
-            fontFamily: "var(--font-accent)",
-            fontWeight: 400,
-            fontSize: "clamp(28px, calc(14.29px + 1.34vw), 40px)",
-            color: "#000000",
-            textTransform: "capitalize",
-          }}>
+        flexDirection: "column",
+        width: "100%",
+        background: "var(--color-calendar-bg)",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          paddingBlock: "clamp(8px, 0.6vw, 12px)",
+          flexShrink: 0,
+          gap: 12,
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 16,
+            marginLeft: TOOLBAR_LEFT_OFFSET,
+          }}
+        >
+          <button type="button" onClick={() => navigate(-1)} style={NAV_BTN}>
+            <ChevronLeft size={18} />
+          </button>
+          <button type="button" onClick={() => navigate(1)} style={NAV_BTN}>
+            <ChevronRight size={18} />
+          </button>
+          <span
+            style={{
+              fontFamily: "var(--font-accent)",
+              fontWeight: 400,
+              fontSize: "clamp(28px, calc(14.29px + 1.34vw), 40px)",
+              color: "#000000",
+              textTransform: "capitalize",
+            }}
+          >
             {monthLabel(sunday, locale)}
           </span>
         </div>
 
-        {/* Right: Today + actions */}
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <button type="button" onClick={goToday} style={{
-            fontFamily: "var(--font-base)",
-            fontWeight: 600,
-            fontSize: "clamp(11px, calc(8.72px + 0.22vw), 13px)",
-            color: "var(--color-text-primary)",
-            background: "rgba(255,255,255,0.7)",
-            border: "1px solid var(--color-calendar-border)",
-            borderRadius: 999,
-            padding: "4px 14px",
-            cursor: "pointer",
-          }}>
+          <button
+            type="button"
+            onClick={goToday}
+            style={{
+              fontFamily: "var(--font-base)",
+              fontWeight: 600,
+              fontSize: "clamp(11px, calc(8.72px + 0.22vw), 13px)",
+              color: "var(--color-text-primary)",
+              background: "rgba(255,255,255,0.7)",
+              border: "1px solid var(--color-calendar-border)",
+              borderRadius: 999,
+              padding: "4px 14px",
+              cursor: "pointer",
+            }}
+          >
             {tSchedule("today")}
           </button>
           {actions}
         </div>
       </div>
 
-      {/* ── Day header row ── */}
       <div style={{ display: "flex", flexShrink: 0, borderBottom: BORDER }}>
         <div style={{ width: TIME_W, flexShrink: 0, marginRight: TIME_GAP }} />
         {columns.map((d, i) => {
-          const bg     = colBg(d);
+          const bg = colBg(d);
           const active = toISO(d) === todayISO;
-          const dayDeadlines = deadlines.filter(dl => dl.date === toISO(d));
+          const dayDeadlines = deadlines.filter((dl) => dl.date === toISO(d));
           const hasDeadlines = dayDeadlines.length > 0;
           return (
             <div
@@ -476,24 +549,28 @@ export function WeekCalendar({
                   }}
                 />
               )}
-              <span style={{
-                fontFamily: "var(--font-base)",
-                fontWeight: 700,
-                fontSize: "clamp(9px, calc(6.72px + 0.22vw), 11px)",
-                color: "var(--color-text-secondary)",
-                lineHeight: 1,
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-              }}>
+              <span
+                style={{
+                  fontFamily: "var(--font-base)",
+                  fontWeight: 700,
+                  fontSize: "clamp(9px, calc(6.72px + 0.22vw), 11px)",
+                  color: "var(--color-text-secondary)",
+                  lineHeight: 1,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                }}
+              >
                 {dayAbbr[i]}
               </span>
-              <span style={{
-                fontFamily: "var(--font-accent)",
-                fontWeight: 500,
-                fontSize: "clamp(16px, calc(6.86px + 0.89vw), 24px)",
-                color: active ? "var(--color-blue)" : "var(--color-text-primary)",
-                lineHeight: 1,
-              }}>
+              <span
+                style={{
+                  fontFamily: "var(--font-accent)",
+                  fontWeight: 500,
+                  fontSize: "clamp(16px, calc(6.86px + 0.89vw), 24px)",
+                  color: active ? "var(--color-blue)" : "var(--color-text-primary)",
+                  lineHeight: 1,
+                }}
+              >
                 {d.getDate()}
               </span>
             </div>
@@ -501,53 +578,54 @@ export function WeekCalendar({
         })}
       </div>
 
-      {/* ── Body ── */}
       <div style={{ display: "flex" }}>
-
-        {/* Time labels */}
         <div style={{ width: TIME_W, flexShrink: 0, marginRight: TIME_GAP }}>
-          {HOURS.map(h => (
-            <div key={h} style={{
-              height: ROW_H,
-              display: "flex",
-              alignItems: "flex-start",
-              paddingTop: 3,
-              justifyContent: "flex-end",
-              borderBottom: BORDER,
-              boxSizing: "border-box",
-            }}>
-              <span style={{
-                fontFamily: "var(--font-accent)",
-                fontWeight: 500,
-                fontSize: "clamp(9px, calc(5.57px + 0.34vw), 12px)",
-                color: "var(--color-text-secondary)",
-                lineHeight: 1,
-              }}>
+          {HOURS.map((h) => (
+            <div
+              key={h}
+              style={{
+                height: ROW_H,
+                display: "flex",
+                alignItems: "flex-start",
+                paddingTop: 3,
+                justifyContent: "flex-end",
+                borderBottom: BORDER,
+                boxSizing: "border-box",
+              }}
+            >
+              <span
+                style={{
+                  fontFamily: "var(--font-accent)",
+                  fontWeight: 500,
+                  fontSize: "clamp(9px, calc(5.57px + 0.34vw), 12px)",
+                  color: "var(--color-text-secondary)",
+                  lineHeight: 1,
+                }}
+              >
                 {fmtHourLabel(h, locale)}
               </span>
             </div>
           ))}
         </div>
 
-        {/* Day columns */}
         {columns.map((d, i) => {
-          const colISO     = toISO(d);
+          const colISO = toISO(d);
           const activeHour = activeSlot?.date === colISO ? activeSlot.hour : undefined;
           return (
-          <DayColumn
-            key={i}
-            date={d}
-            events={eventsForCol(d)}
-            unavailability={unavailability}
-            isLast={i === 6}
-            role={role}
-            activeHour={activeHour}
-            onSlotClick={onSlotClick}
-            onEventClick={onEventClick}
-            locale={locale}
-            t={t}
-            tSchedule={tSchedule}
-          />
+            <DayColumn
+              key={i}
+              date={d}
+              events={eventsForCol(d)}
+              unavailability={unavailability}
+              isLast={i === 6}
+              role={role}
+              activeHour={activeHour}
+              onSlotClick={onSlotClick}
+              onEventClick={onEventClick}
+              locale={locale}
+              t={t}
+              tSchedule={tSchedule}
+            />
           );
         })}
       </div>

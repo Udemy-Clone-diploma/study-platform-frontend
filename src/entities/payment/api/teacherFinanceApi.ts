@@ -15,16 +15,9 @@ export type TeacherFinanceBalance = {
   available: string;
 };
 
-export type TeacherLedgerEntryType =
-  | "earning"
-  | "refund"
-  | "payout"
-  | "adjustment";
+export type TeacherLedgerEntryType = "earning" | "refund" | "payout" | "adjustment";
 
-export type TeacherLedgerEntryStatus =
-  | "pending"
-  | "posted"
-  | "void";
+export type TeacherLedgerEntryStatus = "pending" | "posted" | "void";
 
 export type TeacherLedgerEntry = {
   id: number;
@@ -77,24 +70,23 @@ export type TeacherPayoutDestination = {
   updated_at: string;
 };
 
-export type CreateTeacherPayoutDestinationInput = {
-    destination_type: "bank_account";
-    receiver_account: string;
-    receiver_mfo: string;
-    receiver_okpo: string;
-    receiver_company: string;
-    is_default?: boolean;
-}
-| {
-    destination_type: "card_token";
-    receiver_card_token: string;
-    is_default?: boolean;
-};
+export type CreateTeacherPayoutDestinationInput =
+  | {
+      destination_type: "bank_account";
+      receiver_account: string;
+      receiver_mfo: string;
+      receiver_okpo: string;
+      receiver_company: string;
+      is_default?: boolean;
+    }
+  | {
+      destination_type: "card_token";
+      receiver_card_token: string;
+      is_default?: boolean;
+    };
 
 export type UpdateTeacherPayoutDestinationInput = {
-  destination_type?:
-    | "bank_account"
-    | "card_token";
+  destination_type?: "bank_account" | "card_token";
 
   receiver_account?: string;
   receiver_mfo?: string;
@@ -113,64 +105,48 @@ export type PaginatedResponse<T> = {
 };
 
 export async function getTeacherFinanceBalance(): Promise<TeacherFinanceBalance> {
-  const { data } =
-    await api.get<TeacherFinanceBalance>(
-      `${TEACHER_FINANCE_ENDPOINT}balance/`,
-    );
+  const { data } = await api.get<TeacherFinanceBalance>(`${TEACHER_FINANCE_ENDPOINT}balance/`);
 
   return data;
 }
 
 export async function getTeacherFinanceLedger(): Promise<PaginatedResponse<TeacherLedgerEntry>> {
-  const { data } =
-    await api.get<
-      PaginatedResponse<TeacherLedgerEntry>
-    >(
-      `${TEACHER_FINANCE_ENDPOINT}ledger/`,
-      {
-        params: {
-          page_size: 100,
-        },
+  const { data } = await api.get<PaginatedResponse<TeacherLedgerEntry>>(
+    `${TEACHER_FINANCE_ENDPOINT}ledger/`,
+    {
+      params: {
+        page_size: 100,
       },
-    );
+    },
+  );
 
   return data;
 }
 
-export async function getTeacherFinancePayouts(): Promise<
-  PaginatedResponse<TeacherFinancePayout>
-> {
-  const { data } =
-    await api.get<
-      PaginatedResponse<TeacherFinancePayout>
-    >(
-      `${TEACHER_FINANCE_ENDPOINT}payouts/`,
-      {
-        params: {
-          page_size: 100,
-        },
+export async function getTeacherFinancePayouts(): Promise<PaginatedResponse<TeacherFinancePayout>> {
+  const { data } = await api.get<PaginatedResponse<TeacherFinancePayout>>(
+    `${TEACHER_FINANCE_ENDPOINT}payouts/`,
+    {
+      params: {
+        page_size: 100,
       },
-    );
+    },
+  );
 
   return data;
 }
-
-
 
 export async function getTeacherPayoutDestinations(): Promise<
   PaginatedResponse<TeacherPayoutDestination>
 > {
-  const { data } =
-    await api.get<
-      PaginatedResponse<TeacherPayoutDestination>
-    >(
-      `${TEACHER_FINANCE_ENDPOINT}destinations/`,
-      {
-        params: {
-          page_size: 100,
-        },
+  const { data } = await api.get<PaginatedResponse<TeacherPayoutDestination>>(
+    `${TEACHER_FINANCE_ENDPOINT}destinations/`,
+    {
+      params: {
+        page_size: 100,
       },
-    );
+    },
+  );
 
   return data;
 }
@@ -178,11 +154,10 @@ export async function getTeacherPayoutDestinations(): Promise<
 export async function createTeacherPayoutDestination(
   input: CreateTeacherPayoutDestinationInput,
 ): Promise<TeacherPayoutDestination> {
-  const { data } =
-    await api.post<TeacherPayoutDestination>(
-      `${TEACHER_FINANCE_ENDPOINT}destinations/`,
-      input,
-    );
+  const { data } = await api.post<TeacherPayoutDestination>(
+    `${TEACHER_FINANCE_ENDPOINT}destinations/`,
+    input,
+  );
 
   return data;
 }
@@ -191,19 +166,14 @@ export async function updateTeacherPayoutDestination(
   destinationId: number,
   input: UpdateTeacherPayoutDestinationInput,
 ): Promise<TeacherPayoutDestination> {
-  const { data } =
-    await api.patch<TeacherPayoutDestination>(
-      `${TEACHER_FINANCE_ENDPOINT}destinations/${destinationId}/`,
-      input,
-    );
+  const { data } = await api.patch<TeacherPayoutDestination>(
+    `${TEACHER_FINANCE_ENDPOINT}destinations/${destinationId}/`,
+    input,
+  );
 
   return data;
 }
 
-export async function deleteTeacherPayoutDestination(
-  destinationId: number,
-): Promise<void> {
-  await api.delete(
-    `${TEACHER_FINANCE_ENDPOINT}destinations/${destinationId}/`,
-  );
+export async function deleteTeacherPayoutDestination(destinationId: number): Promise<void> {
+  await api.delete(`${TEACHER_FINANCE_ENDPOINT}destinations/${destinationId}/`);
 }

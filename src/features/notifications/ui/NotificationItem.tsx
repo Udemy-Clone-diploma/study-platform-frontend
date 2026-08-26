@@ -2,7 +2,15 @@
 
 import { useLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { Award, ShieldAlert, Bell, BookOpen, Bookmark, ClipboardList, MessageSquare } from "lucide-react";
+import {
+  Award,
+  ShieldAlert,
+  Bell,
+  BookOpen,
+  Bookmark,
+  ClipboardList,
+  MessageSquare,
+} from "lucide-react";
 import type { Notification, NotificationType } from "@/entities/notification";
 import { formatRelativeTime } from "@/shared/lib/time";
 import { NotificationItemMenu } from "./NotificationItemMenu";

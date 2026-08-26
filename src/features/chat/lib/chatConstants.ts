@@ -9,6 +9,9 @@ export const ATTACHMENT_ACTION_HEIGHT = 204;
 export const MESSAGE_SCROLLBAR_MIN_THUMB_HEIGHT = 36;
 export const MESSAGE_SCROLLBAR_HIDE_DELAY = 650;
 
+/** How many of the most-recent chats get their messages prefetched (in the background) after the chat list loads, so opening one is a cache hit instead of a network round trip. */
+export const MESSAGE_PREFETCH_CHAT_COUNT = 6;
+
 /** Report reasons; labels come from the `ReportUser.reasons` i18n namespace (shared with user reports). */
 export const REASON_VALUES: MessageReportReason[] = [
   "spam",

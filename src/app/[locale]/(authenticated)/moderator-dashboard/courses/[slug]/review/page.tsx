@@ -8,33 +8,52 @@ import { ArrowUpRight, Save } from "lucide-react";
 import { AccentButton } from "@/shared/ui/AccentButton";
 import { GradientButton } from "@/shared/ui/GradientButton";
 import {
-  getCourseBySlug, approveCourse, rejectCourse, saveReviewDraft,
-  approvePendingEdit, rejectPendingEdit, getPendingEdit,
+  getCourseBySlug,
+  approveCourse,
+  rejectCourse,
+  saveReviewDraft,
+  approvePendingEdit,
+  rejectPendingEdit,
+  getPendingEdit,
 } from "@/entities/course";
 import type { CourseDetail, CoursePendingEdit } from "@/entities/course";
 import { CourseCreationLayout, CourseCreationStepper } from "@/features/courses";
 import {
-  computeSectionAction, computeFinalAction,
-  ITEM_CYCLE, BASICS_FIELD_KEYS,
-  type ModeratorAction, type ItemStatus, type ItemStatuses, type StepProps,
-  ModeratorBasicsStep, ModeratorContentStep, ModeratorReviewStep,
+  computeSectionAction,
+  computeFinalAction,
+  ITEM_CYCLE,
+  BASICS_FIELD_KEYS,
+  type ModeratorAction,
+  type ItemStatus,
+  type ItemStatuses,
+  type StepProps,
+  ModeratorBasicsStep,
+  ModeratorContentStep,
+  ModeratorReviewStep,
 } from "@/features/courses";
 import type { ApiError } from "@/shared/api/base";
 import { usePageLoadingOverlay } from "@/shared/lib/pageLoadingSignal";
 
-const ALL_BASICS_KEYS = new Set(["field-title", "field-short-description", "field-full-description", "field-icon", "field-category", "field-level"]);
+const ALL_BASICS_KEYS = new Set([
+  "field-title",
+  "field-short-description",
+  "field-full-description",
+  "field-icon",
+  "field-category",
+  "field-level",
+]);
 
 /** Compare the draft course directly to the live course to detect real changes. */
 function computeLockedFieldKeys(draft: CourseDetail, course: CourseDetail): Set<string> {
   const changed = new Set<string>();
-  if (draft.title !== course.title)                             changed.add("field-title");
-  if (draft.short_description !== course.short_description)     changed.add("field-short-description");
-  if (draft.full_description  !== course.full_description)      changed.add("field-full-description");
+  if (draft.title !== course.title) changed.add("field-title");
+  if (draft.short_description !== course.short_description) changed.add("field-short-description");
+  if (draft.full_description !== course.full_description) changed.add("field-full-description");
   // Cloning duplicates the image under a fresh generated storage path, so two
   // byte-identical images never share a URL — compare content hash instead.
   if ((draft.image_hash ?? null) !== (course.image_hash ?? null)) changed.add("field-icon");
   if ((draft.category?.id ?? null) !== (course.category?.id ?? null)) changed.add("field-category");
-  if (draft.level !== course.level)                              changed.add("field-level");
+  if (draft.level !== course.level) changed.add("field-level");
   return new Set([...ALL_BASICS_KEYS].filter((k) => !changed.has(k)));
 }
 
@@ -42,10 +61,13 @@ function computeLockedFieldKeys(draft: CourseDetail, course: CourseDetail): Set<
  *  by source_lesson_id/source_test_id (null = new-since-clone, never locked).
  *  Keys are the draft's own lesson/test id — matches moduleList (= draftCourse.modules)
  *  and stays stable across a needs_revision cycle, since the draft is reused, not re-cloned. */
-function computeLockedContentKeys(course: CourseDetail | null, draft: CourseDetail | null): Set<string> {
+function computeLockedContentKeys(
+  course: CourseDetail | null,
+  draft: CourseDetail | null,
+): Set<string> {
   if (!course || !draft) return new Set();
   const liveLessons = new Map(course.modules.flatMap((m) => m.lessons.map((l) => [l.id, l])));
-  const liveTests   = new Map(course.modules.flatMap((m) => (m.tests ?? []).map((t) => [t.id, t])));
+  const liveTests = new Map(course.modules.flatMap((m) => (m.tests ?? []).map((t) => [t.id, t])));
   const locked = new Set<string>();
   for (const mod of draft.modules) {
     for (const dl of mod.lessons) {
@@ -83,7 +105,9 @@ function computeLockedContentKeys(course: CourseDetail | null, draft: CourseDeta
         // Both arrays come back ordered by `order` (model default ordering) --
         // a same-position source-id match confirms the display sequence, not
         // just the per-item content, is unchanged.
-        const orderUnchanged = draftItems.every((di, idx) => di.source_lesson_item_id === liveItems[idx]?.id);
+        const orderUnchanged = draftItems.every(
+          (di, idx) => di.source_lesson_item_id === liveItems[idx]?.id,
+        );
         itemsUnchanged = contentUnchanged && orderUnchanged;
       }
       if (metaUnchanged && itemsUnchanged) locked.add(`lesson-${dl.id}`);
@@ -99,111 +123,115 @@ function computeLockedContentKeys(course: CourseDetail | null, draft: CourseDeta
 }
 
 export default function ModeratorReviewPage() {
-  const { slug }  = useParams<{ slug: string }>();
-  const router    = useRouter();
-  const t         = useTranslations("ModeratorCourseReviewPage");
-  const tStepper  = useTranslations("CourseCreationStepper");
-  const tReview   = useTranslations("CourseReviewPage");
-  const tBasics   = useTranslations("CourseBasicsForm");
+  const { slug } = useParams<{ slug: string }>();
+  const router = useRouter();
+  const t = useTranslations("ModeratorCourseReviewPage");
+  const tStepper = useTranslations("CourseCreationStepper");
+  const tReview = useTranslations("CourseReviewPage");
+  const tBasics = useTranslations("CourseBasicsForm");
 
   const STEPS = [
-    { name: tStepper("stepBasicsName"),  sub: tStepper("stepBasicsSub")  },
+    { name: tStepper("stepBasicsName"), sub: tStepper("stepBasicsSub") },
     { name: tStepper("stepContentName"), sub: tStepper("stepContentSub") },
-    { name: t("reviewPublishStepName"),  sub: t("reviewPublishStepSub")  },
+    { name: t("reviewPublishStepName"), sub: t("reviewPublishStepSub") },
   ];
 
-  const [course, setCourse]                       = useState<CourseDetail | null>(null);
-  const [loading, setLoading]                     = useState(true);
+  const [course, setCourse] = useState<CourseDetail | null>(null);
+  const [loading, setLoading] = useState(true);
   usePageLoadingOverlay(loading);
-  const [step, setStep]                           = useState<0 | 1 | 2>(0);
-  const [action, setAction]                       = useState<ModeratorAction>(null);
-  const [comment, setComment]                     = useState("");
-  const [finalComment, setFinalComment]           = useState("");
-  const [submitting, setSubmitting]               = useState(false);
-  const [saving, setSaving]                       = useState(false);
-  const [saved, setSaved]                         = useState(false);
-  const [error, setError]                         = useState("");
-  const [itemStatuses, setItemStatuses]           = useState<ItemStatuses>({});
-  const [contentNote, setContentNote]   = useState("");
+  const [step, setStep] = useState<0 | 1 | 2>(0);
+  const [action, setAction] = useState<ModeratorAction>(null);
+  const [comment, setComment] = useState("");
+  const [finalComment, setFinalComment] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState("");
+  const [itemStatuses, setItemStatuses] = useState<ItemStatuses>({});
+  const [contentNote, setContentNote] = useState("");
   const [basicsAction, setBasicsAction] = useState<ItemStatus>(null);
   const [contentAction, setContentAction] = useState<ItemStatus>(null);
-  const [pendingEdit, setPendingEdit]   = useState<CoursePendingEdit | null>(null);
-  const [draftCourse, setDraftCourse]   = useState<CourseDetail | null>(null);
-  const [lockedKeys, setLockedKeys]     = useState<Set<string>>(new Set());
+  const [pendingEdit, setPendingEdit] = useState<CoursePendingEdit | null>(null);
+  const [draftCourse, setDraftCourse] = useState<CourseDetail | null>(null);
+  const [lockedKeys, setLockedKeys] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!slug) return;
-    getCourseBySlug(slug).then(async (c) => {
-      setCourse(c);
-      const isPE = c.status === "published" || c.status === "hidden";
-      let pe: CoursePendingEdit | null = null;
-      let draft: CourseDetail | null = null;
-      if (isPE) {
-        try {
-          pe = await getPendingEdit(slug);
-          draft = await getCourseBySlug(pe.draft_course_slug);
-        } catch { /* no pending edit */ }
-      }
-      setPendingEdit(pe);
-      setDraftCourse(draft);
-
-      if (pe && draft) {
-        // Compute locked keys from diff
-        const fieldLocked    = computeLockedFieldKeys(draft, c);
-        const contentLocked  = computeLockedContentKeys(c, draft);
-        const allLocked      = new Set([...fieldLocked, ...contentLocked]);
-        setLockedKeys(allLocked);
-
-        // Pre-populate locked keys as "approved"
-        const autoStatuses: ItemStatuses = {};
-        for (const k of allLocked) autoStatuses[k] = "approved";
-
-        // Merge with previous moderation review if any, but skip stale data
-        // from a previous moderation cycle (predates this pending edit entirely).
-        const mr = c.moderation_review;
-        const isStale = mr != null &&
-          new Date(mr.updated_at) < new Date(pe.created_at);
-        if (mr && !isStale) {
-          setComment(mr.basics_comment ?? "");
-          setBasicsAction((mr.basics_action || null) as ItemStatus);
-          setContentNote(mr.content_comment ?? "");
-          setContentAction((mr.content_action || null) as ItemStatus);
-          setFinalComment(mr.final_comment ?? "");
-          setAction((mr.final_action || null) as ModeratorAction);
-          setItemStatuses({
-            ...autoStatuses,
-            ...(mr.basics_field_statuses ?? {}),
-            ...(mr.content_item_statuses ?? {}),
-          } as ItemStatuses);
-        } else {
-          setItemStatuses(autoStatuses);
+    getCourseBySlug(slug)
+      .then(async (c) => {
+        setCourse(c);
+        const isPE = c.status === "published" || c.status === "hidden";
+        let pe: CoursePendingEdit | null = null;
+        let draft: CourseDetail | null = null;
+        if (isPE) {
+          try {
+            pe = await getPendingEdit(slug);
+            draft = await getCourseBySlug(pe.draft_course_slug);
+          } catch {
+            /* no pending edit */
+          }
         }
-        return;
-      }
+        setPendingEdit(pe);
+        setDraftCourse(draft);
 
-      // Regular (initial) review: restore from ModerationReview if present
-      const mr = c.moderation_review;
-      if (!mr) return;
-      setComment(mr.basics_comment ?? "");
-      setBasicsAction((mr.basics_action || null) as ItemStatus);
-      setContentNote(mr.content_comment ?? "");
-      setContentAction((mr.content_action || null) as ItemStatus);
-      setFinalComment(mr.final_comment ?? "");
-      setAction((mr.final_action || null) as ModeratorAction);
-      setItemStatuses({
-        ...(mr.basics_field_statuses ?? {}),
-        ...(mr.content_item_statuses ?? {}),
-      } as ItemStatuses);
-    }).catch(() => {}).finally(() => setLoading(false));
+        if (pe && draft) {
+          const fieldLocked = computeLockedFieldKeys(draft, c);
+          const contentLocked = computeLockedContentKeys(c, draft);
+          const allLocked = new Set([...fieldLocked, ...contentLocked]);
+          setLockedKeys(allLocked);
+
+          const autoStatuses: ItemStatuses = {};
+          for (const k of allLocked) autoStatuses[k] = "approved";
+
+          // Merge with previous moderation review if any, but skip stale data
+          // from a previous moderation cycle (predates this pending edit entirely).
+          const mr = c.moderation_review;
+          const isStale = mr != null && new Date(mr.updated_at) < new Date(pe.created_at);
+          if (mr && !isStale) {
+            setComment(mr.basics_comment ?? "");
+            setBasicsAction((mr.basics_action || null) as ItemStatus);
+            setContentNote(mr.content_comment ?? "");
+            setContentAction((mr.content_action || null) as ItemStatus);
+            setFinalComment(mr.final_comment ?? "");
+            setAction((mr.final_action || null) as ModeratorAction);
+            setItemStatuses({
+              ...autoStatuses,
+              ...(mr.basics_field_statuses ?? {}),
+              ...(mr.content_item_statuses ?? {}),
+            } as ItemStatuses);
+          } else {
+            setItemStatuses(autoStatuses);
+          }
+          return;
+        }
+
+        const mr = c.moderation_review;
+        if (!mr) return;
+        setComment(mr.basics_comment ?? "");
+        setBasicsAction((mr.basics_action || null) as ItemStatus);
+        setContentNote(mr.content_comment ?? "");
+        setContentAction((mr.content_action || null) as ItemStatus);
+        setFinalComment(mr.final_comment ?? "");
+        setAction((mr.final_action || null) as ModeratorAction);
+        setItemStatuses({
+          ...(mr.basics_field_statuses ?? {}),
+          ...(mr.content_item_statuses ?? {}),
+        } as ItemStatuses);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, [slug]);
 
   const moduleList = useMemo(
-    () => pendingEdit && draftCourse
-      ? draftCourse.modules
-      : Array.isArray(course?.modules) ? course.modules : [],
+    () =>
+      pendingEdit && draftCourse
+        ? draftCourse.modules
+        : Array.isArray(course?.modules)
+          ? course.modules
+          : [],
     [pendingEdit, draftCourse, course],
   );
-  const title      = course?.title ?? tReview("untitledCourse");
+  const title = course?.title ?? tReview("untitledCourse");
 
   // Auto-set section actions when item statuses change.
   // The moderator can still manually override by clicking the action buttons.
@@ -223,7 +251,6 @@ export default function ModeratorReviewPage() {
     if (computed !== null) setContentAction(computed);
   }, [itemStatuses, moduleList]);
 
-  // Auto-set final action from section actions.
   useEffect(() => {
     const computed = computeFinalAction(basicsAction, contentAction);
     if (computed !== null) setAction(computed);
@@ -232,7 +259,7 @@ export default function ModeratorReviewPage() {
   function handleItemStatusToggle(key: string) {
     setItemStatuses((prev) => {
       const cur = prev[key] ?? null;
-      const idx  = ITEM_CYCLE.indexOf(cur);
+      const idx = ITEM_CYCLE.indexOf(cur);
       return { ...prev, [key]: ITEM_CYCLE[(idx + 1) % ITEM_CYCLE.length] };
     });
   }
@@ -296,8 +323,7 @@ export default function ModeratorReviewPage() {
     const effectiveAction = hasAnyFlagged && action === "approved" ? "needs_revision" : action;
     setSubmitting(true);
     setError("");
-    const isPendingEdit =
-      course?.status === "published" || course?.status === "hidden";
+    const isPendingEdit = course?.status === "published" || course?.status === "hidden";
 
     try {
       if (effectiveAction === "approved") {
@@ -342,10 +368,13 @@ export default function ModeratorReviewPage() {
         );
       }
       const returnTab =
-        effectiveAction === "approved"       ? "approved"
-        : effectiveAction === "rejected"     ? "rejected"
-        : effectiveAction === "needs_revision" ? "needs_revision"
-        : "review";
+        effectiveAction === "approved"
+          ? "approved"
+          : effectiveAction === "rejected"
+            ? "rejected"
+            : effectiveAction === "needs_revision"
+              ? "needs_revision"
+              : "review";
       router.push(`/moderator-dashboard/courses?tab=${returnTab}`);
     } catch (err: unknown) {
       setError((err as Partial<ApiError>).message ?? t("actionFailedError"));
@@ -370,16 +399,16 @@ export default function ModeratorReviewPage() {
     contentNote,
     basicsAction,
     contentAction,
-    onActionChange:         setAction,
-    onCommentChange:        setComment,
-    onFinalCommentChange:   setFinalComment,
-    onItemStatusToggle:     handleItemStatusToggle,
-    onContentNoteChange:    setContentNote,
-    onBasicsActionChange:   setBasicsAction,
-    onContentActionChange:  setContentAction,
-    onNext:    () => setStep((s) => Math.min(s + 1, 2) as 0 | 1 | 2),
-    onBack:    () => setStep((s) => Math.max(s - 1, 0) as 0 | 1 | 2),
-    onSubmit:  handleSubmit,
+    onActionChange: setAction,
+    onCommentChange: setComment,
+    onFinalCommentChange: setFinalComment,
+    onItemStatusToggle: handleItemStatusToggle,
+    onContentNoteChange: setContentNote,
+    onBasicsActionChange: setBasicsAction,
+    onContentActionChange: setContentAction,
+    onNext: () => setStep((s) => Math.min(s + 1, 2) as 0 | 1 | 2),
+    onBack: () => setStep((s) => Math.max(s - 1, 0) as 0 | 1 | 2),
+    onSubmit: handleSubmit,
     router,
     courseSlug: slug ?? "",
   };
@@ -391,26 +420,44 @@ export default function ModeratorReviewPage() {
 
   return (
     <CourseCreationLayout>
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between"
-        style={{ marginBottom: "clamp(16px, 1.56vw, 30px)", gap: "clamp(10px, 0.83vw, 12px)" }}>
+      <div
+        className="flex flex-wrap items-center justify-between"
+        style={{ marginBottom: "clamp(16px, 1.56vw, 30px)", gap: "clamp(10px, 0.83vw, 12px)" }}
+      >
         <div className="flex items-center" style={{ gap: "clamp(10px, 1.04vw, 20px)" }}>
-          <h1 className="font-semibold font-(family-name:--font-base) text-(--color-text-primary)"
-            style={{ fontSize: "clamp(22px, 1.875vw, 36px)", lineHeight: 1.25 }}>{title}</h1>
-          <span className="rounded bg-(--color-draft) font-medium font-(family-name:--font-accent) text-(--color-text-secondary)"
-            style={{ padding: "clamp(3px, 0.21vw, 4px) clamp(6px, 0.56vw, 8px)", fontSize: "clamp(11px, 0.78vw, 15px)" }}>
+          <h1
+            className="font-semibold font-(family-name:--font-base) text-(--color-text-primary)"
+            style={{ fontSize: "clamp(22px, 1.875vw, 36px)", lineHeight: 1.25 }}
+          >
+            {title}
+          </h1>
+          <span
+            className="rounded bg-(--color-draft) font-medium font-(family-name:--font-accent) text-(--color-text-secondary)"
+            style={{
+              padding: "clamp(3px, 0.21vw, 4px) clamp(6px, 0.56vw, 8px)",
+              fontSize: "clamp(11px, 0.78vw, 15px)",
+            }}
+          >
             {course?.status ?? "review"}
           </span>
         </div>
         <div className="flex items-center" style={{ gap: "clamp(10px, 1.25vw, 24px)" }}>
-          <AccentButton type="button" size="md" disabled={saving || submitting} style={{ gap: "clamp(8px, 0.69vw, 10px)" }} onClick={handleSaveDraft}>
+          <AccentButton
+            type="button"
+            size="md"
+            disabled={saving || submitting}
+            style={{ gap: "clamp(8px, 0.69vw, 10px)" }}
+            onClick={handleSaveDraft}
+          >
             <Save size={20} />
             {saving ? tBasics("saving") : saved ? t("savedLabel") : t("saveDraftLabel")}
           </AccentButton>
-          <GradientButton type="button"
+          <GradientButton
+            type="button"
             disabled={step !== 2 || !action || submitting}
             onClick={step === 2 && action && !submitting ? handleSubmit : undefined}
-            style={{ gap: "clamp(8px, 0.83vw, 12px)" }}>
+            style={{ gap: "clamp(8px, 0.83vw, 12px)" }}
+          >
             {tReview("continueToReviewAndPublish")}
             <ArrowUpRight size={20} aria-hidden="true" />
           </GradientButton>
@@ -419,9 +466,9 @@ export default function ModeratorReviewPage() {
 
       <CourseCreationStepper currentStep={step} steps={STEPS} />
 
-      {step === 0 && <ModeratorBasicsStep  {...sharedProps} />}
+      {step === 0 && <ModeratorBasicsStep {...sharedProps} />}
       {step === 1 && <ModeratorContentStep {...sharedProps} />}
-      {step === 2 && <ModeratorReviewStep  {...sharedProps} />}
+      {step === 2 && <ModeratorReviewStep {...sharedProps} />}
     </CourseCreationLayout>
   );
 }

@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { BookOpen, Check, ChevronDown, Clock, User, Users } from "lucide-react";
-// ChevronDown used inside CohortPicker and IndividualSlotPicker collapsible headers
 import { addCartItem } from "@/entities/cart";
 import type {
   DeliveryFormatType,
@@ -190,7 +189,6 @@ function IndividualSlotPicker({
       .finally(() => setLoading(false));
   }, [slug, formatId]);
 
-  // Group by day_of_week, sorted Mon→Sun
   const byDay = slots.reduce<Record<number, ScheduleSlot[]>>((acc, s) => {
     (acc[s.day_of_week] ??= []).push(s);
     return acc;
@@ -290,7 +288,13 @@ function IndividualSlotPicker({
 }
 
 /** Tuition section: heading badge, intro, pricing cards per delivery format. */
-export function CoursePricingBlock({ courseId, formats, slug, cohorts = [], discountPercent }: Props) {
+export function CoursePricingBlock({
+  courseId,
+  formats,
+  slug,
+  cohorts = [],
+  discountPercent,
+}: Props) {
   const router = useRouter();
   const t = useTranslations("CoursePricingBlock");
   const tHeroCta = useTranslations("CourseHeroCTA");
@@ -411,14 +415,12 @@ export function CoursePricingBlock({ courseId, formats, slug, cohorts = [], disc
           const finalInstallmentAmount = plan.installment_amount
             ? resolvePrice(plan.final_installment_amount, plan.installment_amount)
             : null;
-          const hasDiscount = Boolean(
-            discountPercent && pricesDiffer(plan.price, finalPrice),
-          );
+          const hasDiscount = Boolean(discountPercent && pricesDiffer(plan.price, finalPrice));
           const hasInstallmentDiscount = Boolean(
             discountPercent &&
-              plan.installment_amount &&
-              finalInstallmentAmount &&
-              pricesDiffer(plan.installment_amount, finalInstallmentAmount),
+            plan.installment_amount &&
+            finalInstallmentAmount &&
+            pricesDiffer(plan.installment_amount, finalInstallmentAmount),
           );
           const Icon = FORMAT_ICON[fmt.format_type];
           const isGroup = fmt.format_type === "group";

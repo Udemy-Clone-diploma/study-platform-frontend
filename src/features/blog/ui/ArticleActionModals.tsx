@@ -25,6 +25,8 @@ export function ArticleActionModals({ categories, state }: Props) {
     deletingArticle,
     setDeletingArticle,
     deleteLoading,
+    actionError,
+    setActionError,
     confirmReject,
     confirmDelete,
     refresh,
@@ -43,7 +45,9 @@ export function ArticleActionModals({ categories, state }: Props) {
           }}
           existingCoverImageUrl={editingArticle.cover_image}
           submitLabel={t("saveChangesLabel")}
-          moderatorComment={editingArticle.status === "rejected" ? editingArticle.moderator_comment : null}
+          moderatorComment={
+            editingArticle.status === "rejected" ? editingArticle.moderator_comment : null
+          }
           onClose={() => setEditingArticle(null)}
           onSave={async (values) => {
             await updateArticle(editingArticle.slug, values);
@@ -67,6 +71,23 @@ export function ArticleActionModals({ categories, state }: Props) {
           onConfirm={confirmDelete}
           onCancel={() => setDeletingArticle(null)}
         />
+      )}
+
+      {actionError && (
+        <div
+          role="alert"
+          className="fixed bottom-6 left-1/2 z-[200] -translate-x-1/2 rounded-md bg-(--color-error-surface) px-4 py-2.5 shadow-md"
+        >
+          <span className="text-sm font-medium text-(--color-danger)">{actionError}</span>
+          <button
+            type="button"
+            onClick={() => setActionError("")}
+            aria-label={tCommon("close")}
+            className="ml-3 text-sm font-semibold text-(--color-danger)"
+          >
+            ×
+          </button>
+        </div>
       )}
     </>
   );

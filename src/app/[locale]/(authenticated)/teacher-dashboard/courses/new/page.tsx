@@ -19,7 +19,13 @@ import type { TeacherProfile } from "@/entities/user";
 import type { ApiError } from "@/shared/api/base";
 import { mapApiFieldErrors } from "@/shared/lib/apiErrors";
 
-const EMPTY_FORM: CourseBasicsFormValues = { title: "", short_description: "", full_description: "", category_id: "", level: "" };
+const EMPTY_FORM: CourseBasicsFormValues = {
+  title: "",
+  short_description: "",
+  full_description: "",
+  category_id: "",
+  level: "",
+};
 
 export default function NewCoursePage() {
   const t = useTranslations("CourseBasicsPage");
@@ -34,13 +40,17 @@ export default function NewCoursePage() {
   const [form, setForm] = useState<CourseBasicsFormValues>(EMPTY_FORM);
 
   useEffect(() => {
-    getCategories().then(setCategories).catch(() => {});
+    getCategories()
+      .then(setCategories)
+      .catch(() => {});
     getMe()
       .then((user) => setTeacherProfileId((user.profile as TeacherProfile).id))
       .catch(() => {});
   }, []);
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
+  function handleChange(
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+  ) {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
     setFieldErrors((prev) => ({ ...prev, [name]: "" }));
@@ -107,7 +117,11 @@ export default function NewCoursePage() {
 
   return (
     <CourseCreationLayout>
-      <CoursePageHeader title={form.title || t("untitledCourse")} saving={saving} onSaveDraft={handleSaveDraft} />
+      <CoursePageHeader
+        title={form.title || t("untitledCourse")}
+        saving={saving}
+        onSaveDraft={handleSaveDraft}
+      />
       <CourseCreationStepper currentStep={0} />
       <CourseBasicsCard onSubmit={handleSubmit}>
         <CourseBasicsForm

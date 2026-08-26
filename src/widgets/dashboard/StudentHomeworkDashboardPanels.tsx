@@ -603,7 +603,8 @@ function HomeworkQueueCard({
       <HomeworkIcon visual={visual} />
       <div className="min-w-0 flex-1">
         <p className="truncate text-xs text-[#5e5e5e]">
-          {assignment.course_title} <span className="px-1">|</span> {kindLabel(assignmentKind(assignment), t)}
+          {assignment.course_title} <span className="px-1">|</span>{" "}
+          {kindLabel(assignmentKind(assignment), t)}
         </p>
         <p className="truncate text-base font-medium text-black">{assignment.title}</p>
       </div>

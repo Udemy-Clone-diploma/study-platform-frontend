@@ -19,7 +19,6 @@ export async function CourseScheduleCard({ cohorts, modules_count, lessons_count
       )
     : null;
 
-  // Compute h/week range across all cohorts
   const hours = cohorts.map((c) => c.hours_per_week).filter((h) => h > 0);
   const minH = hours.length ? Math.min(...hours) : 0;
   const maxH = hours.length ? Math.max(...hours) : 0;

@@ -72,7 +72,8 @@
     "invitedBy": "від {organizer}",
     "scheduleConflict": "Конфлікт розкладу",
     "accept": "Прийняти",
-    "decline": "Відхилити"
+    "decline": "Відхилити",
+    "respondFailed": "Не вдалося надіслати відповідь. Спробуйте ще раз."
   },
   "StudentHomeworkDashboard": {
     "homework": "Домашні завдання",
@@ -488,7 +489,8 @@
   "ArticleActionModals": {
     "saveChangesLabel": "Зберегти зміни",
     "deleteArticleTitle": "Видалити статтю",
-    "deleteArticleDescription": "Видалити «{title}»? Це неможливо скасувати."
+    "deleteArticleDescription": "Видалити «{title}»? Це неможливо скасувати.",
+    "actionFailed": "Не вдалося виконати дію. Спробуйте ще раз."
   },
   "ArticleFormModal": {
     "title": "Редагувати статтю",
@@ -1424,6 +1426,10 @@
   },
   "FinanceAdminView": {
     "heading": "Фінансовий менеджмент",
+    "tabStatistics": "Статистика",
+    "tabPaymentHistory": "Історія платежів",
+    "tabTeacherPayouts": "Виплати вчителям",
+    "tabsAriaLabel": "Розділи фінансів",
     "loadingTransactions": "Завантаження транзакцій…",
     "noTransactionsFound": "Транзакцій не знайдено.",
     "errorLoadTransactions": "Не вдалося завантажити транзакції.",
@@ -1723,15 +1729,6 @@
     "deleteConfirmLabel": "Видалити",
     "genericError": "Щось пішло не так."
   },
-  "CourseStatusBadge": {
-    "draft": "Чернетка",
-    "review": "Модерація",
-    "needs_revision": "Потребує доопрацювання",
-    "rejected": "Відхилено",
-    "published": "Опубліковано",
-    "hidden": "Приховано",
-    "archived": "Архівовано"
-  },
   "CourseStatusTabs": {
     "ariaLabel": "Фільтр курсів за статусом",
     "published": "Опубліковані",
@@ -1740,9 +1737,6 @@
     "hidden": "Приховані",
     "rejected": "Відхилені",
     "archived": "Архівні"
-  },
-  "AdminDashboardPlaceholder": {
-    "comingSoon": "Панель адміністратора — незабаром"
   },
   "CoursesTable": {
     "columnCourse": "Курс",
@@ -1799,6 +1793,7 @@
     "completion": "Заповненість профілю",
     "save": "Зберегти",
     "saving": "Збереження...",
+    "saveFailed": "Не вдалося зберегти профіль. Перевірте з'єднання та спробуйте ще раз.",
     "loading": "Завантаження...",
     "email": "Email"
   },
@@ -2173,7 +2168,19 @@
     "finalScore": "Підсумковий бал",
     "certificate": "Сертифікат",
     "download": "Завантажити",
-    "notAvailable": "Недоступно для цього курсу"
+    "notAvailable": "Недоступно для цього курсу",
+    "review": "Відгук",
+    "loadingReview": "Завантаження вашого відгуку…",
+    "leaveReviewPrompt": "Як вам цей курс? Залиште оцінку та відгук.",
+    "ratingAriaLabel": "Оцінка",
+    "reviewPlaceholder": "Поділіться враженнями про курс (необов'язково)",
+    "reviewErrorGeneric": "Не вдалося надіслати відгук.",
+    "submittingReview": "Надсилання…",
+    "submitReview": "Надіслати відгук",
+    "editReview": "Редагувати відгук",
+    "cancelEdit": "Скасувати",
+    "saveReviewChanges": "Зберегти зміни",
+    "savingReview": "Збереження…"
   },
   "TeacherCoursesPage": {
     "tabAll": "Усі",
@@ -2194,7 +2201,8 @@
     "cannotReturnToDraft": "Неможливо повернути в чернетки",
     "noLongerRejected": "Цей курс більше не відхилений.",
     "currentStatus": "Поточний статус:",
-    "ok": "OK"
+    "ok": "OK",
+    "errorAction": "Не вдалося виконати дію. Спробуйте ще раз."
   },
   "TeacherCourseCard": {
     "courseOptionsAriaLabel": "Опції курсу",
@@ -2335,7 +2343,9 @@
     "backToBasics": "Назад до основного",
     "discardChanges": "Скасувати зміни",
     "backToMyCourses": "Назад до моїх курсів",
-    "continueToReviewAndPublish": "Перейти до перевірки й публікації"
+    "continueToReviewAndPublish": "Перейти до перевірки й публікації",
+    "documentsUploadFailed": "Не вдалося завантажити {files}. Урок збережено, додайте файли ще раз.",
+    "documentsDeleteFailed": "Не вдалося видалити деякі матеріали. Оновіть сторінку і спробуйте ще раз."
   },
   "ModuleCard": {
     "moduleNumber": "Модуль {order}",
@@ -2407,7 +2417,8 @@
     "minimumScoreLabel": "Мінімальний бал (необов'язково)",
     "requiredToComplete": "Обов'язково для завершення курсу",
     "requiredToCompleteHint": "Якщо в цьому уроці є тест, студенти повинні скласти його, перш ніж завершити курс (наприклад, фінальний іспит).",
-    "saveLesson": "Зберегти урок"
+    "saveLesson": "Зберегти урок",
+    "saveFailed": "Не вдалося зберегти урок. Спробуйте ще раз."
   },
   "TestFormModal": {
     "questionNumber": "Питання {order}",
@@ -2904,6 +2915,14 @@
     "menuAriaLabel": "Меню",
     "primaryNavAriaLabel": "Основна навігація"
   },
+  "BottomNav": {
+    "homework": "Завдання",
+    "courses": "Курси",
+    "dashboard": "Дашборд",
+    "chats": "Чати",
+    "reports": "Скарги",
+    "students": "Студенти"
+  },
   "Header": {
     "openMenu": "Відкрити меню",
     "closeMenu": "Закрити меню",
@@ -2940,11 +2959,7 @@
     "chooseLanguage": "Оберіть мову"
   },
   "HomeHero": {
-    "tags": [
-      "Навички",
-      "Нетворкінг",
-      "Розвиток"
-    ],
+    "tags": ["Навички", "Нетворкінг", "Розвиток"],
     "title": "Освіта нового покоління",
     "subtitle": "Платформа, де знання перетворюються на реальні результати. Просто, гнучко і по суті.",
     "rating": "Рейтинг 4.9 від понад 10 000 студентів",
@@ -2984,13 +2999,7 @@
     }
   },
   "HomeBenefits": {
-    "tags": [
-      "Апгрейд",
-      "Практика",
-      "Потік",
-      "Перевірено",
-      "Профі"
-    ],
+    "tags": ["Апгрейд", "Практика", "Потік", "Перевірено", "Профі"],
     "heading": "Навчайся. Спілкуйся. Розвивайся.",
     "description": "Там, де знання зустрічають кар'єру. Обирайте свій темп: самостійне навчання або живі сесії з менторами. Сертифікати, тести й розумний календар — усе для вашого апгрейду в одній вкладці.",
     "cards": {

@@ -7,7 +7,10 @@ import { useEffect, useRef } from "react";
  */
 export function useAutoRefresh(callback: () => void, intervalMs = 30_000) {
   const cbRef = useRef(callback);
-  cbRef.current = callback;
+
+  useEffect(() => {
+    cbRef.current = callback;
+  }, [callback]);
 
   useEffect(() => {
     const tick = () => cbRef.current();

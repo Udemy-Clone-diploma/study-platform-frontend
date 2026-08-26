@@ -27,38 +27,48 @@ import type {
 import { DataTable } from "@/shared/ui/DataTable";
 import type { DataTableColumn } from "@/shared/ui/DataTable";
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
 function getInitials(name: string): string {
-  return name.split(" ").slice(0, 2).map((w) => w[0] ?? "").join("").toUpperCase();
+  return name
+    .split(" ")
+    .slice(0, 2)
+    .map((w) => w[0] ?? "")
+    .join("")
+    .toUpperCase();
 }
-
-// ── Types ─────────────────────────────────────────────────────────────────────
 
 type Mode = "group" | "individual";
 
-
-// ── StudentAvatar ─────────────────────────────────────────────────────────────
-
 function StudentAvatar({ name, avatar }: { name: string; avatar?: string | null }) {
   const size = "clamp(32px, 2.78vw, 40px)";
-  if (avatar) return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img src={avatar} alt={name} className="shrink-0 rounded-full" style={{ width: size, height: size, objectFit: "cover" }} />
-  );
+  if (avatar)
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={avatar}
+        alt={name}
+        className="shrink-0 rounded-full"
+        style={{ width: size, height: size, objectFit: "cover" }}
+      />
+    );
   return (
     <div
       className="flex shrink-0 items-center justify-center rounded-full"
       style={{ width: size, height: size, background: "var(--gradient-brand)" }}
     >
-      <span style={{ fontFamily: "var(--font-accent)", fontWeight: 700, fontSize: "clamp(9px, 0.69vw, 11px)", color: "var(--color-text-primary)", lineHeight: 1 }}>
+      <span
+        style={{
+          fontFamily: "var(--font-accent)",
+          fontWeight: 700,
+          fontSize: "clamp(9px, 0.69vw, 11px)",
+          color: "var(--color-text-primary)",
+          lineHeight: 1,
+        }}
+      >
         {getInitials(name)}
       </span>
     </div>
   );
 }
-
-// ── AttendanceCheckbox ────────────────────────────────────────────────────────
 
 interface AttendanceCheckboxProps {
   checked: boolean;
@@ -100,8 +110,6 @@ function AttendanceCheckbox({ checked, disabled, onChange }: AttendanceCheckboxP
   );
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────────
-
 export default function TeacherAttendancePage() {
   const t = useTranslations("TeacherAttendancePage");
   const tCommon = useTranslations("Common");
@@ -113,35 +121,34 @@ export default function TeacherAttendancePage() {
   ];
   const now = new Date();
 
-  const [courses, setCourses]               = useState<CourseListItem[]>([]);
+  const [courses, setCourses] = useState<CourseListItem[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<string>("");
   const [loadingCourses, setLoadingCourses] = useState(true);
 
   const [mode, setMode] = useState<Mode>("group");
 
-  const [formats, setFormats]           = useState<CourseDeliveryFormat[]>([]);
+  const [formats, setFormats] = useState<CourseDeliveryFormat[]>([]);
   const [loadingFormats, setLoadingFormats] = useState(false);
 
-  const [cohorts, setCohorts]               = useState<CourseCohort[]>([]);
+  const [cohorts, setCohorts] = useState<CourseCohort[]>([]);
   const [selectedCohort, setSelectedCohort] = useState<string>("");
 
-  const [individuals, setIndividuals]               = useState<IndividualEnrollment[]>([]);
+  const [individuals, setIndividuals] = useState<IndividualEnrollment[]>([]);
   const [selectedEnrollment, setSelectedEnrollment] = useState<string>("");
 
-  const [calYear, setCalYear]   = useState(now.getFullYear());
+  const [calYear, setCalYear] = useState(now.getFullYear());
   const [calMonth, setCalMonth] = useState(now.getMonth() + 1);
   const [calendarResetKey, setCalendarResetKey] = useState(0);
   const [sessionDates, setSessionDates] = useState<Set<string>>(new Set());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
-  const [records, setRecords]       = useState<AttendanceRecord[]>([]);
+  const [records, setRecords] = useState<AttendanceRecord[]>([]);
   const [attendance, setAttendance] = useState<Map<number, boolean>>(new Map());
   const [loadingRecords, setLoadingRecords] = useState(false);
 
   // Tracks which course+mode combo was last fetched to avoid redundant requests
   const metaFetchedFor = useRef<string>("");
 
-  // ── Load courses ───────────────────────────────────────────────────────────
   useEffect(() => {
     getTeacherCourses()
       .then((res) => {
@@ -152,7 +159,6 @@ export default function TeacherAttendancePage() {
       .finally(() => setLoadingCourses(false));
   }, []);
 
-  // ── Load delivery formats (independent of mode, used to know which types exist) ──
   useEffect(() => {
     if (!selectedCourse) {
       setFormats([]);
@@ -172,12 +178,17 @@ export default function TeacherAttendancePage() {
           return hasGroup ? "group" : "individual";
         });
       })
-      .catch(() => { if (!cancelled) setFormats([]); })
-      .finally(() => { if (!cancelled) setLoadingFormats(false); });
-    return () => { cancelled = true; };
+      .catch(() => {
+        if (!cancelled) setFormats([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingFormats(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [selectedCourse]);
 
-  // ── Load cohorts (group mode) ──────────────────────────────────────────────
   useEffect(() => {
     if (!selectedCourse || mode !== "group") return;
     const key = `${selectedCourse}:group`;
@@ -188,10 +199,12 @@ export default function TeacherAttendancePage() {
         setCohorts(list);
         setSelectedCohort(list.length > 0 ? String(list[0].id) : "");
       })
-      .catch(() => { setCohorts([]); setSelectedCohort(""); });
+      .catch(() => {
+        setCohorts([]);
+        setSelectedCohort("");
+      });
   }, [selectedCourse, mode]);
 
-  // ── Load individual enrollments ────────────────────────────────────────────
   useEffect(() => {
     if (!selectedCourse || mode !== "individual") return;
     const key = `${selectedCourse}:individual`;
@@ -202,15 +215,16 @@ export default function TeacherAttendancePage() {
         setIndividuals(list);
         setSelectedEnrollment(list.length > 0 ? String(list[0].enrollment_id) : "");
       })
-      .catch(() => { setIndividuals([]); setSelectedEnrollment(""); });
+      .catch(() => {
+        setIndividuals([]);
+        setSelectedEnrollment("");
+      });
   }, [selectedCourse, mode]);
 
-  // ── Load session dates ─────────────────────────────────────────────────────
   useEffect(() => {
     if (!selectedCourse) return;
     const canFetch =
-      (mode === "group" && !!selectedCohort) ||
-      (mode === "individual" && !!selectedEnrollment);
+      (mode === "group" && !!selectedCohort) || (mode === "individual" && !!selectedEnrollment);
     if (!canFetch) return;
 
     let cancelled = false;
@@ -226,17 +240,25 @@ export default function TeacherAttendancePage() {
         setSessionDates(s);
         if (selectedDate && !s.has(selectedDate)) setSelectedDate(null);
       })
-      .catch(() => { if (!cancelled) setSessionDates(new Set()); });
-    return () => { cancelled = true; };
+      .catch(() => {
+        if (!cancelled) setSessionDates(new Set());
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [selectedCourse, mode, selectedCohort, selectedEnrollment, calYear, calMonth]);
 
-  // ── Load attendance ────────────────────────────────────────────────────────
   useEffect(() => {
-    if (!selectedCourse || !selectedDate) { setRecords([]); return; }
+    if (!selectedCourse || !selectedDate) {
+      setRecords([]);
+      return;
+    }
     const canFetch =
-      (mode === "group" && !!selectedCohort) ||
-      (mode === "individual" && !!selectedEnrollment);
-    if (!canFetch) { setRecords([]); return; }
+      (mode === "group" && !!selectedCohort) || (mode === "individual" && !!selectedEnrollment);
+    if (!canFetch) {
+      setRecords([]);
+      return;
+    }
 
     let cancelled = false;
     setLoadingRecords(true);
@@ -251,12 +273,17 @@ export default function TeacherAttendancePage() {
         setRecords(data);
         setAttendance(new Map(data.map((r) => [r.enrollment_id, r.is_present])));
       })
-      .catch(() => { if (!cancelled) setRecords([]); })
-      .finally(() => { if (!cancelled) setLoadingRecords(false); });
-    return () => { cancelled = true; };
+      .catch(() => {
+        if (!cancelled) setRecords([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingRecords(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [selectedCourse, mode, selectedCohort, selectedEnrollment, selectedDate]);
 
-  // ── Handlers ───────────────────────────────────────────────────────────────
   function resetCalToToday() {
     const t = new Date();
     setCalYear(t.getFullYear());
@@ -268,51 +295,74 @@ export default function TeacherAttendancePage() {
     metaFetchedFor.current = "";
     setSelectedCourse(slug);
     setFormats([]);
-    setCohorts([]); setSelectedCohort("");
-    setIndividuals([]); setSelectedEnrollment("");
-    setSessionDates(new Set()); setSelectedDate(null); setRecords([]);
+    setCohorts([]);
+    setSelectedCohort("");
+    setIndividuals([]);
+    setSelectedEnrollment("");
+    setSessionDates(new Set());
+    setSelectedDate(null);
+    setRecords([]);
     resetCalToToday();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleModeChange = useCallback((m: string) => {
     metaFetchedFor.current = "";
     setMode(m as Mode);
-    setSelectedCohort(""); setSelectedEnrollment("");
-    setSessionDates(new Set()); setSelectedDate(null); setRecords([]);
+    setSelectedCohort("");
+    setSelectedEnrollment("");
+    setSessionDates(new Set());
+    setSelectedDate(null);
+    setRecords([]);
     resetCalToToday();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleCohortChange = useCallback((id: string) => {
     setSelectedCohort(id);
-    setSessionDates(new Set()); setSelectedDate(null); setRecords([]);
+    setSessionDates(new Set());
+    setSelectedDate(null);
+    setRecords([]);
     resetCalToToday();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleEnrollmentChange = useCallback((id: string) => {
     setSelectedEnrollment(id);
-    setSessionDates(new Set()); setSelectedDate(null); setRecords([]);
+    setSessionDates(new Set());
+    setSelectedDate(null);
+    setRecords([]);
     resetCalToToday();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleCalendarViewChange = useCallback((y: number, m: number) => {
-    setCalYear(y); setCalMonth(m);
   }, []);
 
-  const handleToggleAttendance = useCallback(async (enrollmentId: number, isPresent: boolean) => {
-    if (!selectedDate || !selectedCourse) return;
-    setAttendance((prev) => new Map(prev).set(enrollmentId, isPresent));
-    try {
-      if (mode === "group") {
-        await markAttendance(selectedCourse, Number(selectedCohort), selectedDate, enrollmentId, isPresent);
-      } else {
-        await markEnrollmentAttendance(selectedCourse, enrollmentId, selectedDate, isPresent);
-      }
-    } catch {
-      setAttendance((prev) => new Map(prev).set(enrollmentId, !isPresent));
-    }
-  }, [selectedCourse, mode, selectedCohort, selectedDate]);
+  const handleCalendarViewChange = useCallback(
+    (y: number, m: number) => {
+      setCalYear(y);
+      setCalMonth(m);
+    },
+    [setCalYear, setCalMonth],
+  );
 
-  // ── Dropdown options ───────────────────────────────────────────────────────
+  const handleToggleAttendance = useCallback(
+    async (enrollmentId: number, isPresent: boolean) => {
+      if (!selectedDate || !selectedCourse) return;
+      setAttendance((prev) => new Map(prev).set(enrollmentId, isPresent));
+      try {
+        if (mode === "group") {
+          await markAttendance(
+            selectedCourse,
+            Number(selectedCohort),
+            selectedDate,
+            enrollmentId,
+            isPresent,
+          );
+        } else {
+          await markEnrollmentAttendance(selectedCourse, enrollmentId, selectedDate, isPresent);
+        }
+      } catch {
+        setAttendance((prev) => new Map(prev).set(enrollmentId, !isPresent));
+      }
+    },
+    [selectedCourse, mode, selectedCohort, selectedDate],
+  );
+
   const courseOptions = courses.map((c) => ({ value: c.slug, label: c.title }));
   const cohortOptions = cohorts.map((c, i) => ({
     value: String(c.id),
@@ -336,7 +386,6 @@ export default function TeacherAttendancePage() {
 
   const hasSession = records[0]?.has_session ?? false;
 
-  // ── Columns ────────────────────────────────────────────────────────────────
   const columns: DataTableColumn<AttendanceRecord>[] = [
     {
       key: "student",
@@ -372,7 +421,9 @@ export default function TeacherAttendancePage() {
       cellAlign: "center",
       headerAlign: "center",
       render: (row) => (
-        <span>{row.monthly_attendance_percent > 0 ? `${row.monthly_attendance_percent}%` : "—"}</span>
+        <span>
+          {row.monthly_attendance_percent > 0 ? `${row.monthly_attendance_percent}%` : "—"}
+        </span>
       ),
     },
     {
@@ -391,9 +442,7 @@ export default function TeacherAttendancePage() {
       flex: 1.5,
       cellAlign: "center",
       headerAlign: "center",
-      render: (row) => (
-        <span>{row.progress_percent > 0 ? `${row.progress_percent}%` : "—"}</span>
-      ),
+      render: (row) => <span>{row.progress_percent > 0 ? `${row.progress_percent}%` : "—"}</span>,
     },
   ];
 
@@ -405,7 +454,6 @@ export default function TeacherAttendancePage() {
         ? t("noStudentsInGroup")
         : t("noSessionForStudent");
 
-  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <PageShell className="bg-my-courses" fixedHeight>
       <div
@@ -419,12 +467,10 @@ export default function TeacherAttendancePage() {
           minHeight: 0,
         }}
       >
-        {/* Top bar */}
         <div
           className="flex flex-wrap items-center justify-between gap-4 shrink-0"
           style={{ marginBottom: "clamp(16px, 1.67vw, 24px)" }}
         >
-          {/* Left: title + selectors */}
           <div className="flex flex-wrap items-center" style={{ gap: "clamp(12px, 1.67vw, 24px)" }}>
             <h1
               className="font-semibold text-(--color-text-primary)"
@@ -467,7 +513,6 @@ export default function TeacherAttendancePage() {
             )}
           </div>
 
-          {/* Right: date picker dropdown */}
           <div style={{ width: "min(88vw, 220px)" }}>
             <DatePicker
               key={calendarResetKey}
@@ -483,7 +528,6 @@ export default function TeacherAttendancePage() {
           </div>
         </div>
 
-        {/* Table — full width, internally scrollable */}
         <DataTable<AttendanceRecord>
           columns={columns}
           rows={records}

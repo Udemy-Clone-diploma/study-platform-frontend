@@ -1,9 +1,9 @@
 import type { ReactNode, CSSProperties } from "react";
 
 type Props = {
-    children: ReactNode;
-    style?: CSSProperties;
-    className?: string;
+  children: ReactNode;
+  style?: CSSProperties;
+  className?: string;
 };
 
 /**
@@ -13,12 +13,12 @@ type Props = {
  * viewport (7vw) as before.
  */
 export function SectionContainer({ children, style, className = "" }: Props) {
-    return (
-        <div
-            className={`mx-auto w-[min(1420px,calc(100%-32px))] lg:w-[min(1420px,calc(100%-max(32px,7vw)))] ${className}`}
-            style={style}
-        >
-            {children}
-        </div>
-    );
+  return (
+    <div
+      className={`mx-auto w-[min(1420px,calc(100%-32px))] lg:w-[min(1420px,calc(100%-max(32px,7vw)))] ${className}`}
+      style={style}
+    >
+      {children}
+    </div>
+  );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { getCategories, createCourse, uploadCourseIcon } from "@/entities/course";
 import type { Category } from "@/entities/course";
@@ -23,6 +23,7 @@ const EMPTY_FORM: CourseBasicsFormValues = { title: "", short_description: "", f
 
 export default function NewCoursePage() {
   const t = useTranslations("CourseBasicsPage");
+  const locale = useLocale();
   const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([]);
   const [teacherProfileId, setTeacherProfileId] = useState<number | null>(null);
@@ -34,11 +35,11 @@ export default function NewCoursePage() {
   const [form, setForm] = useState<CourseBasicsFormValues>(EMPTY_FORM);
 
   useEffect(() => {
-    getCategories().then(setCategories).catch(() => {});
+    getCategories(locale).then(setCategories).catch(() => {});
     getMe()
       .then((user) => setTeacherProfileId((user.profile as TeacherProfile).id))
       .catch(() => {});
-  }, []);
+  }, [locale]);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     const { name, value } = e.target;

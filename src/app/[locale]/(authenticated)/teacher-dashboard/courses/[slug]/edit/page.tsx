@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { getCategories, getCourseBySlug, updateCourse, uploadCourseIcon, getPendingEdit } from "@/entities/course";
@@ -63,6 +63,7 @@ const PUBLISHED_STATUSES = new Set(["published", "hidden"]);
 
 export default function EditCourseBasicsPage() {
   const t = useTranslations("CourseBasicsPage");
+  const locale = useLocale();
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([]);
@@ -86,7 +87,7 @@ export default function EditCourseBasicsPage() {
   /** Fields approved by moderator — read-only when pending edit is in needs_revision state. */
   const [readonlyFields, setReadonlyFields] = useState<Set<string> | undefined>(undefined);
 
-  useEffect(() => { getCategories().then(setCategories).catch(() => {}); }, []);
+  useEffect(() => { getCategories(locale).then(setCategories).catch(() => {}); }, [locale]);
 
   useEffect(() => {
     if (!slug) return;

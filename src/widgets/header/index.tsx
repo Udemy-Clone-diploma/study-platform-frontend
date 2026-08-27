@@ -121,7 +121,7 @@ export async function Header({
               </Link>
 
               <div className="flex items-center h-full" style={{ gap: 28 }}>
-                <NotificationBell />
+                <NotificationBell iconSize={40} />
                 <UserDropdown
                   firstName={user?.first_name ?? null}
                   role={role}

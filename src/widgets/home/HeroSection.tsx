@@ -1,11 +1,7 @@
 import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { getMe, type UserRole } from "@/entities/user";
-import {
-    getAccessToken,
-    getUserRoleCookie,
-    hasUsableRefreshToken,
-} from "@/shared/api/authCookies";
+import { getAccessToken, getUserRoleCookie, hasUsableRefreshToken } from "@/shared/api/authCookies";
 import { SectionContainer } from "@/shared/ui/SectionContainer";
 import { AccentButton } from "@/shared/ui/AccentButton";
 import { ramp, fluid3 } from "@/shared/lib/fluidScale";

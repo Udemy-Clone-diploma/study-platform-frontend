@@ -156,13 +156,21 @@ export function ArticleFormFields({ values, onChange, categories, existingCoverI
             />
             <p
               className="text-center text-[16px] lg:text-[13px]"
-              style={{ fontFamily: "var(--font-base)", color: "var(--color-text-secondary)", margin: 0 }}
+              style={{
+                fontFamily: "var(--font-base)",
+                color: "var(--color-text-secondary)",
+                margin: 0,
+              }}
             >
               {t("uploadImageHint")}
             </p>
             <p
               className="text-center text-[13px] lg:text-xs"
-              style={{ fontFamily: "var(--font-base)", color: "var(--color-text-secondary)", margin: 0 }}
+              style={{
+                fontFamily: "var(--font-base)",
+                color: "var(--color-text-secondary)",
+                margin: 0,
+              }}
             >
               {t("uploadFormatsHint")}
             </p>
@@ -178,7 +186,11 @@ export function ArticleFormFields({ values, onChange, categories, existingCoverI
           <div className="flex flex-col gap-4">
             <p
               className="text-[13px]"
-              style={{ fontFamily: "var(--font-base)", color: "var(--color-text-secondary)", margin: 0 }}
+              style={{
+                fontFamily: "var(--font-base)",
+                color: "var(--color-text-secondary)",
+                margin: 0,
+              }}
             >
               {t("repositionHint")}
             </p>

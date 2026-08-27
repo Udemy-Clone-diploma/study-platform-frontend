@@ -6,11 +6,7 @@ import { getMe, type UserRole } from "@/entities/user";
 import { CatalogDropdown } from "@/features/courses";
 import { UserDropdown } from "@/features/auth";
 import { NotificationBell } from "@/features/notifications";
-import {
-  getAccessToken,
-  getUserRoleCookie,
-  hasUsableRefreshToken,
-} from "@/shared/api/authCookies";
+import { getAccessToken, getUserRoleCookie, hasUsableRefreshToken } from "@/shared/api/authCookies";
 import { AccentButton } from "@/shared/ui/AccentButton";
 import { LanguageSwitcher } from "@/shared/ui/LanguageSwitcher";
 import { SearchBar } from "@/shared/ui/SearchBar";
@@ -110,9 +106,7 @@ export async function Header({
             <div className="flex items-center h-full" style={{ gap: 40 }}>
               <Link
                 href={
-                  role === "teacher"
-                    ? "/teacher-dashboard/courses"
-                    : "/student-dashboard/courses"
+                  role === "teacher" ? "/teacher-dashboard/courses" : "/student-dashboard/courses"
                 }
                 className="transition-opacity hover:opacity-70"
                 style={navLinkStyle}
@@ -121,7 +115,7 @@ export async function Header({
               </Link>
 
               <div className="flex items-center h-full" style={{ gap: 28 }}>
-                <NotificationBell />
+                <NotificationBell iconSize={40} />
                 <UserDropdown
                   firstName={user?.first_name ?? null}
                   role={role}

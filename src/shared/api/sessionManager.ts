@@ -17,10 +17,7 @@ async function requestRefreshedAccessToken(
 
   // Another tab may have refreshed the session while this caller was waiting
   // for the cross-tab lock. Reuse that token instead of rotating refresh again.
-  if (
-    currentAccessToken &&
-    (!rejectedAccessToken || currentAccessToken !== rejectedAccessToken)
-  ) {
+  if (currentAccessToken && (!rejectedAccessToken || currentAccessToken !== rejectedAccessToken)) {
     return { status: "success", accessToken: currentAccessToken };
   }
 
@@ -62,9 +59,7 @@ async function refreshWithCrossTabLock(
 }
 
 /** Refreshes the browser session once, sharing the result across requests and tabs. */
-export function refreshBrowserSession(
-  rejectedAccessToken?: string,
-): Promise<SessionRefreshResult> {
+export function refreshBrowserSession(rejectedAccessToken?: string): Promise<SessionRefreshResult> {
   if (typeof window === "undefined") {
     return Promise.resolve({ status: "unavailable", httpStatus: 503 });
   }

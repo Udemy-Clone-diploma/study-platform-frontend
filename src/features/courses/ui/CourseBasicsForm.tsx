@@ -152,6 +152,7 @@ function FormSelect({
   const t = useTranslations("CourseBasicsForm");
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
   const selected = options.find((o) => o.value === value);
 
   useEffect(() => {
@@ -161,6 +162,12 @@ function FormSelect({
     }
     document.addEventListener("mousedown", onOutside);
     return () => document.removeEventListener("mousedown", onOutside);
+  }, [open]);
+
+  // The list can open below the fold near the bottom of a scrollable card --
+  // bring it fully into view instead of leaving it cut off by the viewport.
+  useEffect(() => {
+    if (open) listRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }, [open]);
 
   return (
@@ -202,22 +209,23 @@ function FormSelect({
         />
       </button>
       {open && (
+        // In normal flow (not position: absolute) so it pushes the rest of the
+        // form down and the enclosing white card grows to contain it, instead
+        // of floating past the card's bottom edge onto the page background.
+        // Capped height + its own scrollbar so the box itself stays compact
+        // regardless of how many options there are.
         <ul
+          ref={listRef}
           role="listbox"
           style={{
-            position: "absolute",
-            top: "calc(100% + 4px)",
-            left: 0,
-            right: 0,
+            marginTop: 4,
             background: "var(--color-bg)",
             borderRadius: 12,
             boxShadow: "var(--shadow-sort-dropdown)",
-            zIndex: 50,
-            maxHeight: 220,
+            maxHeight: 180,
             overflowY: "auto",
-            padding: "4px 0",
+            padding: "4px 0 16px",
             listStyle: "none",
-            margin: 0,
           }}
         >
           {options.map((opt) => (

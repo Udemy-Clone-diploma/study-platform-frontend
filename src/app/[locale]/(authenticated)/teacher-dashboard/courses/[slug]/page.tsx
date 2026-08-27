@@ -277,6 +277,7 @@ function SelfPacedFormatTab({ fmt, slug }: { fmt: CourseDeliveryFormat; slug: st
 
 export default function CourseManagementPage() {
   const t = useTranslations("CourseManagementPage");
+  const locale = useLocale();
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
   const [course, setCourse] = useState<CourseDetail | null>(null);
@@ -289,11 +290,11 @@ export default function CourseManagementPage() {
 
   useEffect(() => {
     if (!slug) return;
-    getCourseBySlug(slug)
+    getCourseBySlug(slug, undefined, locale)
       .then(setCourse)
       .catch(() => setError(t("errorLoad")))
       .finally(() => setLoading(false));
-  }, [slug, t]);
+  }, [slug, t, locale]);
 
   function handleCourseUpdated(updates: Partial<CourseDetail>) {
     setCourse((prev) => (prev ? { ...prev, ...updates } : prev));

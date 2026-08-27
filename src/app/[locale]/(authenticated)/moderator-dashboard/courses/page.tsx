@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useAutoRefresh } from "@/shared/lib/useAutoRefresh";
 import { PageShell } from "@/shared/ui/PageShell";
 import {
@@ -39,6 +39,7 @@ const TAB_LABEL_KEYS: Record<TabKey, string> = {
 export default function ModeratorCoursesPage() {
   const t = useTranslations("ModeratorCoursesPage");
   const tTeacherCourses = useTranslations("TeacherCoursesPage");
+  const locale = useLocale();
   const [activeTab, setActiveTab] = useState<TabKey>(() => {
     if (typeof window === "undefined") return "unassigned";
     const tab = new URLSearchParams(window.location.search).get("tab");
@@ -58,8 +59,8 @@ export default function ModeratorCoursesPage() {
 
   const loadCourses = useCallback(async () => {
     const [unassignedResult, myResult, rejectedResult, approvedResult] = await Promise.all([
-      getUnassignedModerationCourses(),
-      getMyModerationCourses(),
+      getUnassignedModerationCourses(1, locale),
+      getMyModerationCourses(1, locale),
       getModeratorRejectionRecords(),
       getModeratorApprovalRecords(),
     ]);
@@ -68,7 +69,7 @@ export default function ModeratorCoursesPage() {
     setMyCourses(myResult.results);
     setRejected(rejectedResult.results);
     setApprovedRecords(approvedResult.results);
-  }, []);
+  }, [locale]);
 
   useEffect(() => {
     let cancelled = false;

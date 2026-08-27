@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { coverCropStyle } from "@/entities/blog";
 import type { ArticleListItem } from "@/entities/blog";
 import type { UserRole } from "@/entities/user";
 import { fluid3 } from "@/shared/lib/fluidScale";
@@ -50,7 +51,7 @@ export function ArticleCard({ article, currentUserId, currentUserRole, onAction 
           alt={article.title}
           fill
           unoptimized
-          style={{ objectFit: "cover", objectPosition: "center top", zIndex: 0 }}
+          style={{ ...coverCropStyle(article.cover_crops.card), zIndex: 0 }}
         />
       ) : (
         <div

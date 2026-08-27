@@ -163,11 +163,11 @@ export function CompletionResultModal({ completion, onClose }: Props) {
   useEffect(() => {
     if (!completion.slug) return;
     setDetailLoading(true);
-    getCourseBySlug(completion.slug)
+    getCourseBySlug(completion.slug, undefined, locale)
       .then(setDetail)
       .catch(() => {})
       .finally(() => setDetailLoading(false));
-  }, [completion.slug]);
+  }, [completion.slug, locale]);
 
   useEffect(() => {
     if (!completion.slug) return;

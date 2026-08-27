@@ -132,10 +132,10 @@ export function CourseInfoModal({ record, onClose }: Props) {
   const [detail, setDetail] = useState<CourseDetail | null>(null);
 
   useEffect(() => {
-    getCourseBySlug(record.course_slug)
+    getCourseBySlug(record.course_slug, undefined, locale)
       .then(setDetail)
       .catch(() => {});
-  }, [record.course_slug]);
+  }, [record.course_slug, locale]);
 
   const modules = detail?.modules ?? [];
   const price = detail?.delivery_formats?.find((f) => f.pricing)?.pricing?.price

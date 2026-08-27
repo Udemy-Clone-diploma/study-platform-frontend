@@ -28,6 +28,8 @@ function getRoleFontSize(role: string): string {
 }
 
 export function MentorCard({ mentor, current, total, onPrev, onNext, onInfoClick }: Props) {
+  const infoPanelHeight = "clamp(105px, 8.125vw, 117px)";
+
   return (
     <div
       style={{
@@ -44,7 +46,7 @@ export function MentorCard({ mentor, current, total, onPrev, onNext, onInfoClick
           position: "relative",
           width: "clamp(280px, 23.96vw, 345px)",
           height: "clamp(316px, 27.08vw, 390px)",
-          borderRadius: "1.25vw",
+          borderRadius: "24px",
           overflow: "hidden",
           flexShrink: 0,
         }}
@@ -81,20 +83,22 @@ export function MentorCard({ mentor, current, total, onPrev, onNext, onInfoClick
               justifyContent: "center",
               padding: "0.1vw 0.42vw",
               background: "var(--color-white-60)",
-              borderRadius: "0.885vw",
+              borderRadius: "17px",
               maxWidth: "calc(100% - 2.08vw)",
             }}
           >
             <span
-              style={{
-                fontFamily: "var(--font-accent)",
-                fontWeight: 500,
-                fontSize: getRoleFontSize(mentor.role),
-                lineHeight: 1.25,
-                color: "var(--color-blue)",
-                textAlign: "center",
-                overflowWrap: "anywhere",
-              }}
+              className="text-[15px] leading-none lg:text-(length:--mentor-role-font-size) lg:leading-[1.25]"
+              style={
+                {
+                  "--mentor-role-font-size": getRoleFontSize(mentor.role),
+                  fontFamily: "var(--font-accent)",
+                  fontWeight: 500,
+                  color: "var(--color-blue)",
+                  textAlign: "center",
+                  overflowWrap: "anywhere",
+                } as React.CSSProperties
+              }
             >
               {mentor.role}
             </span>
@@ -106,7 +110,7 @@ export function MentorCard({ mentor, current, total, onPrev, onNext, onInfoClick
             left: 0,
             top: 0,
             width: "50%",
-            bottom: "8.125vw",
+            bottom: infoPanelHeight,
             zIndex: 1,
             cursor: "pointer",
           }}
@@ -118,7 +122,7 @@ export function MentorCard({ mentor, current, total, onPrev, onNext, onInfoClick
             right: 0,
             top: 0,
             width: "50%",
-            bottom: "8.125vw",
+            bottom: infoPanelHeight,
             zIndex: 1,
             cursor: "pointer",
           }}
@@ -131,7 +135,7 @@ export function MentorCard({ mentor, current, total, onPrev, onNext, onInfoClick
             bottom: 0,
             left: 0,
             right: 0,
-            height: "8.125vw",
+            height: infoPanelHeight,
             zIndex: 2,
             display: "flex",
             flexDirection: "column",
@@ -141,19 +145,23 @@ export function MentorCard({ mentor, current, total, onPrev, onNext, onInfoClick
             style={{
               display: "flex",
               alignItems: "center",
-              padding: "0.26vw 1.04vw",
-              height: "0.83vw",
+              padding: "0 clamp(20px, 1.67vw, 24px)",
+              height: "clamp(12px, 0.83vw, 14px)",
+              position: "absolute",
+              right: 0,
+              bottom: "100%",
+              left: 0,
               flexShrink: 0,
             }}
           >
             <div
               style={{
                 width: "100%",
-                height: "0.3125vw",
+                height: "clamp(4px, 0.3125vw, 5px)",
                 background: "var(--color-white-20)",
-                borderRadius: "0.2vw",
+                borderRadius: "999px",
                 display: "flex",
-                gap: "0.15vw",
+                gap: "clamp(2px, 0.15vw, 3px)",
                 overflow: "hidden",
               }}
             >
@@ -164,7 +172,7 @@ export function MentorCard({ mentor, current, total, onPrev, onNext, onInfoClick
                     flex: 1,
                     height: "100%",
                     background: i === current ? "var(--color-bg)" : "var(--color-white-20)",
-                    borderRadius: "0.2vw",
+                    borderRadius: "999px",
                     transition: "background 0.4s ease",
                   }}
                 />
@@ -180,8 +188,9 @@ export function MentorCard({ mentor, current, total, onPrev, onNext, onInfoClick
               display: "flex",
               flexDirection: "column",
               justifyContent: "center",
-              padding: "1.51vw 1.04vw 1.5625vw",
-              gap: "0.52vw",
+              minHeight: 0,
+              padding: "0 clamp(20px, 1.67vw, 24px)",
+              gap: "clamp(6px, 0.52vw, 8px)",
               background: "var(--gradient-brand)",
               cursor: "pointer",
             }}
@@ -189,8 +198,8 @@ export function MentorCard({ mentor, current, total, onPrev, onNext, onInfoClick
             <span
               style={{
                 fontFamily: "var(--font-base)",
-                fontWeight: 600,
-                fontSize: "1.04vw",
+                fontWeight: 400,
+                fontSize: "clamp(20px, 1.67vw, 24px)",
                 lineHeight: 1.25,
                 color: "var(--color-text-primary)",
               }}
@@ -201,9 +210,12 @@ export function MentorCard({ mentor, current, total, onPrev, onNext, onInfoClick
               style={{
                 fontFamily: "var(--font-base)",
                 fontWeight: 400,
-                fontSize: "0.73vw",
-                lineHeight: 1.28,
+                fontSize: "clamp(14px, 1.11vw, 16px)",
+                lineHeight: 1.25,
                 color: "var(--color-text-primary)",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
               }}
             >
               {mentor.bio}

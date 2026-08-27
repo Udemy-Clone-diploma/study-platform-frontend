@@ -16,7 +16,7 @@ export async function Footer() {
 
   return (
     <footer
-      className="w-full shrink-0 rounded-t-[14px] lg:rounded-t-[20px]"
+      className="relative z-10 w-full shrink-0 rounded-t-[14px] lg:rounded-t-[20px]"
       style={{
         background: "var(--gradient-brand)",
         overflowX: "clip",

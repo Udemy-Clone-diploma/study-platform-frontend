@@ -1,11 +1,7 @@
 import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { getMe, type UserRole } from "@/entities/user";
-import {
-    getAccessToken,
-    getUserRoleCookie,
-    hasUsableRefreshToken,
-} from "@/shared/api/authCookies";
+import { getAccessToken, getUserRoleCookie, hasUsableRefreshToken } from "@/shared/api/authCookies";
 import { SectionContainer } from "@/shared/ui/SectionContainer";
 import { AccentButton } from "@/shared/ui/AccentButton";
 import { ramp, fluid3 } from "@/shared/lib/fluidScale";
@@ -23,28 +19,18 @@ const heroButtonStyle = {
 };
 
 export async function HeroSection() {
-<<<<<<< HEAD
-    const [accessToken, roleCookie, hasRefreshSession] = await Promise.all([
-        getAccessToken(),
-        getUserRoleCookie(),
-        hasUsableRefreshToken(),
-    ]);
-    const user = accessToken ? await getMe(accessToken).catch(() => null) : null;
-    const role = user?.role ?? (roleCookie as UserRole | undefined) ?? null;
-    const isLoggedIn = Boolean(user || (role && hasRefreshSession));
-    const isTeacher = role === "teacher";
-    const t = await getTranslations("HomeHero");
-    const tCommon = await getTranslations("Common");
-    const TAGS = t.raw("tags") as string[];
-=======
-  const accessToken = await getAccessToken();
-  const isLoggedIn = !!accessToken;
-  const user = isLoggedIn ? await getMe(accessToken).catch(() => null) : null;
-  const isTeacher = user?.role === "teacher";
+  const [accessToken, roleCookie, hasRefreshSession] = await Promise.all([
+    getAccessToken(),
+    getUserRoleCookie(),
+    hasUsableRefreshToken(),
+  ]);
+  const user = accessToken ? await getMe(accessToken).catch(() => null) : null;
+  const role = user?.role ?? (roleCookie as UserRole | undefined) ?? null;
+  const isLoggedIn = Boolean(user || (role && hasRefreshSession));
+  const isTeacher = role === "teacher";
   const t = await getTranslations("HomeHero");
   const tCommon = await getTranslations("Common");
   const TAGS = t.raw("tags") as string[];
->>>>>>> origin/develop
 
   return (
     <section style={{ position: "relative", overflow: "hidden" }}>

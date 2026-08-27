@@ -506,6 +506,10 @@
     "uploadImageHint": "Завантажте зображення для цієї статті",
     "uploadFormatsHint": "JPG, PNG, WEBP, SVG або JFIF",
     "chooseFileLabel": "Обрати файл",
+    "repositionHint": "Налаштуйте фото для кожного формату нижче: перетягніть, щоб перемістити, повзунок — щоб наблизити.",
+    "cardFormatLabel": "Картка",
+    "rowFormatLabel": "Рядок списку",
+    "bannerFormatLabel": "Банер статті",
     "summaryLabel": "Зміст статті",
     "summaryPlaceholder": "Введіть текст тут"
   },

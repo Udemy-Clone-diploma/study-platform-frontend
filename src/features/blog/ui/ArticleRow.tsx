@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Eye } from "lucide-react";
+import { coverCropStyle } from "@/entities/blog";
 import type { ArticleListItem } from "@/entities/blog";
 import type { UserRole } from "@/entities/user";
 import { formatDate } from "@/shared/lib/time";
@@ -80,7 +81,7 @@ export function ArticleRow({
             alt={article.title}
             fill
             unoptimized
-            style={{ objectFit: "cover" }}
+            style={coverCropStyle(article.cover_crops.row)}
           />
         ) : (
           <div style={{ position: "absolute", inset: 0, background: "var(--shadow-lavander)" }} />

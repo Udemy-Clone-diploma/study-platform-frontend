@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
+import { coverCropStyle } from "@/entities/blog";
 import type { ArticleListItem } from "@/entities/blog";
 
 type Props = { article: ArticleListItem };
@@ -25,7 +26,7 @@ export function StudentStoryCard({ article }: Props) {
           alt={article.title}
           fill
           unoptimized
-          style={{ objectFit: "cover", objectPosition: "center top", zIndex: 0 }}
+          style={{ ...coverCropStyle(article.cover_crops.card), zIndex: 0 }}
         />
       ) : (
         <div

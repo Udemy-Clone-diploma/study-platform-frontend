@@ -1,12 +1,20 @@
 "use client";
 
 import { useRef, useState } from "react";
-import Image from "next/image";
+import Cropper, { type Area } from "react-easy-crop";
+import "react-easy-crop/react-easy-crop.css";
 import { Upload } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { RichTextEditor } from "@/shared/ui/RichTextEditor";
 import { WhiteButton } from "@/shared/ui/WhiteButton";
-import type { ArticleFormValues, BlogCategory } from "@/entities/blog";
+import { COVER_CROP_SLOTS, DEFAULT_COVER_CROPS } from "@/entities/blog";
+import type { ArticleFormValues, BlogCategory, CoverCrop, CoverCropSlot } from "@/entities/blog";
+
+const SLOT_LABEL_KEYS: Record<CoverCropSlot, string> = {
+  card: "cardFormatLabel",
+  row: "rowFormatLabel",
+  banner: "bannerFormatLabel",
+};
 
 export const articleFormLabelSt: React.CSSProperties = {
   display: "block",
@@ -45,12 +53,27 @@ type Props = {
 export function ArticleFormFields({ values, onChange, categories, existingCoverImageUrl }: Props) {
   const t = useTranslations("ArticleFormFields");
   const [coverPreview, setCoverPreview] = useState<string | null>(existingCoverImageUrl ?? null);
+  // Bumped on every new file pick so each SlotCropper below remounts (fresh
+  // pan/zoom) instead of carrying over the previous photo's framing.
+  const [coverGeneration, setCoverGeneration] = useState(0);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
   function handleCoverChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0] ?? null;
-    onChange({ ...values, cover_image: file });
-    if (file) setCoverPreview(URL.createObjectURL(file));
+    if (file) {
+      setCoverGeneration((n) => n + 1);
+      setCoverPreview(URL.createObjectURL(file));
+      onChange({ ...values, cover_image: file, cover_crops: DEFAULT_COVER_CROPS });
+    } else {
+      onChange({ ...values, cover_image: file });
+    }
+  }
+
+  function handleSlotCropped(slot: CoverCropSlot, crop: CoverCrop) {
+    onChange({
+      ...values,
+      cover_crops: { ...(values.cover_crops ?? DEFAULT_COVER_CROPS), [slot]: crop },
+    });
   }
 
   return (
@@ -113,68 +136,44 @@ export function ArticleFormFields({ values, onChange, categories, existingCoverI
         <label className={labelClassName} style={articleFormLabelSt}>
           {t("coverLabel")}
         </label>
-        <div
-          className="min-h-[300px] lg:min-h-[140px]"
-          style={{
-            border: "2px dashed var(--color-draft)",
-            borderRadius: 16,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 10,
-            padding: "clamp(16px, 1.67vw, 24px)",
-            position: "relative",
-            overflow: "hidden",
-          }}
-        >
-          {coverPreview && (
-            <Image
-              src={coverPreview}
-              alt=""
-              fill
-              unoptimized
-              style={{ objectFit: "cover", zIndex: 0 }}
-            />
-          )}
+        {!coverPreview ? (
           <div
+            className="min-h-[300px] lg:min-h-[140px]"
             style={{
-              position: "relative",
-              zIndex: 1,
+              border: "2px dashed var(--color-draft)",
+              borderRadius: 16,
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
+              justifyContent: "center",
               gap: 10,
+              padding: "clamp(16px, 1.67vw, 24px)",
             }}
           >
-            {!coverPreview && (
-              <>
-                <Upload
-                  className="h-8 w-8 lg:h-6 lg:w-6"
-                  style={{ color: "var(--color-text-secondary)" }}
-                />
-                <p
-                  className="text-center text-[16px] lg:text-[13px]"
-                  style={{
-                    fontFamily: "var(--font-base)",
-                    color: "var(--color-text-secondary)",
-                    margin: 0,
-                  }}
-                >
-                  {t("uploadImageHint")}
-                </p>
-                <p
-                  className="text-center text-[13px] lg:text-xs"
-                  style={{
-                    fontFamily: "var(--font-base)",
-                    color: "var(--color-text-secondary)",
-                    margin: 0,
-                  }}
-                >
-                  {t("uploadFormatsHint")}
-                </p>
-              </>
-            )}
+            <Upload
+              className="h-8 w-8 lg:h-6 lg:w-6"
+              style={{ color: "var(--color-text-secondary)" }}
+            />
+            <p
+              className="text-center text-[16px] lg:text-[13px]"
+              style={{
+                fontFamily: "var(--font-base)",
+                color: "var(--color-text-secondary)",
+                margin: 0,
+              }}
+            >
+              {t("uploadImageHint")}
+            </p>
+            <p
+              className="text-center text-[13px] lg:text-xs"
+              style={{
+                fontFamily: "var(--font-base)",
+                color: "var(--color-text-secondary)",
+                margin: 0,
+              }}
+            >
+              {t("uploadFormatsHint")}
+            </p>
             <WhiteButton
               icon={<Upload size={16} />}
               onClick={() => coverInputRef.current?.click()}
@@ -183,14 +182,47 @@ export function ArticleFormFields({ values, onChange, categories, existingCoverI
               {t("chooseFileLabel")}
             </WhiteButton>
           </div>
-          <input
-            ref={coverInputRef}
-            type="file"
-            accept="image/*,.jfif"
-            style={{ display: "none" }}
-            onChange={handleCoverChange}
-          />
-        </div>
+        ) : (
+          <div className="flex flex-col gap-4">
+            <p
+              className="text-[13px]"
+              style={{
+                fontFamily: "var(--font-base)",
+                color: "var(--color-text-secondary)",
+                margin: 0,
+              }}
+            >
+              {t("repositionHint")}
+            </p>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              {COVER_CROP_SLOTS.map(({ id, aspect }) => (
+                <SlotCropper
+                  key={`${id}-${coverGeneration}`}
+                  slot={id}
+                  aspect={aspect}
+                  label={t(SLOT_LABEL_KEYS[id])}
+                  image={coverPreview}
+                  initialCrop={(values.cover_crops ?? DEFAULT_COVER_CROPS)[id]}
+                  onCropped={handleSlotCropped}
+                />
+              ))}
+            </div>
+            <WhiteButton
+              icon={<Upload size={16} />}
+              onClick={() => coverInputRef.current?.click()}
+              style={{ width: "min(220px, 100%)", minWidth: 0, height: 48 }}
+            >
+              {t("chooseFileLabel")}
+            </WhiteButton>
+          </div>
+        )}
+        <input
+          ref={coverInputRef}
+          type="file"
+          accept="image/*,.jfif"
+          style={{ display: "none" }}
+          onChange={handleCoverChange}
+        />
       </div>
 
       <div>
@@ -206,6 +238,75 @@ export function ArticleFormFields({ values, onChange, categories, existingCoverI
           className="[&_.ProseMirror]:!min-h-[320px] lg:[&_.ProseMirror]:!min-h-[200px]"
         />
       </div>
+    </div>
+  );
+}
+
+/** One independent pan/zoom cropper for a single rendered format (card / row / banner),
+ * so a framing that works for a tall card doesn't have to also work for a wide banner. */
+function SlotCropper({
+  slot,
+  aspect,
+  label,
+  image,
+  initialCrop,
+  onCropped,
+}: {
+  slot: CoverCropSlot;
+  aspect: number;
+  label: string;
+  image: string;
+  initialCrop: CoverCrop;
+  onCropped: (slot: CoverCropSlot, crop: CoverCrop) => void;
+}) {
+  // Placeholders -- react-easy-crop overwrites both from `initialCroppedAreaPercentages`
+  // right after the image loads.
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+
+  return (
+    <div className="flex flex-col gap-2">
+      <span
+        className="text-[12px] font-semibold uppercase tracking-wide"
+        style={{ fontFamily: "var(--font-accent)", color: "var(--color-text-secondary)" }}
+      >
+        {label}
+      </span>
+      <div
+        className="relative w-full overflow-hidden"
+        style={{ aspectRatio: aspect, borderRadius: 12, background: "#000" }}
+      >
+        <Cropper
+          image={image}
+          crop={crop}
+          zoom={zoom}
+          aspect={aspect}
+          objectFit="cover"
+          minZoom={1}
+          maxZoom={4}
+          initialCroppedAreaPercentages={initialCrop}
+          onCropChange={setCrop}
+          onZoomChange={setZoom}
+          onCropComplete={(croppedAreaPercent: Area) =>
+            onCropped(slot, {
+              x: croppedAreaPercent.x,
+              y: croppedAreaPercent.y,
+              width: croppedAreaPercent.width,
+              height: croppedAreaPercent.height,
+            })
+          }
+        />
+      </div>
+      <input
+        type="range"
+        min={1}
+        max={4}
+        step={0.01}
+        value={zoom}
+        onChange={(e) => setZoom(Number(e.target.value))}
+        aria-label={label}
+        className="w-full"
+      />
     </div>
   );
 }

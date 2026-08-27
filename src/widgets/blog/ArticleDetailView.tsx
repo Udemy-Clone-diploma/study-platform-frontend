@@ -7,6 +7,7 @@ import { sanitizeCourseHtml } from "@/shared/lib/sanitizeCourseHtml";
 import { formatDate } from "@/shared/lib/time";
 import { ArticleActionModals, ArticleCardMenu, useArticleActions } from "@/features/blog";
 import { ModeratorNoteBanner } from "@/features/courses";
+import { coverCropStyle } from "@/entities/blog";
 import type { ArticleDetail, BlogCategory } from "@/entities/blog";
 import type { UserRole } from "@/entities/user";
 
@@ -195,13 +196,13 @@ export function ArticleDetailView({ article, categories, currentUserId, currentU
           </div>
 
           {article.cover_image && (
-            <div className="relative order-1 mb-3 aspect-[3/2] w-full overflow-hidden rounded-[14px] lg:order-2 lg:mb-8 lg:aspect-video lg:rounded-[20px]">
+            <div className="relative order-1 mb-3 aspect-video w-full overflow-hidden rounded-[14px] lg:order-2 lg:mb-8 lg:rounded-[20px]">
               <Image
                 src={article.cover_image}
                 alt={article.title}
                 fill
                 unoptimized
-                style={{ objectFit: "cover" }}
+                style={coverCropStyle(article.cover_crops.banner)}
               />
             </div>
           )}

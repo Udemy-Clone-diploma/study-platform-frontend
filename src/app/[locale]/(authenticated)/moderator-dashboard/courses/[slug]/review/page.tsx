@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { ArrowUpRight, Save } from "lucide-react";
@@ -125,6 +125,7 @@ function computeLockedContentKeys(
 export default function ModeratorReviewPage() {
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
+  const locale = useLocale();
   const t = useTranslations("ModeratorCourseReviewPage");
   const tStepper = useTranslations("CourseCreationStepper");
   const tReview = useTranslations("CourseReviewPage");
@@ -157,7 +158,7 @@ export default function ModeratorReviewPage() {
 
   useEffect(() => {
     if (!slug) return;
-    getCourseBySlug(slug)
+    getCourseBySlug(slug, undefined, locale)
       .then(async (c) => {
         setCourse(c);
         const isPE = c.status === "published" || c.status === "hidden";
@@ -166,7 +167,7 @@ export default function ModeratorReviewPage() {
         if (isPE) {
           try {
             pe = await getPendingEdit(slug);
-            draft = await getCourseBySlug(pe.draft_course_slug);
+            draft = await getCourseBySlug(pe.draft_course_slug, undefined, locale);
           } catch {
             /* no pending edit */
           }
@@ -220,7 +221,7 @@ export default function ModeratorReviewPage() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [slug]);
+  }, [slug, locale]);
 
   const moduleList = useMemo(
     () =>

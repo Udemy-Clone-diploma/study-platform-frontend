@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useLocale } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import Image from "next/image";
 import { Bookmark, X } from "lucide-react";
@@ -11,6 +12,7 @@ import { getMe } from "@/entities/user";
 import type { UserRole } from "@/entities/user";
 import {
   createArticle,
+  DEFAULT_COVER_CROPS,
   getBlogCategories,
   publishOwnArticle,
   submitArticleForReview,
@@ -32,6 +34,7 @@ const EMPTY: ArticleFormValues = {
   body_html: "",
   category: null,
   cover_image: null,
+  cover_crops: DEFAULT_COVER_CROPS,
 };
 
 /** Decorative molecule render (same asset/ratio as CourseDetailView's pricing section, scaled up here). */
@@ -51,6 +54,7 @@ function DecorImage({ src, className }: { src: string; className: string }) {
 
 export default function CreateArticlePage() {
   const router = useRouter();
+  const locale = useLocale();
   const [role, setRole] = useState<UserRole | null | undefined>(undefined);
   const [categories, setCategories] = useState<BlogCategory[]>([]);
   const [values, setValues] = useState<ArticleFormValues>(EMPTY);
@@ -62,10 +66,10 @@ export default function CreateArticlePage() {
     getMe()
       .then((user) => setRole(user.role))
       .catch(() => setRole(null));
-    getBlogCategories()
+    getBlogCategories(locale)
       .then(setCategories)
       .catch(() => {});
-  }, []);
+  }, [locale]);
 
   const isStaffAuthor = !!role && STAFF_ROLES.includes(role);
   const canCreate = role === "teacher" || isStaffAuthor;

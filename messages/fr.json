@@ -506,6 +506,10 @@
     "uploadImageHint": "Téléchargez une image pour cet article",
     "uploadFormatsHint": "JPG, PNG, WEBP, SVG ou JFIF",
     "chooseFileLabel": "Choisir un fichier",
+    "repositionHint": "Positionnez la photo pour chaque format ci-dessous : glissez pour repositionner, utilisez le curseur pour zoomer.",
+    "cardFormatLabel": "Carte",
+    "rowFormatLabel": "Ligne de liste",
+    "bannerFormatLabel": "Bannière de l'article",
     "summaryLabel": "Résumé de l'article",
     "summaryPlaceholder": "Saisissez votre texte ici"
   },

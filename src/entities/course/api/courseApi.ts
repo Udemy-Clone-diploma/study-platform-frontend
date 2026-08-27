@@ -187,8 +187,13 @@ export function getPublicCourses(
  * On the client the axios interceptor supplies the JWT automatically. Server
  * callers must pass the access token explicitly.
  */
-export async function getCourseBySlug(slug: string, accessToken?: string): Promise<CourseDetail> {
+export async function getCourseBySlug(
+  slug: string,
+  accessToken?: string,
+  locale?: string,
+): Promise<CourseDetail> {
   const { data } = await api.get<CourseDetail>(`${COURSES}${slug}/`, {
+    params: locale ? { lang: locale } : undefined,
     headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
   });
   return data;
@@ -472,17 +477,23 @@ export async function getModerationCourses(
 }
 
 /** Courses in review status with no moderator assigned yet, oldest-first. */
-export async function getUnassignedModerationCourses(page = 1): Promise<Paginated<CourseListItem>> {
+export async function getUnassignedModerationCourses(
+  page = 1,
+  locale?: string,
+): Promise<Paginated<CourseListItem>> {
   const { data } = await api.get<Paginated<CourseListItem>>(`${COURSES}moderation/unassigned/`, {
-    params: { page, page_size: 100 },
+    params: { page, page_size: 100, lang: locale },
   });
   return data;
 }
 
 /** Courses assigned to the currently authenticated moderator, oldest-first. */
-export async function getMyModerationCourses(page = 1): Promise<Paginated<CourseListItem>> {
+export async function getMyModerationCourses(
+  page = 1,
+  locale?: string,
+): Promise<Paginated<CourseListItem>> {
   const { data } = await api.get<Paginated<CourseListItem>>(`${COURSES}moderation/my/`, {
-    params: { page, page_size: 100 },
+    params: { page, page_size: 100, lang: locale },
   });
   return data;
 }

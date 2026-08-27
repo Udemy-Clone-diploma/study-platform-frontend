@@ -506,6 +506,10 @@
     "uploadImageHint": "Upload an image for this article",
     "uploadFormatsHint": "JPG, PNG, WEBP, SVG or JFIF",
     "chooseFileLabel": "Choose File",
+    "repositionHint": "Position the photo for each format below: drag to reposition, use the slider to zoom.",
+    "cardFormatLabel": "Card",
+    "rowFormatLabel": "List row",
+    "bannerFormatLabel": "Article banner",
     "summaryLabel": "Article Summary",
     "summaryPlaceholder": "Enter your text here"
   },

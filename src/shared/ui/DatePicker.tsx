@@ -224,6 +224,7 @@ export function DatePicker({
   const [view, setView] = useState<CalendarView>("days");
   const [draftValue, setDraftValue] = useState("");
   const rootRef = useRef<HTMLDivElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
 
   const sz = SIZE[size];
 
@@ -232,6 +233,15 @@ export function DatePicker({
     setView("days");
   }
 
+  // The popover can open below the fold inside a scrollable modal -- bring it
+  // fully into view instead of leaving the user to scroll it into view by hand,
+  // which risks a pointerdown on the scrollbar the "close on outside click"
+  // handler below treats as a dismiss.
+  useEffect(() => {
+    if (open) popoverRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, [open]);
+
+  // Close on outside click
   useEffect(() => {
     function onDown(e: PointerEvent) {
       if (!rootRef.current?.contains(e.target as Node)) closeCalendar();
@@ -477,6 +487,7 @@ export function DatePicker({
 
       {open && (
         <div
+          ref={popoverRef}
           style={{
             position: "absolute",
             top: "calc(100% + 6px)",

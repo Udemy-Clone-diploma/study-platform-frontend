@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { PageShell } from "@/shared/ui/PageShell";
 import { GradientButton } from "@/shared/ui/GradientButton";
 import { Pagination } from "@/shared/ui/Pagination";
@@ -155,6 +155,7 @@ export function BlogModerationView({ role }: Props) {
   const t = useTranslations("BlogModerationView");
   const tCommon = useTranslations("Common");
   const tStatus = useTranslations("ArticleStatus");
+  const locale = useLocale();
   const [mode, setMode] = useState<Mode>("mine");
   const [reviewFilter, setReviewFilter] = useState<ReviewFilter>("unassigned");
   const [myFilter, setMyFilter] = useState<MyFilter>("all");
@@ -172,10 +173,10 @@ export function BlogModerationView({ role }: Props) {
   const [categoryDeleteError, setCategoryDeleteError] = useState<string | null>(null);
 
   const refreshCategories = useCallback(() => {
-    getBlogCategories()
+    getBlogCategories(locale)
       .then(setCategories)
       .catch(() => {});
-  }, []);
+  }, [locale]);
 
   useEffect(() => {
     refreshCategories();
@@ -191,10 +192,10 @@ export function BlogModerationView({ role }: Props) {
     }
     const params = paramsForMode(mode, reviewFilter, myFilter);
     if (!params) return;
-    getArticles(params)
+    getArticles({ ...params, lang: locale })
       .then(setArticles)
       .catch(() => {});
-  }, [mode, reviewFilter, myFilter]);
+  }, [mode, reviewFilter, myFilter, locale]);
 
   const actions = useArticleActions(refresh);
 
@@ -210,14 +211,14 @@ export function BlogModerationView({ role }: Props) {
     }
     const params = paramsForMode(mode, reviewFilter, myFilter);
     if (!params) return;
-    getArticles(params)
+    getArticles({ ...params, lang: locale })
       .then((articleList) => {
         setArticles(articleList);
         if (mode === "mine" && articleList[0]) setCurrentUserId(articleList[0].author.id);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [mode, reviewFilter, myFilter]);
+  }, [mode, reviewFilter, myFilter, locale]);
 
   function changeMode(value: Mode) {
     setLoading(true);

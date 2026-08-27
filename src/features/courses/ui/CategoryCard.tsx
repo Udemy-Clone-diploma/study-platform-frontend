@@ -47,11 +47,9 @@ export function CategoryCard({ card }: Props) {
 
         <div style={{ display: "flex", flexDirection: "column", gap: "0.625vw" }}>
           <h3
+            className="text-left text-xl leading-none font-semibold lg:text-left lg:text-[1.04vw] lg:leading-[1.25] lg:font-normal"
             style={{
               fontFamily: "var(--font-base)",
-              fontWeight: 400,
-              fontSize: "clamp(14px, 1.04vw, 20px)",
-              lineHeight: 1.25,
               color: "var(--color-text-primary)",
               margin: 0,
             }}
@@ -59,11 +57,9 @@ export function CategoryCard({ card }: Props) {
             {card.title}
           </h3>
           <p
+            className="text-left text-base leading-none font-normal lg:text-left lg:text-[0.833vw] lg:leading-[1.3]"
             style={{
               fontFamily: "var(--font-base)",
-              fontWeight: 400,
-              fontSize: "clamp(11px, 0.833vw, 16px)",
-              lineHeight: 1.3,
               color: "var(--color-text-secondary)",
               margin: 0,
             }}

@@ -158,26 +158,24 @@ export function TopMentorsSection({ teachers }: Props) {
               {features.map(({ title, body }) => (
                 <div
                   key={title}
-                  className="items-center text-center sm:items-start sm:text-left"
+                  className="items-center text-center lg:items-start lg:text-left"
                   style={{ display: "flex", flexDirection: "column", gap: "0.42vw" }}
                 >
                   <span
-                    className="text-[15px] md:text-[16px] lg:text-[1.04vw]"
+                    className="text-xl leading-none lg:text-[1.04vw] lg:leading-[1.25]"
                     style={{
                       fontFamily: "var(--font-base)",
                       fontWeight: 600,
-                      lineHeight: 1.25,
                       color: "var(--color-text-primary)",
                     }}
                   >
                     {title}
                   </span>
                   <span
-                    className="text-[13px] md:text-[14px] lg:text-[0.83vw]"
+                    className="text-base leading-none lg:text-[0.83vw] lg:leading-[1.25]"
                     style={{
                       fontFamily: "var(--font-base)",
                       fontWeight: 400,
-                      lineHeight: 1.25,
                       color: "var(--color-text-primary)",
                     }}
                   >

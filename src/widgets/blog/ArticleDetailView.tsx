@@ -59,12 +59,13 @@ export function ArticleDetailView({ article, categories, currentUserId, currentU
   const authorIsStaff = STAFF_ROLES.includes(article.author.role as UserRole);
 
   return (
-    <article className="relative isolate flex flex-1 flex-col overflow-hidden bg-(--color-bg)">
+    <article className="relative isolate -mb-[14px] flex flex-1 flex-col overflow-hidden bg-(--color-bg) pb-[14px] lg:mb-0 lg:pb-0">
       {/* flex-1 (main is now a flex column, see (public)/layout.tsx): short articles would
           otherwise leave <main>'s flex-grown remainder (the gap before the sticky footer)
           unstyled white -- percentage/min-h-full sizing isn't reliable against a flex-grown
           parent, flex-1 is. overflow-hidden (not just -x): clips the decorative molecules
-          below instead of letting them spill onto the footer on short pages. */}
+          below instead of letting them spill onto the footer on short pages. The negative
+          mobile margin lets this background continue beneath the footer's rounded corners. */}
       {/* Same background as /blog: Blog_Background.svg, painted at the top, not stretched. */}
       <div
         aria-hidden="true"

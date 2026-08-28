@@ -32,7 +32,7 @@ export async function getPaymentsSummary(params: SummaryParams = {}): Promise<Pa
 }
 
 export async function getRevenueTimeseries(
-  params: SummaryParams & { group_by?: RevenueTrendGroupBy; page_size?: number } = {},
+  params: SummaryParams & { group_by?: RevenueTrendGroupBy } = {},
 ): Promise<RevenueTimeseriesRow[]> {
   const { data } = await api.get<RevenueTimeseriesRow[] | { results?: RevenueTimeseriesRow[] }>(
     `${PAYMENTS_ENDPOINT}summary/timeseries/`,

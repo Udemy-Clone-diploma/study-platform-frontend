@@ -142,7 +142,7 @@ async function loadAdminDashboard(): Promise<AdminDashboardData> {
     getCourses({ page_size: 1, status: ["review", "needs_revision"] }),
     getCourses({ page_size: 6, ordering: "-created_at" }),
     getPaymentsSummary(revenueWindow),
-    getRevenueTimeseries({ group_by: "month", page_size: 500 }),
+    getRevenueTimeseries({ group_by: "month" }),
     getCertificateCounts(),
     getTeacherApplications({ pageSize: 1, status: "pending" }),
     getUnassignedUserReports({ page_size: 1 }),

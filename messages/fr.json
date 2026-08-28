@@ -1272,6 +1272,8 @@
     "backLabel": "Retour",
     "backToCoursesLabel": "Retour aux cours",
     "continueLabel": "Continuer",
+    "continueSectionActionHint": "Sélectionnez un statut de section à droite",
+    "continueUnratedHint": "Non évalué : {count, plural, one {# élément} other {# éléments}}",
     "flaggedWillRevise": "Certains éléments sont signalés — envoi en révision",
     "selectAnAction": "Sélectionnez une action",
     "submitApproved": "Approuver et publier",

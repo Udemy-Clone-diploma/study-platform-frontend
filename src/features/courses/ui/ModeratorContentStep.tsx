@@ -36,9 +36,9 @@ export function ModeratorContentStep(props: StepProps) {
   const tStepper = useTranslations("CourseCreationStepper");
 
   const allItemKeys = moduleList.flatMap((m) => m.lessons.map((l) => `lesson-${l.id}`));
-  const canContinue =
-    (allItemKeys.length === 0 || allItemKeys.every((k) => (itemStatuses[k] ?? null) !== null)) &&
-    contentAction !== null;
+  const unratedCount = allItemKeys.filter((k) => (itemStatuses[k] ?? null) === null).length;
+  const canContinue = unratedCount === 0 && contentAction !== null;
+  const highlightUnrated = unratedCount > 0 && unratedCount < allItemKeys.length;
 
   return (
     <div
@@ -89,6 +89,7 @@ export function ModeratorContentStep(props: StepProps) {
               itemStatuses={itemStatuses}
               onItemToggle={onItemStatusToggle}
               lockedKeys={lockedKeys}
+              highlightUnrated={highlightUnrated}
               courseSlug={courseSlug}
             />
           ))
@@ -109,6 +110,8 @@ export function ModeratorContentStep(props: StepProps) {
         action={action}
         hasAnyFlagged={hasAnyFlagged}
         canContinue={canContinue}
+        unratedCount={unratedCount}
+        needsSectionAction={contentAction === null}
         submitting={submitting}
         error={error}
         onNext={onNext}

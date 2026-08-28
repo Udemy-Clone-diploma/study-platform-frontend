@@ -12,6 +12,8 @@ export function ModerationNavButtons({
   action,
   hasAnyFlagged,
   canContinue = true,
+  unratedCount = 0,
+  needsSectionAction = false,
   submitting,
   error,
   onNext,
@@ -29,13 +31,20 @@ export function ModerationNavButtons({
   | "onBack"
   | "onSubmit"
   | "router"
-> & { canContinue?: boolean }) {
+> & { canContinue?: boolean; unratedCount?: number; needsSectionAction?: boolean }) {
   const t = useTranslations("ModerationNavButtons");
   const tReview = useTranslations("CourseReviewPage");
   const isLast = step === 2;
   const effectiveAction: ModeratorAction =
     hasAnyFlagged && action === "approved" ? "needs_revision" : action;
   const submitLabel = effectiveAction ? getSubmitLabels(t)[effectiveAction] : t("selectAnAction");
+  const continueHint = canContinue
+    ? null
+    : unratedCount > 0
+      ? t("continueUnratedHint", { count: unratedCount })
+      : needsSectionAction
+        ? t("continueSectionActionHint")
+        : null;
   const actionColor =
     effectiveAction === "approved"
       ? "var(--gradient-brand)"
@@ -127,14 +136,24 @@ export function ModerationNavButtons({
           </button>
         </div>
       ) : (
-        <GradientButton
-          type="button"
-          disabled={!canContinue}
-          onClick={onNext}
-          style={{ gap: "clamp(8px, 0.83vw, 12px)" }}
-        >
-          {t("continueLabel")} <ArrowRight size={18} />
-        </GradientButton>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
+          <GradientButton
+            type="button"
+            disabled={!canContinue}
+            onClick={onNext}
+            style={{ gap: "clamp(8px, 0.83vw, 12px)" }}
+          >
+            {t("continueLabel")} <ArrowRight size={18} />
+          </GradientButton>
+          {continueHint && (
+            <span
+              role="status"
+              style={{ fontFamily: bodyFont, fontSize: 13, color: "var(--color-warning-text)" }}
+            >
+              {continueHint}
+            </span>
+          )}
+        </div>
       )}
     </div>
   );

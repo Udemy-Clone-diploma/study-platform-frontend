@@ -15,6 +15,7 @@ function FieldRow({
   itemStatuses,
   onItemStatusToggle,
   locked = false,
+  highlightUnrated = false,
 }: {
   fieldKey: string;
   label: string;
@@ -22,11 +23,19 @@ function FieldRow({
   itemStatuses: ItemStatuses;
   onItemStatusToggle: (key: string) => void;
   locked?: boolean;
+  highlightUnrated?: boolean;
 }) {
+  const unrated = highlightUnrated && (itemStatuses[fieldKey] ?? null) === null;
   return (
     <div style={{ opacity: locked ? 0.6 : 1 }}>
       <span style={labelSt}>{label}</span>
-      <div style={{ position: "relative" }}>
+      <div
+        style={{
+          position: "relative",
+          borderRadius: 12,
+          boxShadow: unrated ? "0 0 0 2px var(--color-warning-text)" : undefined,
+        }}
+      >
         {children}
         <div
           style={{
@@ -96,8 +105,9 @@ export function ModeratorBasicsStep(props: StepProps) {
 
   const levelLabel = displayLevel ? tBasics(`level.${displayLevel}`) : "—";
 
-  const canContinue =
-    BASICS_FIELD_KEYS.every((k) => (itemStatuses[k] ?? null) !== null) && basicsAction !== null;
+  const unratedCount = BASICS_FIELD_KEYS.filter((k) => (itemStatuses[k] ?? null) === null).length;
+  const canContinue = unratedCount === 0 && basicsAction !== null;
+  const highlightUnrated = unratedCount > 0 && unratedCount < BASICS_FIELD_KEYS.length;
 
   return (
     <div
@@ -151,6 +161,7 @@ export function ModeratorBasicsStep(props: StepProps) {
             itemStatuses={itemStatuses}
             onItemStatusToggle={onItemStatusToggle}
             locked={lockedKeys.has("field-title")}
+            highlightUnrated={highlightUnrated}
           >
             <div style={valueWithBadgeSt}>{displayTitle}</div>
           </FieldRow>
@@ -161,6 +172,7 @@ export function ModeratorBasicsStep(props: StepProps) {
             itemStatuses={itemStatuses}
             onItemStatusToggle={onItemStatusToggle}
             locked={lockedKeys.has("field-short-description")}
+            highlightUnrated={highlightUnrated}
           >
             <div style={valueWithBadgeSt}>{displayShortDesc}</div>
           </FieldRow>
@@ -171,6 +183,7 @@ export function ModeratorBasicsStep(props: StepProps) {
             itemStatuses={itemStatuses}
             onItemStatusToggle={onItemStatusToggle}
             locked={lockedKeys.has("field-full-description")}
+            highlightUnrated={highlightUnrated}
           >
             <div style={{ ...valueWithBadgeSt, whiteSpace: "pre-wrap" }}>{displayFullDesc}</div>
           </FieldRow>
@@ -181,6 +194,7 @@ export function ModeratorBasicsStep(props: StepProps) {
             itemStatuses={itemStatuses}
             onItemStatusToggle={onItemStatusToggle}
             locked={lockedKeys.has("field-icon")}
+            highlightUnrated={highlightUnrated}
           >
             <div style={{ ...valueWithBadgeSt, display: "flex", alignItems: "center", gap: 12 }}>
               {displayImage ? (
@@ -210,6 +224,7 @@ export function ModeratorBasicsStep(props: StepProps) {
               itemStatuses={itemStatuses}
               onItemStatusToggle={onItemStatusToggle}
               locked={lockedKeys.has("field-category")}
+              highlightUnrated={highlightUnrated}
             >
               <div style={valueWithBadgeSt}>{displayCategory}</div>
             </FieldRow>
@@ -219,6 +234,7 @@ export function ModeratorBasicsStep(props: StepProps) {
               itemStatuses={itemStatuses}
               onItemStatusToggle={onItemStatusToggle}
               locked={lockedKeys.has("field-level")}
+              highlightUnrated={highlightUnrated}
             >
               <div style={valueWithBadgeSt}>{levelLabel}</div>
             </FieldRow>
@@ -240,6 +256,8 @@ export function ModeratorBasicsStep(props: StepProps) {
         action={action}
         hasAnyFlagged={hasAnyFlagged}
         canContinue={canContinue}
+        unratedCount={unratedCount}
+        needsSectionAction={basicsAction === null}
         submitting={submitting}
         error={error}
         onNext={onNext}

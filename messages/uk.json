@@ -1272,6 +1272,8 @@
     "backLabel": "Назад",
     "backToCoursesLabel": "До курсів",
     "continueLabel": "Продовжити",
+    "continueSectionActionHint": "Оберіть статус розділу праворуч",
+    "continueUnratedHint": "Не оцінено: {count, plural, one {# елемент} few {# елементи} many {# елементів} other {# елемента}}",
     "flaggedWillRevise": "Деякі елементи позначені — буде надіслано на доопрацювання",
     "selectAnAction": "Оберіть дію",
     "submitApproved": "Схвалити та опублікувати",

@@ -220,6 +220,7 @@
   --color-danger: #e74c3c;
   --color-success: #1cbb43;
   --color-warning: #ff8d28;
+  --color-warning-text: #a34a00;
   --color-rejected: #ff383c;
   --color-modal-overlay: rgba(167, 186, 250, 0.65);
   --color-error-surface: rgba(239, 68, 68, 0.06);

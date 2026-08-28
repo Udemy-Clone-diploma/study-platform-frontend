@@ -186,6 +186,17 @@ export function CoursesAdminView() {
   return (
     <PageShell className="bg-(--color-brand-lavender-soft) bg-admin-courses">
       <div className="flex w-full flex-col" style={{ maxWidth: 1648, margin: "0 auto" }}>
+        <h1
+          className="font-semibold text-(--color-text-primary)"
+          style={{
+            fontFamily: "var(--font-base)",
+            fontSize: "clamp(24px, 2.5vw, 36px)",
+            margin: "0 0 clamp(16px, 1.67vw, 24px)",
+          }}
+        >
+          {t("title")}
+        </h1>
+
         <div style={{ marginBottom: "clamp(16px, 1.67vw, 24px)" }}>
           <CourseStatusTabs
             active={statusTab}

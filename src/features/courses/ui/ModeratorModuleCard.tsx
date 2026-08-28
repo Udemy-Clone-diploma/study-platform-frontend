@@ -16,6 +16,7 @@ function ModeratorLessonRow({
   onToggle,
   onView,
   locked = false,
+  unrated = false,
 }: {
   lesson: CourseLesson;
   index: number;
@@ -23,6 +24,7 @@ function ModeratorLessonRow({
   onToggle: () => void;
   onView: () => void;
   locked?: boolean;
+  unrated?: boolean;
 }) {
   const t = useTranslations("ModeratorModuleCard");
   return (
@@ -30,7 +32,7 @@ function ModeratorLessonRow({
       className="flex items-center justify-between"
       style={{
         background: "var(--color-bg)",
-        border: "2px solid var(--color-border-light)",
+        border: `2px solid ${unrated ? "var(--color-warning-text)" : "var(--color-border-light)"}`,
         borderRadius: 16,
         padding: "clamp(20px, 1.67vw, 24px) clamp(24px, 2.22vw, 32px)",
       }}
@@ -96,6 +98,7 @@ export function ModeratorModuleCard({
   itemStatuses,
   onItemToggle,
   lockedKeys = new Set(),
+  highlightUnrated = false,
   readOnly = false,
   courseSlug,
 }: {
@@ -104,6 +107,7 @@ export function ModeratorModuleCard({
   itemStatuses: ItemStatuses;
   onItemToggle: (key: string) => void;
   lockedKeys?: Set<string>;
+  highlightUnrated?: boolean;
   readOnly?: boolean;
   courseSlug?: string;
 }) {
@@ -224,6 +228,7 @@ export function ModeratorModuleCard({
                     onToggle={() => onItemToggle(key)}
                     onView={() => setViewLesson(lesson)}
                     locked={lockedKeys.has(key)}
+                    unrated={highlightUnrated && (itemStatuses[key] ?? null) === null}
                   />
                 );
               })}

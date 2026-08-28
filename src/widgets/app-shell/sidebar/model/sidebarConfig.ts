@@ -238,14 +238,6 @@ function buildModeratorItems(t: Translator, tCommon: Translator): SidebarItem[] 
       iconSrc: "/icons/book-navy.svg",
       match: "startsWith",
     },
-    {
-      id: "notifications",
-      label: t("notifications"),
-      href: "/moderator-dashboard/notifications",
-      icon: "notifications",
-      iconSrc: "/icons/Notification.svg",
-      match: "startsWith",
-    },
   ];
 }
 

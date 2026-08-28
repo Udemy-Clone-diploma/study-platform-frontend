@@ -15,8 +15,8 @@ export function getRoleHome(role: UserRole | null | undefined): string {
 
 /** Each role's "My Courses" path. Used by the user dropdown and mobile header menu. */
 export const ROLE_COURSES: Record<UserRole, string> = {
-  administrator: "/admin",
-  moderator: "/admin",
+  administrator: "/admin/courses",
+  moderator: "/moderator-dashboard/courses",
   teacher: "/teacher-dashboard/courses",
   student: "/student-dashboard/courses",
 };

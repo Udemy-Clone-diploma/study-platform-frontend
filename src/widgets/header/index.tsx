@@ -2,7 +2,7 @@ import Image from "next/image";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { getCategories } from "@/entities/course";
-import { getMe, type UserRole } from "@/entities/user";
+import { getMe, getRoleCourses, getRoleHome, type UserRole } from "@/entities/user";
 import { CatalogDropdown } from "@/features/courses";
 import { UserDropdown } from "@/features/auth";
 import { NotificationBell } from "@/features/notifications";
@@ -40,6 +40,10 @@ export async function Header({
   const user = accessToken ? await getMe(accessToken).catch(() => null) : null;
   const role = user?.role ?? (roleCookie as UserRole | undefined) ?? null;
   const isLoggedIn = Boolean(user || (role && hasRefreshSession));
+  const isStaff = role === "moderator" || role === "administrator";
+  const shortcut = isStaff
+    ? { href: getRoleHome(role), label: t("dashboard") }
+    : { href: getRoleCourses(role), label: t("myCourses") };
 
   return (
     <header
@@ -105,13 +109,11 @@ export async function Header({
           {isLoggedIn ? (
             <div className="flex items-center h-full" style={{ gap: 40 }}>
               <Link
-                href={
-                  role === "teacher" ? "/teacher-dashboard/courses" : "/student-dashboard/courses"
-                }
+                href={shortcut.href}
                 className="transition-opacity hover:opacity-70"
                 style={navLinkStyle}
               >
-                {t("myCourses")}
+                {shortcut.label}
               </Link>
 
               <div className="flex items-center h-full" style={{ gap: 28 }}>
